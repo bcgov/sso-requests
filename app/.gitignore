@@ -26,6 +26,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# jest
+jest/test-results
+
 # local env files
 .env
 .env.local

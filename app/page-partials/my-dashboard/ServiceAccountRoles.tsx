@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import { startCase, throttle } from 'lodash';
-import { Tabs, Tab, Alert, LastSavedMessage } from '@bcgov-sso/common-react-components';
+import { Tabs, Alert, LastSavedMessage } from '@bcgov-sso/common-react-components';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
@@ -10,7 +10,6 @@ import { listClientRoles, listUserRoles, manageUserRoles } from 'services/keyclo
 import TopAlertWrapper from '@app/components/TopAlertWrapper';
 import Link from '@app/components/Link';
 import { getServiceAccountUsername } from '@app/helpers/users';
-import { noop } from 'lodash';
 import { formatWikiURL } from '@app/utils/constants';
 import TableNew from '@app/components/TableNew';
 import { Col, Row } from 'react-bootstrap';
@@ -179,6 +178,58 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
 
   let rightPanel: any = null;
 
+  const tabItems = environments.map((env) => ({
+    key: env,
+    label: startCase(env),
+    children: (
+      <>
+        <br />
+        <Row>
+          <Row>
+            <Col span={5}>
+              <TableNew
+                dataTestId="service-account-roles-table"
+                columns={[
+                  {
+                    accessorKey: 'projectName',
+                    header: 'Service Account',
+                  },
+                ]}
+                data={[{ projectName: selectedRequest.projectName }]}
+                enableGlobalSearch={false}
+              ></TableNew>
+            </Col>
+            <Col span={5}>
+              {loadingRight ? (
+                <Loading />
+              ) : (
+                <div>
+                  <Label>Assign Service Account to a Role</Label>
+                  <div data-testid="assign-svc-acct-to-role-select">
+                    <Select
+                      value={userRoles.map((role) => ({ value: role, label: role }))}
+                      options={roles.map((role) => ({ value: role, label: role }))}
+                      isMulti={true}
+                      placeholder="Select..."
+                      noOptionsMessage={() => 'No roles'}
+                      onChange={handleRoleChange}
+                    />
+                  </div>
+
+                  <LastSavedMessage
+                    saving={saving}
+                    content={savingMessage}
+                    variant={userAssignmentError ? 'error' : 'success'}
+                  />
+                </div>
+              )}
+            </Col>
+          </Row>
+        </Row>
+      </>
+    ),
+  }));
+
   return (
     <>
       <TopAlertWrapper>
@@ -191,55 +242,13 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
           </span>
         </Alert>
       </TopAlertWrapper>
-      <Tabs onChange={handleTabSelect} activeKey={environment} tabBarGutter={30} destroyInactiveTabPane={true}>
-        {environments.map((env) => (
-          <Tab key={env} tab={startCase(env)}>
-            <br />
-            <Row>
-              <Row>
-                <Col span={5}>
-                  <TableNew
-                    dataTestId="service-account-roles-table"
-                    columns={[
-                      {
-                        accessorKey: 'projectName',
-                        header: 'Service Account',
-                      },
-                    ]}
-                    data={[{ projectName: selectedRequest.projectName }]}
-                    enableGlobalSearch={false}
-                  ></TableNew>
-                </Col>
-                <Col span={5}>
-                  {loadingRight ? (
-                    <Loading />
-                  ) : (
-                    <div>
-                      <Label>Assign Service Account to a Role</Label>
-                      <div data-testid="assign-svc-acct-to-role-select">
-                        <Select
-                          value={userRoles.map((role) => ({ value: role, label: role }))}
-                          options={roles.map((role) => ({ value: role, label: role }))}
-                          isMulti={true}
-                          placeholder="Select..."
-                          noOptionsMessage={() => 'No roles'}
-                          onChange={handleRoleChange}
-                        />
-                      </div>
-
-                      <LastSavedMessage
-                        saving={saving}
-                        content={savingMessage}
-                        variant={userAssignmentError ? 'error' : 'success'}
-                      />
-                    </div>
-                  )}
-                </Col>
-              </Row>
-            </Row>
-          </Tab>
-        ))}
-      </Tabs>
+      <Tabs
+        onChange={handleTabSelect}
+        activeKey={environment}
+        tabBarGutter={30}
+        destroyInactiveTabPane={true}
+        items={tabItems}
+      />
     </>
   );
 };

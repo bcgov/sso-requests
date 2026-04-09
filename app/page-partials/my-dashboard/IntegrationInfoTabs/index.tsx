@@ -16,7 +16,7 @@ import {
   usesSocial,
   usesOTP,
 } from '@app/helpers/integration';
-import { Border, Tabs, Tab } from '@bcgov-sso/common-react-components';
+import { Border, Tabs } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
 import Link from '@app/components/Link';
 import { padStart } from 'lodash';
@@ -73,8 +73,10 @@ const IntegrationWrapper = ({ integration, children }: { integration: Integratio
 };
 
 const getIntegrationErrorTab = () => {
-  return (
-    <Tab key={TAB_DETAILS} tab="Technical Details">
+  return {
+    key: TAB_DETAILS,
+    label: 'Technical Details',
+    children: (
       <TabWrapper short={false}>
         <div style={{ display: 'inline-flex', margin: '20px 0 20px 0', background: '#FFCCCB', borderRadius: '5px' }}>
           <div style={{ padding: 5 }}>
@@ -87,8 +89,8 @@ const getIntegrationErrorTab = () => {
           </div>
         </div>
       </TabWrapper>
-    </Tab>
-  );
+    ),
+  };
 };
 
 const getInstallationTab = ({
@@ -98,8 +100,10 @@ const getInstallationTab = ({
   integration: Integration;
   approvalContext: ApprovalContext;
 }) => {
-  return (
-    <Tab key={TAB_DETAILS} tab="Technical Details">
+  return {
+    key: TAB_DETAILS,
+    label: 'Technical Details',
+    children: (
       <TabWrapper short={false}>
         <Row>
           <Col style={{ padding: '4px' }} sm={12} md={6}>
@@ -114,13 +118,15 @@ const getInstallationTab = ({
           </Col>
         </Row>
       </TabWrapper>
-    </Tab>
-  );
+    ),
+  };
 };
 
 const getLoadingSpinner = () => {
-  return (
-    <Tab key={TAB_DETAILS} tab="Technical Details">
+  return {
+    key: TAB_DETAILS,
+    label: 'Technical Details',
+    children: (
       <TabWrapper short={false}>
         <Row>
           <br />
@@ -131,13 +137,15 @@ const getLoadingSpinner = () => {
           </AlignCenter>
         </Row>
       </TabWrapper>
-    </Tab>
-  );
+    ),
+  };
 };
 
 const getRoleManagementTab = ({ integration }: { integration: Integration }) => {
-  return (
-    <Tab key={TAB_ROLE_MANAGEMENT} tab="Role Management">
+  return {
+    key: TAB_ROLE_MANAGEMENT,
+    label: 'Role Management',
+    children: (
       <TabWrapper>
         <br />
         <div>
@@ -149,68 +157,80 @@ const getRoleManagementTab = ({ integration }: { integration: Integration }) => 
         </div>
         <ClientRoles integration={integration} />
       </TabWrapper>
-    </Tab>
-  );
+    ),
+  };
 };
 
 const getUserAssignmentTab = ({ integration }: { integration: Integration }) => {
-  return (
-    <Tab key={TAB_USER_ROLE_MANAGEMENT} tab="Assign Users to Roles">
+  return {
+    key: TAB_USER_ROLE_MANAGEMENT,
+    label: 'Assign Users to Roles',
+    children: (
       <TabWrapper>
         <UserRoles selectedRequest={integration} />
       </TabWrapper>
-    </Tab>
-  );
+    ),
+  };
 };
 
 const getServiceAccountAssignmentTab = ({ integration }: { integration: Integration }) => {
-  return (
-    <Tab key={TAB_SERVICE_ACCOUNT_ROLE_MANAGEMENT} tab="Assign Service Account to Roles">
+  return {
+    key: TAB_SERVICE_ACCOUNT_ROLE_MANAGEMENT,
+    label: 'Assign Service Account to Roles',
+    children: (
       <TabWrapper>
         <ServiceAccountRoles selectedRequest={integration} />
       </TabWrapper>
-    </Tab>
-  );
+    ),
+  };
 };
 
 const getSecretsTab = ({ integration }: { integration: Integration }) => {
-  return (
-    <Tab key={TAB_SECRET} tab="Secrets">
+  return {
+    key: TAB_SECRET,
+    label: 'Secrets',
+    children: (
       <TabWrapper short={true}>
         <SecretsPanel selectedRequest={integration} />
       </TabWrapper>
-    </Tab>
-  );
+    ),
+  };
 };
 
 const getMetricsTab = ({ integration }: { integration: Integration }) => {
-  return (
-    <Tab key={TAB_METRICS} tab="Metrics">
+  return {
+    key: TAB_METRICS,
+    label: 'Metrics',
+    children: (
       <TabWrapper short={false}>
         <MetricsPanel integration={integration} />
       </TabWrapper>
-    </Tab>
-  );
+    ),
+  };
 };
 
 const getLogsTab = ({ integration }: { integration: Integration }) => {
-  return (
-    <Tab key={TAB_LOGS} tab="Logs">
+  return {
+    key: TAB_LOGS,
+    label: 'Logs',
+    children: (
       <TabWrapper short={false}>
         <LogsPanel integration={integration} />
       </TabWrapper>
-    </Tab>
-  );
+    ),
+  };
 };
 
 const getHistoryTab = ({ integration }: { integration: Integration }) => {
-  return (
-    <Tab key={TAB_HISTORY} tab="Change History">
+  return {
+    key: TAB_HISTORY,
+    label: 'Change History',
+    children: (
       <TabWrapper short={true}>
         <UserEventPanel requestId={integration.id} />
       </TabWrapper>
-    </Tab>
-  );
+    ),
+  };
 };
 
 interface Props {
@@ -362,9 +382,8 @@ function IntegrationInfoTabs({ integration }: Props) {
         tabBarGutter={30}
         destroyInactiveTabPane={true}
         data-testid="integration-details-tabs"
-      >
-        {tabs}
-      </Tabs>
+        items={tabs}
+      />
     </IntegrationWrapper>
   );
 }

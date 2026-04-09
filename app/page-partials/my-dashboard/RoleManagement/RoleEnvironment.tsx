@@ -652,6 +652,11 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     ></TableNew>
   );
 
+  const tabItems = rightPanelTabs.map((tab) => ({
+    key: tab,
+    label: tab,
+  }));
+
   return (
     <>
       {roleLoading ? (
