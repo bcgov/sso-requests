@@ -1,7 +1,7 @@
-import { useState, useEffect, MouseEventHandler } from 'react';
+import { useState, useEffect, MouseEventHandler, useMemo } from 'react';
 import Link from '@app/components/Link';
 import { Integration } from 'interfaces/Request';
-import { padStart } from 'lodash';
+import { isEqual, padStart } from 'lodash';
 import { NumberedContents } from '@bcgov-sso/common-react-components';
 import { getStatusDisplayName } from 'utils/status';
 import styled from 'styled-components';
@@ -161,6 +161,8 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
 
       interval = setInterval(async () => {
         const [data, err] = await getRequests();
+        // Ignore update if no data changed
+        if (isEqual(integrations, data)) return;
 
         if (err) {
           clearInterval(interval);
@@ -182,6 +184,61 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
     });
   };
 
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: 'id',
+        header: 'Request ID',
+      },
+      {
+        accessorKey: 'projectName',
+        header: 'Project Name',
+      },
+      {
+        accessorKey: 'status',
+        header: 'Status',
+      },
+      {
+        accessorKey: 'authType',
+        header: 'Usecase',
+      },
+      {
+        accessorKey: 'serviceType',
+        header: 'Service Type',
+      },
+      {
+        accessorKey: 'actions',
+        header: () => <div style={{ display: 'flex', justifyContent: 'right', marginRight: 20 }}>Actions</div>,
+
+        cell: (props: any) => {
+          const request = integrations.find(
+            (integration) => integration.id === unformatIntegrationID(props.row.original.id),
+          );
+          return (
+            <div style={{ display: 'flex', justifyContent: 'right', columnGap: '0.5rem' }}>
+              <ActionButtons
+                request={request as Integration}
+                onDelete={(_: any, error: AxiosError | null) => {
+                  if (error) {
+                    alert.show({
+                      variant: 'danger',
+                      content: `Failed to delete integration ${props.row.original.projectName}.`,
+                    });
+                  } else {
+                    loadIntegrations();
+                  }
+                }}
+                defaultActiveColor="#fff"
+                delIconStyle={{ marginLeft: '7px' }}
+              />
+            </div>
+          );
+        },
+      },
+    ],
+    [integrations],
+  );
+
   const getTableContents = () => {
     if (hasIntegrationLoadError) return <SystemUnavailableMessage />;
 
@@ -192,59 +249,7 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
         <h2>Integrations</h2>
         <TableNew
           dataTestId="integration-list-table"
-          columns={
-            [
-              {
-                accessorKey: 'id',
-                header: 'Request ID',
-              },
-              {
-                accessorKey: 'projectName',
-                header: 'Project Name',
-              },
-              {
-                accessorKey: 'status',
-                header: 'Status',
-              },
-              {
-                accessorKey: 'authType',
-                header: 'Usecase',
-              },
-              {
-                accessorKey: 'serviceType',
-                header: 'Service Type',
-              },
-              {
-                accessorKey: 'actions',
-                header: () => <div style={{ display: 'flex', justifyContent: 'right', marginRight: 20 }}>Actions</div>,
-
-                cell: (props: any) => {
-                  const request = integrations.find(
-                    (integration) => integration.id === unformatIntegrationID(props.row.original.id),
-                  );
-                  return (
-                    <div style={{ display: 'flex', justifyContent: 'right', columnGap: '0.5rem' }}>
-                      <ActionButtons
-                        request={request as Integration}
-                        onDelete={(_: any, error: AxiosError | null) => {
-                          if (error) {
-                            alert.show({
-                              variant: 'danger',
-                              content: `Failed to delete integration ${props.row.original.projectName}.`,
-                            });
-                          } else {
-                            loadIntegrations();
-                          }
-                        }}
-                        defaultActiveColor="#fff"
-                        delIconStyle={{ marginLeft: '7px' }}
-                      />
-                    </div>
-                  );
-                },
-              },
-            ] as any
-          }
+          columns={columns}
           data={integrations?.map((integration: Integration) => {
             return {
               id: formatIntegrationID(integration.id as number),

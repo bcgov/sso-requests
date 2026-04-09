@@ -7,6 +7,7 @@ import { setUpRouter } from './utils/setup';
 import { defaultStandardRealmSettings, errorMessages } from '../utils/constants';
 import { sampleRequest } from './samples/integrations';
 import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from '@app/utils/validate';
+import userEvent from '@testing-library/user-event';
 
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
@@ -334,6 +335,37 @@ describe('Error messages', () => {
     screen.getAllByText(errorMessages.redirectUris);
     screen.getByText(errorMessages.clientMaxLifespan);
     screen.getByText(errorMessages.clientIdleTimeout);
+  });
+
+  it('Should validate the logout service URL', async () => {
+    setUpRender(
+      { id: 0, environments: ['dev'], protocol: 'saml', devValidRedirectUris: ['http://a'], serviceType: 'gold' },
+      { client_roles: ['sso-admin'], isAdmin: true },
+    );
+    const devSamlLogoutPostBindingUriSelector = '#root_devSamlLogoutPostBindingUri';
+    fireEvent.click(sandbox.developmentBox);
+
+    // Navigate away and back to page to trigger live validation
+    fireEvent.click(sandbox.basicInfoBox);
+    fireEvent.click(sandbox.developmentBox);
+
+    let uriInput = document.querySelector(devSamlLogoutPostBindingUriSelector) as HTMLElement;
+
+    // Entering invalid url triggers validation
+    await userEvent.type(uriInput, 'invalid-url');
+    await screen.findByText(errorMessages.redirectUris);
+
+    // Valid URL clears message
+    await userEvent.clear(uriInput);
+    await userEvent.type(uriInput, 'https://a.com');
+    await waitFor(() => {
+      expect(screen.queryByText(errorMessages.redirectUris)).not.toBeInTheDocument();
+    });
+
+    // Wildcard is invalid, should re-show validation
+    await userEvent.clear(uriInput);
+    await userEvent.type(uriInput, '*');
+    await screen.findByText(errorMessages.redirectUris);
   });
 
   it('Should display the expected page 3 errors after navigating away from the page', async () => {
