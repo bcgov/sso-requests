@@ -197,6 +197,7 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
                 ]}
                 data={[{ projectName: selectedRequest.projectName }]}
                 enableGlobalSearch={false}
+                enablePagination={false}
               ></TableNew>
             </Col>
             <Col span={5}>
