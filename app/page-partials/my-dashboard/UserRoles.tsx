@@ -67,10 +67,6 @@ type IDPS =
   | 'digitalcredential'
   | 'social';
 
-const PAGE_LIMIT = 15;
-
-const sliceRows = (page: number, rows: KeycloakUser[]) => rows.slice((page - 1) * PAGE_LIMIT, page * PAGE_LIMIT);
-
 interface PropertyOption {
   value: string;
   label: string;
@@ -182,7 +178,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [searched, setSearched] = useState(false);
   const [page, setPage] = useState<number>(1);
   const [count, setCount] = useState<number>(0);
-  const [limit, setLimit] = useState<number>(PAGE_LIMIT);
+  const [limit, setLimit] = useState<number>(5);
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -199,6 +195,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [userAssignmentError, setUserAssignmentError] = useState(false);
   const surveyContext = useContext(SurveyContext);
+
+  const sliceRows = (page: number, rows: KeycloakUser[]) => rows.slice((page - 1) * limit, page * limit);
 
   const throttleUpdate = useCallback(
     throttle(
@@ -641,6 +639,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               enableGlobalSearch={false}
               onRowSelect={activateRow}
               noDataFoundMessage={getTableStatusText()}
+              totalRowCount={count}
+              onPageSizeChange={setLimit}
+              serverPageIndex={page}
+              onPageChange={setPage}
             ></TableNew>
           </div>
           {idirLookup}

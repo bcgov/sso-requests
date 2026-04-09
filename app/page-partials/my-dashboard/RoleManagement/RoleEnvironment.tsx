@@ -527,10 +527,6 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
           variant="mini"
           columns={[
             {
-              accessorKey: 'username',
-              header: '',
-            },
-            {
               accessorKey: 'projectName',
               header: 'Project Name',
             },
@@ -540,9 +536,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
               cell: (props) => {
                 return viewOnly ? null : (
                   <span
-                    onClick={() =>
-                      removeServiceAccountModalRef.current.open({ username: props.row.getValue('username') })
-                    }
+                    onClick={() => removeServiceAccountModalRef.current.open({ username: props.row.original.username })}
                   >
                     <RightFloatServiceAccountsActionsButtons>
                       <FontAwesomeIcon
