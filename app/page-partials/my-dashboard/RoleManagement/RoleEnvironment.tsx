@@ -666,11 +666,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
           <Col>{leftPanel}</Col>
           <Col>
             {selectedRole && (
-              <Tabs onChange={handleRightPanelTabSelect} activeKey={rightPanelTab} tabBarGutter={30}>
-                {rightPanelTabs.map((tab) => (
-                  <Tab key={tab} tab={tab} />
-                ))}
-              </Tabs>
+              <Tabs onChange={handleRightPanelTabSelect} activeKey={rightPanelTab} tabBarGutter={30} items={tabItems} />
             )}
             {rightPanel}
           </Col>
