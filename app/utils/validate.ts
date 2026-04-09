@@ -24,6 +24,13 @@ const isValidKeycloakURI = (isProd: boolean, uri: string) => {
 export const isValidKeycloakURIDev = isValidKeycloakURI.bind(null, false);
 export const isValidKeycloakURIProd = isValidKeycloakURI.bind(null, true);
 
+// Field is optional and can be empty, but if provided cannot be a wildcard (asterisk)
+const isValidSamlLogoutPostBindingUri = (isProd: boolean, uri: string) => {
+  if (uri === '*') return false;
+  if (uri !== '' && uri !== null && !isValidKeycloakURI(isProd, uri)) return false;
+  return true;
+};
+
 const validationMessage = 'Please enter a valid URI';
 export const MAX_IDLE_SECONDS = 30 * 60;
 export const MAX_LIFETIME_SECONDS = 600 * 60;
@@ -120,27 +127,15 @@ export const customValidate = (formData: any, errors: any, uiSchema: any, fields
       }
     },
     devSamlLogoutPostBindingUri: () => {
-      if (
-        devSamlLogoutPostBindingUri !== '' &&
-        devSamlLogoutPostBindingUri !== null &&
-        !isValidKeycloakURIDev(devSamlLogoutPostBindingUri)
-      )
+      if (!isValidSamlLogoutPostBindingUri(false, devSamlLogoutPostBindingUri))
         errors['devSamlLogoutPostBindingUri'].addError(validationMessage);
     },
     testSamlLogoutPostBindingUri: () => {
-      if (
-        testSamlLogoutPostBindingUri !== '' &&
-        testSamlLogoutPostBindingUri !== null &&
-        !isValidKeycloakURIDev(testSamlLogoutPostBindingUri)
-      )
+      if (!isValidSamlLogoutPostBindingUri(false, testSamlLogoutPostBindingUri))
         errors['testSamlLogoutPostBindingUri'].addError(validationMessage);
     },
     prodSamlLogoutPostBindingUri: () => {
-      if (
-        prodSamlLogoutPostBindingUri !== '' &&
-        prodSamlLogoutPostBindingUri !== null &&
-        !isValidKeycloakURIProd(prodSamlLogoutPostBindingUri)
-      )
+      if (!isValidSamlLogoutPostBindingUri(true, prodSamlLogoutPostBindingUri))
         errors['prodSamlLogoutPostBindingUri'].addError(validationMessage);
     },
     clientId: () => {
