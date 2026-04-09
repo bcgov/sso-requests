@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@keycloak/keycloak-admin-client@26.4.7":
-  version "26.4.7"
-  resolved "https://registry.yarnpkg.com/@keycloak/keycloak-admin-client/-/keycloak-admin-client-26.4.7.tgz#17e2992cd2b243e7512c776a75d12bf6f442e0b0"
-  integrity sha512-6AqwZjWuWBzM0nPVggWDV4Oep+CO8ATfNEvVhXgC1dH7PkBCl/4hCRj9ZFHnX1OtQJ+zozD6LQ1giwArcAU6qQ==
+"@keycloak/keycloak-admin-client@26.5.6":
+  version "26.5.6"
+  resolved "https://registry.yarnpkg.com/@keycloak/keycloak-admin-client/-/keycloak-admin-client-26.5.6.tgz#2c5d1d2e353b203abbe3c9855e58bbfba2061fe8"
+  integrity sha512-APCPQ7gjB3r6s66N8vjAoXpxDkwJ5Huna9PlWIg+WMnrKzQkOBkxj+mmBduxjkt9uqQVaUtmy6/vZZerwQ/ltw==
   dependencies:
     camelize-ts "^3.0.0"
     url-template "^3.1.1"
