@@ -10,7 +10,7 @@ cronJobs:
     tag: dev
 
 api:
-  replicaCount: 2
+  replicaCount: 1
   enabled: true
   image:
     tag: dev
