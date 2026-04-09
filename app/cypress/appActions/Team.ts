@@ -130,30 +130,29 @@ class Team {
           }
           cy.get(this.teamPage.addNewTeamMember, { timeout: 10000 }).click();
 
-          cy.get(this.teamPage.modalAddMember, { timeout: 10000 })
-            .should('be.visible')
-            .within(() => {
-              let n = 0;
-              while (this.addUser.length > n) {
-                if (n > 0) {
-                  cy.get(this.teamPage.addUser, { timeout: 10000 }).first().scrollIntoView().trigger('click');
-                }
-                cy.get(`[data-testid="team-member-email-input-${n}"]`, { timeout: 10000 }).should('be.visible');
-                cy.get(`[data-testid="team-member-email-input-${n}"]`, { timeout: 10000 }).type(
-                  this.addUser[n]['useremail'].toString(),
-                  { delay: 50 },
-                );
-                cy.realPress('Tab');
-                cy.get(`#team-member-role-${n}`).click();
-                cy.get('[role="option"]')
-                  .contains(new RegExp(this.addUser[n]?.['userrole']?.toString() || '', 'i'))
-                  .click();
-                n++;
-              }
-              cy.get(this.teamPage.confirmDeleteAddTeamMember, { timeout: 10000 }).first().click({
-                force: true,
-              }); // or Member
+          cy.get(this.teamPage.modalAddMember, { timeout: 10000 }).should('be.visible');
+          let n = 0;
+          while (this.addUser.length > n) {
+            if (n > 0) {
+              cy.get(this.teamPage.addUser, { timeout: 10000 }).first().scrollIntoView().trigger('click');
+            }
+
+            cy.get(`[data-testid="team-member-email-input-${n}"]`).closest('[class*="select"]').click();
+
+            cy.get(`[data-testid="team-member-email-input-${n}"]`).type(this.addUser[n]['useremail'].toString(), {
+              delay: 50,
             });
+            cy.get('[role="option"]').contains(new RegExp(this.addUser[n]['useremail'].toString(), 'i')).click();
+            cy.realPress('Tab');
+            cy.get(`#team-member-role-${n}`).click();
+            cy.get('[role="option"]')
+              .contains(new RegExp(this.addUser[n]?.['userrole']?.toString() || '', 'i'))
+              .click();
+            n++;
+          }
+          cy.get(this.teamPage.confirmDeleteAddTeamMember, { timeout: 10000 }).first().click({
+            force: true,
+          }); // or Member
         }
       }
     });

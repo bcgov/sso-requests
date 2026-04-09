@@ -18,7 +18,6 @@ class Navigation {
     cy.url().then((url) => {
       if (url.includes('/my-dashboard/teams')) return;
       if (url.includes('/my-dashboard') && !url.includes('/teams')) {
-        this.waitForPageLoad();
         cy.contains('My Teams').click();
         this.waitForPageLoad();
       } else {
