@@ -227,6 +227,7 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
                   } else {
                     loadIntegrations();
                   }
+                  setIntegration(null);
                 }}
                 defaultActiveColor="#fff"
                 delIconStyle={{ marginLeft: '7px' }}
