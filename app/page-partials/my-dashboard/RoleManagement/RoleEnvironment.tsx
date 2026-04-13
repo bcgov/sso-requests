@@ -191,6 +191,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
 
         if (!err) setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
         await setSaving(false);
+        fetchRoles();
         return true;
       },
       2000,
