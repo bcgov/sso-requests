@@ -33,7 +33,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { canDeleteMember, capitalize } from 'utils/helpers';
 import type { Status } from 'interfaces/types';
-import ActionButtons, { ActionButton } from 'components/ActionButtons';
+import ActionButtons from 'components/ActionButtons';
 import ModalContents from 'components/WarningModalContents';
 import InfoOverlay from 'components/InfoOverlay';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
@@ -46,6 +46,7 @@ import { hasTeamPermission, teamPermissions } from '@app/utils/authorize';
 import TableNew from '@app/components/TableNew';
 import Select from 'react-select';
 import { Col, Row } from 'react-bootstrap';
+import ActionButton from '@app/components/ActionButton';
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -521,7 +522,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                     return (
                       <RightFloat>
                         {adminActionsAllowed && props.row.original.status && (
-                          <ButtonIcon
+                          <ActionButton
                             icon={faShare}
                             size="lg"
                             onClick={() => inviteMember(member!)}
@@ -531,7 +532,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                           />
                         )}
                         {adminActionsAllowed && (
-                          <ButtonIcon
+                          <ActionButton
                             icon={faTrash}
                             onClick={() => handleDeleteClick(props.row.getValue('id'))}
                             size="lg"

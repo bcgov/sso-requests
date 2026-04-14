@@ -2,6 +2,7 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faCopy, faArrowRotateRight, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { PRIMARY_RED } from 'styles/theme';
+import ActionButton from './ActionButton';
 
 export const ActionButtonContainer = styled.div`
   height: 100%;
@@ -12,17 +13,6 @@ export const ActionButtonContainer = styled.div`
   & > * {
     margin-left: 15px;
   }
-`;
-
-export const ActionButton = styled(FontAwesomeIcon)<{
-  disabled?: boolean;
-  activeColor?: string;
-  isUnread?: boolean;
-}>`
-  cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
-  ${(props) =>
-    props.disabled ? `color: #CACACA;` : `color: inherit; &:hover { color: ${props.activeColor || '#000'}; }`}
-  ${(props) => (props.isUnread ? `color: ${PRIMARY_RED}` : '')};
 `;
 
 export const VerticalLine = styled.div`
@@ -51,6 +41,7 @@ export default function ServiceAccountActionbuttons({
           role="button"
           aria-label="copy-credentials"
           onClick={() => copyOrDownloadAction(false)}
+          title="Copy to clipboard"
           size="lg"
           disabled={actionsDisabled}
           aria-hidden={false}
@@ -60,6 +51,7 @@ export default function ServiceAccountActionbuttons({
           role="button"
           aria-label="download-credentials"
           onClick={() => copyOrDownloadAction(true)}
+          title="Download"
           size="lg"
           disabled={actionsDisabled}
           aria-hidden={false}
@@ -69,6 +61,7 @@ export default function ServiceAccountActionbuttons({
           role="button"
           aria-label="update-secret"
           onClick={showUpdateModal}
+          title="Update secret"
           size="lg"
           disabled={actionsDisabled}
           aria-hidden={false}
@@ -78,6 +71,7 @@ export default function ServiceAccountActionbuttons({
           role="button"
           aria-label="delete-api-account"
           onClick={showDeleteModal}
+          title="Delete"
           size="lg"
           disabled={actionsDisabled}
           aria-hidden={false}

@@ -7,7 +7,7 @@ import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { Header, InfoText, LastSavedMessage, SearchBar } from '@bcgov-sso/common-react-components';
-import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
+import { ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import IdimLookup from 'page-partials/my-dashboard/users-roles/IdimLookup';
@@ -19,6 +19,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { SurveyContext } from '@app/utils/context';
 import TableNew from '@app/components/TableNew';
 import { Col, Row } from 'react-bootstrap';
+import ActionButton from '@app/components/ActionButton';
 
 const Label = styled.label`
   font-weight: bold;
