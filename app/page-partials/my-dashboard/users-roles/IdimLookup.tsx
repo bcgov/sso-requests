@@ -1,11 +1,12 @@
 import { useState, forwardRef, useEffect } from 'react';
 import { faEye, faDownload } from '@fortawesome/free-solid-svg-icons';
-import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
+import { ActionButtonContainer } from 'components/ActionButtons';
 import { ModalRef } from 'components/GenericModal';
 import { searchIdirUsers, importIdirUser, IdirUser } from 'services/bceid-webservice';
 import TableNew from '@app/components/TableNew';
 import Select from 'react-select';
 import { SearchBar } from '@bcgov-sso/common-react-components';
+import ActionButton from '@app/components/ActionButton';
 
 const idpOptions = [{ value: 'idir', label: 'IDIR' }];
 

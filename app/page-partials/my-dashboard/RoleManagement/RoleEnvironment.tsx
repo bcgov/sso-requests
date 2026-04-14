@@ -8,7 +8,7 @@ import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
-import { ActionButton } from 'components/ActionButtons';
+import ActionButton from 'components/ActionButton';
 import { LastSavedMessage, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import InfoOverlay from 'components/InfoOverlay';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
