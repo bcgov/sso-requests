@@ -609,12 +609,13 @@ class Request {
       cy.contains(this.reqPage.tabRoleManagement).click();
       cy.contains(util.capitalizeFirst(env)).click();
       cy.get(this.reqPage.createRoleButton).click();
-      cy.get(this.reqPage.roleNameInputField).first().clear().type(role);
-      cy.get(this.reqPage.roleEnvironment)
-        .first()
-        .clear()
-        .type(env + '{enter}');
     });
+
+    cy.get(this.reqPage.roleNameInputField).first().clear().type(role);
+    cy.get(this.reqPage.roleEnvironment)
+      .first()
+      .clear()
+      .type(env + '{enter}');
 
     cy.get(this.reqPage.confirmCreateNewRole).click({
       force: true,
