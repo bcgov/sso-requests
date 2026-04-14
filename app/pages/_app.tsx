@@ -56,7 +56,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
     const interval = setInterval(() => {
       if (!session || !keycloak.refreshTokenParsed?.exp) return;
-      const now = new Date().getTime() / 1000;
+      const now = Date.now() / 1000;
       const secondsToTokenExpiry = keycloak.refreshTokenParsed?.exp - now;
       if (secondsToTokenExpiry > 0 && secondsToTokenExpiry < refreshTokenPromptTime) {
         setRefreshTokenStatus('expiring');

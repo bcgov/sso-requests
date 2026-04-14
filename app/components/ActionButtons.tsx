@@ -1,7 +1,6 @@
 import { MouseEvent, useState } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { Integration } from 'interfaces/Request';
 import { deleteRequest } from 'services/request';

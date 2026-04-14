@@ -1,7 +1,5 @@
 import styled from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faCopy, faArrowRotateRight, faDownload } from '@fortawesome/free-solid-svg-icons';
-import { PRIMARY_RED } from 'styles/theme';
 import ActionButton from './ActionButton';
 
 export const ActionButtonContainer = styled.div`
