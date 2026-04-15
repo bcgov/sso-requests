@@ -32,7 +32,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const { integration } = data;
   const emails = [SSO_EMAIL_ADDRESS];
   const cc = [];
-  if (process.env.APP_ENV === 'production' && integration?.environments?.includes('prod')) {
+  if (process.env.NEXT_PUBLIC_APP_ENV === 'production' && integration?.environments?.includes('prod')) {
     cc.push(IDIM_EMAIL_ADDRESS);
   }
 

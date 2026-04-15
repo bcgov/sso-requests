@@ -30,4 +30,16 @@ module.exports = {
   verbose: true,
   coverageReporters: ['json', 'html'],
   testEnvironment: 'node',
+  reporters: [
+    'default',
+    [
+      'jest-html-reporters',
+      {
+        publicPath: '<rootDir>/jest-api/test-results',
+        pageTitle: 'SSO Requests API Unit Test Report',
+        filename: 'report.html',
+        includeConsoleLog: true,
+      },
+    ],
+  ],
 };

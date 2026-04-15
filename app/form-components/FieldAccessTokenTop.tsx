@@ -1,6 +1,5 @@
-import React from 'react';
 import styled from 'styled-components';
-import Link from '@button-inc/bcgov-theme/Link';
+import Link from '@app/components/Link';
 
 const Container = styled.div`
   margin-top: var(--field-top-spacing);

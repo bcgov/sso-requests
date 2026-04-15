@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import { Tabs, Tab } from '@bcgov-sso/common-react-components';
-import Table from 'components/Table';
-import Dropdown from '@button-inc/bcgov-theme/Dropdown';
+import { Tabs } from '@bcgov-sso/common-react-components';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
 import TeamMembersForm, { Errors, validateTeam } from 'form-components/team-form/TeamMembersForm';
 import { User, Team } from 'interfaces/team';
@@ -35,17 +33,20 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { canDeleteMember, capitalize } from 'utils/helpers';
 import type { Status } from 'interfaces/types';
-import ActionButtons, { ActionButton } from 'components/ActionButtons';
+import ActionButtons from 'components/ActionButtons';
 import ModalContents from 'components/WarningModalContents';
 import InfoOverlay from 'components/InfoOverlay';
-import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import ServiceAccountsList from './ServiceAccountsList';
 import { ErrorMessage, InfoMessage } from '@app/components/MessageBox';
-import { Link } from '@button-inc/bcgov-theme';
+import Link from '@app/components/Link';
 import { SurveyContext } from '@app/utils/context';
 import { docusaurusURL, messages } from '@app/utils/constants';
 import { hasTeamPermission, teamPermissions } from '@app/utils/authorize';
+import TableNew from '@app/components/TableNew';
+import Select from 'react-select';
+import { Col, Row } from 'react-bootstrap';
+import ActionButton from '@app/components/ActionButton';
 
 const INVITATION_EXPIRY_DAYS = 2;
 
@@ -180,7 +181,7 @@ const RequestStatusIcon = ({ status }: { status?: Status }) => {
     color = '#2e8540';
     icon = faCheckCircle;
   }
-  return <FontAwesomeIcon icon={icon} title={status} style={{ color }} />;
+  return <FontAwesomeIcon icon={icon} aria-label={status} style={{ color }} />;
 };
 
 const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; invitationSendTime?: string }) => {
@@ -203,7 +204,7 @@ const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; 
     icon = faCheckCircle;
     title = 'Active Member';
   }
-  return <FontAwesomeIcon icon={icon} title={title} style={{ color }} />;
+  return <FontAwesomeIcon icon={icon} aria-label={title} style={{ color }} />;
 };
 
 const Requester = styled.div`
@@ -425,283 +426,339 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
 
   if (!team || !myself) return null;
 
-  return (
-    <>
-      <h2>Team Details</h2>
-      <Tabs defaultActiveKey={'members'} tabBarGutter={30}>
-        <Tab key="members" tab="Members">
-          <TabWrapper>
-            {hasTeamPermission(myself?.role, teamPermissions.ADD_MEMBER) ? (
-              <button
-                className="primary"
-                style={{ margin: '1rem 0' }}
-                onClick={() => setOpenAddTeamMemberModal(true)}
-                data-testid="add-new-team-member"
-              >
-                + Add New Team Members
-              </button>
-            ) : (
-              <br />
-            )}
-            <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
-              <Table
-                data-testid="team-members-table"
-                variant="medium"
-                headers={[
-                  {
-                    accessor: 'status',
-                    Header: 'Invite Status',
-                    disableSortBy: true,
+  const tabItems = [
+    {
+      key: 'members',
+      label: 'Members',
+      children: (
+        <TabWrapper>
+          {hasTeamPermission(myself?.role, teamPermissions.ADD_MEMBER) ? (
+            <button
+              className="primary"
+              style={{ margin: '1rem 0' }}
+              onClick={() => setOpenAddTeamMemberModal(true)}
+              data-testid="add-new-team-member"
+            >
+              + Add New Team Members
+            </button>
+          ) : (
+            <br />
+          )}
+          <ReactPlaceholder type="text" rows={7} ready={!loading}>
+            <TableNew
+              dataTestId="team-members-table"
+              columns={[
+                {
+                  accessorKey: 'id',
+                  header: '',
+                },
+                {
+                  accessorKey: 'invitiationSendTime',
+                  header: '',
+                },
+                {
+                  accessorKey: 'status',
+                  header: 'Invite Status',
+
+                  cell: (props) => {
+                    return (
+                      <MemberStatusIcon
+                        pending={props.row.getValue('status')}
+                        invitationSendTime={props.row.getValue('invitiationSendTime')}
+                      />
+                    );
                   },
-                  {
-                    accessor: 'idirEmail',
-                    Header: 'Email',
-                  },
-                  {
-                    accessor: 'role',
-                    Header: <RoleHeader />,
-                    disableSortBy: true,
-                  },
-                  {
-                    accessor: 'actions',
-                    Header: <MembersActionsHeader />,
-                    disableSortBy: true,
-                  },
-                ]}
-                data={members.map((member) => {
-                  const adminActionsAllowed =
-                    hasTeamPermission(myself?.role, teamPermissions.UPDATE_MEMBER_ROLE) && myself.id !== member.id;
-                  return {
-                    status: <MemberStatusIcon pending={member.pending} invitationSendTime={member.createdAt} />,
-                    idirEmail: member.idirEmail,
-                    role:
-                      adminActionsAllowed && !member.pending ? (
-                        <Dropdown
-                          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                            handleMemberRoleChange(member.id as number, event.target.value)
+                },
+                {
+                  accessorKey: 'idirEmail',
+                  header: 'Email',
+                },
+                {
+                  accessorKey: 'role',
+                  header: () => <RoleHeader />,
+                  cell: (props) => {
+                    const adminActionsAllowed =
+                      hasTeamPermission(myself?.role, teamPermissions.UPDATE_MEMBER_ROLE) &&
+                      myself.id !== props.row.getValue('id');
+                    return adminActionsAllowed && !props.row.getValue('status') ? (
+                      <div>
+                        <Select
+                          options={[
+                            { value: 'member', label: 'Member' },
+                            { value: 'admin', label: 'Admin' },
+                          ]}
+                          onChange={(option: { value: unknown; label: string } | null) =>
+                            handleMemberRoleChange(
+                              props.row.getValue('id') as number,
+                              option ? (option.value as string) : '',
+                            )
                           }
-                          value={member.role}
-                        >
-                          <option value="member">Member</option>
-                          <option value="admin">Admin</option>
-                        </Dropdown>
-                      ) : (
-                        capitalize(member.role)
-                      ),
-                    actions: (
+                          value={
+                            props.row.getValue('role')
+                              ? { value: props.row.getValue('role'), label: capitalize(props.row.getValue('role')) }
+                              : null
+                          }
+                          styles={{
+                            menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+                          }}
+                          menuPortalTarget={document.body}
+                          isSearchable={false}
+                          isClearable={false}
+                        />
+                      </div>
+                    ) : (
+                      capitalize(props.row.getValue('role'))
+                    );
+                  },
+                },
+                {
+                  accessorKey: 'actions',
+                  header: () => <MembersActionsHeader />,
+                  cell: (props) => {
+                    const member = members.find((member) => member.id === props.row.getValue('id'));
+                    const adminActionsAllowed =
+                      hasTeamPermission(myself?.role, teamPermissions.UPDATE_MEMBER_ROLE) &&
+                      myself.id !== props.row.getValue('id');
+                    return (
                       <RightFloat>
-                        {adminActionsAllowed && member.pending && (
-                          <ButtonIcon
+                        {adminActionsAllowed && props.row.original.status && (
+                          <ActionButton
                             icon={faShare}
                             size="lg"
-                            onClick={() => inviteMember(member)}
-                            title="Resend Invitation"
+                            onClick={() => inviteMember(member!)}
+                            aria-label="Resend Invitation"
                             style={{ marginRight: '6px' }}
                             data-testid="resend-invitation"
                           />
                         )}
                         {adminActionsAllowed && (
-                          <ButtonIcon
+                          <ActionButton
                             icon={faTrash}
-                            onClick={() => handleDeleteClick(member.id)}
+                            onClick={() => handleDeleteClick(props.row.getValue('id'))}
                             size="lg"
-                            title="Delete User"
+                            aria-label="Delete User"
                             style={{ marginRight: '16px' }}
                             data-testid="delete-member"
                           />
                         )}
                       </RightFloat>
-                    ),
-                  };
-                })}
-                colfilters={[]}
-                rowSelectorKey={'status'}
-                readOnly={true}
-              />
-            </ReactPlaceholder>
-          </TabWrapper>
-        </Tab>
-        <Tab key="integrations" tab="Integrations">
-          <TabWrapper marginTop="20px">
-            <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
-              <Table
-                variant="medium"
-                headers={[
-                  {
-                    accessor: 'status',
-                    Header: 'Status',
-                    disableSortBy: true,
+                    );
                   },
-                  {
-                    accessor: 'id',
-                    Header: 'Request ID',
-                  },
-                  {
-                    accessor: 'projectName',
-                    Header: 'Project Name',
-                  },
-                  {
-                    accessor: 'actions',
-                    Header: <IntegrationActionsHeader />,
-                    disableSortBy: true,
-                  },
-                ]}
-                data={
-                  integrations?.length > 0
-                    ? integrations?.map((integration) => {
-                        return {
-                          status: <RequestStatusIcon status={integration?.status} />,
-                          id: integration.id,
-                          projectName: integration.projectName,
-                          actions: (
-                            <RightFloat>
-                              <ActionButtons
-                                request={integration}
-                                onDelete={() => {
-                                  loadTeams();
-                                  getData(team?.id);
-                                }}
-                              >
-                                <ActionButton
-                                  icon={faEye}
-                                  aria-label="view"
-                                  onClick={() => viewProject(integration.id)}
-                                  size="lg"
-                                />
-                              </ActionButtons>
-                            </RightFloat>
-                          ),
-                        };
-                      })
-                    : []
-                }
-                readOnly={true}
-                colfilters={[]}
-                rowSelectorKey={'status'}
-                noDataFoundElement={
-                  <CenteredTD colSpan={5}>
-                    <br />
-                    There are no integrations for this team yet.
-                    <br />
-                    <br />
-                    To add this team to an <span className="strong">existing integration</span>:
-                    <span className="line-height-200"></span>
-                    <ol>
-                      <li>
-                        Go to your{' '}
-                        <span className="text-blue">
-                          <span className="strong">Projects</span>
-                        </span>{' '}
-                        tab
-                      </li>
-                      <li>Select the &ldquo;pencil&rdquo; icon to edit the integration</li>
-                      <li>Select this team from the &ldquo;Project Team&rdquo; drop down</li>
-                    </ol>
-                    <br />
-                    To add this team to a <span className="strong">new integration</span>:
-                    <span className="line-height-200"></span>
-                    <ol>
-                      <li>
-                        Go to your{' '}
-                        <span className="text-blue">
-                          <span className="strong">Projects</span>
-                        </span>{' '}
-                        tab
-                      </li>
-                      <li>Select &ldquo;+ Request SSO Integration&rdquo;</li>
-                      <li>Select &ldquo;Yes&rdquo; to allow multiple team members to manage the integration</li>
-                      <li>Select this team from the &ldquo;Project Team&rdquo; drop down</li>
-                    </ol>
-                  </CenteredTD>
-                }
-              />
-            </ReactPlaceholder>
-          </TabWrapper>
-        </Tab>
-        {hasTeamPermission(myself?.role, teamPermissions.MANAGE_TEAM_API_ACCOUNTS) && (
-          <Tab key="service-accounts" tab="CSS API Account">
-            <TabWrapper marginTop="10px">
-              {loading ? (
-                <AlignCenter>
-                  <TopMargin />
-                  <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
-                </AlignCenter>
-              ) : (
-                <Grid cols={10}>
-                  <Grid.Row collapse="1100" gutter={[15, 2]}>
-                    <Grid.Col span={4}>
-                      {teamServiceAccounts.length > 0 ? (
-                        <ServiceAccountsList
-                          team={team}
-                          selectedServiceAccount={activeServiceAccount}
-                          setSelectedServiceAccount={setActiveServiceAccount}
-                          teamServiceAccounts={teamServiceAccounts}
-                          getTeamServiceAccounts={fetchTeamServiceAccounts}
-                        />
-                      ) : (
-                        <button
-                          style={{ marginBottom: 10 }}
-                          onClick={async () => {
-                            setLoading(true);
-                            const [sa, err] = await requestServiceAccount(team.id);
-                            if (err) {
-                              setLoading(false);
-                              alert.show({
-                                variant: 'danger',
-                                fadeOut: 10000,
-                                closable: true,
-                                content: err,
-                              });
-                            } else {
-                              surveyContext?.setShowSurvey(true, 'cssApiRequest');
-                              fetchTeamServiceAccounts(team.id);
-                            }
-                          }}
-                          className="primary"
-                        >
-                          + Request CSS API Account
-                        </button>
-                      )}
-                    </Grid.Col>
-                    <Grid.Col span={6}>
-                      {serviceAccountInProgress && (
-                        <div
-                          style={{
-                            display: 'inline-flex',
-                            margin: '20px 0 20px 0',
-                            background: '#FFCCCB',
-                            borderRadius: '5px',
+                },
+              ]}
+              data={members.map((member) => {
+                return {
+                  id: member.id,
+                  status: Boolean(member.pending),
+                  idirEmail: member.idirEmail,
+                  role: member.role,
+                  invitiationSendTime: member.createdAt,
+                };
+              })}
+              enableGlobalSearch={false}
+              hiddenColumns={['id', 'invitiationSendTime']}
+              enablePagination={false}
+            ></TableNew>
+          </ReactPlaceholder>
+        </TabWrapper>
+      ),
+    },
+    {
+      key: 'integrations',
+      label: 'Integrations',
+      children: (
+        <TabWrapper marginTop="20px">
+          <ReactPlaceholder type="text" rows={7} ready={!loading} style={{ marginTop: '20px' }}>
+            <TableNew
+              dataTestId="team-integrations-table"
+              columns={[
+                {
+                  accessorKey: 'status',
+                  header: 'Status',
+                  cell: (props) => <RequestStatusIcon status={props.row.original.status} />,
+                },
+                {
+                  accessorKey: 'id',
+                  header: 'Request ID',
+                },
+                {
+                  accessorKey: 'projectName',
+                  header: 'Project Name',
+                },
+                {
+                  accessorKey: 'actions',
+                  header: () => <IntegrationActionsHeader />,
+
+                  cell: (props) => {
+                    return (
+                      <RightFloat>
+                        <ActionButtons
+                          request={props.row.original}
+                          onDelete={() => {
+                            loadTeams();
+                            getData(team?.id);
                           }}
                         >
-                          <div style={{ padding: 5 }}>
-                            <ErrorMessage>
-                              Your request for an API account could not be completed. Please{' '}
-                              <Link external href="mailto:bcgov.sso@gov.bc.ca">
-                                contact the Pathfinder SSO Team
-                              </Link>
-                            </ErrorMessage>
-                          </div>
-                        </div>
-                      )}
-                    </Grid.Col>
-                  </Grid.Row>
-                  {teamServiceAccounts.length > 0 && (
-                    <Grid.Row>
-                      <InfoMessage>
-                        For more information on how to use the CSS API Account with your integrations,{' '}
-                        <Link href={`${docusaurusURL}/integrating-your-application/css-app-api`} external>
-                          click to learn more on our wiki page
-                        </Link>
-                        .
-                      </InfoMessage>
-                    </Grid.Row>
+                          <ActionButton
+                            icon={faEye}
+                            aria-label="view"
+                            onClick={() => viewProject(props.row.original.id)}
+                            size="lg"
+                          />
+                        </ActionButtons>
+                      </RightFloat>
+                    );
+                  },
+                },
+              ]}
+              data={
+                integrations?.length > 0
+                  ? integrations?.map((integration) => {
+                      return {
+                        status: integration?.status,
+                        id: integration.id,
+                        projectName: integration.projectName,
+                      };
+                    })
+                  : []
+              }
+              enableGlobalSearch={false}
+              enablePagination={false}
+              noDataFoundMessage={
+                <CenteredTD colSpan={5}>
+                  <br />
+                  There are no integrations for this team yet.
+                  <br />
+                  <br />
+                  To add this team to an <span className="strong">existing integration</span>:
+                  <span className="line-height-200"></span>
+                  <ol>
+                    <li>
+                      Go to your{' '}
+                      <span className="text-blue">
+                        <span className="strong">Projects</span>
+                      </span>{' '}
+                      tab
+                    </li>
+                    <li>Select the &ldquo;pencil&rdquo; icon to edit the integration</li>
+                    <li>Select this team from the &ldquo;Project Team&rdquo; drop down</li>
+                  </ol>
+                  <br />
+                  To add this team to a <span className="strong">new integration</span>:
+                  <span className="line-height-200"></span>
+                  <ol>
+                    <li>
+                      Go to your{' '}
+                      <span className="text-blue">
+                        <span className="strong">Projects</span>
+                      </span>{' '}
+                      tab
+                    </li>
+                    <li>Select &ldquo;+ Request SSO Integration&rdquo;</li>
+                    <li>Select &ldquo;Yes&rdquo; to allow multiple team members to manage the integration</li>
+                    <li>Select this team from the &ldquo;Project Team&rdquo; drop down</li>
+                  </ol>
+                </CenteredTD>
+              }
+            />
+          </ReactPlaceholder>
+        </TabWrapper>
+      ),
+    },
+  ];
+
+  if (hasTeamPermission(myself?.role, teamPermissions.MANAGE_TEAM_API_ACCOUNTS)) {
+    tabItems.push({
+      key: 'service-accounts',
+      label: 'CSS API Account',
+      children: (
+        <TabWrapper marginTop="10px">
+          {loading ? (
+            <AlignCenter>
+              <TopMargin />
+              <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
+            </AlignCenter>
+          ) : (
+            <Row>
+              <Row>
+                <Col>
+                  {teamServiceAccounts.length > 0 ? (
+                    <ServiceAccountsList
+                      team={team}
+                      selectedServiceAccount={activeServiceAccount}
+                      setSelectedServiceAccount={setActiveServiceAccount}
+                      teamServiceAccounts={teamServiceAccounts}
+                      getTeamServiceAccounts={fetchTeamServiceAccounts}
+                    />
+                  ) : (
+                    <button
+                      style={{ marginBottom: 10 }}
+                      onClick={async () => {
+                        setLoading(true);
+                        const [sa, err] = await requestServiceAccount(team.id);
+                        if (err) {
+                          setLoading(false);
+                          alert.show({
+                            variant: 'danger',
+                            fadeOut: 10000,
+                            closable: true,
+                            content: err,
+                          });
+                        } else {
+                          surveyContext?.setShowSurvey(true, 'cssApiRequest');
+                          fetchTeamServiceAccounts(team.id);
+                        }
+                      }}
+                      className="primary"
+                    >
+                      + Request CSS API Account
+                    </button>
                   )}
-                </Grid>
+                </Col>
+                <Col>
+                  {serviceAccountInProgress && (
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        margin: '20px 0 20px 0',
+                        background: '#FFCCCB',
+                        borderRadius: '5px',
+                      }}
+                    >
+                      <div style={{ padding: 5 }}>
+                        <ErrorMessage>
+                          Your request for an API account could not be completed. Please{' '}
+                          <Link external href="mailto:bcgov.sso@gov.bc.ca">
+                            contact the Pathfinder SSO Team
+                          </Link>
+                        </ErrorMessage>
+                      </div>
+                    </div>
+                  )}
+                </Col>
+              </Row>
+              {teamServiceAccounts.length > 0 && (
+                <Row>
+                  <InfoMessage>
+                    For more information on how to use the CSS API Account with your integrations,{' '}
+                    <Link href={`${docusaurusURL}/integrating-your-application/css-app-api`} external>
+                      click to learn more on our wiki page
+                    </Link>
+                    .
+                  </InfoMessage>
+                </Row>
               )}
-            </TabWrapper>
-          </Tab>
-        )}
-      </Tabs>
+            </Row>
+          )}
+        </TabWrapper>
+      ),
+    });
+  }
+
+  return (
+    <>
+      <h2>Team Details</h2>
+      <Tabs defaultActiveKey={'members'} tabBarGutter={30} items={tabItems} />
       <CenteredModal
         id={addMemberModalId}
         openModal={openAddTeamMemberModal}

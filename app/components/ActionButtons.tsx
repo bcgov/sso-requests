@@ -1,14 +1,14 @@
 import { MouseEvent, useState } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { Integration } from 'interfaces/Request';
 import { deleteRequest } from 'services/request';
 import { PRIMARY_RED } from 'styles/theme';
-import noop from 'lodash.noop';
+import { noop } from 'lodash';
 import { canDeleteIntegration, canEditIntegration } from '@app/helpers/permissions';
 import DeleteModal from './DeleteModal';
+import ActionButton from './ActionButton';
 
 export const ActionButtonContainer = styled.div`
   height: 100%;
@@ -19,21 +19,6 @@ export const ActionButtonContainer = styled.div`
   & > * {
     margin-left: 15px;
   }
-`;
-
-interface StyledActionButtonProps {
-  disabled?: boolean;
-  activeColor?: string;
-  isUnread?: boolean;
-}
-
-export const ActionButton = styled(({ disabled, activeColor, isUnread, ...props }) => (
-  <FontAwesomeIcon {...props} aria-disabled={disabled} />
-))<StyledActionButtonProps>`
-  cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
-  ${(props) =>
-    props.disabled ? `color: #CACACA;` : `color: inherit; &:hover { color: ${props.activeColor || '#000'}; }`}
-  ${(props) => (props.isUnread ? `color: ${PRIMARY_RED}` : '')};
 `;
 
 export const VerticalLine = styled.div`
@@ -118,7 +103,7 @@ export default function Actionbuttons({
       </ActionButtonContainer>
       <DeleteModal
         id={`delete-modal-${request?.id}`}
-        projectName={request.projectName}
+        projectName={request?.projectName}
         onConfirm={confirmDelete}
         title="Confirm Deletion"
         content="You are about to delete this integration request. This action cannot be undone."

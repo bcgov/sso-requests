@@ -1,11 +1,11 @@
-import DatePicker, { ReactDatePickerProps } from 'react-datepicker';
+import DatePicker, { DatePickerProps } from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendar } from '@fortawesome/free-solid-svg-icons';
 import { FormLabel } from 'react-bootstrap';
 import React from 'react';
 
-export default function DateTimePicker(props: ReactDatePickerProps & { label: string }) {
+export default function DateTimePicker(props: DatePickerProps & { label: string }) {
   return (
     <>
       <DatePicker

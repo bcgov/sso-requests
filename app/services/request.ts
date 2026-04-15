@@ -1,7 +1,5 @@
 import { instance } from './axios';
-import orderBy from 'lodash.orderby';
-import isString from 'lodash.isstring';
-import omit from 'lodash.omit';
+import { orderBy, isString, omit } from 'lodash';
 import { Integration } from 'interfaces/Request';
 import { processRequest } from 'utils/helpers';
 import { handleAxiosError } from 'services/axios';

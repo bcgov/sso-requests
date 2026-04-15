@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { deleteRequest } from 'services/request';
 import { MyTeamsComponent } from './helpers';
 
@@ -156,11 +156,18 @@ describe('Integrations tab', () => {
     screen.getByRole('columnheader', { name: 'Status' });
     screen.getByText('Request ID');
     screen.getByText('Project Name');
+
     screen.getAllByRole('columnheader', { name: 'Actions' });
-    screen.getByRole('row', { name: 'applied 1 test project Edit Delete' });
-    screen.getByRole('row', { name: 'draft 2 test project 02 Edit Delete' });
-    screen.getByRole('row', { name: 'submitted 3 test project 03 Edit Delete' });
-    screen.getByRole('row', { name: 'prFailed 4 test project 04 Edit Delete' });
+
+    const integrationsTable = screen.getByTestId('team-integrations-table');
+
+    const allTableRows = within(integrationsTable).getAllByRole('row');
+
+    expect(allTableRows[1]).toHaveTextContent('1test project');
+    expect(allTableRows[2]).toHaveTextContent('2test project 02');
+    expect(allTableRows[3]).toHaveTextContent('3test project 03');
+    expect(allTableRows[4]).toHaveTextContent('4test project 04');
+
     expect(screen.getByRole('img', { name: 'applied' })).toHaveStyle('color: rgb(46, 133, 64)');
     expect(screen.getByRole('img', { name: 'draft' })).toHaveStyle('color: rgb(26, 90, 150)');
     expect(screen.getByRole('img', { name: 'submitted' })).toHaveStyle('color: rgb(252, 186, 25)');

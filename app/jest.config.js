@@ -24,4 +24,16 @@ module.exports = {
   verbose: true,
   coverageReporters: ['json', 'html'],
   testMatch: ['<rootDir>/jest/**/?(*.)+(spec|test).+(ts|tsx|js)'],
+  reporters: [
+    'default',
+    [
+      'jest-html-reporters',
+      {
+        publicPath: '<rootDir>/jest/test-results',
+        pageTitle: 'SSO Requests Frontend Unit Test Report',
+        filename: 'report.html',
+        includeConsoleLog: true,
+      },
+    ],
+  ],
 };

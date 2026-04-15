@@ -3,7 +3,7 @@ import { Team } from '@app/interfaces/team';
 import { Session } from '@app/shared/interfaces';
 import createHttpError from 'http-errors';
 import { checkBceidGroup, checkBcServicesCard, checkGithubGroup, checkOTP, checkSocial } from './integration';
-import isequal from 'lodash.isequal';
+import { isEqual } from 'lodash';
 import { hasAppPermission, hasTeamPermission, teamPermissions, appPermissions } from '@app/utils/authorize';
 
 /**
@@ -121,8 +121,8 @@ export const getIdpApprovalStatus = ({ session, originalData, updatedData }: any
 
   if (originalData.bcServicesCardApproved) {
     if (
-      !isequal(updatedData.bcscAttributes, originalData.bcscAttributes) ||
-      !isequal(updatedData.bcscPrivacyZone, originalData.bcscPrivacyZone)
+      !isEqual(updatedData.bcscAttributes, originalData.bcscAttributes) ||
+      !isEqual(updatedData.bcscPrivacyZone, originalData.bcscPrivacyZone)
     ) {
       throw new Error('Forbidden');
     }

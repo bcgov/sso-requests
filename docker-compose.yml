@@ -21,29 +21,48 @@ services:
     build:
       dockerfile: Dockerfile
       context: .
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:3000/api
+        NEXT_PUBLIC_SSO_URL: https://dev.loginproxy.gov.bc.ca/auth
+        NEXT_PUBLIC_SSO_CLIENT_ID: css-app-in-gold-4128
+        NEXT_PUBLIC_SSO_REDIRECT_URI: http://localhost:3000
+        NEXT_PUBLIC_SSO_AUTHORIZATION_RESPONSE_TYPE: code
+        NEXT_PUBLIC_SSO_AUTHORIZATION_SCOPE: openid
+        NEXT_PUBLIC_SSO_TOKEN_GRANT_TYPE: authorization_code
+        NEXT_PUBLIC_SSO_IDP_HINT: azureidir
+        NEXT_PUBLIC_APP_URL: http://localhost:3000
+        NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL: true
+        NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD: true
+        NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD: true
+        NEXT_PUBLIC_INCLUDE_SOCIAL: true
+        NEXT_PUBLIC_INCLUDE_OTP: true
+        NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT: https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
+        NEXT_PUBLIC_APP_ENV: local
     ports:
       - 3000:3000
     environment:
-      API_URL: http://localhost:3000/api
-      SSO_URL: https://dev.loginproxy.gov.bc.ca/auth
-      SSO_CLIENT_ID: css-app-in-gold-4128
-      SSO_REDIRECT_URI: http://localhost:3000
-      SSO_AUTHORIZATION_RESPONSE_TYPE: code
-      SSO_AUTHORIZATION_SCOPE: openid
-      SSO_TOKEN_GRANT_TYPE: authorization_code
-      KC_IDP_HINT: idir
+      NEXT_PUBLIC_API_URL: http://localhost:3000/api
+      NEXT_PUBLIC_SSO_URL: https://dev.loginproxy.gov.bc.ca/auth
+      NEXT_PUBLIC_SSO_CLIENT_ID: css-app-in-gold-4128
+      NEXT_PUBLIC_SSO_REDIRECT_URI: http://localhost:3000
+      NEXT_PUBLIC_SSO_AUTHORIZATION_RESPONSE_TYPE: code
+      NEXT_PUBLIC_SSO_AUTHORIZATION_SCOPE: openid
+      NEXT_PUBLIC_SSO_TOKEN_GRANT_TYPE: authorization_code
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL: true
+      NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD: true
+      NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD: true
+      NEXT_PUBLIC_INCLUDE_SOCIAL: true
+      NEXT_PUBLIC_INCLUDE_OTP: true
+      NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT: https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
+      NEXT_PUBLIC_APP_ENV: local
+      NEXT_PUBLIC_SSO_IDP_HINT: azureidir
+
       MAINTENANCE_MODE_ACTIVE: 'false'
       SSO_REQUESTS_BACKEND_HOSTNAME: sso-requests
-      APP_URL: http://localhost:3000
-      INCLUDE_DIGITAL_CREDENTIAL: 'true'
-      INCLUDE_BC_SERVICES_CARD: 'true'
-      ALLOW_BC_SERVICES_CARD_PROD: 'true'
-      INCLUDE_SOCIAL: 'true'
-      INCLUDE_OTP: 'true'
       API_AUTH_SECRET: s3cr3t
       NODE_ENV: development
       DATABASE_URL: postgresql://postgres:postgres@sso-db:5433/ssorequests
-      SSO_CONFIGURATION_ENDPOINT: https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
       KEYCLOAK_V2_DEV_USERNAME: admin
       KEYCLOAK_V2_DEV_PASSWORD: admin
       KEYCLOAK_V2_DEV_URL: http://dev-keycloak:9080
@@ -69,7 +88,6 @@ services:
       BCSC_REGISTRATION_BASE_URL_DEV: https://idsit.gov.bc.ca
       BCSC_REGISTRATION_BASE_URL_TEST: https://idsit.gov.bc.ca
       BCSC_REGISTRATION_BASE_URL_PROD: https://idsit.gov.bc.ca
-      APP_ENV: 'local'
     depends_on:
       - sso-db
     networks:
@@ -77,7 +95,7 @@ services:
 
   dev-keycloak:
     container_name: dev-keycloak
-    image: ghcr.io/bcgov/sso:26.4.11-build.1
+    image: ghcr.io/bcgov/sso:26.4.11-build.2
 
     depends_on:
       - sso-db
@@ -114,7 +132,7 @@ services:
 
   test-keycloak:
     container_name: test-keycloak
-    image: ghcr.io/bcgov/sso:26.4.11-build.1
+    image: ghcr.io/bcgov/sso:26.4.11-build.2
 
     depends_on:
       - sso-db
@@ -151,7 +169,7 @@ services:
 
   prod-keycloak:
     container_name: prod-keycloak
-    image: ghcr.io/bcgov/sso:26.4.11-build.1
+    image: ghcr.io/bcgov/sso:26.4.11-build.2
 
     depends_on:
       - sso-db
@@ -197,9 +215,6 @@ services:
       TF_VAR_username: admin
       TF_VAR_password: admin
       KC_ENV: dev
-    build:
-      context: .
-      dockerfile: ./Dockerfile.tf-modules
     volumes:
       - sso-kc-terraform-dev:/terraform
     networks:
@@ -217,9 +232,6 @@ services:
       TF_VAR_username: admin
       TF_VAR_password: admin
       KC_ENV: test
-    build:
-      context: .
-      dockerfile: ./Dockerfile.tf-modules
     volumes:
       - sso-kc-terraform-test:/terraform
     networks:
@@ -237,9 +249,6 @@ services:
       TF_VAR_username: admin
       TF_VAR_password: admin
       KC_ENV: prod
-    build:
-      context: .
-      dockerfile: ./Dockerfile.tf-modules
     volumes:
       - sso-kc-terraform-prod:/terraform
     networks:

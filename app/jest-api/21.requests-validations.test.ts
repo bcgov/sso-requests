@@ -67,6 +67,8 @@ describe('integration validations', () => {
     let integration: Integration;
 
     beforeAll(async () => {
+      process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = 'true';
+      process.env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD = 'true';
       jest.clearAllMocks();
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const result = await createTeam(postTeam);
@@ -92,6 +94,7 @@ describe('integration validations', () => {
         { ...updateableIntegration, usesTeam: false, projectLead: true },
         true,
       );
+      console.log('🚀 ~ updateIntRes:', updateIntRes);
       expect(updateIntRes.status).toEqual(200);
       expect(updateIntRes.body.usesTeam).toEqual(true);
       expect(updateIntRes.body.projectLead).toEqual(false);
@@ -218,7 +221,7 @@ describe('integration validations', () => {
     });
 
     it('should not allow to change bc services card idp and/or approved flag', async () => {
-      process.env.ALLOW_BC_SERVICES_CARD_PROD = 'true';
+      process.env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD = 'true';
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const projectName: string = 'BCSC Integration Validations';
       const integrationRes = await buildIntegration({

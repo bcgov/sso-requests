@@ -1,18 +1,13 @@
 import React, { useEffect, useState, useRef, useCallback, useContext } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
-import get from 'lodash.get';
-import startCase from 'lodash.startcase';
-import throttle from 'lodash.throttle';
-import reduce from 'lodash.reduce';
+import { get, startCase, throttle, reduce } from 'lodash';
 import { faExclamationCircle, faEye } from '@fortawesome/free-solid-svg-icons';
-import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
-import { Header, InfoText, LastSavedMessage } from '@bcgov-sso/common-react-components';
-import Table from 'components/Table';
-import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
+import { Header, InfoText, LastSavedMessage, SearchBar } from '@bcgov-sso/common-react-components';
+import { ActionButtonContainer } from 'components/ActionButtons';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import IdimLookup from 'page-partials/my-dashboard/users-roles/IdimLookup';
@@ -22,6 +17,9 @@ import { idpMap } from 'helpers/meta';
 import { KeycloakUser } from 'interfaces/team';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { SurveyContext } from '@app/utils/context';
+import TableNew from '@app/components/TableNew';
+import { Col, Row } from 'react-bootstrap';
+import ActionButton from '@app/components/ActionButton';
 
 const Label = styled.label`
   font-weight: bold;
@@ -69,10 +67,6 @@ type IDPS =
   | 'githubbcgov'
   | 'digitalcredential'
   | 'social';
-
-const PAGE_LIMIT = 15;
-
-const sliceRows = (page: number, rows: KeycloakUser[]) => rows.slice((page - 1) * PAGE_LIMIT, page * PAGE_LIMIT);
 
 interface PropertyOption {
   value: string;
@@ -185,7 +179,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [searched, setSearched] = useState(false);
   const [page, setPage] = useState<number>(1);
   const [count, setCount] = useState<number>(0);
-  const [limit, setLimit] = useState<number>(PAGE_LIMIT);
+  const [limit, setLimit] = useState<number>(5);
   const [loading, setLoading] = useState(false);
   const [loadingRight, setLoadingRight] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -202,6 +196,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [userAssignmentError, setUserAssignmentError] = useState(false);
   const surveyContext = useContext(SurveyContext);
+
+  const sliceRows = (page: number, rows: KeycloakUser[]) => rows.slice((page - 1) * limit, page * limit);
 
   const throttleUpdate = useCallback(
     throttle(
@@ -497,141 +493,163 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     return propOption?.label.toString();
   };
 
-  const activateRow = (request: any) => {
-    setSelectedId(request['original']['username']);
+  const activateRow = (row: any) => {
+    setSelectedId(row?.username);
   };
 
   return (
     <>
       <TopMargin />
-      <Grid cols={10}>
-        <Grid.Row collapse="1100" gutter={[15, 2]}>
-          <Grid.Col span={6}>
-            <Header variant="dark" size="sm">
-              1. Search for a user based on the selection criteria below &nbsp;
-              <InfoOverlay
-                title={''}
-                content={
-                  'When searching BCeID GUID, please ensure your end users has logged in via your app (and indirectly our IDP) for this search to be successful.'
-                }
-                hide={200}
-              />
-            </Header>
-            <div data-testid="role-search-table">
-              <Table
-                searchPlaceholder="Enter search criteria"
-                variant="mini"
-                rowSelectorKey={'username'}
-                headers={[
-                  {
-                    accessor: 'firstName',
-                    Header: getTableHeaderLabel('firstName') || '',
-                  },
-                  {
-                    accessor: 'lastName',
-                    Header: getTableHeaderLabel('lastName') || '',
-                  },
-                  {
-                    accessor: 'email',
-                    Header: 'Email',
-                  },
-                  {
-                    accessor: 'actions',
-                    Header: '',
-                    disableSortBy: true,
-                  },
-                ]}
-                data={rows.map((row) => {
-                  return {
-                    username: get(row, 'username'),
-                    firstName: get(row, 'firstName'),
-                    lastName: get(row, 'lastName'),
-                    email: get(row, 'email'),
-                    actions: (
-                      <ActionButtonContainer>
-                        <ActionButton
-                          icon={faEye}
-                          role="button"
-                          aria-label="view"
-                          onClick={(event: any) => {
-                            event.stopPropagation();
-
-                            infoModalRef.current.open({
-                              guid: row.username.split('@')[0],
-                              attributes: {
-                                ...reduce(
-                                  headers,
-                                  (ret: { [key: string]: string }, header) => {
-                                    ret[header.label] = get(row, header.value);
-                                    return ret;
-                                  },
-                                  {},
-                                ),
-                                ...row.attributes,
-                              },
-                            });
-                          }}
-                          title="View"
-                          size="lg"
-                        />
-                      </ActionButtonContainer>
-                    ),
-                  };
-                })}
-                colfilters={[
-                  {
-                    key: 'user-role-filter-env',
-                    value: selectedEnvironment,
-                    multiselect: false,
-                    onChange: setSelectedEnvironment,
-                    options: environments.map((env) => ({ value: env, label: startCase(env) })),
-                  },
-                  {
-                    key: 'user-role-filter-idp',
-                    value: selectedIdp,
-                    multiselect: false,
-                    onChange: setSelectedIdp,
-                    options: idps
-                      // Don't allow role assignment to DC, OTP, or BCSC users
-                      .filter((idp) => !['digitalcredential', 'bcservicescard', 'social', 'otp'].includes(idp))
-                      .map((idp) => ({ value: idp, label: idpMap[idp] })),
-                  },
-                  {
-                    key: 'user-role-filter-prop',
-                    value: selectedProperty,
-                    multiselect: false,
-                    onChange: setSelectedProperty,
-                    options: propertyOptions.filter((option) => option.search),
-                  },
-                ]}
-                showFilters={true}
-                loading={loading}
-                totalColSpan={20}
-                searchColSpan={10}
-                headerAlign={'bottom'}
-                headerGutter={[5, 0]}
-                searchKey={searchKey}
-                searchLocation={'right'}
-                onSearch={handleSearch}
-                onEnter={handleSearch}
-                noDataFoundElement={getTableStatusText()}
-                pagination={true}
-                pageLimits={[PAGE_LIMIT]}
-                onPage={setPage}
-                rowCount={count}
-                limit={limit}
-                onLimit={(val) => {
-                  setLimit(val);
+      <Row>
+        <Col lg={6}>
+          <Header variant="dark" size="sm">
+            1. Search for a user based on the selection criteria below &nbsp;
+            <InfoOverlay
+              title={''}
+              content={
+                'When searching BCeID GUID, please ensure your end users has logged in via your app (and indirectly our IDP) for this search to be successful.'
+              }
+              hide={200}
+            />
+          </Header>
+          <div data-testid="role-search-table">
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              {[
+                {
+                  key: 'search-user-filter-env',
+                  value: selectedEnvironment,
+                  multiselect: false,
+                  onChange: setSelectedEnvironment,
+                  options: environments.map((env) => ({ value: env, label: startCase(env) })),
+                },
+                {
+                  key: 'search-user-filter-idp',
+                  value: selectedIdp,
+                  multiselect: false,
+                  onChange: setSelectedIdp,
+                  options: idps
+                    // Don't allow role assignment to DC, OTP, or BCSC users
+                    .filter((idp) => !['digitalcredential', 'bcservicescard', 'social', 'otp'].includes(idp))
+                    .map((idp) => ({ value: idp, label: idpMap[idp] })),
+                },
+                {
+                  key: 'search-user-filter-prop',
+                  value: selectedProperty,
+                  multiselect: false,
+                  onChange: setSelectedProperty,
+                  options: propertyOptions.filter((option) => option.search),
+                },
+              ].map((filter) => {
+                return (
+                  <div style={{ flex: 1 }} data-testid={filter.key} key={filter.key}>
+                    <Select
+                      value={filter.options.find((option) => option.value === filter.value)}
+                      options={filter.options}
+                      isMulti={filter.multiselect}
+                      placeholder="Select..."
+                      onChange={(option: any) => filter.onChange(option ? (option as any).value : '')}
+                      isSearchable={true}
+                      defaultValue={filter.options[0]}
+                    />
+                  </div>
+                );
+              })}
+              <SearchBar
+                placeholder="Enter search criteria"
+                tooltip={searchTooltip}
+                onChange={(e: any) => setSearchKey(e.target.value)}
+                onKeyDown={(e: any) => {
+                  if (e.key === 'Enter') {
+                    handleSearch(searchKey);
+                  }
                 }}
-                activateRow={activateRow}
-                searchTooltip={searchTooltip}
-              ></Table>
+              />
+              <InfoOverlay content={searchTooltip || 'some text'}>
+                <button
+                  className="primary"
+                  type="button"
+                  onClick={() => handleSearch(searchKey)}
+                  style={{ padding: '.44rem 1.5rem' }}
+                >
+                  Search
+                </button>
+              </InfoOverlay>
             </div>
-            {idirLookup}
-          </Grid.Col>
-          <Grid.Col span={4}>{rightPanel}</Grid.Col>
-        </Grid.Row>
-      </Grid>
+
+            <TableNew
+              dataTestId="user-roles-table"
+              variant="mini"
+              columns={[
+                {
+                  accessorKey: 'firstName',
+                  header: getTableHeaderLabel('firstName') || '',
+                },
+                {
+                  accessorKey: 'lastName',
+                  header: getTableHeaderLabel('lastName') || '',
+                },
+                {
+                  accessorKey: 'email',
+                  header: getTableHeaderLabel('email') || '',
+                },
+                {
+                  accessorKey: 'actions',
+                  header: '',
+
+                  cell: (props) => (
+                    <ActionButtonContainer>
+                      <ActionButton
+                        icon={faEye}
+                        role="button"
+                        aria-label="view"
+                        onClick={(event: any) => {
+                          event.stopPropagation();
+                          const row = props.row.original;
+                          infoModalRef.current.open({
+                            guid: row.username.split('@')[0],
+                            attributes: {
+                              ...reduce(
+                                headers,
+                                (ret: { [key: string]: string }, header) => {
+                                  ret[header.label] = get(row, header.value);
+                                  return ret;
+                                },
+                                {},
+                              ),
+                              ...row.attributes,
+                            },
+                          });
+                        }}
+                        title="View"
+                        size="lg"
+                      />
+                    </ActionButtonContainer>
+                  ),
+                },
+              ]}
+              data={rows.map((row) => {
+                return {
+                  username: get(row, 'username'),
+                  firstName: get(row, 'firstName'),
+                  lastName: get(row, 'lastName'),
+                  email: get(row, 'email'),
+                  attributes: row.attributes,
+                };
+              })}
+              loading={loading}
+              enableGlobalSearch={false}
+              onRowSelect={activateRow}
+              noDataFoundMessage={getTableStatusText()}
+              totalRowCount={count}
+              onPageSizeChange={setLimit}
+              serverPageIndex={page}
+              onPageChange={setPage}
+            ></TableNew>
+          </div>
+          {idirLookup}
+        </Col>
+        <Col>{rightPanel}</Col>
+      </Row>
       <UserDetailModal modalRef={infoModalRef} />
       <GenericModal
         ref={idimSearchModalRef}
@@ -645,7 +663,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
         cancelButtonVariant="primary"
         showConfirmButton={false}
         buttonAlign="right"
-        style={{ minWidth: '800px', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
+        size="lg"
+        closable={true}
       >
         {(context: { key: string; idp: string; property: string; search: string }) => {
           if (!context) return <></>;

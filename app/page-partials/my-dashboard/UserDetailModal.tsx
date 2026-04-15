@@ -1,14 +1,11 @@
 import React from 'react';
 import styled from 'styled-components';
-import map from 'lodash.map';
-import omitBy from 'lodash.omitby';
-import startCase from 'lodash.startcase';
-import isEmpty from 'lodash.isempty';
+import { map, omitBy, startCase, isEmpty } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLock } from '@fortawesome/free-solid-svg-icons';
-import Grid from '@button-inc/bcgov-theme/Grid';
-import GenericModal from 'components/GenericModal';
+import GenericModal, { ModalRef } from 'components/GenericModal';
 import { mapKeys } from 'lodash';
+import { Col, Row } from 'react-bootstrap';
 
 const Label = styled.label`
   font-weight: bold;
@@ -37,37 +34,36 @@ const ReadonlySubHeader = styled.div<{ width?: string }>`
 const ReadonlyItem = ({ children, width }: { children: React.ReactNode; width?: string }) => {
   return (
     <Readonly width={width}>
-      <Grid cols={6}>
-        <Grid.Row gutter={[]}>
-          <Grid.Col span={5}>{children}</Grid.Col>
-          <Grid.Col span={1} style={{ textAlign: 'right' }}>
-            <FontAwesomeIcon icon={faLock} color="#9F9F9F" size="lg" />
-          </Grid.Col>
-        </Grid.Row>
-      </Grid>
+      <Row>
+        <Col>{children}</Col>
+        <Col style={{ textAlign: 'right' }}>
+          <FontAwesomeIcon icon={faLock} color="#9F9F9F" size="lg" />
+        </Col>
+      </Row>
     </Readonly>
   );
 };
 
 interface Props {
-  modalRef: React.Ref<any>;
+  modalRef: React.RefObject<ModalRef>;
 }
 
 const UserDetailModal = ({ modalRef }: Props) => {
   return (
     <GenericModal
       ref={modalRef}
-      id="additiona-user-info"
+      id="additional-user-info"
       title="Additional User Info"
       icon={null}
       cancelButtonText="Close"
       cancelButtonVariant="primary"
       showConfirmButton={false}
       buttonAlign="right"
-      style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
+      size="lg"
+      closable={true}
     >
       {(context: { guid: string; attributes: any }) => {
-        if (!context) return <></>;
+        if (!context) return <div key={'additional-user-info'}></div>;
 
         let attributes = omitBy(context.attributes, isEmpty);
         attributes = mapKeys(attributes, function (val, key) {
@@ -86,8 +82,8 @@ const UserDetailModal = ({ modalRef }: Props) => {
             </ReadonlyContainer>
             {map(attributes, (val, key) => (
               <ReadonlyContainer>
-                <ReadonlyItem width="200px">{key}</ReadonlyItem>
-                <ReadonlyItem width="700px">{val}</ReadonlyItem>
+                <ReadonlyItem width="300px">{key}</ReadonlyItem>
+                <ReadonlyItem width="600px">{val}</ReadonlyItem>
               </ReadonlyContainer>
             ))}
           </div>

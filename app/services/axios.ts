@@ -1,10 +1,8 @@
-import getConfig from 'next/config';
 import axios, { AxiosRequestHeaders, AxiosResponse, AxiosError } from 'axios';
 import { getAuthHeader } from 'services/auth';
 import Router from 'next/router';
 
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { api_url } = publicRuntimeConfig;
+const api_url = process.env.NEXT_PUBLIC_API_URL || '';
 
 const instance = axios.create({
   baseURL: `${api_url}/`,

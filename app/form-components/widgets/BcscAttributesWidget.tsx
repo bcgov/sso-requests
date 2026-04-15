@@ -1,7 +1,7 @@
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import { useState } from 'react';
 import styled from 'styled-components';
-import Link from '@button-inc/bcgov-theme/Link';
+import Link from '@app/components/Link';
 import { WidgetProps } from '@rjsf/utils/lib/types';
 
 const BcscAttributeInfo = styled.p`

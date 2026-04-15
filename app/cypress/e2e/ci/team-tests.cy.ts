@@ -10,14 +10,10 @@ describe('Create Teams', () => {
   const teams: Team[] = [];
 
   const cleanup = () => {
-    cy.clearAllCookies();
-    cy.setid(null).then(() => {
-      cy.login();
-    });
+    cy.login();
     teams.forEach((team) => {
       team.deleteTeam();
     });
-    cy.logout();
   };
 
   after(() => {
@@ -25,14 +21,7 @@ describe('Create Teams', () => {
   });
 
   beforeEach(() => {
-    cy.clearAllCookies();
-    cy.setid(null).then(() => {
-      cy.login();
-    });
-  });
-
-  afterEach(() => {
-    cy.logout();
+    cy.login();
   });
 
   // Iterate through the JSON file and create a team for each entry

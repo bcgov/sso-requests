@@ -1,6 +1,6 @@
 import { sampleRequest } from './samples/integrations';
 import AdminDashboard from '@app/pages/admin-dashboard';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import * as requestModule from 'services/request';
 import * as eventModule from 'services/event';
 import { Integration } from '@app/interfaces/Request';
@@ -243,12 +243,14 @@ describe('IDP Approvals', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('BCeID Approver')).toBeInTheDocument();
+      screen.getAllByText('BCeID Approver');
     });
 
     actionButtonsValidations();
 
-    fireEvent.click(screen.getByText('BCeID Approver'));
+    const adminDashboardTable = screen.getByTestId('admin-dashboard-table');
+
+    fireEvent.click(within(adminDashboardTable).getByText('BCeID Approver'));
 
     // should not see other IDPs
     expect(screen.queryByText('GitHub Prod')).not.toBeInTheDocument();
@@ -296,12 +298,14 @@ describe('IDP Approvals', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('GitHub Approver')).toBeInTheDocument();
+      screen.getAllByText('GitHub Approver');
     });
 
     actionButtonsValidations();
 
-    fireEvent.click(screen.getByText('GitHub Approver'));
+    const adminDashboardTable = screen.getByTestId('admin-dashboard-table');
+
+    fireEvent.click(within(adminDashboardTable).getByText('GitHub Approver'));
 
     // should not see other IDPs
     expect(screen.queryByText('BCeID Prod')).not.toBeInTheDocument();
@@ -348,12 +352,14 @@ describe('IDP Approvals', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Social Approver')).toBeInTheDocument();
+      screen.getAllByText('Social Approver');
     });
 
     actionButtonsValidations();
 
-    fireEvent.click(screen.getByText('Social Approver'));
+    const adminDashboardTable = screen.getByTestId('admin-dashboard-table');
+
+    fireEvent.click(within(adminDashboardTable).getByText('Social Approver'));
 
     // should not see other IDPs
     expect(screen.queryByText('BCeID Prod')).not.toBeInTheDocument();
@@ -400,14 +406,16 @@ describe('IDP Approvals', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('OTP Approver')).toBeInTheDocument();
+      screen.getAllByText('OTP Approver');
     });
 
     debug(undefined, 300000);
 
     actionButtonsValidations();
 
-    fireEvent.click(screen.getByText('OTP Approver'));
+    const adminDashboardTable = screen.getByTestId('admin-dashboard-table');
+
+    fireEvent.click(within(adminDashboardTable).getByText('OTP Approver'));
 
     // should not see other IDPs
     expect(screen.queryByText('BCeID Prod')).not.toBeInTheDocument();
@@ -453,12 +461,14 @@ describe('IDP Approvals', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('BC Services Card Approver')).toBeInTheDocument();
+      screen.getAllByText('BC Services Card Approver');
     });
 
     actionButtonsValidations();
 
-    fireEvent.click(screen.getByText('BC Services Card Approver'));
+    const adminDashboardTable = screen.getByTestId('admin-dashboard-table');
+
+    fireEvent.click(within(adminDashboardTable).getByText('BC Services Card Approver'));
 
     // should not see other IDPs
     expect(screen.queryByText('GitHub Prod')).not.toBeInTheDocument();

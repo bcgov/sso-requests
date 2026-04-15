@@ -1,8 +1,7 @@
-import getConfig from 'next/config';
 import Keycloak from 'keycloak-js';
 
-const { publicRuntimeConfig = {} } = getConfig() ?? {};
-const { sso_client_id, sso_url } = publicRuntimeConfig;
+const sso_url = process.env.NEXT_PUBLIC_SSO_URL || '';
+const sso_client_id = process.env.NEXT_PUBLIC_SSO_CLIENT_ID || '';
 
 const keycloak = new Keycloak({
   url: sso_url,
@@ -11,4 +10,5 @@ const keycloak = new Keycloak({
 });
 
 keycloak.onAuthRefreshError = () => keycloak.logout();
+
 export default keycloak;

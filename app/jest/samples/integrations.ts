@@ -8,7 +8,7 @@ export const sampleRequest: Integration = {
   testValidRedirectUris: ['http://test.com'],
   prodValidRedirectUris: ['http://prod.com'],
   publicAccess: true,
-  realm: 'onestopauth',
+  realm: 'standard',
   projectName: 'test project',
   projectLead: true,
   agreeWithTerms: true,

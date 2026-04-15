@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import {
   deleteServiceAccount,
   getServiceAccountCredentials,
@@ -117,7 +117,10 @@ describe('CSS API Account tab', () => {
 
     screen.getByText('API Account ID');
     await screen.findAllByRole('columnheader', { name: 'Actions' });
-    screen.getByRole('row', { name: '1 Copy to clipboard Download Update secret Delete' });
+
+    const serviceAccountsTable = screen.getByTestId('service-accounts-table');
+    const serviceAccountsTableRows = within(serviceAccountsTable).getAllByRole('row');
+    expect(serviceAccountsTableRows[1]).toHaveTextContent('1');
     expect(screen.getByRole('link', { name: 'click to learn more on our wiki page' })).toHaveAttribute(
       'href',
       HYPERLINK,
@@ -128,7 +131,7 @@ describe('CSS API Account tab', () => {
     render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
 
-    const copyButton = screen.getByRole('button', { name: 'Copy to clipboard' });
+    const copyButton = screen.getByRole('button', { name: 'copy-credentials' });
     fireEvent.click(copyButton);
     expect(getServiceAccountCredentials).toHaveBeenCalledTimes(1);
   });
@@ -137,7 +140,7 @@ describe('CSS API Account tab', () => {
     render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
 
-    const downloadButton = screen.getByRole('button', { name: 'Download' });
+    const downloadButton = screen.getByRole('button', { name: 'download-credentials' });
     fireEvent.click(downloadButton);
     expect(getServiceAccountCredentials).toHaveBeenCalledTimes(1);
   });
@@ -146,7 +149,7 @@ describe('CSS API Account tab', () => {
     render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
 
-    const updateSecretButton = screen.getByRole('button', { name: 'Update secret' });
+    const updateSecretButton = screen.getByRole('button', { name: 'update-secret' });
     fireEvent.click(updateSecretButton);
     expect(screen.getByText('Request a new secret for CSS API Account'));
     fireEvent.click(await screen.findByRole('button', { name: 'Confirm' }));
@@ -157,8 +160,8 @@ describe('CSS API Account tab', () => {
     render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
 
-    const deleteButton = screen.getAllByRole('button', { name: 'Delete' });
-    fireEvent.click(deleteButton[1]);
+    const deleteButton = screen.getByRole('button', { name: 'delete-api-account' });
+    fireEvent.click(deleteButton);
 
     await screen.findByText('Delete CSS API Account');
     fireEvent.click(await screen.getByTestId('confirm-delete-delete-css-api-account'));

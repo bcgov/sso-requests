@@ -9,12 +9,12 @@ import {
   updateServiceAccountCredentials,
 } from '@app/services/team';
 import { copyTextToClipboard, downloadText, prettyJSON } from '@app/utils/text';
-import Table from 'components/Table';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import styled from 'styled-components';
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
 import { useState } from 'react';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
+import TableNew from '@app/components/TableNew';
 
 const RightFloatButtons = styled.td`
   float: right;
@@ -128,8 +128,8 @@ function ServiceAccountsList({
     }
   };
 
-  const activateRow = (request: any) => {
-    const serviceAccountId = request['cells'][0].row.original.id;
+  const activateRow = (row: any) => {
+    const serviceAccountId = row.id;
     teamServiceAccounts.forEach((serviceAccount) => {
       if (serviceAccount.id == serviceAccountId) setSelectedServiceAccount(serviceAccount);
     });
@@ -140,36 +140,44 @@ function ServiceAccountsList({
       {loading ? (
         <SpinnerGrid color="#000" height={45} width={45} wrapperClass="d-block" visible={true} />
       ) : (
-        <Table
-          headers={[
+        <TableNew
+          dataTestId="service-accounts-table"
+          columns={[
             {
-              accessor: 'id',
-              Header: 'API Account ID',
+              accessorKey: 'id',
+              header: 'API Account ID',
             },
             {
-              accessor: 'actions',
-              Header: <ActionsHeader />,
-              disableSortBy: true,
+              accessorKey: 'actions',
+              header: () => <ActionsHeader />,
+              cell: (props) => {
+                const serviceAccount = teamServiceAccounts.find(
+                  (serviceAccount) => serviceAccount.id === props.row.getValue('id'),
+                );
+                return (
+                  <RightFloatButtons>
+                    <ServiceAccountActionbuttons
+                      copyOrDownloadAction={copyOrDownloadServiceAccount}
+                      showUpdateModal={handleUpdate}
+                      showDeleteModal={handleDelete}
+                      actionsDisabled={Boolean(checkDisabled(serviceAccount!))}
+                    />
+                  </RightFloatButtons>
+                );
+              },
             },
           ]}
-          data={teamServiceAccounts.map((serviceAccount: Integration) => {
-            return {
-              id: serviceAccount.id,
-              actions: (
-                <RightFloatButtons>
-                  <ServiceAccountActionbuttons
-                    copyOrDownloadAction={copyOrDownloadServiceAccount}
-                    showUpdateModal={handleUpdate}
-                    showDeleteModal={handleDelete}
-                    actionsDisabled={Boolean(checkDisabled(serviceAccount))}
-                  />
-                </RightFloatButtons>
-              ),
-            };
-          })}
-          colfilters={[]}
-          activateRow={activateRow}
-          rowSelectorKey={'id'}
+          data={
+            teamServiceAccounts &&
+            teamServiceAccounts.map((serviceAccount: Integration) => {
+              return {
+                id: serviceAccount.id,
+              };
+            })
+          }
+          enableGlobalSearch={false}
+          onRowSelect={activateRow}
+          enablePagination={false}
         />
       )}
 

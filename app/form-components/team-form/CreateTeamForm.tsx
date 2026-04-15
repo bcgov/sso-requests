@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import Input from '@button-inc/bcgov-theme/Input';
+import Input from '@app/components/Input';
 import styled from 'styled-components';
 import { createTeam } from 'services/team';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
@@ -89,7 +89,7 @@ function CreateTeamForm({ onSubmit, alert, setOpenCreateTeamModal }: Props) {
 
   return (
     <div>
-      <Input label="Team Name" onChange={handleNameChange} maxLength="255" data-testid="team-name" value={teamName} />
+      <Input label="Team Name" onChange={handleNameChange} maxLength={255} data-testid="team-name" value={teamName} />
       {errors && errors.name && <ErrorText>{errors?.name}</ErrorText>}
       <br />
       <strong>Team Members</strong>

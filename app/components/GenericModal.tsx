@@ -1,11 +1,19 @@
-import React, { CSSProperties, Children, cloneElement, useState, useImperativeHandle, useRef, forwardRef } from 'react';
-import Modal from '@button-inc/bcgov-theme/Modal';
+import React, {
+  CSSProperties,
+  Children,
+  cloneElement,
+  useState,
+  useImperativeHandle,
+  useRef,
+  forwardRef,
+  JSX,
+} from 'react';
+import Modal from 'react-bootstrap/Modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import noop from 'lodash.noop';
+import { noop, kebabCase } from 'lodash';
 import styled from 'styled-components';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { faExclamationTriangle, faTimes } from '@fortawesome/free-solid-svg-icons';
-import kebabCase from 'lodash.kebabcase';
 
 const StyledModal = styled(Modal)`
   display: flex;
@@ -23,9 +31,7 @@ const Header = styled(Modal.Header)`
   padding: 0.75em;
   background: #38598a;
   color: #fff;
-  & a {
-    float: right;
-  }
+  display: flex;
 `;
 
 const PaddedIcon = styled(FontAwesomeIcon)`
@@ -75,6 +81,7 @@ interface Props {
   showCancelButton?: boolean;
   buttonAlign?: 'center' | 'right' | 'none';
   style?: CSSProperties;
+  size?: 'sm' | 'lg' | 'xl';
 }
 
 const GenericModal = (
@@ -95,6 +102,7 @@ const GenericModal = (
     showCancelButton = true,
     buttonAlign = 'none',
     style = {},
+    size = undefined,
   }: Props,
   ref?: any,
 ) => {
@@ -108,20 +116,21 @@ const GenericModal = (
     showCancelButton,
     buttonAlign,
   };
-  const contentRef = useRef<any>();
+  const contentRef = useRef<any>(null);
   const [loading, setLoading] = useState(false);
   const [context, setContext] = useState<any>(null);
   const [config, setConfig] = useState<any>(initialConfig);
+  const [show, setShow] = useState(false);
 
   useImperativeHandle(ref, () => ({
     open: (context: any) => {
       setContext(context);
-      window.location.hash = id;
+      setShow(true);
     },
     close: (closeContext: any) => {
       setConfig({ ...initialConfig });
       onClose(contentRef, context, closeContext);
-      window.location.hash = closeContext?._hash || context?._hash || '#';
+      setShow(false);
     },
     updateConfig: (data: any) => {
       setConfig({ ...config, ...data });
@@ -136,14 +145,14 @@ const GenericModal = (
 
     if (close !== false) {
       setConfig({ ...initialConfig });
-      window.location.hash = context?._hash || '#';
+      setShow(false);
     }
   };
 
   const handleCancel = async () => {
     onCancel(contentRef, context);
     setConfig({ ...initialConfig });
-    window.location.hash = context?._hash || '#';
+    setShow(false);
   };
 
   if (typeof children === 'function') {
@@ -164,17 +173,17 @@ const GenericModal = (
   });
 
   return (
-    <StyledModal id={id}>
-      <Header title={title} as="div">
-        {icon && <PaddedIcon icon={icon} title="Information" size="2x" style={{ paddingRight: '10px' }} />}
+    <StyledModal id={id} show={show} centered size={size} animation={false}>
+      <Header title={title} onHide={handleCancel}>
+        {icon && <PaddedIcon icon={icon} aria-label="Information" size="2x" style={{ paddingRight: '10px' }} />}
         {title}
         {closable && (
-          <Modal.Close onClick={handleCancel} title="cancel">
-            <FontAwesomeIcon icon={faTimes} size="lg"></FontAwesomeIcon>
-          </Modal.Close>
+          <div style={{ marginLeft: 'auto' }}>
+            <FontAwesomeIcon icon={faTimes} onClick={handleCancel} aria-label="close"></FontAwesomeIcon>
+          </div>
         )}
       </Header>
-      <Modal.Content style={style}>
+      <Modal.Body>
         {_children}
         <ButtonContainer buttonAlign={config.buttonAlign}>
           {config.showCancelButton && (
@@ -202,7 +211,7 @@ const GenericModal = (
             </button>
           )}
         </ButtonContainer>
-      </Modal.Content>
+      </Modal.Body>
     </StyledModal>
   );
 };

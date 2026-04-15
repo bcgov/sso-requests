@@ -1,8 +1,5 @@
 import { Op, Model } from 'sequelize';
-import map from 'lodash.map';
-import compact from 'lodash.compact';
-import flatten from 'lodash.flatten';
-import uniq from 'lodash.uniq';
+import { map, compact, flatten, uniq } from 'lodash';
 import { models } from '@app/shared/sequelize/models/models';
 import { IntegrationData } from '@app/shared/interfaces';
 import { getTeamById } from '@app/queries/team';

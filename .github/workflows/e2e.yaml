@@ -28,12 +28,24 @@ jobs:
     strategy:
       fail-fast: false
     steps:
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
       - uses: actions/checkout@v4
+      - name: Build TF Modules Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile.tf-modules
+          push: false
+          tags: tf-modules-migrator:latest
+
       - uses: isbang/compose-action@v1.5.1
         with:
           compose-file: './docker-compose.yml'
       - name: E2E Tests
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@v7.1.6
         id: smoke
         continue-on-error: false
         with:
