@@ -1,17 +1,16 @@
-import React from 'react';
-import Input from '@button-inc/bcgov-theme/Input';
-import DefaultDropdown from '@button-inc/bcgov-theme/Dropdown';
+import Input from '@app/components/Input';
 import styled from 'styled-components';
 import validator from 'validator';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle, faStar } from '@fortawesome/free-solid-svg-icons';
 import { User, LoggedInUser } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
-import Link from '@button-inc/bcgov-theme/Link';
+import Link from '@app/components/Link';
 import { formatWikiURL } from '@app/utils/constants';
 import AsyncSelect from 'react-select/async';
-import { SingleValue } from 'react-select';
+import { SingleValue, components } from 'react-select';
 import { throttledIdirSearch } from '@app/utils/users';
+import Dropdown from '@app/components/Dropdown';
 
 const Container = styled.div`
   display: grid;
@@ -19,13 +18,6 @@ const Container = styled.div`
   align-items: end;
   margin-bottom: 10px;
   grid-gap: 0 1em;
-`;
-
-const Dropdown = styled(DefaultDropdown)<{ readOnlyRole?: boolean }>`
-  & .pg-select-wrapper {
-    height: 44px;
-    ${(props) => (props.readOnlyRole ? `padding-left:6px;` : ``)}
-  }
 `;
 
 const Divider = styled.div`
@@ -43,7 +35,6 @@ const AddMemberButton = styled.span`
 
 const MembersSection = styled.section`
   max-height: 50vh;
-  overflow-y: scroll;
   padding-left: 1em;
 `;
 
@@ -105,6 +96,17 @@ interface Props {
   currentUser: LoggedInUser | null;
 }
 
+const memberRoles = [
+  {
+    label: 'Admin',
+    value: 'admin',
+  },
+  {
+    label: 'Member',
+    value: 'member',
+  },
+];
+
 function TeamMembersForm({ errors, members, setMembers, allowDelete = true, currentUser = null }: Props) {
   const handleAddMember = () => {
     setMembers([
@@ -126,9 +128,9 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
     setMembers(newMembers);
   };
 
-  const handleRoleChange = (index: number, e: any) => {
+  const handleRoleChange = (option: any, index: number) => {
     const newMember: User = { ...members[index] };
-    newMember.role = e.target.value;
+    newMember.role = option.value;
     const newMembers = [...members];
     newMembers[index] = newMember;
     setMembers(newMembers);
@@ -193,9 +195,18 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
         {currentUser && (
           <MemberContainer>
             <Input value={currentUser?.email || ''} readOnly fullWidth />
-            <Dropdown label="Role" disabled value={'admin'} readOnlyRole={true}>
-              <option value="admin">Admin</option>
-            </Dropdown>
+            <Dropdown
+              aria-label="Role"
+              value={{ label: 'Admin', value: 'admin' }}
+              options={[
+                {
+                  label: 'Admin',
+                  value: 'admin',
+                },
+              ]}
+              isDisabled
+              inputId="team-primary-admin-role"
+            />
           </MemberContainer>
         )}
         {members.map((member, i) => (
@@ -210,23 +221,27 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
                 maxMenuHeight={120}
                 classNamePrefix={'select-inner'}
                 placeholder={'Enter email address'}
+                components={{
+                  Input: (props) => <components.Input {...props} data-testid={`team-member-email-input-${i}`} />,
+                  MenuList: (props) => (
+                    <components.MenuList {...props} data-testid={`team-member-email-select-menu-${i}`} />
+                  ),
+                }}
               />
               {errors && errors.members && errors.members[i] && <ErrorText>{errors.members[i]}</ErrorText>}
             </div>
             <Dropdown
-              label="Role"
-              onChange={(e: any) => handleRoleChange(i, e)}
-              value={member.role}
-              data-testid="user-role"
-            >
-              <option value="member">Member</option>
-              <option value="admin">Admin</option>
-            </Dropdown>
+              aria-label="Role"
+              onChange={(val: any) => handleRoleChange(val, i)}
+              value={memberRoles.find((role) => role.value === member.role)}
+              options={memberRoles}
+              inputId={`team-member-role-${i}`}
+            />
             {i >= 0 && allowDelete && (
               <Icon
                 icon={faMinusCircle}
                 onClick={() => handleMemberDelete(i)}
-                title="Delete"
+                aria-label="Delete"
                 data-testid="delete-user-role"
               />
             )}
@@ -236,7 +251,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
           <FontAwesomeIcon
             style={{ color: '#006fc4' }}
             icon={faPlusCircle}
-            title="Add Item"
+            aria-label="Add Item"
             data-testid="add-user-role"
           />
           <span>Add another team member</span>

@@ -241,10 +241,19 @@ class Request {
     this.reqPage.submitRequest(this.subMit);
 
     cy.get(this.reqPage.formSavingSpinnerSelector).should('not.exist');
+
+    // Request submit redirects to one of two pages depending on role (admin or not), with no clear shared visual indicator.
+    // Need to intercept the request sent from each view, and then wait for one of the two to resolve to ensure a full page load
+    const firstRequest = new Cypress.Promise((resolve) => {
+      cy.intercept('GET', '/api/requests?include=active', (req) => resolve(req)).as('memberSubmit');
+      cy.intercept('POST', '/api/requests-all', (req) => resolve(req)).as('adminSubmit');
+    });
+
     this.reqPage.confirmDelete(this.conFirm);
 
-    // Navigate to the page if not there already (e.g for admins)
-    this.navigation.goToMyDashboard();
+    cy.wrap(firstRequest).then(() => {
+      this.navigation.goToMyDashboard();
+    });
 
     // Make sure the commit has been done.
     cy.get(this.reqPage.integrationsTable, { timeout: 20000 });
@@ -517,7 +526,8 @@ class Request {
       const projectName = $elm.next().text();
       // matching criteria
       if (t.includes(id)) {
-        cy.get(this.reqPage.deleteButton).eq(index).scrollIntoView().click({ force: true });
+        cy.contains('td', id, { timeout: 10000 }).parent().click();
+        cy.get(this.reqPage.deleteButton).eq(index).scrollIntoView().click({ force: true, timeout: 3000 });
         this.reqPage.confirmDeleteIntegration(id, projectName);
         cy.get('[data-testid="grid-loading"]').should('exist');
         cy.get('[data-testid="grid-loading"]').should('not.exist');
@@ -599,12 +609,13 @@ class Request {
       cy.contains(this.reqPage.tabRoleManagement).click();
       cy.contains(util.capitalizeFirst(env)).click();
       cy.get(this.reqPage.createRoleButton).click();
-      cy.get(this.reqPage.roleNameInputField).first().clear().type(role);
-      cy.get(this.reqPage.roleEnvironment)
-        .first()
-        .clear()
-        .type(env + '{enter}');
     });
+
+    cy.get(this.reqPage.roleNameInputField).first().clear().type(role);
+    cy.get(this.reqPage.roleEnvironment)
+      .first()
+      .clear()
+      .type(env + '{enter}');
 
     cy.get(this.reqPage.confirmCreateNewRole).click({
       force: true,
@@ -620,7 +631,10 @@ class Request {
       if (this.authType === 'service-account') {
         cy.contains(this.reqPage.tabServiceAccountRoleManagement).click();
         cy.contains(util.capitalizeFirst(env)).click();
-        cy.get('input[id^="react-select-"]').type(role + '{enter}');
+        cy.contains('label', 'Assign Service Account to a Role')
+          .parent()
+          .find('input[id^="react-select-"]')
+          .type(role + '{enter}');
       } else {
         cy.contains(this.reqPage.tabUserRoleManagement).click();
         cy.contains(this.reqPage.tabUserRoleManagement).then(() => {
@@ -1017,18 +1031,19 @@ class Request {
           .type(this.teamName + '-' + myuuid);
         this.teamFullNames.push(this.teamName + '-' + myuuid);
 
-        cy.get('#react-select-2-input').focus().clear();
-        cy.get('#react-select-2-input').type('pathfinder.ssotraining2', {
+        cy.get('[data-testid="team-member-email-input-0"]').focus().clear();
+        cy.get('[data-testid="team-member-email-input-0"]').type('pathfinder.ssotraining2', {
           force: true,
           delay: 20,
         });
 
-        cy.contains('Pathfinder.SSOTraining2').click({ force: true });
+        cy.contains('[role="option"]', 'Pathfinder.SSOTraining2@gov.bc.ca').click();
 
         cy.realPress('Tab');
         cy.realPress('Tab');
 
-        cy.get(this.teamPage.userRole).eq(0).select('Admin');
+        cy.get('#team-member-role-0').click();
+        cy.get('[role="option"]').contains('Admin').click();
         cy.get('[data-testid="send-invitation"]').scrollIntoView().click({ force: true });
       });
   }

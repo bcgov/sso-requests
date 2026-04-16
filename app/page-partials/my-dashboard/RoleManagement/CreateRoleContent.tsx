@@ -1,8 +1,8 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import Select, { MultiValue, ActionMeta, CSSObjectWithLabel, MultiValueProps } from 'react-select';
-import Input from '@button-inc/bcgov-theme/Input';
+import Input from '@app/components/Input';
 import styled from 'styled-components';
-import forEach from 'lodash.foreach';
+import { forEach } from 'lodash';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlusCircle, faMinusCircle, faExclamationTriangle, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { bulkCreateRole } from 'services/keycloak';
@@ -166,7 +166,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
           <td colSpan={3}>
             <FlexBox>
               <FlexItem>
-                <FontAwesomeIcon icon={faInfoCircle} color="#17a2b8" title="duplicated roles" size="lg" />
+                <FontAwesomeIcon icon={faInfoCircle} color="#17a2b8" name="duplicated roles" size="lg" />
               </FlexItem>
               <FlexItem>There are duplicated roles and we've skipped adding them.</FlexItem>
             </FlexBox>
@@ -181,7 +181,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
           <td colSpan={3}>
             <FlexBox>
               <FlexItem>
-                <FontAwesomeIcon icon={faExclamationTriangle} color="#dc3545" title="failed roles" size="lg" />
+                <FontAwesomeIcon icon={faExclamationTriangle} color="#dc3545" name="failed roles" size="lg" />
               </FlexItem>
               <FlexItem>
                 We were unable to save some of your changes.
@@ -206,7 +206,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
         <td colSpan={3}>
           {roles.length < 20 ? (
             <AddNewButton onClick={handleAdd}>
-              <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} title="Add Role" />
+              <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} name="Add Role" />
               <span>Add another role</span>
             </AddNewButton>
           ) : (
@@ -221,7 +221,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
 
   return (
     <div>
-      <Table>
+      <Table data-testid="create-role-table">
         <thead>
           <tr>
             <th className="role">Role Name</th>
@@ -250,11 +250,12 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
                     <Input
                       size="small"
                       data-testid="role-name-input-field"
-                      minLength="2"
-                      maxLength="100"
+                      minLength={2}
+                      maxLength={100}
                       value={role.name}
                       disabled={submitted}
                       onChange={(event: any) => handleNameChange(index, event.target.value)}
+                      fullWidth
                     />
                   </td>
                   <td className="env">
@@ -281,7 +282,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
                   <td>
                     {!submitted && roles.length > 1 && (
                       <AddNewButton onClick={() => handleRemove(index)}>
-                        <FontAwesomeIcon style={{ color: '#FF0303' }} icon={faMinusCircle} title="Remove Role" />
+                        <FontAwesomeIcon style={{ color: '#FF0303' }} icon={faMinusCircle} data-testid="remove-role" />
                       </AddNewButton>
                     )}
                   </td>

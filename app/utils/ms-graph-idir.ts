@@ -4,18 +4,14 @@ import { CYPRESS_MOCKED_IDIR_LOOKUP, MS_GRAPH_URL } from '@app/utils/constants';
 import { MsGraphUserResponse, MsGraphUserValue } from '@app/shared/interfaces';
 import axios from 'axios';
 import createHttpError from 'http-errors';
-import getConfig from 'next/config';
-
-const { serverRuntimeConfig = {} } = getConfig() || {};
-const { ms_graph_api_authority, ms_graph_api_client_id, ms_graph_api_client_secret } = serverRuntimeConfig;
 
 let msalInstance: IConfidentialClientApplication;
 
 const msalConfig = {
   auth: {
-    authority: ms_graph_api_authority || '',
-    clientId: ms_graph_api_client_id || '',
-    clientSecret: ms_graph_api_client_secret || '',
+    authority: process.env.MS_GRAPH_API_AUTHORITY || '',
+    clientId: process.env.MS_GRAPH_API_CLIENT_ID || '',
+    clientSecret: process.env.MS_GRAPH_API_CLIENT_SECRET || '',
   },
 };
 

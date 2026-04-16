@@ -1,4 +1,3 @@
-import React from 'react';
 import { NumberedContents } from '@bcgov-sso/common-react-components';
 import RequestPreview from 'components/RequestPreview';
 import { usesBceid } from '@app/helpers/integration';

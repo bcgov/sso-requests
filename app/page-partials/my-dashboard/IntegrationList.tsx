@@ -1,10 +1,8 @@
-import React, { useState, useEffect, MouseEventHandler } from 'react';
-import Link from '@button-inc/bcgov-theme/Link';
+import { useState, useEffect, MouseEventHandler, useMemo } from 'react';
+import Link from '@app/components/Link';
 import { Integration } from 'interfaces/Request';
-import padStart from 'lodash.padstart';
-import Grid from '@button-inc/bcgov-theme/Grid';
+import { isEqual, padStart } from 'lodash';
 import { NumberedContents } from '@bcgov-sso/common-react-components';
-import Table from 'components/Table';
 import { getStatusDisplayName } from 'utils/status';
 import styled from 'styled-components';
 import { useRouter } from 'next/router';
@@ -19,6 +17,8 @@ import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
 import { formatWikiURL } from 'utils/constants';
 import { AxiosError } from 'axios';
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
+import TableNew from '@app/components/TableNew';
+import { Col, Row } from 'react-bootstrap';
 
 const RightFloatButtons = styled.tr`
   float: right;
@@ -35,6 +35,11 @@ function IntegrationListActionsHeader() {
 
 const formatIntegrationID = (id: number) => padStart(String(id), 8, '0');
 
+const unformatIntegrationID = (formattedId: string | number): number => {
+  const normalized = String(formattedId).replace(/^0+/, '');
+  return Number(normalized || '0');
+};
+
 const NewEntityButton = ({
   handleNewIntegrationClick,
   integrations,
@@ -49,9 +54,9 @@ const NewEntityButton = ({
           <b>To request an integration for a Standard Realm, you’ll need the following information:</b>
         </p>
         <div style={{ background: '#D9EDFD', textAlign: 'center', padding: '16px' }}>
-          <Grid cols={2} style={{ textAlign: 'left' }}>
-            <Grid.Row collapse="992" gutter={[]} align="top">
-              <Grid.Col span={1}>
+          <Row style={{ textAlign: 'left' }}>
+            <Row>
+              <Col span={1}>
                 <NumberedContents number={1} title="Project Information" children={null} />
                 <PNoMargin>
                   <FontAwesomeIcon icon={faCheck} /> Project Name
@@ -62,8 +67,8 @@ const NewEntityButton = ({
                 <PNoMargin>
                   <FontAwesomeIcon icon={faCheck} /> Product Owner or Technical Contact
                 </PNoMargin>
-              </Grid.Col>
-              <Grid.Col span={1}>
+              </Col>
+              <Col span={1}>
                 <NumberedContents number={2} title="Technical Info" children={null} />
                 <PNoMargin>
                   <FontAwesomeIcon icon={faCheck} /> Client type (
@@ -78,12 +83,12 @@ const NewEntityButton = ({
                 <PNoMargin>
                   <FontAwesomeIcon icon={faCheck} /> Redirect URIs for selected environments
                 </PNoMargin>
-              </Grid.Col>
-            </Grid.Row>
+              </Col>
+            </Row>
             <p style={{ marginTop: '1.25rem' }}>
               *You’ll be able to save and return your integration request, anytime throughout the request form.
             </p>
-          </Grid>
+          </Row>
           <button data-testid="request-integration" onClick={handleNewIntegrationClick} className="callout">
             + Request SSO Integration
           </button>
@@ -156,6 +161,8 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
 
       interval = setInterval(async () => {
         const [data, err] = await getRequests();
+        // Ignore update if no data changed
+        if (isEqual(integrations, data)) return;
 
         if (err) {
           clearInterval(interval);
@@ -170,12 +177,68 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
     };
   }, [integrations, activeIntegrationId]);
 
-  const activateRow = (request: any) => {
-    const integrationId = request['cells'][0].value;
+  const activateRow = (row: any) => {
+    const integrationId = row.id;
     integrations.forEach((integration) => {
       if (integration.id == integrationId) updateActiveIntegration(integration);
     });
   };
+
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: 'id',
+        header: 'Request ID',
+      },
+      {
+        accessorKey: 'projectName',
+        header: 'Project Name',
+      },
+      {
+        accessorKey: 'status',
+        header: 'Status',
+      },
+      {
+        accessorKey: 'authType',
+        header: 'Usecase',
+      },
+      {
+        accessorKey: 'serviceType',
+        header: 'Service Type',
+      },
+      {
+        accessorKey: 'actions',
+        header: () => <div style={{ display: 'flex', justifyContent: 'right', marginRight: 20 }}>Actions</div>,
+
+        cell: (props: any) => {
+          const request = integrations.find(
+            (integration) => integration.id === unformatIntegrationID(props.row.original.id),
+          );
+          return (
+            <div style={{ display: 'flex', justifyContent: 'right', columnGap: '0.5rem' }}>
+              <ActionButtons
+                request={request as Integration}
+                onDelete={(_: any, error: AxiosError | null) => {
+                  if (error) {
+                    alert.show({
+                      variant: 'danger',
+                      content: `Failed to delete integration ${props.row.original.projectName}.`,
+                    });
+                  } else {
+                    loadIntegrations();
+                  }
+                  setIntegration(null);
+                }}
+                defaultActiveColor="#fff"
+                delIconStyle={{ marginLeft: '7px' }}
+              />
+            </div>
+          );
+        },
+      },
+    ],
+    [integrations],
+  );
 
   const getTableContents = () => {
     if (hasIntegrationLoadError) return <SystemUnavailableMessage />;
@@ -185,34 +248,9 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
     return (
       <>
         <h2>Integrations</h2>
-        <Table
-          headers={[
-            {
-              accessor: 'id',
-              Header: 'Request ID',
-            },
-            {
-              accessor: 'projectName',
-              Header: 'Project Name',
-            },
-            {
-              accessor: 'status',
-              Header: 'Status',
-            },
-            {
-              accessor: 'authType',
-              Header: 'Usecase',
-            },
-            {
-              accessor: 'serviceType',
-              Header: 'Service Type',
-            },
-            {
-              accessor: 'actions',
-              Header: <IntegrationListActionsHeader />,
-              disableSortBy: true,
-            },
-          ]}
+        <TableNew
+          dataTestId="integration-list-table"
+          columns={columns}
           data={integrations?.map((integration: Integration) => {
             return {
               id: formatIntegrationID(integration.id as number),
@@ -220,30 +258,15 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
               status: getStatusDisplayName(integration.status || 'draft'),
               authType: authTypeDisplay[integration.authType || 'browser-login'],
               serviceType: 'Gold',
-              actions: (
-                <ActionButtons
-                  request={integration}
-                  onDelete={(_: any, error: AxiosError | null) => {
-                    if (error) {
-                      alert.show({
-                        variant: 'danger',
-                        content: `Failed to delete integration ${integration.projectName}.`,
-                      });
-                    } else {
-                      loadIntegrations();
-                    }
-                  }}
-                  defaultActiveColor="#fff"
-                  delIconStyle={{ marginLeft: '7px' }}
-                />
-              ),
+              originalStatus: integration.status,
+              apiServiceAccount: integration.apiServiceAccount,
+              archived: integration.archived,
             };
           })}
-          activateRow={activateRow}
-          activeSelector={activeIntegrationId && formatIntegrationID(activeIntegrationId)}
-          rowSelectorKey={'id'}
-          colfilters={[]}
-        ></Table>
+          enableGlobalSearch={false}
+          onRowSelect={activateRow}
+          enablePagination={false}
+        ></TableNew>
       </>
     );
   };

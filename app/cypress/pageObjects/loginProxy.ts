@@ -10,12 +10,14 @@ class LoginProxy {
     cy.get(this.headerWrapper).contains(this.headerText).should('be.visible');
   }
 
-  chooseIdir() {
-    cy.get(this.idirButton).click();
-  }
-
-  chooseAzIdir() {
-    cy.get(this.azidirButton).click();
+  chooseLogin(accountType: 'idir' | 'azureidir') {
+    if (accountType === 'idir') {
+      cy.get(this.idirButton).click();
+    } else if (accountType === 'azureidir' || accountType === 'admin') {
+      cy.get(this.azidirButton).click();
+    } else {
+      cy.log('Invalid Account Type');
+    }
   }
 }
 

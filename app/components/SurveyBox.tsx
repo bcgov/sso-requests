@@ -7,7 +7,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { SECONDARY_BLUE } from 'styles/theme';
-import Textarea from '@button-inc/bcgov-theme/Textarea';
+import Textarea from '@app/components/Textarea';
 import { submitSurvey } from '@app/services/user';
 import { UserSurveyInformation } from '@app/interfaces/team';
 
@@ -149,7 +149,7 @@ function SurveyBox({ setOpenSurvey, setDisplaySurvey, open, display, triggerEven
     }
   }, [display]);
 
-  const handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setSurveyError('');
     if (e.target.value.length <= MESSAGE_CHAR_LIMIT) {
       setSurveyMessage(e.target.value);
@@ -214,7 +214,7 @@ function SurveyBox({ setOpenSurvey, setDisplaySurvey, open, display, triggerEven
             placeholder="Leave a message..."
             rows={4}
             value={surveyMessage}
-            onChange={handleMessageChange}
+            onChange={(e) => handleMessageChange(e)}
           />
           {surveyError && <p className="error-message">{surveyError}</p>}
           <div className="button-container">

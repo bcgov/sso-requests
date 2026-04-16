@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import styled from 'styled-components';
 import noop from 'lodash/noop';
 import CenteredModal from 'components/CenteredModal';
-import RadioButton from '@button-inc/bcgov-theme/RadioButton';
-import Link from '@button-inc/bcgov-theme/Link';
+import Link from '@app/components/Link';
+import * as RadioButton from '@app/components/Radio';
 
-const Radio = styled(RadioButton)`
+const Radio = styled(RadioButton.default)`
   margin-bottom: 10px;
 `;
 

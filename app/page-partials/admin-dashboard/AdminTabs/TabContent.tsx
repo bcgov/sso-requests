@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
-import startCase from 'lodash.startcase';
+import { startCase } from 'lodash';
 import CenteredModal from 'components/CenteredModal';
 import { updateRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
@@ -12,7 +12,7 @@ import {
   checkIfOTPProdApplying,
 } from '@app/utils/helpers';
 import { ErrorMessage } from '@app/components/MessageBox';
-import { Link } from '@button-inc/bcgov-theme';
+import Link from '@app/components/Link';
 import { useEffect, useState } from 'react';
 import { getEvents } from '@app/services/event';
 import { Event } from 'interfaces/Event';

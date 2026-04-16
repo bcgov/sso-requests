@@ -1,4 +1,4 @@
-import isNil from 'lodash.isnil';
+import { isNil } from 'lodash';
 import getRequesterInfoSchema from '@app/schemas/requester-info';
 import termsAndConditionsSchema from '@app/schemas/terms-and-conditions';
 import getProvidersGoldSchema from '@app/schemas/providers-gold';

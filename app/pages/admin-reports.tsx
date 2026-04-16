@@ -12,7 +12,7 @@ import {
 } from '../services/report';
 import styled from 'styled-components';
 import Select from 'react-select';
-import { ActionButton } from 'components/ActionButtons';
+import ActionButton from 'components/ActionButton';
 import { AxiosError } from 'axios';
 import { FailureMessage } from '@app/page-partials/my-dashboard/Messages';
 import { isIdpApprover } from '@app/utils/helpers';

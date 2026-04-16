@@ -2,7 +2,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import UserRoles from 'page-partials/my-dashboard/UserRoles';
 import { searchKeycloakUsers } from 'services/keycloak';
 import { sampleRequest } from '../../samples/integrations';
-import { searchIdirUsers } from 'services/bceid-webservice';
 
 jest.mock('services/keycloak', () => ({
   searchKeycloakUsers: jest.fn(() =>
@@ -71,29 +70,29 @@ describe('assign user to roles tab', () => {
     });
 
     //test on env dropdown
-    const selectEnvWrapper = screen.getAllByTestId('select-col-filter');
-    const envInput = selectEnvWrapper[0].lastChild;
+    const selectEnvWrapper = screen.getByTestId('search-user-filter-env');
+    const envInput = selectEnvWrapper.firstChild;
     fireEvent.keyDown(envInput as HTMLElement, { keyCode: 40 });
     const envOption = await screen.findByText('Test');
     fireEvent.click(envOption);
-    expect(selectEnvWrapper[0]).toHaveTextContent('Test');
+    expect(selectEnvWrapper).toHaveTextContent('Test');
 
     //test on IDPs dropdown
-    const selectIDPWrapper = screen.getAllByTestId('select-col-filter');
-    const idpInput = selectIDPWrapper[1].lastChild;
+    const selectIDPWrapper = screen.getByTestId('search-user-filter-idp');
+    const idpInput = selectIDPWrapper.firstChild;
     fireEvent.keyDown(idpInput as HTMLElement, { keyCode: 40 });
     const idpOption = await screen.findAllByText('IDIR');
     fireEvent.click(idpOption[0]);
-    expect(selectIDPWrapper[1]).toHaveTextContent('IDIR');
+    expect(selectIDPWrapper).toHaveTextContent('IDIR');
     expect(screen.getAllByText('First Name'));
 
     //test on property dropdown
-    const selectPropertyWrapper = screen.getAllByTestId('select-col-filter');
-    const propInput = selectPropertyWrapper[2].lastChild;
+    const selectPropertyWrapper = screen.getByTestId('search-user-filter-prop');
+    const propInput = selectPropertyWrapper.firstChild;
     fireEvent.keyDown(propInput as HTMLElement, { keyCode: 40 });
     const propOption = await screen.findByText('IDP GUID');
     fireEvent.click(propOption);
-    expect(selectPropertyWrapper[2]).toHaveTextContent('IDP GUID');
+    expect(selectPropertyWrapper).toHaveTextContent('IDP GUID');
   });
 
   it('Should display correct user selection criteria for BCeID idps', async () => {
@@ -104,17 +103,15 @@ describe('assign user to roles tab', () => {
       expect(screen.getByText('1. Search for a user based on the selection criteria below')).toBeInTheDocument();
     });
 
-    const selectIDPWrapper = screen.getAllByTestId('select-col-filter');
-    const selectPropertyWrapper = screen.getAllByTestId('select-col-filter');
-    const idpInput = selectIDPWrapper[1].lastChild;
-    const propInput = selectPropertyWrapper[2].lastChild;
+    const selectIDPWrapper = screen.getByTestId('search-user-filter-idp');
+    const selectPropertyWrapper = screen.getByTestId('search-user-filter-prop');
 
-    fireEvent.keyDown(idpInput as HTMLElement, { keyCode: 40 });
+    fireEvent.keyDown(selectIDPWrapper.firstChild as HTMLElement, { keyCode: 40 });
     const idpOption = await screen.findAllByText('Basic BCeID');
     fireEvent.click(idpOption[1]);
-    expect(selectIDPWrapper[1]).toHaveTextContent('Basic BCeID');
+    expect(selectIDPWrapper).toHaveTextContent('Basic BCeID');
 
-    fireEvent.keyDown(propInput as HTMLElement, { keyCode: 40 });
+    fireEvent.keyDown(selectPropertyWrapper.firstChild as HTMLElement, { keyCode: 40 });
     expect(screen.getAllByText('Display Name'));
     expect(screen.getAllByText('Username'));
     expect(screen.getAllByText('Email'));
@@ -129,15 +126,15 @@ describe('assign user to roles tab', () => {
       expect(screen.getByText('1. Search for a user based on the selection criteria below')).toBeInTheDocument();
     });
 
-    const selectIDPWrapper = screen.getAllByTestId('select-col-filter');
-    const selectPropertyWrapper = screen.getAllByTestId('select-col-filter');
-    const idpInput = selectIDPWrapper[1].lastChild;
-    const propInput = selectPropertyWrapper[2].lastChild;
+    const selectIDPWrapper = screen.getByTestId('search-user-filter-idp');
+    const selectPropertyWrapper = screen.getByTestId('search-user-filter-prop');
+    const idpInput = selectIDPWrapper.firstChild;
+    const propInput = selectPropertyWrapper.firstChild;
 
     fireEvent.keyDown(idpInput as HTMLElement, { keyCode: 40 });
     const idpOption = await screen.findAllByText('GitHub');
     fireEvent.click(idpOption[1]);
-    expect(selectIDPWrapper[1]).toHaveTextContent('GitHub');
+    expect(selectIDPWrapper).toHaveTextContent('GitHub');
 
     fireEvent.keyDown(propInput as HTMLElement, { keyCode: 40 });
     expect(screen.getAllByText('Name'));
@@ -156,17 +153,23 @@ describe('assign user to roles tab', () => {
         }}
       />,
     );
-    const searchUserInput = screen.getByRole('textbox');
+    await waitFor(() => {
+      expect(screen.getByText('1. Search for a user based on the selection criteria below')).toBeInTheDocument();
+    });
+    const searchUserInput = screen.getByPlaceholderText('Enter search criteria');
     fireEvent.change(searchUserInput, { target: { value: 'sample' } });
     await waitFor(() => {
       fireEvent.click(screen.getByRole('button', { name: 'Search' }));
     });
+
     await waitFor(() => {
       expect(searchKeycloakUsers).toHaveBeenCalled();
+      expect(screen.getByText('sampleResult@gov.bc.ca')).toBeInTheDocument();
     });
+
     screen.findByRole('row', { name: 'fn ln sampleResult@gov.bc.ca View' });
 
-    fireEvent.click(await screen.findByRole('button', { name: 'View' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'view' }));
     expect(await screen.findByTitle('Additional User Info')).toBeVisible();
   });
 });

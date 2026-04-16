@@ -1,14 +1,11 @@
 import axios from 'axios';
-import getConfig from 'next/config';
-
-const { serverRuntimeConfig = {} } = getConfig() || {};
-const { grafana_api_url, grafana_api_token } = serverRuntimeConfig;
+import { escapeLiteral } from 'pg';
 
 export const fetchDatasourceUID = async (datasourceName: string) => {
   return axios
-    .get(`${grafana_api_url}/datasources`, {
+    .get(`${process.env.GRAFANA_API_URL}/datasources`, {
       headers: {
-        Authorization: `Bearer ${grafana_api_token}`,
+        Authorization: `Bearer ${process.env.GRAFANA_API_TOKEN}`,
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
@@ -19,7 +16,7 @@ export const fetchDatasourceUID = async (datasourceName: string) => {
 export const queryGrafana = async (query: string, start: number, end: number, limit: number) => {
   const lokiUID = await fetchDatasourceUID('SSO Loki');
   const response = await axios.post(
-    `${grafana_api_url}/ds/query`,
+    `${process.env.GRAFANA_API_URL}/ds/query`,
     {
       queries: [
         {
@@ -41,7 +38,7 @@ export const queryGrafana = async (query: string, start: number, end: number, li
         ds_type: 'loki',
       },
       headers: {
-        Authorization: `Bearer ${grafana_api_token}`,
+        Authorization: `Bearer ${process.env.GRAFANA_API_TOKEN}`,
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
@@ -67,18 +64,22 @@ export const clientEventsAggregationQuery = async (
     queries: [
       {
         datasource: { type: 'postgres', uid: aggregatorUID },
-        rawSql: `select json_build_object('event', event_type, 'count', count) from (select distinct event_type, SUM(\"count\") OVER (PARTITION BY \"event_type\") as count from client_events where client_id = '${clientId}' and environment = '${environment}' and date(date) >= '${fromDate}' and date(date) <= '${toDate}') client_event_data;`,
+        rawSql: `select json_build_object('event', event_type, 'count', count) from (select distinct event_type, SUM("count") OVER (PARTITION BY "event_type") as count from client_events_with_idp where client_id = ${escapeLiteral(
+          clientId,
+        )} and environment = ${escapeLiteral(environment)} and date(date) >= ${escapeLiteral(
+          fromDate,
+        )} and date(date) <= ${escapeLiteral(toDate)}) client_event_data;`,
         format: 'table',
       },
     ],
   };
 
   const headers = {
-    Authorization: `Bearer ${grafana_api_token}`,
+    Authorization: `Bearer ${process.env.GRAFANA_API_TOKEN}`,
     'Content-Type': 'application/json',
     Accept: 'application/json',
   };
-  const res: any = await axios.post(`${grafana_api_url}/ds/query`, query, { headers });
+  const res: any = await axios.post(`${process.env.GRAFANA_API_URL}/ds/query`, query, { headers });
 
   const values = res?.data?.results?.A?.frames[0]?.data?.values;
 

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED - no browser login 1`] = `"[DEV] Pathfinder SSO request approved (email 2 of 2)"`;
 

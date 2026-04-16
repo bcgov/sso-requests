@@ -2,12 +2,8 @@ import { RJSFSchema } from '@rjsf/utils';
 import { Integration } from '../interfaces/Request';
 import { devValidRedirectUris } from './providers';
 import FieldAccessTokenTop from '@app/form-components/FieldAccessTokenTop';
-import getConfig from 'next/config';
 import { LoggedInUser } from '@app/interfaces/team';
 import { appPermissions, hasAppPermission } from '@app/utils/authorize';
-
-const { publicRuntimeConfig = {} } = getConfig() || {};
-const { include_bc_services_card } = publicRuntimeConfig;
 
 export const roles = {
   type: 'array',
@@ -168,10 +164,7 @@ export default function getSchemas(formData: Integration, session: LoggedInUser 
 
     let additionalConfig: any = {};
 
-    if (
-      (include_bc_services_card === 'true' || process.env.INCLUDE_BC_SERVICES_CARD === 'true') &&
-      formData?.devIdps?.includes('bcservicescard')
-    ) {
+    if (process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD === 'true' && formData?.devIdps?.includes('bcservicescard')) {
       additionalConfig[homePageUriField] = {
         type: 'string',
         title: 'Home Page URL',

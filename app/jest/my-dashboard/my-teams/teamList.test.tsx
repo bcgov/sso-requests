@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import TeamList from 'page-partials/my-dashboard/TeamList';
 import { createTeam, deleteTeam, editTeamName } from 'services/team';
@@ -77,7 +76,11 @@ describe('Team List', () => {
   it('Should match the expected button name, and testing on all text-input-box, drop-down-box, hyperlink, and button functionality in the modal', async () => {
     render(
       <SessionContext.Provider
-        value={{ session: { email: 'test@email.com' }, user: { idirEmail: 'test@email.com', role: '' } }}
+        value={{
+          session: { email: 'test@email.com' },
+          user: { idirEmail: 'test@email.com', role: '' },
+          keycloak: {} as any,
+        }}
       >
         <TeamListComponent />
       </SessionContext.Provider>,
@@ -103,9 +106,18 @@ describe('Team List', () => {
       screen.getByText(MOCK_EMAIL).click();
     });
 
-    // With user from context, should be two now
-    expect(screen.getAllByText('Admin', { selector: 'option' }).length).toBe(2);
-    expect(screen.getByText('Member', { selector: 'option' }));
+    const primaryMemberRoleDropdown = document.getElementById('team-primary-admin-role') as any;
+    const primaryMemberRoleDropdownValue = primaryMemberRoleDropdown
+      .closest('[class$="-container"]')
+      .querySelector('[class$="-singleValue"]');
+    expect(primaryMemberRoleDropdownValue.textContent).toBe('Admin');
+
+    const secondMemberRoleDropdown = document.getElementById('team-member-role-0') as any;
+    const secondMemberRoleDropdownValue = secondMemberRoleDropdown
+      .closest('[class$="-container"]')
+      .querySelector('[class$="-singleValue"]');
+    expect(secondMemberRoleDropdownValue.textContent).toBe('Member');
+
     expect(getByRole('link', 'View a detailed breakdown of roles on our wiki page')).toHaveAttribute('href', HYPERLINK);
 
     fireEvent.click(screen.getByRole('img', { name: 'Add Item' }));
@@ -131,13 +143,13 @@ describe('Team List', () => {
     render(<TeamListComponent />);
     expect(screen.getByText('Team Name')).toBeInTheDocument();
     getByRole('columnheader', 'Actions');
-    fireEvent.click(getByRole('row', 'SAMPLE_TEAM Edit Delete'));
-    expect(getByRole('row', 'SAMPLE_TEAM Edit Delete')).toHaveClass('active');
+    fireEvent.click(screen.getByTestId('edit-team-button'));
+    expect(getByRole('row', 'SAMPLE_TEAM')).toHaveClass('active');
   });
 
   it('Should be able to click the Delete button, and confirm deletion', async () => {
     render(<TeamListComponent />);
-    fireEvent.click(getByRole('button', 'Delete'));
+    fireEvent.click(screen.getByTestId('delete-team-button'));
     await waitFor(() => {
       expect(screen.getByText('Delete team'));
     });
@@ -150,7 +162,7 @@ describe('Team List', () => {
 
   it('Should be able to click the Edit button, and save the new team name', async () => {
     render(<TeamListComponent />);
-    fireEvent.click(getByRole('button', 'Edit'));
+    fireEvent.click(screen.getByTestId('edit-team-button'));
     await waitFor(() => {
       expect(screen.getByText('Edit Team Name'));
     });

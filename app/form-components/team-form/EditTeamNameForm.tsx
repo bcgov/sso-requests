@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Input from '@button-inc/bcgov-theme/Input';
+import Input from '@app/components/Input';
 import styled from 'styled-components';
 import { editTeamName } from 'services/team';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';

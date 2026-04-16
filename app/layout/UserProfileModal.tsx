@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, ChangeEvent } from 'react';
 import styled from 'styled-components';
-import Input from '@button-inc/bcgov-theme/Input';
+import Input from '@app/components/Input';
 import { faUserCircle } from '@fortawesome/free-solid-svg-icons';
 import CenteredModal from 'components/CenteredModal';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
@@ -106,8 +106,8 @@ function UserProfileModal({ children, alert }: Props): any {
       <Input
         data-testid="addi-email"
         type="email"
-        fullWidth={true}
-        maxLength="100"
+        fullWidth
+        maxLength={100}
         value={addiEmail}
         onChange={handleAddiEmail}
       />

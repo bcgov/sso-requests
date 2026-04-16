@@ -1,4 +1,4 @@
-replicaCount: 1
+replicaCount: 3
 
 image:
   repository: ghcr.io/bcgov/sso-requests
@@ -41,6 +41,7 @@ jwt:
   tokenExpiry: 1h
 
 api:
+  replicaCount: 3
   enabled: true
   image:
     repository: ghcr.io/bcgov/sso-requests-api
@@ -66,7 +67,6 @@ api:
 
 resources:
   limits:
-    cpu: 200m
     memory: 1024Mi
   requests:
     cpu: 50m
@@ -84,7 +84,7 @@ patroni:
     pullPolicy: Always
     tag: 4.0-p2
 
-  postgresMajorVersion: 15
+  postgresMajorVersion: 17
 
   replicaCount: 2
 
@@ -146,7 +146,7 @@ redis-ha:
 backup-storage:
   image:
     repository: ghcr.io/bcgov/backup-container
-    tag: 2.10.3
+    tag: 2.12.0
     pullPolicy: Always
 
   persistence:

@@ -162,12 +162,12 @@ const LogsPanel = ({ integration, alert }: Props) => {
     }
   }, [toDate]);
 
-  const handleFromDateChange = (val: Date) => {
+  const handleFromDateChange = (val: Date | null) => {
     setDateError('');
     setFromDate(val);
   };
 
-  const handleToDateChange = (val: Date) => {
+  const handleToDateChange = (val: Date | null) => {
     setDateError('');
     setToDate(val);
   };
@@ -285,7 +285,7 @@ const LogsPanel = ({ integration, alert }: Props) => {
             <DateTimePicker
               placeholderText="Start Date"
               selected={fromDate}
-              onChange={(date: Date) => handleFromDateChange(date)}
+              onChange={(date: Date | null) => handleFromDateChange(date)}
               minDate={logsStartDate}
               shouldCloseOnSelect={false}
               label="Start Date"
@@ -296,8 +296,8 @@ const LogsPanel = ({ integration, alert }: Props) => {
             <DateTimePicker
               placeholderText="End Date"
               selected={toDate}
-              onChange={(date: Date) => handleToDateChange(date)}
-              minDate={fromDate}
+              onChange={(date: Date | null) => handleToDateChange(date)}
+              minDate={fromDate!}
               maxDate={maxDate}
               label="End Date"
               shouldCloseOnSelect={false}

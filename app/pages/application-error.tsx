@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import toLower from 'lodash.tolower';
+import { toLower } from 'lodash';
 import ErrorImage from 'svg/ErrorImage';
 import { useRouter } from 'next/router';
 import { removeTokens } from 'utils/store';
