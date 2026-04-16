@@ -50,20 +50,3 @@ patroni:
 
   persistentVolume:
     size: 0.25Gi
-
-backup-storage:
-  env:
-    ENVIRONMENT_FRIENDLY_NAME:
-      value: 'SSO Request Dev Backup'
-    ENVIRONMENT_NAME:
-      value: b29129-dev
-    WEBHOOK_URL:
-      value: ''
-      secure: true
-
-    DAILY_BACKUPS:
-      value: '7'
-    WEEKLY_BACKUPS:
-      value: '2'
-    MONTHLY_BACKUPS:
-      value: '1'
