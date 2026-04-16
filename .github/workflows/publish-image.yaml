@@ -166,6 +166,7 @@ jobs:
           NEXT_PUBLIC_APP_ENV=production
           NEXT_PUBLIC_API_URL=https://sso-requests.apps.gold.devops.gov.bc.ca/api
           NEXT_PUBLIC_SSO_URL=https://loginproxy.gov.bc.ca/auth
+          NEXT_PUBLIC_SSO_IDP_HINT=azureidir
           NEXT_PUBLIC_SSO_REDIRECT_URI=https://sso-requests.apps.gold.devops.gov.bc.ca
           NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT=https://loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
           NEXT_PUBLIC_APP_URL=https://sso-requests.apps.gold.devops.gov.bc.ca
