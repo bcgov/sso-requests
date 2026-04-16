@@ -3,8 +3,17 @@
  */
 import crypto from 'crypto';
 import { padStart } from 'lodash';
+import { generate } from 'otplib';
+import { createGuardrails } from '@otplib/core';
+
+const guardrails = createGuardrails({
+  MIN_SECRET_BYTES: 8,
+});
 
 class Utilities {
+  cssAdmin = 'PFSSOT2';
+  cssUser = 'PFDRSSOT';
+
   runOk(data: any): boolean {
     if (data.disable) {
       return false;
@@ -61,6 +70,13 @@ class Utilities {
       }
     }
     return undefined; // or return a default value or handle the case when the value is not found
+  }
+
+  async getOTPToken(secret: string) {
+    return generate({
+      secret: secret,
+      guardrails,
+    });
   }
 }
 export default Utilities;

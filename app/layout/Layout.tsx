@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCommentDots, faEnvelope, faFileAlt, faUserAlt } from '@fortawesome/free-solid-svg-icons';
-import Footer from '@button-inc/bcgov-theme/Footer';
 import styled from 'styled-components';
 import Navigation from './Navigation';
 import TopAlertProvider, { TopAlert } from './TopAlert';
@@ -10,13 +9,26 @@ import UserProfileModal from './UserProfileModal';
 import GoldNotificationModal from './GoldNotificationModal';
 import { formatWikiURL } from '@app/utils/constants';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
+import Nav from 'react-bootstrap/Nav';
+import {
+  MAIN_NAV_APP_BAR_BOTTOM_BORDER_COLOR,
+  MAIN_NAV_APP_BAR_COLOR,
+  NAV_APP_BAR_MENU_ITEM_DIVIDER_COLOR,
+  NAV_APP_BAR_TEXT_COLOR,
+} from '@app/styles/theme';
 
 const headerPlusFooterHeight = '152px';
 
 const LoggedUser = styled.span`
   display: flex;
-  align-items: end;
+  align-items: center;
   font-weight: 700;
+  color: ${NAV_APP_BAR_TEXT_COLOR};
+  justify-content: end;
+`;
+
+const LoginLogoutButton = styled.button`
+  white-space: nowrap;
 `;
 
 const MainContent = styled.div`
@@ -27,12 +39,8 @@ const MainContent = styled.div`
 const MobileSubMenu = styled.ul`
   padding-left: 2rem;
   padding-right: 2rem;
-
-  li a {
-    display: inline-block !important;
-    font-size: unset !important;
-    padding: 0 !important;
-    border-right: none !important;
+  a {
+    color: ${NAV_APP_BAR_TEXT_COLOR};
   }
 `;
 
@@ -44,32 +52,33 @@ const SubMenu = styled.div`
   padding-right: 2rem;
 `;
 
-const SubLeftMenu = styled.ul`
+const SubRightMenu = styled.div`
+  display: flex;
+  gap: 1rem;
+
   & a {
-    font-size: 1rem !important;
+    color: ${NAV_APP_BAR_TEXT_COLOR};
+    border-right: 1px solid ${NAV_APP_BAR_MENU_ITEM_DIVIDER_COLOR};
+    font-size: 0.9rem;
+    padding-right: 15px;
+    padding-top: 8px;
   }
-
-  & a.current {
-    font-weight: bold;
-  }
-
-  & li.current {
-    padding-bottom: 6px;
-    border-bottom: none;
-    background: linear-gradient(orange, orange) bottom /* left or right or else */ no-repeat;
-    background-size: calc(100% - 2rem) 4px;
-  }
-`;
-
-const SubRightMenu = styled.ul`
-  padding-right: 2rem;
 `;
 
 const FooterMenu = styled.div`
-  padding-left: 2rem;
-  padding-right: 2rem;
-  ul.text-small a {
-    font-size: 0.875rem;
+  padding: 1px;
+  border-top: 2px solid ${MAIN_NAV_APP_BAR_BOTTOM_BORDER_COLOR};
+  & ul {
+    display: flex;
+    gap: 1.5rem;
+    list-style-type: none;
+    padding-left: 3rem;
+  }
+  & a {
+    color: ${NAV_APP_BAR_TEXT_COLOR};
+    border-right: 1px solid ${NAV_APP_BAR_MENU_ITEM_DIVIDER_COLOR};
+    font-size: 0.9rem;
+    padding-right: 15px;
   }
 `;
 
@@ -122,7 +131,17 @@ const routes: Route[] = [
   },
 ];
 
-const LeftMenuItems = ({ session, currentPath, query }: { session: any; currentPath: string; query: any }) => {
+const LeftMenuItems = ({
+  session,
+  currentPath,
+  query,
+  mobileMenu = false,
+}: {
+  session: any;
+  currentPath: string;
+  query: any;
+  mobileMenu?: boolean;
+}) => {
   let roles = ['guest'];
   if (session) {
     roles = session?.client_roles?.length > 0 ? session?.client_roles : ['user'];
@@ -133,15 +152,27 @@ const LeftMenuItems = ({ session, currentPath, query }: { session: any; currentP
   return (
     <>
       {routes.map((route) => {
-        if (!route.private || hasAppPermission(roles, route.permission || '')) {
-          return (
-            <li key={route.path} className={isCurrent(route.path) ? 'current' : ''}>
-              <Link href={route.path}>{typeof route.label === 'function' ? route.label(query) : route.label}</Link>
-            </li>
-          );
-        } else {
-          return null;
-        }
+        const isAllowed = !route.private || hasAppPermission(roles, route.permission || '');
+
+        if (!isAllowed) return null;
+
+        const showDivider = !mobileMenu;
+        const label = typeof route.label === 'function' ? route.label(query) : route.label;
+
+        const style = {
+          color: NAV_APP_BAR_TEXT_COLOR,
+          borderRight: showDivider ? `1px solid ${NAV_APP_BAR_MENU_ITEM_DIVIDER_COLOR}` : '',
+          fontWeight: 'normal',
+          padding: '1px 15px',
+          height: '32px',
+          background: mobileMenu ? 'none' : undefined,
+        };
+
+        return (
+          <Nav.Link key={route.path} as={Link} href={route.path} style={style} active={isCurrent(route.path)}>
+            {label}
+          </Nav.Link>
+        );
       })}
     </>
   );
@@ -153,7 +184,7 @@ const RightMenuItems = () => (
       {(setOpenProfileModal: (flag: boolean) => void) => {
         return (
           <HoverItem>
-            <a title="My Profile" data-testid="my-profile-link">
+            <a title="My Profile" data-testid="my-profile-link" style={{ color: NAV_APP_BAR_TEXT_COLOR }} href="#">
               <FontAwesomeIcon size="2x" icon={faUserAlt} onClick={() => setOpenProfileModal(true)} />
             </a>
           </HoverItem>
@@ -179,59 +210,101 @@ const RightMenuItems = () => (
   </>
 );
 
+const MobileMenu = ({
+  session,
+  onLoginClick,
+  onLogoutClick,
+}: {
+  session: any;
+  onLoginClick: () => void;
+  onLogoutClick: () => void;
+}) => {
+  const router = useRouter();
+  const pathname = router.pathname;
+  const containerStyle = {
+    color: NAV_APP_BAR_TEXT_COLOR,
+    display: 'flex',
+    alignItems: 'center',
+    paddingLeft: '1rem',
+  };
+
+  const linksContainerStyle = {
+    display: 'flex',
+    gap: '1rem',
+    padding: '0 1rem',
+  };
+
+  const sectionPaddingStyle = {
+    paddingLeft: '1rem',
+  };
+
+  const helpLinks = [
+    {
+      href: 'https://chat.developer.gov.bc.ca/channel/sso',
+      title: 'Rocket Chat',
+      icon: faCommentDots,
+    },
+    {
+      href: 'mailto:bcgov.sso@gov.bc.ca',
+      title: 'Email SSO Team',
+      icon: faEnvelope,
+    },
+    {
+      href: formatWikiURL(),
+      title: 'Documentation',
+      icon: faFileAlt,
+    },
+  ];
+
+  const isLoggedIn = Boolean(session);
+  const authHandler = isLoggedIn ? onLogoutClick : onLoginClick;
+  const authLabel = isLoggedIn ? 'Logout' : 'Login';
+  return (
+    <MobileSubMenu>
+      <LeftMenuItems session={session} currentPath={pathname} query={router.query} mobileMenu />
+
+      <div style={containerStyle}>
+        <div>Need Help?</div>
+
+        <div style={linksContainerStyle}>
+          {helpLinks.map(({ href, title, icon }) => (
+            <Nav.Link key={title} href={href} target="_blank" title={title}>
+              <FontAwesomeIcon size="2x" icon={icon} />
+            </Nav.Link>
+          ))}
+        </div>
+      </div>
+
+      <div style={sectionPaddingStyle}>
+        <LoginLogoutButton className="secondary-inverse" onClick={authHandler} data-testid="mobile-login-logout-button">
+          {authLabel}
+        </LoginLogoutButton>
+      </div>
+    </MobileSubMenu>
+  );
+};
+
 function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
   const router = useRouter();
   const pathname = router.pathname;
 
   const rightSide = session ? (
     <LoggedUser>
-      <div>
+      <div style={{ whiteSpace: 'nowrap' }}>
         Welcome {`${session.given_name} ${session.family_name}`}&nbsp;
         {session?.client_roles && session?.client_roles.includes('sso-admin') && (
           <span className="small">(SSO Admin)</span>
         )}
       </div>
       &nbsp;&nbsp;
-      <button className="secondary-inverse" onClick={onLogoutClick}>
+      <LoginLogoutButton className="secondary-inverse" onClick={onLogoutClick} data-testid="desktop-logout-button">
         Log out
-      </button>
+      </LoginLogoutButton>
     </LoggedUser>
   ) : (
-    <button className="secondary-inverse" onClick={onLoginClick}>
+    <LoginLogoutButton className="secondary-inverse" onClick={onLoginClick} data-testid="desktop-login-button">
       Log in
-    </button>
-  );
-
-  const MobileMenu = () => (
-    <MobileSubMenu>
-      <LeftMenuItems session={session} currentPath={pathname} query={router.query} />
-
-      <li>
-        Need help?&nbsp;&nbsp;
-        <a href="https://chat.developer.gov.bc.ca/" target="_blank" title="Rocket Chat">
-          <FontAwesomeIcon size="2x" icon={faCommentDots} />
-        </a>
-        &nbsp;&nbsp;
-        <a href="mailto:bcgov.sso@gov.bc.ca" title="SSO Team">
-          <FontAwesomeIcon size="2x" icon={faEnvelope} />
-        </a>
-        &nbsp;&nbsp;
-        <a href={formatWikiURL()} target="_blank" title="Wiki">
-          <FontAwesomeIcon size="2x" icon={faFileAlt} />
-        </a>
-      </li>
-      <li>
-        {session ? (
-          <button className="secondary-inverse" onClick={onLogoutClick}>
-            Logout
-          </button>
-        ) : (
-          <button className="secondary-inverse" onClick={onLoginClick}>
-            Login with IDIR
-          </button>
-        )}
-      </li>
-    </MobileSubMenu>
+    </LoginLogoutButton>
   );
 
   return (
@@ -239,13 +312,17 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
       <Navigation
         title={() => <HeaderTitle>Common Hosted Single Sign-on (CSS)</HeaderTitle>}
         rightSide={rightSide}
-        mobileMenu={MobileMenu}
+        mobileMenu={<MobileMenu session={session} onLoginClick={onLoginClick} onLogoutClick={onLogoutClick} />}
         onBannerClick={console.log}
       >
         <SubMenu>
-          <SubLeftMenu>
+          <div
+            style={{
+              display: 'flex',
+            }}
+          >
             <LeftMenuItems session={session} currentPath={pathname} query={router.query} />
-          </SubLeftMenu>
+          </div>
           <SubRightMenu>
             <RightMenuItems />
           </SubRightMenu>
@@ -254,7 +331,7 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
       <MainContent>
         <TopAlert>{children}</TopAlert>
       </MainContent>
-      <Footer>
+      <div style={{ background: MAIN_NAV_APP_BAR_COLOR }}>
         <FooterMenu>
           <ul className="text-small">
             <li>
@@ -282,7 +359,7 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
             </li>
           </ul>
         </FooterMenu>
-      </Footer>
+      </div>
       <GoldNotificationModal />
     </TopAlertProvider>
   );

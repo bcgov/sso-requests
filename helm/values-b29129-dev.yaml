@@ -1,3 +1,5 @@
+replicaCount: 2
+
 image:
   tag: dev
   pullPolicy: Always
@@ -8,6 +10,7 @@ cronJobs:
     tag: dev
 
 api:
+  replicaCount: 2
   enabled: true
   image:
     tag: dev

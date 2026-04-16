@@ -241,10 +241,19 @@ class Request {
     this.reqPage.submitRequest(this.subMit);
 
     cy.get(this.reqPage.formSavingSpinnerSelector).should('not.exist');
+
+    // Request submit redirects to one of two pages depending on role (admin or not), with no clear shared visual indicator.
+    // Need to intercept the request sent from each view, and then wait for one of the two to resolve to ensure a full page load
+    const firstRequest = new Cypress.Promise((resolve) => {
+      cy.intercept('GET', '/api/requests?include=active', (req) => resolve(req)).as('memberSubmit');
+      cy.intercept('POST', '/api/requests-all', (req) => resolve(req)).as('adminSubmit');
+    });
+
     this.reqPage.confirmDelete(this.conFirm);
 
-    // Navigate to the page if not there already (e.g for admins)
-    this.navigation.goToMyDashboard();
+    cy.wrap(firstRequest).then(() => {
+      this.navigation.goToMyDashboard();
+    });
 
     // Make sure the commit has been done.
     cy.get(this.reqPage.integrationsTable, { timeout: 20000 });
@@ -600,12 +609,13 @@ class Request {
       cy.contains(this.reqPage.tabRoleManagement).click();
       cy.contains(util.capitalizeFirst(env)).click();
       cy.get(this.reqPage.createRoleButton).click();
-      cy.get(this.reqPage.roleNameInputField).first().clear().type(role);
-      cy.get(this.reqPage.roleEnvironment)
-        .first()
-        .clear()
-        .type(env + '{enter}');
     });
+
+    cy.get(this.reqPage.roleNameInputField).first().clear().type(role);
+    cy.get(this.reqPage.roleEnvironment)
+      .first()
+      .clear()
+      .type(env + '{enter}');
 
     cy.get(this.reqPage.confirmCreateNewRole).click({
       force: true,
@@ -621,7 +631,10 @@ class Request {
       if (this.authType === 'service-account') {
         cy.contains(this.reqPage.tabServiceAccountRoleManagement).click();
         cy.contains(util.capitalizeFirst(env)).click();
-        cy.get('input[id^="react-select-"]').type(role + '{enter}');
+        cy.contains('label', 'Assign Service Account to a Role')
+          .parent()
+          .find('input[id^="react-select-"]')
+          .type(role + '{enter}');
       } else {
         cy.contains(this.reqPage.tabUserRoleManagement).click();
         cy.contains(this.reqPage.tabUserRoleManagement).then(() => {
@@ -1029,7 +1042,8 @@ class Request {
         cy.realPress('Tab');
         cy.realPress('Tab');
 
-        cy.get(this.teamPage.userRole).eq(0).select('Admin');
+        cy.get('#team-member-role-0').click();
+        cy.get('[role="option"]').contains('Admin').click();
         cy.get('[data-testid="send-invitation"]').scrollIntoView().click({ force: true });
       });
   }

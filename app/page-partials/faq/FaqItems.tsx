@@ -1,5 +1,5 @@
 import React from 'react';
-import Link from '@button-inc/bcgov-theme/Link';
+import Link from '@app/components/Link';
 import { Accordion } from '@bcgov-sso/common-react-components';
 import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
 

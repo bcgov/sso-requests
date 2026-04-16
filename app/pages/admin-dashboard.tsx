@@ -4,10 +4,10 @@ import { faTrash, faEdit, faEye, faTrashRestoreAlt } from '@fortawesome/free-sol
 import { getRequestAll, deleteRequest, restoreRequest } from 'services/request';
 import { PageProps } from 'interfaces/props';
 import { Integration, Option } from 'interfaces/Request';
-import { ActionButtonContainer, ActionButton, VerticalLine } from 'components/ActionButtons';
+import { ActionButtonContainer, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import { PRIMARY_RED } from 'styles/theme';
-import { containsPrefix, formatFilters } from 'utils/helpers';
+import { formatFilters } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
 import { workflowStatusOptions } from 'metadata/options';
 import VerticalLayout from 'page-partials/admin-dashboard/VerticalLayout';
@@ -21,6 +21,7 @@ import { throttledIdirSearch } from '@app/utils/users';
 import DeleteModal from '@app/components/DeleteModal';
 import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 import TableNew from '@app/components/TableNew';
+import ActionButton from '@app/components/ActionButton';
 
 const idpOptions = [
   { value: 'idir', label: 'IDIR' },

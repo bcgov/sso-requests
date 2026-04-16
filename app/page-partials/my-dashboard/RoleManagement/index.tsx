@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { startCase } from 'lodash';
 import { Integration } from 'interfaces/Request';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
-import { Tabs, Tab } from '@bcgov-sso/common-react-components';
+import { Tabs } from '@bcgov-sso/common-react-components';
 import CreateRoleContent from './CreateRoleContent';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import RoleEnvironment from './RoleEnvironment';
@@ -34,6 +34,16 @@ const RoleManagement = ({ integration }: Props) => {
   };
 
   const environments = integration?.environments || [];
+  const tabItems = environments.map((env) => ({
+    key: env,
+    label: startCase(env),
+    children: (
+      <>
+        <br />
+        <RoleEnvironment key={updateKey} environment={env} integration={integration}></RoleEnvironment>
+      </>
+    ),
+  }));
 
   return (
     <>
@@ -49,14 +59,13 @@ const RoleManagement = ({ integration }: Props) => {
         + Create a New Role
       </button>
       <TopMargin />
-      <Tabs onChange={handleTabSelect} activeKey={environment} tabBarGutter={30} destroyInactiveTabPane={true}>
-        {environments.map((env) => (
-          <Tab key={env} tab={startCase(env)}>
-            <br />
-            <RoleEnvironment key={updateKey} environment={env} integration={integration}></RoleEnvironment>
-          </Tab>
-        ))}
-      </Tabs>
+      <Tabs
+        onChange={handleTabSelect}
+        activeKey={environment}
+        tabBarGutter={30}
+        destroyInactiveTabPane={true}
+        items={tabItems}
+      />
       <GenericModal
         ref={modalRef}
         title="Create New Role"
@@ -86,7 +95,6 @@ const RoleManagement = ({ integration }: Props) => {
         confirmButtonText="Save"
         confirmButtonVariant="primary"
         cancelButtonVariant="secondary"
-        style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
       >
         <CreateRoleContent integrationId={integration.id as number} environments={environments} />
       </GenericModal>

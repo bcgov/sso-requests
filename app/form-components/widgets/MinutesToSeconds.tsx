@@ -1,7 +1,7 @@
 import React, { useState, ChangeEvent } from 'react';
 import styled from 'styled-components';
 import { noop } from 'lodash';
-import Input from '@button-inc/bcgov-theme/Input';
+import Input from '@app/components/Input';
 import { WidgetProps } from '@rjsf/utils/lib/types';
 
 const LeftInput = styled.span`
@@ -72,7 +72,6 @@ const MinutesToSeconds = ({ id, value = 0, label, readonly, uiSchema, onChange }
     <Container>
       <LeftInput>
         <Input
-          type="text"
           size="small"
           maxLength={4}
           id={id}
@@ -82,6 +81,7 @@ const MinutesToSeconds = ({ id, value = 0, label, readonly, uiSchema, onChange }
           onFocus={handleFocus}
           disabled={readonly}
           onBlur={handleBlur}
+          fullWidth
         />
       </LeftInput>
       <span>Minutes</span>

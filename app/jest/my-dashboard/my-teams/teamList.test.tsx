@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import TeamList from 'page-partials/my-dashboard/TeamList';
 import { createTeam, deleteTeam, editTeamName } from 'services/team';
@@ -107,9 +106,18 @@ describe('Team List', () => {
       screen.getByText(MOCK_EMAIL).click();
     });
 
-    // With user from context, should be two now
-    expect(screen.getAllByText('Admin', { selector: 'option' }).length).toBe(2);
-    expect(screen.getByText('Member', { selector: 'option' }));
+    const primaryMemberRoleDropdown = document.getElementById('team-primary-admin-role') as any;
+    const primaryMemberRoleDropdownValue = primaryMemberRoleDropdown
+      .closest('[class$="-container"]')
+      .querySelector('[class$="-singleValue"]');
+    expect(primaryMemberRoleDropdownValue.textContent).toBe('Admin');
+
+    const secondMemberRoleDropdown = document.getElementById('team-member-role-0') as any;
+    const secondMemberRoleDropdownValue = secondMemberRoleDropdown
+      .closest('[class$="-container"]')
+      .querySelector('[class$="-singleValue"]');
+    expect(secondMemberRoleDropdownValue.textContent).toBe('Member');
+
     expect(getByRole('link', 'View a detailed breakdown of roles on our wiki page')).toHaveAttribute('href', HYPERLINK);
 
     fireEvent.click(screen.getByRole('img', { name: 'Add Item' }));

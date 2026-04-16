@@ -3,13 +3,13 @@ import styled from 'styled-components';
 import { EventCountMetric, Integration } from 'interfaces/Request';
 import { TopAlert, withTopAlert } from 'layout/TopAlert';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Tabs, Tab } from '@bcgov-sso/common-react-components';
+import { Tabs } from '@bcgov-sso/common-react-components';
 import { startCase, throttle } from 'lodash';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { getMetrics } from '@app/services/grafana';
 import DateTimePicker from '@app/components/DateTimePicker';
 import { InfoMessage } from '@app/components/MessageBox';
-import { Link } from '@button-inc/bcgov-theme';
+import Link from '@app/components/Link';
 import { subtractDaysFromDate } from '@app/utils/helpers';
 import { SurveyContext } from '@app/utils/context';
 
@@ -107,6 +107,50 @@ const MetricsPanel = ({ integration, alert }: Props) => {
     fetchMetrics(getFormattedDateString(fromDate), getFormattedDateString(toDate), environment);
   }, [integration?.clientId, environment, fromDate, toDate]);
 
+  const tabItems = environments.map((env) => ({
+    key: env,
+    label: startCase(env),
+    children: (
+      <div style={{ width: '100%', height: 300 }}>
+        {metrics?.length > 0 ? (
+          <ResponsiveContainer>
+            <BarChart
+              data={metrics}
+              margin={{
+                top: 20,
+                right: 20,
+                bottom: 30,
+                left: 20,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="event"
+                tick={{ fontSize: 10 }}
+                label={{ value: 'Events', position: 'insideBottomRight' }}
+              />
+              <YAxis dataKey="count" label={{ value: 'Count', angle: -90, position: 'insideLeft' }} />
+              <Tooltip />
+              <Legend />
+              <Bar
+                dataKey="count"
+                fill="#0d6efd"
+                barSize={30}
+                label={{ fill: '#0d6efd', fontSize: 20, position: 'top' }}
+                background={{ fill: '#eee' }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div style={{ textAlign: 'center' }}>
+            <br />
+            <p>No data available yet!</p>
+          </div>
+        )}
+      </div>
+    ),
+  }));
+
   return (
     <>
       <TopMargin />
@@ -131,49 +175,13 @@ const MetricsPanel = ({ integration, alert }: Props) => {
         </DatePickerContainer>
       </div>
 
-      <Tabs onChange={handleTabSelect} activeKey={environment} tabBarGutter={30} destroyInactiveTabPane={true}>
-        {environments.map((env) => (
-          <Tab key={env} tab={startCase(env)}>
-            <div style={{ width: '100%', height: 300 }}>
-              {metrics?.length > 0 ? (
-                <ResponsiveContainer>
-                  <BarChart
-                    data={metrics}
-                    margin={{
-                      top: 20,
-                      right: 20,
-                      bottom: 30,
-                      left: 20,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="event"
-                      tick={{ fontSize: 10 }}
-                      label={{ value: 'Events', position: 'insideBottomRight' }}
-                    />
-                    <YAxis dataKey="count" label={{ value: 'Count', angle: -90, position: 'insideLeft' }} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar
-                      dataKey="count"
-                      fill="#0d6efd"
-                      barSize={30}
-                      label={{ fill: '#0d6efd', fontSize: 20, position: 'top' }}
-                      background={{ fill: '#eee' }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div style={{ textAlign: 'center' }}>
-                  <br />
-                  <p>No data available yet!</p>
-                </div>
-              )}
-            </div>
-          </Tab>
-        ))}
-      </Tabs>
+      <Tabs
+        onChange={handleTabSelect}
+        activeKey={environment}
+        tabBarGutter={30}
+        destroyInactiveTabPane={true}
+        items={tabItems}
+      />
       <InfoMessage>
         This tab was released {metricsStartDate}. Please refer to{' '}
         <Link

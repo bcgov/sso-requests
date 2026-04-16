@@ -4,12 +4,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faExclamationTriangle, faMinusCircle, faEye } from '@fortawesome/free-solid-svg-icons';
 import Select from 'react-select';
 import { throttle, get, reduce } from 'lodash';
-import Grid from '@button-inc/bcgov-theme/Grid';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
-import { ActionButton } from 'components/ActionButtons';
+import ActionButton from 'components/ActionButton';
 import { LastSavedMessage, Tabs, Tab } from '@bcgov-sso/common-react-components';
 import InfoOverlay from 'components/InfoOverlay';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
@@ -29,6 +28,7 @@ import { KeycloakUser } from 'interfaces/team';
 import { dateTimeStringForFileName, generateXlsx } from '@app/utils/helpers';
 import _ from 'lodash';
 import TableNew from '@app/components/TableNew';
+import { Col, Row } from 'react-bootstrap';
 
 const COMPOSITE_ROLE_STRING_LENGTH = 17;
 
@@ -191,6 +191,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
 
         if (!err) setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
         await setSaving(false);
+        fetchRoles();
         return true;
       },
       2000,
@@ -527,10 +528,6 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
           variant="mini"
           columns={[
             {
-              accessorKey: 'username',
-              header: '',
-            },
-            {
               accessorKey: 'projectName',
               header: 'Project Name',
             },
@@ -540,9 +537,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
               cell: (props) => {
                 return viewOnly ? null : (
                   <span
-                    onClick={() =>
-                      removeServiceAccountModalRef.current.open({ username: props.row.getValue('username') })
-                    }
+                    onClick={() => removeServiceAccountModalRef.current.open({ username: props.row.original.username })}
                   >
                     <RightFloatServiceAccountsActionsButtons>
                       <FontAwesomeIcon
@@ -652,30 +647,30 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     ></TableNew>
   );
 
+  const tabItems = rightPanelTabs.map((tab) => ({
+    key: tab,
+    label: tab,
+  }));
+
   return (
     <>
       {roleLoading ? (
         <LoaderContainer />
       ) : (
-        <Grid cols={10}>
-          <Grid.Row collapse="1100" gutter={[15, 2]}>
-            <Grid.Col span={4}>{leftPanel}</Grid.Col>
-            <Grid.Col span={6}>
-              {selectedRole && (
-                <Tabs onChange={handleRightPanelTabSelect} activeKey={rightPanelTab} tabBarGutter={30}>
-                  {rightPanelTabs.map((tab) => (
-                    <Tab key={tab} tab={tab} />
-                  ))}
-                </Tabs>
-              )}
-              {rightPanel}
-            </Grid.Col>
-          </Grid.Row>
-        </Grid>
+        <Row>
+          <Col>{leftPanel}</Col>
+          <Col>
+            {selectedRole && (
+              <Tabs onChange={handleRightPanelTabSelect} activeKey={rightPanelTab} tabBarGutter={30} items={tabItems} />
+            )}
+            {rightPanel}
+          </Col>
+        </Row>
       )}
       <GenericModal
         ref={confirmModalRef}
         title="Delete Role"
+        closable={true}
         icon={faExclamationTriangle}
         onConfirm={async (contentRef: any, roleName: string) => {
           const [_, error] = await deleteRole({

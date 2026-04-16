@@ -29,6 +29,7 @@ services:
         NEXT_PUBLIC_SSO_AUTHORIZATION_RESPONSE_TYPE: code
         NEXT_PUBLIC_SSO_AUTHORIZATION_SCOPE: openid
         NEXT_PUBLIC_SSO_TOKEN_GRANT_TYPE: authorization_code
+        NEXT_PUBLIC_SSO_IDP_HINT: azureidir
         NEXT_PUBLIC_APP_URL: http://localhost:3000
         NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL: true
         NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD: true
@@ -55,8 +56,8 @@ services:
       NEXT_PUBLIC_INCLUDE_OTP: true
       NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT: https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
       NEXT_PUBLIC_APP_ENV: local
+      NEXT_PUBLIC_SSO_IDP_HINT: azureidir
 
-      KC_IDP_HINT: idir
       MAINTENANCE_MODE_ACTIVE: 'false'
       SSO_REQUESTS_BACKEND_HOSTNAME: sso-requests
       API_AUTH_SECRET: s3cr3t
@@ -214,9 +215,6 @@ services:
       TF_VAR_username: admin
       TF_VAR_password: admin
       KC_ENV: dev
-    build:
-      context: .
-      dockerfile: ./Dockerfile.tf-modules
     volumes:
       - sso-kc-terraform-dev:/terraform
     networks:
@@ -234,9 +232,6 @@ services:
       TF_VAR_username: admin
       TF_VAR_password: admin
       KC_ENV: test
-    build:
-      context: .
-      dockerfile: ./Dockerfile.tf-modules
     volumes:
       - sso-kc-terraform-test:/terraform
     networks:
@@ -254,9 +249,6 @@ services:
       TF_VAR_username: admin
       TF_VAR_password: admin
       KC_ENV: prod
-    build:
-      context: .
-      dockerfile: ./Dockerfile.tf-modules
     volumes:
       - sso-kc-terraform-prod:/terraform
     networks:

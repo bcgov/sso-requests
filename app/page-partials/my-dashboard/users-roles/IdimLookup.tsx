@@ -1,11 +1,12 @@
-import React, { useState, forwardRef, useEffect } from 'react';
+import { useState, forwardRef, useEffect } from 'react';
 import { faEye, faDownload } from '@fortawesome/free-solid-svg-icons';
-import { ActionButton, ActionButtonContainer } from 'components/ActionButtons';
+import { ActionButtonContainer } from 'components/ActionButtons';
 import { ModalRef } from 'components/GenericModal';
 import { searchIdirUsers, importIdirUser, IdirUser } from 'services/bceid-webservice';
 import TableNew from '@app/components/TableNew';
 import Select from 'react-select';
 import { SearchBar } from '@bcgov-sso/common-react-components';
+import ActionButton from '@app/components/ActionButton';
 
 const idpOptions = [{ value: 'idir', label: 'IDIR' }];
 
@@ -122,6 +123,11 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
             placeholder="Enter search criteria"
             onChange={(e: any) => setSearchKey(e.target.value)}
             value={searchKey}
+            onKeyDown={(e: any) => {
+              if (e.key === 'Enter') {
+                handleSearch(searchKey);
+              }
+            }}
           />
           <button
             className="primary"
@@ -210,6 +216,7 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
               <p>The user you searched for does not exist. Please try again, by entering the full search criteria.</p>
             )
           }
+          enablePagination={false}
         ></TableNew>
       </div>
 

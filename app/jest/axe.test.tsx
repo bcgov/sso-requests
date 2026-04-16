@@ -1,7 +1,5 @@
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { render } from '@testing-library/react';
-import React from 'react';
-import 'regenerator-runtime/runtime';
 import LandingPage from 'pages/index';
 import ApplicationError from 'pages/application-error';
 import TermsAndConditions from 'pages/terms-conditions';

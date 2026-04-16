@@ -24,6 +24,7 @@ export default defineConfig({
   e2e: {
     baseUrl: 'https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/',
     projectId: 'gctfmh',
+    experimentalModifyObstructiveThirdPartyCode: true,
     setupNodeEvents(on, config) {
       on('before:browser:launch', (browser, launchOptions) => {
         if (browser.family === 'chromium' && (browser.name === 'chrome' || browser.name === 'chromium')) {

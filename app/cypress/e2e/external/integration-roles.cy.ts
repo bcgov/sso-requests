@@ -10,25 +10,14 @@ describe('Create Integration Requests for Roles Testing', () => {
   const requests: Request[] = [];
 
   const cleanup = () => {
-    cy.clearAllCookies();
-    cy.setid(null).then(() => {
-      cy.login();
-    });
+    cy.login();
     requests.forEach((request) => {
       request.deleteRequest(request.id);
     });
   };
 
   beforeEach(() => {
-    cy.clearAllCookies();
-    cy.setid(null).then(() => {
-      cy.login();
-    });
-  });
-
-  afterEach(() => {
-    cy.logout();
-    cy.clearAllCookies();
+    cy.login();
   });
 
   after(() => {
