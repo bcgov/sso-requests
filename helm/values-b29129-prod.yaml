@@ -52,6 +52,13 @@ patroni:
     size: 1Gi
 
 backup-storage:
+
+  persistence:
+    backup:
+      size: 1Gi
+    verification:
+      size: 2Gi
+
   env:
     ENVIRONMENT_FRIENDLY_NAME:
       value: 'SSO Request Prod Backup'
