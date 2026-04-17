@@ -7,3 +7,5 @@ To run the e2e tests, first create a file `cypress.env.json` in the `app` direct
 1. Run `yarn` form the app directory if not installed npm dependencies yet
 1. Start a local app and keycloak instances with `docker-compose up` from the root directory.
 1. Once running, run `npx cypress open` from the `app` directory. This will open a UI where you can choose which testfile to run
+
+Adding a test commit to the app
