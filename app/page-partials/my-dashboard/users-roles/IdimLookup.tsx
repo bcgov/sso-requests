@@ -74,9 +74,9 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
     setLoading(false);
   };
 
-  const handleImport = async (data: IdirUser) => {
+  const handleImport = async (data: any) => {
     setImportError(false);
-    const [_, err] = await importIdirUser({ guid: data.guid, userId: data.userId });
+    const [_, err] = await importIdirUser({ guid: data?.guid, userId: data?.idirUsername });
     if (err) {
       setImportError(true);
     } else {
@@ -105,7 +105,7 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
             },
           ].map((filter) => {
             return (
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1 }} key={filter.key}>
                 <Select
                   key={filter.key}
                   value={filter.options.find((option) => option.value === filter.value)}
@@ -201,7 +201,7 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
                       icon={faDownload}
                       role="button"
                       aria-label="import"
-                      onClick={(row: any) => handleImport(row)}
+                      onClick={() => handleImport(row)}
                       title="Import"
                       size="lg"
                     />
