@@ -50,27 +50,3 @@ patroni:
 
   persistentVolume:
     size: 1Gi
-
-backup-storage:
-
-  persistence:
-    backup:
-      size: 1Gi
-    verification:
-      size: 2Gi
-
-  env:
-    ENVIRONMENT_FRIENDLY_NAME:
-      value: 'SSO Request Prod Backup'
-    ENVIRONMENT_NAME:
-      value: b29129-prod
-    WEBHOOK_URL:
-      value: ''
-      secure: true
-
-    DAILY_BACKUPS:
-      value: '7'
-    WEEKLY_BACKUPS:
-      value: '2'
-    MONTHLY_BACKUPS:
-      value: '1'
