@@ -11,10 +11,10 @@ import ActionButton from '@app/components/ActionButton';
 const idpOptions = [{ value: 'idir', label: 'IDIR' }];
 
 const propertyOptions = [
-  { value: 'givenName', label: 'First Name', allowed: ['idir'] },
-  { value: 'surname', label: 'Last Name', allowed: ['idir'] },
-  { value: 'mail', label: 'Email', allowed: ['idir', 'bceidbasic', 'bceidbusiness'] },
-  { value: 'mailNickname', label: 'Username', allowed: ['idir', 'bceidbasic', 'bceidbusiness'] },
+  { value: 'firstName', label: 'First Name', allowed: ['idir'] },
+  { value: 'lastName', label: 'Last Name', allowed: ['idir'] },
+  { value: 'email', label: 'Email', allowed: ['idir', 'bceidbasic', 'bceidbusiness'] },
+  { value: 'userId', label: 'Username', allowed: ['idir', 'bceidbasic', 'bceidbusiness'] },
   { value: 'guid', label: 'IDP GUID', allowed: ['bceidbasic', 'bceidbusiness'] },
 ];
 
@@ -76,7 +76,7 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
 
   const handleImport = async (data: any) => {
     setImportError(false);
-    const [_, err] = await importIdirUser({ guid: data?.guid, userId: data?.idirUsername });
+    const [_, err] = await importIdirUser(data);
     if (err) {
       setImportError(true);
     } else {
@@ -150,6 +150,7 @@ function IdimLookup({ key, idp, property, search, infoModalRef, parentModalRef }
               lastName: row.lastName,
               email: row.email,
               idirUsername: row.userId,
+              displayName: row.displayName,
             };
           })}
           columns={[
