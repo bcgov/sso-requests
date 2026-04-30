@@ -29,9 +29,9 @@ export const searchIdirUsers = async ({
   }
 };
 
-export const importIdirUser = async ({ guid, userId }: { guid: string; userId: string }): Promise<(any | null)[]> => {
+export const importIdirUser = async (data: any) => {
   try {
-    const result = await instance.post('bceid-webservice/idir/import', { guid, userId }).then((res) => res.data);
+    const result = await instance.post('bceid-webservice/idir/import', data).then((res) => res.data);
     return [result, null];
   } catch (err: any) {
     console.error(err);
