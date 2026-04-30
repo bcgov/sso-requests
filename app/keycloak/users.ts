@@ -10,8 +10,6 @@ import { checkIfUserIsServiceAccount } from '@app/helpers/users';
 import { IntegrationData } from '@app/shared/interfaces';
 import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
 
-// Helpers
-// TODO: encapsulate admin client with user session and associated client infomation
 const getRoleByName = async (kcClient: KcAdminClient, clientId: string, roleName: string) => {
   // @ts-ignore
   const role = await kcClient.clients.findRole({ realm: 'standard', id: clientId, roleName });
@@ -210,7 +208,7 @@ export const listRoleUsers = async (
     max: MAX_CLIENT_ROLE_COUNT,
   });
 
-  if (!roles.find((role) => role.name === roleName)) throw new createHttpError.NotFound(`role ${roleName} not found`);
+  if (!roles.some((role) => role.name === roleName)) throw new createHttpError.NotFound(`role ${roleName} not found`);
 
   const users = await kcAdminClient.clients.findUsersWithRole({
     realm: 'standard',
@@ -440,8 +438,8 @@ export const bulkCreateRole = async (integration: Integration, roles: NewRole[])
 
       const client = clients[0];
 
-      for (let x = 0; x < roleNames.length; x++) {
-        const roleName = roleNames[x];
+      for (const element of roleNames) {
+        const roleName = element;
         await kcAdminClient.clients
           .createRole({
             id: client?.id!,
@@ -550,6 +548,7 @@ export const updateRole = async (
       },
     );
   } catch (err) {
+    console.error(`Error updating role ${roleName}:`, err);
     throw new createHttpError.UnprocessableEntity(`failed to update role ${roleName}`);
   }
   return updatedRole;

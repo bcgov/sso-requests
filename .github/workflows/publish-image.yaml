@@ -320,6 +320,9 @@ jobs:
           --set envVars.chesPassword="${{ env.CHES_PASSWORD }}" \
           --set envVars.grafanaApiUrl="${{ env.GRAFANA_API_URL }}" \
           --set envVars.grafanaApiToken="${{ env.GRAFANA_API_TOKEN }}" \
+          --set envVars.bceidServiceBasicAuth="${{ secrets.BCEID_SERVICE_BASIC_AUTH }}" \
+          --set envVars.bceidServiceId="${{ secrets.BCEID_SERVICE_ID }}" \
+          --set envVars.bceidWebServiceUrl="${{ secrets.BCEID_WEB_SERVICE_URL }}" \
           --set envVars.msGraphApiAuthority="${{ secrets.MS_GRAPH_API_AUTHORITY }}" \
           --set envVars.msGraphApiClientId="${{ secrets.MS_GRAPH_API_CLIENT_ID }}" \
           --set envVars.msGraphApiClientSecret="${{ secrets.MS_GRAPH_API_CLIENT_SECRET }}" \
