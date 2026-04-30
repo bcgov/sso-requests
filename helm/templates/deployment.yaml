@@ -121,6 +121,21 @@ spec:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
                   key: grafana-api-token
+            - name: BCEID_SERVICE_BASIC_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: bceid-service-basic-auth
+            - name: BCEID_SERVICE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: bceid-service-id
+            - name: BCEID_WEB_SERVICE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: bceid-web-service-url
             - name: MS_GRAPH_API_AUTHORITY
               valueFrom:
                 secretKeyRef:
