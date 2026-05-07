@@ -20,6 +20,8 @@ import { SurveyContext } from '@app/utils/context';
 import TableNew from '@app/components/TableNew';
 import { Col, Row } from 'react-bootstrap';
 import ActionButton from '@app/components/ActionButton';
+import { searchIdirUsers, importIdirUser } from 'services/bceid-webservice';
+import { importAzureIdirUser, searchAzureIdirUsers } from '@app/services/ms-graph';
 
 const Label = styled.label`
   font-weight: bold;
@@ -175,7 +177,6 @@ interface Props {
 
 const UserRoles = ({ selectedRequest, alert }: Props) => {
   const infoModalRef = useRef<ModalRef>(emptyRef);
-  const idimSearchModalRef = useRef<ModalRef>(emptyRef);
   const [searched, setSearched] = useState(false);
   const [page, setPage] = useState<number>(1);
   const [count, setCount] = useState<number>(0);
@@ -184,7 +185,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [loadingRight, setLoadingRight] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('');
-  const [rows, setRows] = useState<KeycloakUser[]>([]);
+  const [rows, setRows] = useState<(KeycloakUser & { source: string })[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [compositeResult, setCompositeResult] = useState<boolean[]>([]);
@@ -193,22 +194,41 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [selectedIdp, setSelectedIdp] = useState<string>(selectedRequest.devIdps[0]);
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [searchKey, setSearchKey] = useState<string>('');
-  const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
+  const [selectedUser, setSelectedUser] = useState<(KeycloakUser & { source: string }) | undefined>(undefined);
   const [userAssignmentError, setUserAssignmentError] = useState(false);
   const surveyContext = useContext(SurveyContext);
 
-  const sliceRows = (page: number, rows: KeycloakUser[]) => rows.slice((page - 1) * limit, page * limit);
+  const sliceRows = (page: number, rows: any[]) => rows.slice((page - 1) * limit, page * limit);
 
   const throttleUpdate = useCallback(
     throttle(
       async (roleNames: string[]) => {
-        await setSaving(true);
+        setSaving(true);
+
+        if (selectedUser?.source === 'idp') {
+          if (selectedUser.username.split('@')[1].startsWith('idir')) {
+            await handleIdirImport({
+              guid: selectedUser.username.split('@')[0],
+              firstName: selectedUser.firstName,
+              lastName: selectedUser.lastName,
+              email: selectedUser.email,
+              displayName: selectedUser.attributes['displayName'] || '',
+              idirUsername: selectedUser.attributes['idir_username'] || '',
+            });
+          } else if (selectedUser.username.split('@')[1].startsWith('azureidir')) {
+            await handleAzureImport({
+              guid: selectedUser.username.split('@')[0].toUpperCase(),
+              userId: selectedUser.attributes['idir_username'] || '',
+            });
+          }
+        }
+
         setSavingMessage('Assigning role...');
         setUserAssignmentError(false);
         const [, err] = await manageUserRoles({
           environment: selectedEnvironment,
           integrationId: selectedRequest.id as number,
-          username: selectedId as string,
+          username: selectedUser?.username as string,
           roleNames,
         });
         setSaving(false);
@@ -225,13 +245,13 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       2000,
       { trailing: true },
     ),
-    [selectedRequest?.id, selectedEnvironment, selectedId, surveyContext],
+    [selectedRequest?.id, selectedEnvironment, selectedUser?.username, surveyContext],
   );
 
   const getRoles = async () => {
     if (!selectedRequest) return;
 
-    await setLoading(true);
+    setLoading(true);
 
     const [data, err] = await listClientRoles({
       environment: selectedEnvironment,
@@ -259,7 +279,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setUserRoles([]);
     setPage(1);
     setCount(0);
-    setSelectedId(undefined);
+    setSelectedUser(undefined);
     setSearched(false);
   };
 
@@ -275,7 +295,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   };
 
   const fetchUserRoles = async (username: string) => {
-    await setLoadingRight(true);
+    setLoadingRight(true);
     const [data, err] = await listUserRoles({
       environment: selectedEnvironment,
       integrationId: selectedRequest.id as number,
@@ -291,7 +311,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       return;
     }
 
-    await setUserRoles(data || []);
+    setUserRoles(data || []);
     setLoadingRight(false);
   };
 
@@ -329,8 +349,14 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
   useEffect(() => {
     setSavingMessage('');
-    if (selectedId) fetchUserRoles(selectedId);
-  }, [selectedId]);
+    if (selectedUser) {
+      try {
+        fetchUserRoles(selectedUser.username);
+      } catch (err) {
+        setUserRoles([]);
+      }
+    }
+  }, [selectedUser?.username]);
 
   const searchResults = async (searchKey: string, property = selectedProperty, _page = page) => {
     if (searchKey.length < 2) return;
@@ -341,7 +367,9 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setSelectedProperty(property);
     setRows([]);
     setUserRoles([]);
-    setSelectedId(undefined);
+    setSelectedUser(undefined);
+
+    const users = [];
 
     const [data, err] = await searchKeycloakUsers({
       environment: selectedEnvironment,
@@ -358,15 +386,99 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       });
     }
 
-    if (data) {
-      setSearched(true);
-      setRows(sliceRows(_page, data.rows));
-      setCount(data.count);
+    users.push(...(data?.rows.map((u) => ({ ...u, source: 'keycloak' })) || []));
+
+    if (users.length > 0 && ['idir', 'azureidir'].includes(selectedIdp)) {
+      const userGuids = new Set(users.map((u) => u.username.split('@')[0].toLowerCase()));
+      const idpUsers = [];
+
+      if (selectedIdp == 'idir') {
+        const [data, err] = await searchIdirUsers({
+          field: property,
+          search: searchKey,
+        });
+        if (err) {
+          alert.show({
+            variant: 'danger',
+            content: 'Failed to fetch users.',
+          });
+        }
+        idpUsers.push(...(data || []));
+      } else if (selectedIdp == 'azureidir') {
+        switch (property) {
+          case 'firstName':
+            property = 'givenName';
+            break;
+          case 'lastName':
+            property = 'surname';
+            break;
+          case 'email':
+            property = 'mail';
+            break;
+          default:
+            break;
+        }
+        const [data, err] = await searchAzureIdirUsers({
+          field: property,
+          search: searchKey,
+        });
+        if (err) {
+          alert.show({
+            variant: 'danger',
+            content: 'Failed to fetch users.',
+          });
+        }
+        idpUsers.push(...(data || []));
+      }
+
+      const filteredIdpUsers = idpUsers?.filter((u) => !userGuids.has(u.guid.toLowerCase())) || [];
+
+      users.push(
+        ...(filteredIdpUsers.map((u) => ({
+          source: 'idp',
+          username: `${u.guid.toLowerCase()}@${selectedIdp}`,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          email: u.email,
+          attributes: {
+            idir_user_id: u.guid,
+            idir_username: u.userId,
+            displayName: u.displayName,
+          },
+        })) || []),
+      );
     }
+
+    if (users.length > 0) {
+      setRows(sliceRows(_page, users));
+    }
+
+    setSearched(true);
+    setCount(users.length);
     setLoading(false);
   };
 
   const handleSearch = (key: string) => searchResults(key, undefined, 1);
+
+  const handleIdirImport = async (data: any) => {
+    const [_, err] = await importIdirUser(data);
+    if (err) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to import user.',
+      });
+    }
+  };
+
+  const handleAzureImport = async (data: any) => {
+    const [_, err] = await importAzureIdirUser(data);
+    if (err) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to import user.',
+      });
+    }
+  };
 
   const handleRoleChange = async (
     newValue: MultiValue<{ value: string; label: string }>,
@@ -403,7 +515,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
   if (loadingRight) {
     rightPanel = <Loading />;
-  } else if (selectedId) {
+  } else if (selectedUser) {
     rightPanel = (
       <>
         <Label>2. Assign User to a Role</Label>
@@ -421,41 +533,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     );
   }
 
-  const showIdirLookupOption = selectedIdp === 'idir';
   const propertyOptions = propertyOptionMap[selectedIdp] || [];
   const headers = propertyOptions.length > 0 ? propertyOptions.filter((option) => option.result) : [];
-
-  let idirLookup = null;
-
-  if (searched && showIdirLookupOption) {
-    idirLookup = (
-      <>
-        {rows.length > 0 && (
-          <InfoText italic={true}>
-            If you did not find the user you were looking for, you can try searching for the user in our IDIM Web
-            Service Lookup tool. This tool uses a webservice to find IDIR users. so you will need to import the user
-            that is found.
-          </InfoText>
-        )}
-        <button
-          type="button"
-          className="primary"
-          style={{ marginTop: '0.5rem' }}
-          data-testid="idim-search-button"
-          onClick={() =>
-            idimSearchModalRef.current.open({
-              key: new Date().getTime().toString(),
-              idp: 'idir',
-              property: selectedProperty,
-              search: searchKey,
-            })
-          }
-        >
-          Search in IDIM Web Service Lookup
-        </button>
-      </>
-    );
-  }
 
   const environments = selectedRequest?.environments || [];
   const idps = (selectedRequest?.devIdps || []) as IDPS[];
@@ -471,16 +550,9 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           <FlexItem>
             <FontAwesomeIcon icon={faExclamationCircle} color="#D44331" title="Edit" size="lg" />
           </FlexItem>
-          {showIdirLookupOption ? (
-            <FlexItem>
-              The user you searched for does not exist. Please try again, by entering the full search criteria or try
-              using our IDIM Web Service Lookup tool.
-            </FlexItem>
-          ) : (
-            <FlexItem>
-              The user you searched for does not exist. Please try again, by entering the full search criteria.
-            </FlexItem>
-          )}
+          <FlexItem>
+            The user you searched for does not exist. Please try again, by entering the full search criteria.
+          </FlexItem>
         </FlexBox>
       );
     } else {
@@ -494,7 +566,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   };
 
   const activateRow = (row: any) => {
-    setSelectedId(row?.username);
+    setSelectedUser(row);
   };
 
   return (
@@ -634,6 +706,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                   lastName: get(row, 'lastName'),
                   email: get(row, 'email'),
                   attributes: row.attributes,
+                  source: row.source,
                 };
               })}
               loading={loading}
@@ -646,41 +719,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               onPageChange={setPage}
             ></TableNew>
           </div>
-          {idirLookup}
         </Col>
         <Col>{rightPanel}</Col>
       </Row>
       <UserDetailModal modalRef={infoModalRef} />
-      <GenericModal
-        ref={idimSearchModalRef}
-        id="idim-webservice-lookup"
-        title="IDIM Web Service Lookup"
-        icon={null}
-        onClose={(contentRef, context, closeContext) => {
-          searchResults(closeContext.guid, 'guid', 1);
-        }}
-        cancelButtonText="Close"
-        cancelButtonVariant="primary"
-        showConfirmButton={false}
-        buttonAlign="right"
-        size="lg"
-        closable={true}
-      >
-        {(context: { key: string; idp: string; property: string; search: string }) => {
-          if (!context) return <></>;
-
-          return (
-            <IdimLookup
-              key={context.key}
-              idp={context.idp}
-              property={context.property}
-              search={context.search}
-              infoModalRef={infoModalRef}
-              parentModalRef={idimSearchModalRef}
-            />
-          );
-        }}
-      </GenericModal>
     </>
   );
 };

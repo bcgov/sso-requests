@@ -616,6 +616,71 @@ export const createIdirUser = async ({
   return standardUser;
 };
 
+export const createAzureIdirUser = async ({
+  environment,
+  guid,
+  userId,
+  email,
+  firstName,
+  lastName,
+  displayName,
+  upn,
+}: {
+  environment: string;
+  guid: string;
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  displayName: string;
+  upn: string;
+}) => {
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+
+  const lowGuid = guid.toLowerCase();
+  const username = `${lowGuid}@azureidir`;
+
+  let standardUser = null;
+
+  const existingStandardUsers = await kcAdminClient.users.find({
+    realm: 'standard',
+    username,
+    max: 1,
+  });
+
+  if (existingStandardUsers.length > 0) {
+    standardUser = existingStandardUsers[0];
+  } else {
+    standardUser = await kcAdminClient.users.create({
+      realm: 'standard',
+      username,
+      email,
+      firstName,
+      lastName,
+      attributes: {
+        display_name: displayName,
+        idir_user_guid: guid,
+        idir_username: userId,
+        user_principal_name: upn,
+      },
+      enabled: true,
+    });
+
+    await kcAdminClient.users.addToFederatedIdentity({
+      realm: 'standard',
+      id: standardUser.id,
+      federatedIdentityId: 'azureidir',
+      federatedIdentity: {
+        userId: lowGuid,
+        userName: lowGuid,
+        identityProvider: 'azureidir',
+      },
+    });
+  }
+
+  return standardUser;
+};
+
 export const findUserByRealm = async (environment: string, username: string) => {
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   return await kcAdminClient.users.find({ realm: 'standard', username, max: 1 });
