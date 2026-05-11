@@ -1,9 +1,13 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import UserRoles from 'page-partials/my-dashboard/UserRoles';
-import { searchKeycloakUsers } from 'services/keycloak';
+import { listUserRoles, manageUserRoles, searchKeycloakUsers } from 'services/keycloak';
 import { sampleRequest } from '../../samples/integrations';
+import { importAzureIdirUser, searchAzureIdirUsers } from '@app/services/ms-graph';
+import { importIdirUser, searchIdirUsers } from '@app/services/bceid-webservice';
+import * as servicesKeycloak from 'services/keycloak';
 
 jest.mock('services/keycloak', () => ({
+  ...jest.requireActual('services/keycloak'),
   searchKeycloakUsers: jest.fn(() =>
     Promise.resolve([
       {
@@ -21,9 +25,10 @@ jest.mock('services/keycloak', () => ({
       null,
     ]),
   ),
-  listClientRoles: jest.fn(() => Promise.resolve([[{ name: 'role1' }], null])),
+  listClientRoles: jest.fn(() => Promise.resolve([[{ name: 'role1' }, { name: 'role2' }, { name: 'role3' }], null])),
   listComposites: jest.fn(() => Promise.resolve([[false], null])),
   listUserRoles: jest.fn(() => Promise.resolve([['role1'], null])),
+  manageUserRoles: jest.fn(() => Promise.resolve([true, null])),
 }));
 
 jest.mock('services/bceid-webservice', () => ({
@@ -31,27 +36,41 @@ jest.mock('services/bceid-webservice', () => ({
     Promise.resolve([
       [
         {
-          guid: '000000001',
+          guid: '000000002',
           userId: 'userId',
           displayName: 'displayName',
-          contact: { email: 'idim_email@gov.bc.ca', telephone: '' },
-          individualIdentity: {
-            name: { firstname: 'idir_fn', middleName: '', otherMiddleName: '', surname: 'idir_ln', initials: '' },
-          },
-          internalIdentity: {
-            title: '',
-            company: '',
-            department: '',
-            description: '',
-            employeeId: '',
-            office: '',
-            organizationCode: '',
-          },
+          email: 'idim_email@gov.bc.ca',
+          firstName: 'idir_fn',
+          lastName: 'idir_ln',
         },
       ],
       null,
     ]),
   ),
+  importIdirUser: jest.fn(() => Promise.resolve([true, null])),
+}));
+
+jest.mock('services/ms-graph', () => ({
+  searchAzureIdirUsers: jest.fn(() =>
+    Promise.resolve([
+      [
+        {
+          guid: '000000003',
+          userId: 'userId',
+          displayName: 'displayName',
+          firstName: 'azureidir_fn',
+          lastName: 'azureidir_ln',
+          company: '',
+          phone: '',
+          department: '',
+          jobTitle: '',
+          email: 'azureidir.user@gov.bc.ca',
+        },
+      ],
+      null,
+    ]),
+  ),
+  importAzureIdirUser: jest.fn(() => Promise.resolve([true, null])),
 }));
 
 describe('assign user to roles tab', () => {
@@ -93,6 +112,50 @@ describe('assign user to roles tab', () => {
     const propOption = await screen.findByText('IDP GUID');
     fireEvent.click(propOption);
     expect(selectPropertyWrapper).toHaveTextContent('IDP GUID');
+  });
+
+  it('Should display correct user selection criteria for IDIR idps', async () => {
+    render(<UserRoles selectedRequest={{ ...sampleRequest, environments: ['dev', 'test'], devIdps: ['idir'] }} />);
+    await waitFor(() => {
+      expect(screen.getByText('1. Search for a user based on the selection criteria below')).toBeInTheDocument();
+    });
+
+    const selectIDPWrapper = screen.getByTestId('search-user-filter-idp');
+    const selectPropertyWrapper = screen.getByTestId('search-user-filter-prop');
+
+    fireEvent.keyDown(selectIDPWrapper.firstChild as HTMLElement, { keyCode: 40 });
+    const idpOption = await screen.findAllByText('IDIR');
+    fireEvent.click(idpOption[0]);
+    expect(selectIDPWrapper).toHaveTextContent('IDIR');
+
+    fireEvent.keyDown(selectPropertyWrapper.firstChild as HTMLElement, { keyCode: 40 });
+    expect(screen.getAllByText('First Name'));
+    expect(screen.getAllByText('Last Name'));
+    expect(screen.getAllByText('Email'));
+    expect(screen.getByText('IDP GUID')).toBeInTheDocument();
+    expect(screen.getByText('Username')).toBeInTheDocument();
+  });
+
+  it('Should display correct user selection criteria for IDIR - MFA idps', async () => {
+    render(<UserRoles selectedRequest={{ ...sampleRequest, environments: ['dev', 'test'], devIdps: ['azureidir'] }} />);
+    await waitFor(() => {
+      expect(screen.getByText('1. Search for a user based on the selection criteria below')).toBeInTheDocument();
+    });
+
+    const selectIDPWrapper = screen.getByTestId('search-user-filter-idp');
+    const selectPropertyWrapper = screen.getByTestId('search-user-filter-prop');
+
+    fireEvent.keyDown(selectIDPWrapper.firstChild as HTMLElement, { keyCode: 40 });
+    const idpOption = await screen.findAllByText('IDIR - MFA');
+    fireEvent.click(idpOption[0]);
+    expect(selectIDPWrapper).toHaveTextContent('IDIR - MFA');
+
+    fireEvent.keyDown(selectPropertyWrapper.firstChild as HTMLElement, { keyCode: 40 });
+    expect(screen.getAllByText('First Name'));
+    expect(screen.getAllByText('Last Name'));
+    expect(screen.getAllByText('Email'));
+    expect(screen.getByText('IDP GUID')).toBeInTheDocument();
+    expect(screen.getByText('Username')).toBeInTheDocument();
   });
 
   it('Should display correct user selection criteria for BCeID idps', async () => {
@@ -156,6 +219,7 @@ describe('assign user to roles tab', () => {
     await waitFor(() => {
       expect(screen.getByText('1. Search for a user based on the selection criteria below')).toBeInTheDocument();
     });
+
     const searchUserInput = screen.getByPlaceholderText('Enter search criteria');
     fireEvent.change(searchUserInput, { target: { value: 'sample' } });
     await waitFor(() => {
@@ -164,12 +228,102 @@ describe('assign user to roles tab', () => {
 
     await waitFor(() => {
       expect(searchKeycloakUsers).toHaveBeenCalled();
+      expect(searchAzureIdirUsers).toHaveBeenCalled();
       expect(screen.getByText('sampleResult@gov.bc.ca')).toBeInTheDocument();
+      expect(screen.getByText('azureidir.user@gov.bc.ca')).toBeInTheDocument();
     });
 
-    screen.findByRole('row', { name: 'fn ln sampleResult@gov.bc.ca View' });
+    expect(screen.getAllByRole('row')[1]).toHaveTextContent('fnlnsampleResult@gov.bc.ca');
 
-    fireEvent.click(await screen.findByRole('button', { name: 'view' }));
+    expect(screen.getAllByRole('row')[2]).toHaveTextContent('azureidir_fnazureidir_lnazureidir.user@gov.bc.ca');
+
+    fireEvent.click((await screen.findAllByRole('button', { name: 'view' }))[0]);
     expect(await screen.findByTitle('Additional User Info')).toBeVisible();
+  });
+
+  it('Should be able to show merged list of idir users from keycloak and idim web service and lets importing user upon role assignment', async () => {
+    render(
+      <UserRoles
+        selectedRequest={{
+          ...sampleRequest,
+          environments: ['dev', 'test'],
+          devIdps: ['idir'],
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('1. Search for a user based on the selection criteria below')).toBeInTheDocument();
+    });
+
+    const searchUserInput = screen.getByPlaceholderText('Enter search criteria');
+    fireEvent.change(searchUserInput, { target: { value: 'sample' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+
+    jest.spyOn(servicesKeycloak, 'listUserRoles').mockResolvedValue([[], null]);
+
+    await waitFor(() => {
+      expect(searchKeycloakUsers).toHaveBeenCalled();
+      expect(searchIdirUsers).toHaveBeenCalled();
+      expect(listUserRoles).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByText('idim_email@gov.bc.ca'));
+
+    const assignRolesSelectWrapper = screen.getByTestId('user-role-select');
+
+    fireEvent.keyDown(assignRolesSelectWrapper.childNodes[1] as HTMLElement, { keyCode: 40 });
+
+    fireEvent.click(screen.getByText('role1'));
+
+    await waitFor(() => {
+      expect(importIdirUser).toHaveBeenCalled();
+      expect(manageUserRoles).toHaveBeenCalled();
+    });
+
+    expect(screen.getByText(/Last saved at/i)).toBeInTheDocument();
+  });
+
+  it('Should be able to show merged list of azureidir users from keycloak and idim web service and lets importing user upon role assignment', async () => {
+    render(
+      <UserRoles
+        selectedRequest={{
+          ...sampleRequest,
+          environments: ['dev', 'test'],
+          devIdps: ['azureidir'],
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('1. Search for a user based on the selection criteria below')).toBeInTheDocument();
+    });
+
+    const searchUserInput = screen.getByPlaceholderText('Enter search criteria');
+    fireEvent.change(searchUserInput, { target: { value: 'sample' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+
+    jest.spyOn(servicesKeycloak, 'listUserRoles').mockResolvedValue([[], null]);
+
+    await waitFor(() => {
+      expect(searchKeycloakUsers).toHaveBeenCalled();
+      expect(searchAzureIdirUsers).toHaveBeenCalled();
+      expect(listUserRoles).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByText('azureidir.user@gov.bc.ca'));
+
+    const assignRolesSelectWrapper = screen.getByTestId('user-role-select');
+
+    fireEvent.keyDown(assignRolesSelectWrapper.childNodes[1] as HTMLElement, { keyCode: 40 });
+
+    fireEvent.click(screen.getByText('role1'));
+
+    await waitFor(() => {
+      expect(importAzureIdirUser).toHaveBeenCalled();
+      expect(manageUserRoles).toHaveBeenCalled();
+    });
+
+    expect(screen.getByText(/Last saved at/i)).toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
-import { createIdirUser } from '../keycloak/users';
+import { createAzureIdirUser } from '../keycloak/users';
 import { ConfidentialClientApplication, IConfidentialClientApplication } from '@azure/msal-node';
 import { CYPRESS_MOCKED_IDIR_LOOKUP, MS_GRAPH_URL } from '@app/utils/constants';
 import { MsGraphUserResponse, MsGraphUserValue } from '@app/shared/interfaces';
@@ -84,7 +84,7 @@ const formatUser = (data: MsGraphUserValue) => {
 
 /** Search for an IDIR user by any field and value. Search expects the actual value to start with the provided value. */
 export const searchIdirUsers = async ({ field, search }: { field: string; search: string }) => {
-  const url = `${MS_GRAPH_URL}/v1.0/users?$filter=startswith(${field},'${search}')&$top=25&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone`;
+  const url = `${MS_GRAPH_URL}/v1.0/users?$filter=startswith(${field},'${search}')&$top=25&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName`;
   try {
     const response = (await callAzureGraphApi(url)) as MsGraphUserResponse;
     const formattedUsers = response.value.map(formatUser);
@@ -97,8 +97,9 @@ export const searchIdirUsers = async ({ field, search }: { field: string; search
 
 /** Import a user into the keycloak instances for all envs. */
 export const importIdirUser = async ({ guid, userId }: { guid: string; userId: string }) => {
-  const url = `${MS_GRAPH_URL}/v1.0/users?$filter=mailNickname eq '${userId}'&$select=onPremisesExtensionAttributes,displayName,mail,givenName,surname`;
+  const url = `${MS_GRAPH_URL}/v1.0/users?$filter=mailNickname eq '${userId}'&$select=onPremisesExtensionAttributes,displayName,mail,givenName,surname,userPrincipalName`;
   const response = (await callAzureGraphApi(url)) as MsGraphUserResponse;
+
   if (!response?.value?.length) {
     return false;
   }
@@ -107,7 +108,7 @@ export const importIdirUser = async ({ guid, userId }: { guid: string; userId: s
 
   await Promise.all(
     ['dev', 'test', 'prod'].map((env) =>
-      createIdirUser({
+      createAzureIdirUser({
         environment: env,
         guid,
         userId,
@@ -115,6 +116,7 @@ export const importIdirUser = async ({ guid, userId }: { guid: string; userId: s
         firstName: result.givenName,
         lastName: result.surname,
         displayName: result.displayName,
+        upn: result.userPrincipalName,
       }).catch(() => null),
     ),
   );
