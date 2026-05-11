@@ -418,7 +418,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   useEffect(() => {
     setSavingMessage('');
     if (selectedUser) {
-      let userExists = true;
       checkIfUserExistsInKeycloak().then((exists) => {
         if (exists) fetchUserRoles(selectedUser.username);
         else setUserRoles([]);
