@@ -6,11 +6,10 @@ import { faExclamationCircle, faEye } from '@fortawesome/free-solid-svg-icons';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
-import { Header, InfoText, LastSavedMessage, SearchBar } from '@bcgov-sso/common-react-components';
+import { Header, LastSavedMessage, SearchBar } from '@bcgov-sso/common-react-components';
 import { ActionButtonContainer } from 'components/ActionButtons';
-import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
+import { ModalRef, emptyRef } from 'components/GenericModal';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
-import IdimLookup from 'page-partials/my-dashboard/users-roles/IdimLookup';
 import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles } from 'services/keycloak';
 import InfoOverlay from 'components/InfoOverlay';
 import { idpMap } from 'helpers/meta';
@@ -100,6 +99,13 @@ const idirPropertyOptions: PropertyOption[] = [
     search: true,
     result: false,
   },
+  {
+    value: 'idir_username',
+    label: 'Username',
+    search: true,
+    result: false,
+    style: { minWidth: '170px' },
+  },
 ];
 
 const bceidPropertyOptions: PropertyOption[] = [
@@ -175,6 +181,70 @@ interface Props {
   alert: TopAlert;
 }
 
+const fetchIdpUsers = async ({ idp, userQuery }: { idp: string; userQuery: { property: string; value: string } }) => {
+  if (idp == 'idir') {
+    if (userQuery.property === 'idir_username') userQuery.property = 'userId';
+    const [data, err] = await searchIdirUsers({
+      field: userQuery.property,
+      search: userQuery.value,
+    });
+    if (err) return [null, err];
+    return [data, null];
+  } else if (idp == 'azureidir') {
+    switch (userQuery.property) {
+      case 'firstName':
+        userQuery.property = 'givenName';
+        break;
+      case 'lastName':
+        userQuery.property = 'surname';
+        break;
+      case 'email':
+        userQuery.property = 'mail';
+        break;
+      case 'idir_username':
+        userQuery.property = 'mailNickname';
+        break;
+      default:
+        break;
+    }
+    const [data, err] = await searchAzureIdirUsers({
+      field: userQuery.property,
+      search: userQuery.value,
+    });
+    if (err) return [null, err];
+    return [data, null];
+  }
+  return [null, null];
+};
+
+const importUserToKeycloak = async (user: KeycloakUser & { source: string }) => {
+  try {
+    if (user.username.split('@')[1].startsWith('idir')) {
+      await importIdirUser({
+        guid: user.username.split('@')[0],
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        displayName: user.attributes['displayName'] || '',
+        idirUsername: user.attributes['idir_username'] || '',
+      });
+    } else if (user.username.split('@')[1].startsWith('azureidir')) {
+      await importAzureIdirUser({
+        guid: user.username.split('@')[0].toUpperCase(),
+        userId: user.attributes['idir_username'] || '',
+      });
+    }
+  } catch (err) {
+    console.error('Failed to import user:', err);
+  }
+};
+
+interface UserRolesActionCellProps {
+  row: any;
+  headers: PropertyOption[];
+  infoModalRef: React.RefObject<ModalRef>;
+}
+
 const UserRoles = ({ selectedRequest, alert }: Props) => {
   const infoModalRef = useRef<ModalRef>(emptyRef);
   const [searched, setSearched] = useState(false);
@@ -206,21 +276,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
         setSaving(true);
 
         if (selectedUser?.source === 'idp') {
-          if (selectedUser.username.split('@')[1].startsWith('idir')) {
-            await handleIdirImport({
-              guid: selectedUser.username.split('@')[0],
-              firstName: selectedUser.firstName,
-              lastName: selectedUser.lastName,
-              email: selectedUser.email,
-              displayName: selectedUser.attributes['displayName'] || '',
-              idirUsername: selectedUser.attributes['idir_username'] || '',
-            });
-          } else if (selectedUser.username.split('@')[1].startsWith('azureidir')) {
-            await handleAzureImport({
-              guid: selectedUser.username.split('@')[0].toUpperCase(),
-              userId: selectedUser.attributes['idir_username'] || '',
-            });
-          }
+          await importUserToKeycloak(selectedUser);
         }
 
         setSavingMessage('Assigning role...');
@@ -232,14 +288,14 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           roleNames,
         });
         setSaving(false);
-        if (!err) {
-          setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
-          surveyContext?.setShowSurvey(true, 'addUserToRole');
-          return true;
-        } else {
+        if (err) {
           setUserAssignmentError(true);
           setSavingMessage('Failed to update roles.');
           return false;
+        } else {
+          setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
+          surveyContext?.setShowSurvey(true, 'addUserToRole');
+          return true;
         }
       },
       2000,
@@ -347,14 +403,26 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     }
   }, [selectedIdp]);
 
+  const checkIfUserExistsInKeycloak = async () => {
+    const [data, _] = await searchKeycloakUsers({
+      environment: selectedEnvironment,
+      idp: selectedIdp,
+      property: 'guid',
+      searchKey: selectedUser?.username.split('@')[0] || '',
+      integrationId: selectedRequest.id || -1,
+    });
+    if (data?.count !== 0) return true;
+    return false;
+  };
+
   useEffect(() => {
     setSavingMessage('');
     if (selectedUser) {
-      try {
-        fetchUserRoles(selectedUser.username);
-      } catch (err) {
-        setUserRoles([]);
-      }
+      let userExists = true;
+      checkIfUserExistsInKeycloak().then((exists) => {
+        if (exists) fetchUserRoles(selectedUser.username);
+        else setUserRoles([]);
+      });
     }
   }, [selectedUser?.username]);
 
@@ -371,7 +439,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
     const users = [];
 
-    const [data, err] = await searchKeycloakUsers({
+    const [data, _] = await searchKeycloakUsers({
       environment: selectedEnvironment,
       idp: selectedIdp,
       property,
@@ -379,74 +447,32 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       integrationId: selectedRequest.id || -1,
     });
 
-    if (err) {
-      alert.show({
-        variant: 'danger',
-        content: 'Failed to fetch users.',
-      });
-    }
+    if (data && data?.count > 0) users.push(...(data?.rows.map((u) => ({ ...u, source: 'keycloak' })) || []));
 
-    users.push(...(data?.rows.map((u) => ({ ...u, source: 'keycloak' })) || []));
-
-    if (users.length > 0 && ['idir', 'azureidir'].includes(selectedIdp)) {
+    if (['idir', 'azureidir'].includes(selectedIdp)) {
       const userGuids = new Set(users.map((u) => u.username.split('@')[0].toLowerCase()));
-      const idpUsers = [];
+      const [idpUsers, err] = await fetchIdpUsers({
+        idp: selectedIdp,
+        userQuery: { property, value: searchKey },
+      });
 
-      if (selectedIdp == 'idir') {
-        const [data, err] = await searchIdirUsers({
-          field: property,
-          search: searchKey,
-        });
-        if (err) {
-          alert.show({
-            variant: 'danger',
-            content: 'Failed to fetch users.',
-          });
-        }
-        idpUsers.push(...(data || []));
-      } else if (selectedIdp == 'azureidir') {
-        switch (property) {
-          case 'firstName':
-            property = 'givenName';
-            break;
-          case 'lastName':
-            property = 'surname';
-            break;
-          case 'email':
-            property = 'mail';
-            break;
-          default:
-            break;
-        }
-        const [data, err] = await searchAzureIdirUsers({
-          field: property,
-          search: searchKey,
-        });
-        if (err) {
-          alert.show({
-            variant: 'danger',
-            content: 'Failed to fetch users.',
-          });
-        }
-        idpUsers.push(...(data || []));
+      if (!err && idpUsers && idpUsers?.length > 0) {
+        const filteredIdpUsers = idpUsers?.filter((u) => !userGuids.has(u.guid.toLowerCase())) || [];
+        users.push(
+          ...(filteredIdpUsers.map((u) => ({
+            source: 'idp',
+            username: `${u.guid.toLowerCase()}@${selectedIdp}`,
+            firstName: u.firstName,
+            lastName: u.lastName,
+            email: u.email,
+            attributes: {
+              idir_user_id: u.guid,
+              idir_username: u.userId,
+              displayName: u.displayName,
+            },
+          })) || []),
+        );
       }
-
-      const filteredIdpUsers = idpUsers?.filter((u) => !userGuids.has(u.guid.toLowerCase())) || [];
-
-      users.push(
-        ...(filteredIdpUsers.map((u) => ({
-          source: 'idp',
-          username: `${u.guid.toLowerCase()}@${selectedIdp}`,
-          firstName: u.firstName,
-          lastName: u.lastName,
-          email: u.email,
-          attributes: {
-            idir_user_id: u.guid,
-            idir_username: u.userId,
-            displayName: u.displayName,
-          },
-        })) || []),
-      );
     }
 
     if (users.length > 0) {
@@ -460,26 +486,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
   const handleSearch = (key: string) => searchResults(key, undefined, 1);
 
-  const handleIdirImport = async (data: any) => {
-    const [_, err] = await importIdirUser(data);
-    if (err) {
-      alert.show({
-        variant: 'danger',
-        content: 'Failed to import user.',
-      });
-    }
-  };
-
-  const handleAzureImport = async (data: any) => {
-    const [_, err] = await importAzureIdirUser(data);
-    if (err) {
-      alert.show({
-        variant: 'danger',
-        content: 'Failed to import user.',
-      });
-    }
-  };
-
   const handleRoleChange = async (
     newValue: MultiValue<{ value: string; label: string }>,
     actionMeta: ActionMeta<{
@@ -489,10 +495,11 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   ) => {
     let newRoles: string[] = [];
     if (actionMeta.action === 'clear') {
+      /* empty */
     } else if (actionMeta.action === 'remove-value') {
-      newRoles = userRoles.filter((role) => role !== (actionMeta.removedValue?.value as string));
+      newRoles = userRoles.filter((role) => role !== actionMeta.removedValue?.value);
     } else if (actionMeta.action === 'pop-value') {
-      newRoles = [...userRoles.slice(0, -1)];
+      newRoles = userRoles.slice(0, -1);
     } else {
       newRoles = [...userRoles, actionMeta.option?.value as string];
     }
@@ -507,7 +514,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   };
 
   const updateRoleName = (role: string, index: number) => {
-    if (compositeResult[index] == true) return `${role} (Composite role)`;
+    if (compositeResult[index]) return `${role} (Composite role)`;
     else return role;
   };
 
@@ -517,7 +524,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     rightPanel = <Loading />;
   } else if (selectedUser) {
     rightPanel = (
-      <>
+      <div data-testid={'user-role-select'}>
         <Label>2. Assign User to a Role</Label>
         <Select
           value={userRoles.map((role) => ({ value: role, label: role }))}
@@ -526,10 +533,9 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           placeholder="Select..."
           noOptionsMessage={() => 'No roles'}
           onChange={handleRoleChange}
-          data-testid="user-role-select"
         />
         <LastSavedMessage saving={saving} content={savingMessage} variant={userAssignmentError ? 'error' : 'success'} />
-      </>
+      </div>
     );
   }
 
@@ -619,7 +625,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                       options={filter.options}
                       isMulti={filter.multiselect}
                       placeholder="Select..."
-                      onChange={(option: any) => filter.onChange(option ? (option as any).value : '')}
+                      onChange={(option: any) => filter.onChange(option ? option.value : '')}
                       isSearchable={true}
                       defaultValue={filter.options[0]}
                     />
@@ -655,14 +661,17 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
                 {
                   accessorKey: 'firstName',
                   header: getTableHeaderLabel('firstName') || '',
+                  cell: ({ getValue }) => <span>{getValue()}</span>,
                 },
                 {
                   accessorKey: 'lastName',
                   header: getTableHeaderLabel('lastName') || '',
+                  cell: ({ getValue }) => <span>{getValue()}</span>,
                 },
                 {
                   accessorKey: 'email',
                   header: getTableHeaderLabel('email') || '',
+                  cell: ({ getValue }) => <span>{getValue()}</span>,
                 },
                 {
                   accessorKey: 'actions',

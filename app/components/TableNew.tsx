@@ -9,7 +9,6 @@ import {
   ColumnFiltersState,
   ColumnDef,
   VisibilityState,
-  InitialTableState,
   getPaginationRowModel,
   getFilteredRowModel,
 } from '@tanstack/react-table';
@@ -160,7 +159,6 @@ export interface TableProps<T extends object> {
   serverPageIndex?: number;
   pageSizeOptions?: number[];
   noDataFoundMessage?: React.ReactNode;
-  initialState?: InitialTableState;
   loading?: boolean;
   autoSelectFirstRow?: boolean;
   dataTestId?: string;
@@ -317,7 +315,7 @@ const Table = <T extends object>({
                     {filter.label}
                     <Select
                       onChange={(selected: any) => {
-                        filter.onChange && filter.onChange(selected);
+                        filter.onChange?.(selected);
                         table.resetPageIndex(true);
                         onPageChange(1);
                       }}
@@ -343,7 +341,7 @@ const Table = <T extends object>({
                     {filter.label}
                     <Select
                       options={filter.options}
-                      onChange={(val: any) => filter.onChange && filter.onChange(val)}
+                      onChange={(val: any) => filter.onChange?.(val)}
                       defaultValue={(filter as any)?.defaultValue}
                       isClearable
                       styles={{
@@ -393,13 +391,11 @@ const Table = <T extends object>({
         <ReactPlaceholder ready={!loading || false} showLoadingAnimation customPlaceholder={awesomePlaceholder}>
           <tbody>
             {table.getRowModel().rows.length === 0 ? (
-              <>
-                <tr key="no-data">
-                  <td style={{ textAlign: 'center' }} colSpan={columns.length}>
-                    {noDataFoundMessage}
-                  </td>
-                </tr>
-              </>
+              <tr key="no-data">
+                <td style={{ textAlign: 'center' }} colSpan={columns.length}>
+                  {noDataFoundMessage}
+                </td>
+              </tr>
             ) : (
               table.getRowModel().rows.map((row) => (
                 <tr

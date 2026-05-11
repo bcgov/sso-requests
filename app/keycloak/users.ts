@@ -727,7 +727,7 @@ export const searchUsersByIdp = async ({
   userProperties: any;
 }) => {
   for (let queryProp in userProperties) {
-    if (!['email', 'firstName', 'lastName', 'guid'].includes(queryProp))
+    if (!['email', 'firstName', 'lastName', 'guid', 'idir_username'].includes(queryProp))
       throw new createHttpError.BadRequest(`invalid property ${queryProp}`);
   }
 
@@ -749,6 +749,9 @@ export const searchUsersByIdp = async ({
     query.exact = true;
   } else {
     query.username = `@${idp}`;
+  }
+  if (userProperties?.idir_username) {
+    query['q'] = 'idir_username:' + userProperties.idir_username;
   }
   query.firstName = userProperties?.firstName;
   query.lastName = userProperties?.lastName;
