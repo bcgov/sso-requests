@@ -456,7 +456,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       });
 
       if (!err && idpUsers && idpUsers?.length > 0) {
-        const filteredIdpUsers = idpUsers?.filter((u) => !userGuids.has(u.guid.toLowerCase())) || [];
+        const filteredIdpUsers = idpUsers?.filter((u) => u.guid && !userGuids.has(u.guid.toLowerCase())) || [];
         users.push(
           ...(filteredIdpUsers.map((u) => ({
             source: 'idp',
