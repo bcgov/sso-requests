@@ -94,12 +94,6 @@ const idirPropertyOptions: PropertyOption[] = [
     style: { minWidth: '170px' },
   },
   {
-    value: 'guid',
-    label: 'IDP GUID',
-    search: true,
-    result: false,
-  },
-  {
     value: 'idir_username',
     label: 'Username',
     search: true,
@@ -218,24 +212,20 @@ const fetchIdpUsers = async ({ idp, userQuery }: { idp: string; userQuery: { pro
 };
 
 const importUserToKeycloak = async (user: KeycloakUser & { source: string }) => {
-  try {
-    if (user.username.split('@')[1].startsWith('idir')) {
-      await importIdirUser({
-        guid: user.username.split('@')[0],
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        displayName: user.attributes['displayName'] || '',
-        idirUsername: user.attributes['idir_username'] || '',
-      });
-    } else if (user.username.split('@')[1].startsWith('azureidir')) {
-      await importAzureIdirUser({
-        guid: user.username.split('@')[0].toUpperCase(),
-        userId: user.attributes['idir_username'] || '',
-      });
-    }
-  } catch (err) {
-    console.error('Failed to import user:', err);
+  if (user.username.split('@')[1].startsWith('idir')) {
+    await importIdirUser({
+      guid: user.username.split('@')[0],
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      displayName: user.attributes['displayName'] || '',
+      idirUsername: user.attributes['idir_username'] || '',
+    });
+  } else if (user.username.split('@')[1].startsWith('azureidir')) {
+    await importAzureIdirUser({
+      guid: user.username.split('@')[0].toUpperCase(),
+      userId: user.attributes['idir_username'] || '',
+    });
   }
 };
 
@@ -246,6 +236,7 @@ interface UserRolesActionCellProps {
 }
 
 const UserRoles = ({ selectedRequest, alert }: Props) => {
+  const tableRef = useRef<any>(null);
   const infoModalRef = useRef<ModalRef>(emptyRef);
   const [searched, setSearched] = useState(false);
   const [page, setPage] = useState<number>(1);
@@ -255,6 +246,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [loadingRight, setLoadingRight] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('');
+  const [allUsers, setAllUsers] = useState<(KeycloakUser & { source: string })[]>([]);
   const [rows, setRows] = useState<(KeycloakUser & { source: string })[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
@@ -276,7 +268,15 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
         setSaving(true);
 
         if (selectedUser?.source === 'idp') {
-          await importUserToKeycloak(selectedUser);
+          try {
+            await importUserToKeycloak(selectedUser);
+          } catch (err) {
+            console.error('Failed to import user to Keycloak:', err);
+            setSaving(false);
+            setUserAssignmentError(true);
+            setSavingMessage('Failed to import user to Keycloak.');
+            return false;
+          }
         }
 
         setSavingMessage('Assigning role...');
@@ -331,6 +331,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   };
 
   const reset = () => {
+    setAllUsers([]);
     setRows([]);
     setUserRoles([]);
     setPage(1);
@@ -378,12 +379,12 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   }, [selectedRequest.id]);
 
   useEffect(() => {
-    searchResults(searchKey, undefined, page);
-  }, [page]);
+    setRows(sliceRows(page, allUsers));
+  }, [page, allUsers]);
 
   useEffect(() => {
-    searchResults(searchKey, undefined, 1);
-  }, [limit]);
+    setRows(sliceRows(page, allUsers));
+  }, [limit, allUsers]);
 
   useEffect(() => {
     reset();
@@ -432,9 +433,11 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setSearchKey(searchKey);
     setPage(_page);
     setSelectedProperty(property);
+    setAllUsers([]);
     setRows([]);
     setUserRoles([]);
     setSelectedUser(undefined);
+    setCount(0);
 
     const users = [];
 
@@ -458,24 +461,32 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       if (!err && idpUsers && idpUsers?.length > 0) {
         const filteredIdpUsers = idpUsers?.filter((u) => u.guid && !userGuids.has(u.guid.toLowerCase())) || [];
         users.push(
-          ...(filteredIdpUsers.map((u) => ({
-            source: 'idp',
-            username: `${u.guid.toLowerCase()}@${selectedIdp}`,
-            firstName: u.firstName,
-            lastName: u.lastName,
-            email: u.email,
-            attributes: {
+          ...(filteredIdpUsers.map((u: any) => {
+            const attributes: any = {
               idir_user_id: u.guid,
               idir_username: u.userId,
               displayName: u.displayName,
-            },
-          })) || []),
+            };
+
+            if (selectedIdp === 'azureidir') {
+              attributes['userPrincipalName'] = u.userPrincipalName;
+            }
+
+            return {
+              source: 'idp',
+              username: `${u.guid.toLowerCase()}@${selectedIdp}`,
+              firstName: u.firstName,
+              lastName: u.lastName,
+              email: u.email,
+              attributes,
+            };
+          }) || []),
         );
       }
     }
 
     if (users.length > 0) {
-      setRows(sliceRows(_page, users));
+      setAllUsers(users);
     }
 
     setSearched(true);
@@ -483,7 +494,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setLoading(false);
   };
 
-  const handleSearch = (key: string) => searchResults(key, undefined, 1);
+  const handleSearch = (key: string) => {
+    tableRef.current?.resetPageIndex();
+    searchResults(key, undefined, 1);
+  };
 
   const handleRoleChange = async (
     newValue: MultiValue<{ value: string; label: string }>,
@@ -654,6 +668,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
             </div>
 
             <TableNew
+              ref={tableRef}
               dataTestId="user-roles-table"
               variant="mini"
               columns={[
