@@ -120,22 +120,37 @@ export const importIdirUser = async (data: any) => {
     throw new Error('Missing required user data');
   }
 
-  try {
-    await Promise.all(
-      ['dev', 'test', 'prod'].map((env) =>
-        createIdirUser({
-          environment: env,
-          guid,
-          userId: idirUsername,
-          email,
-          firstName,
-          lastName,
-          displayName,
-        }).catch(() => null),
-      ),
+  const environments = ['dev', 'test', 'prod'];
+
+  const results = await Promise.allSettled(
+    environments.map((env) =>
+      createIdirUser({
+        environment: env,
+        guid,
+        userId: idirUsername,
+        email,
+        firstName,
+        lastName,
+        displayName,
+      }),
+    ),
+  );
+
+  const failures = results
+    .map((result, index) => ({ result, env: environments[index] }))
+    .filter(({ result }) => result.status === 'rejected');
+
+  if (failures.length > 0) {
+    console.error(
+      'Failed environments:',
+      failures.map(({ env, result }) => ({
+        env,
+        error: (result as PromiseRejectedResult).reason,
+      })),
     );
-  } catch (err) {
-    console.error('Failed to import IDIR user into Keycloak:', err);
-    throw new createHttpError.UnprocessableEntity('Failed to import IDIR user');
+
+    throw new createHttpError.UnprocessableEntity(
+      `Failed to import user into ${failures.map((f) => f.env).join(', ')}`,
+    );
   }
 };

@@ -1,4 +1,3 @@
-import { isString } from 'lodash';
 import { errorMessages, environmentOptions } from '@app/utils/constants';
 import { LoggedInUser, Team, User } from '@app/interfaces/team';
 import { Integration, Option, GoldIDPOption } from '@app/interfaces/Request';
@@ -17,7 +16,7 @@ import {
   checkNotOTP,
 } from '@app/helpers/integration';
 import { Session } from '@app/shared/interfaces';
-import { sortBy, compact, omit } from 'lodash';
+import { sortBy, compact, omit, isString } from 'lodash';
 import { getSchemas, oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 import { diff } from 'deep-diff';
 import { validateForm } from './validate';
