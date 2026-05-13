@@ -284,7 +284,7 @@ describe('IDP Approvals', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
     expect(updateRequest).toHaveBeenCalled();
     await waitFor(() => {
-      expect(screen.queryByText('BCeID Approval')).not.toBeInTheDocument();
+      expect(screen.queryByText('Approve Prod')).not.toBeInTheDocument();
     });
 
     const approvedString = `Approved by ${sampleEvents.bceidApproved.idirUserDisplayName} on ${new Date(
