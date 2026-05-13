@@ -64,6 +64,7 @@ export const validateIdirEmail = async (email: string) => {
     const response = await callAzureGraphApi(url);
     return { given_name: response.givenName, family_name: response.surname };
   } catch (error) {
+    console.error('Failed to validate IDIR email via Graph API:', error);
     return false;
   }
 };

@@ -122,7 +122,7 @@ export const importIdirUser = async (data: any) => {
 
   try {
     await Promise.all(
-      ['dev'].map((env) =>
+      ['dev', 'test', 'prod'].map((env) =>
         createIdirUser({
           environment: env,
           guid,
