@@ -15,12 +15,12 @@ import {
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import {
-  usesBceidProd,
   usesGithub,
   usesBcServicesCardProd,
   usesDigitalCredentialProd,
   usesDigitalCredential,
   usesOTPProd,
+  usesBceid,
 } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
@@ -50,7 +50,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const emails = await getIntegrationEmails(integration);
   let cc = [SSO_EMAIL_ADDRESS];
   let bcc: string[] = [];
-  if (usesBceidProd(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
+  if (usesBceid(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
   if (usesGithub(integration)) cc.push(OCIO_EMAIL_ADDRESS);
   if (usesDigitalCredential(integration)) cc.push(DIT_EMAIL_ADDRESS);
   if (usesDigitalCredentialProd(integration)) cc.push(DIT_ADDITIONAL_EMAIL_ADDRESS);

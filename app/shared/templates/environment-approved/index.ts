@@ -1,27 +1,30 @@
-import { promises as fs } from 'fs';
-import Handlebars from 'handlebars';
-import { getEmailTemplate, processRequest } from '../helpers';
 import { IntegrationData } from '@app/shared/interfaces';
 import { sendEmail } from '@app/utils/ches';
-import { IDIM_EMAIL_ADDRESS, OTP_EMAIL_ADDRESS_BCC, OTP_EMAIL_ADDRESS_CC, SSO_EMAIL_ADDRESS } from '@app/shared/local';
-import { getIntegrationEmails } from '../helpers';
+import Handlebars from 'handlebars';
+import { getIntegrationEmails, getEmailTemplate, processRequest } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
+import { IDIM_EMAIL_ADDRESS, OTP_EMAIL_ADDRESS_BCC, OTP_EMAIL_ADDRESS_CC, SSO_EMAIL_ADDRESS } from '@app/shared/local';
+import { usesBceid, usesBcServicesCardProd, usesOTPProd } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
-import { usesBceidProd, usesBcServicesCardProd, usesOTPProd } from '@app/helpers/integration';
 
 const SUBJECT_TEMPLATE = `{{type}} Request ID {{integration.id}} approved and being processed (email 1 of 2)`;
-const template = getEmailTemplate('prod-approved/prod-approved.html');
+const template = getEmailTemplate('environment-approved/environment-approved.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
   integration: IntegrationData;
+  environment?: string;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
   const { integration } = originalData;
-  const data = { ...originalData, integration: await processRequest(integration) };
+  const data = {
+    ...originalData,
+    environment: originalData.environment ?? 'production',
+    integration: await processRequest(integration),
+  };
 
   return {
     subject: subjectHandler(data),
@@ -34,7 +37,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const emails = await getIntegrationEmails(integration);
   let cc = [SSO_EMAIL_ADDRESS];
   let bcc: string[] = [];
-  if (usesBceidProd(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
+  if (usesBceid(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
   if (usesOTPProd(integration)) {
     cc = cc.concat(OTP_EMAIL_ADDRESS_CC);
     bcc = bcc.concat(OTP_EMAIL_ADDRESS_BCC);

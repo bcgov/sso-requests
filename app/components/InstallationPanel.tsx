@@ -50,6 +50,11 @@ interface Props {
 
 const InstallationPanel = ({ integration, alert }: Props) => {
   const [loading, setLoading] = useState(false);
+  const requestedEnvironments = getRequestedEnvironments(integration);
+  const availableEnvironments =
+    integration.authType === 'service-account'
+      ? requestedEnvironments
+      : requestedEnvironments.filter((env) => env.idps.length > 0);
 
   const handleInstallationClick = async (environment: Environment) => {
     setLoading(true);
@@ -93,8 +98,7 @@ const InstallationPanel = ({ integration, alert }: Props) => {
       <TopTitle>Installation JSONs</TopTitle>
       <br />
       <Row>
-        {getRequestedEnvironments(integration).map((env) => {
-          if (integration.authType !== 'service-account' && env.idps.length === 0) return null;
+        {availableEnvironments.map((env) => {
           const idpList = env.idps.length > 0 ? `(${env.idps.map((idp) => idpMap[idp]).join(', ')})` : '';
 
           return (
@@ -126,6 +130,7 @@ const InstallationPanel = ({ integration, alert }: Props) => {
           );
         })}
       </Row>
+      {availableEnvironments.length === 0 && <InfoMessage>All environments pending approval.</InfoMessage>}
       <InfoMessage>
         For more information on how to use these details, or for the public endpoints associated to your client,{' '}
         <Link href={`${docusaurusURL}/integrating-your-application/installation-json`} external>

@@ -417,6 +417,7 @@ describe('integration email updates for individual users', () => {
       const template = await renderTemplate(EMAILS.PROD_APPROVED, {
         integration: { ...integration, requestor: 'SSO Admin' },
         type: 'BCeID',
+        environment: 'production',
       });
 
       expect(emailList.length).toEqual(2);
@@ -426,6 +427,86 @@ describe('integration email updates for individual users', () => {
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
       expect(emailList[0].cc.length).toEqual(2);
       expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
+    });
+
+    it('should render the expected template after bceid dev approval of an integration', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      const projectName: string = 'BCeID Dev Approval Email';
+      let integrationRes = await buildIntegration({
+        projectName,
+        bceid: true,
+        submitted: true,
+      });
+      expect(integrationRes.status).toEqual(200);
+      integration = integrationRes.body;
+
+      emailList = createMockSendEmail();
+
+      createMockAuth(SSO_ADMIN_USERID_01, SSO_ADMIN_EMAIL_01, ['sso-admin']);
+
+      const updateIntRes = await updateIntegration(
+        getUpdateIntegrationData({
+          integration,
+          identityProviders: integration.devIdps,
+          envs: integration.environments,
+          devBceidApproved: true,
+        }),
+        true,
+      );
+
+      expect(updateIntRes.status).toEqual(200);
+      integration = updateIntRes.body;
+
+      const template = await renderTemplate(EMAILS.PROD_APPROVED, {
+        integration: { ...integration, requestor: 'SSO Admin' },
+        type: 'BCeID',
+        environment: 'development',
+      });
+
+      expect(emailList.length).toEqual(2);
+      expect(emailList[0].subject).toEqual(template.subject);
+      expect(emailList[0].body).toEqual(template.body);
+      expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
+    });
+
+    it('should render the expected template after bceid test approval of an integration', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      const projectName: string = 'BCeID Test Approval Email';
+      let integrationRes = await buildIntegration({
+        projectName,
+        bceid: true,
+        submitted: true,
+      });
+      expect(integrationRes.status).toEqual(200);
+      integration = integrationRes.body;
+
+      emailList = createMockSendEmail();
+
+      createMockAuth(SSO_ADMIN_USERID_01, SSO_ADMIN_EMAIL_01, ['sso-admin']);
+
+      const updateIntRes = await updateIntegration(
+        getUpdateIntegrationData({
+          integration,
+          identityProviders: integration.devIdps,
+          envs: integration.environments,
+          testBceidApproved: true,
+        }),
+        true,
+      );
+
+      expect(updateIntRes.status).toEqual(200);
+      integration = updateIntRes.body;
+
+      const template = await renderTemplate(EMAILS.PROD_APPROVED, {
+        integration: { ...integration, requestor: 'SSO Admin' },
+        type: 'BCeID',
+        environment: 'test',
+      });
+
+      expect(emailList.length).toEqual(2);
+      expect(emailList[0].subject).toEqual(template.subject);
+      expect(emailList[0].body).toEqual(template.body);
+      expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
     });
 
     it('should render the expected template after github prod approval of an integration', async () => {
@@ -460,6 +541,7 @@ describe('integration email updates for individual users', () => {
       const template = await renderTemplate(EMAILS.PROD_APPROVED, {
         integration: { ...integration, requestor: 'SSO Admin' },
         type: 'GitHub',
+        environment: 'production',
       });
 
       expect(emailList.length).toEqual(2);

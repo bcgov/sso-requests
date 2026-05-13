@@ -16,13 +16,14 @@ import {
 import { EMAILS } from '@app/shared/enums';
 import {
   usesGithub,
-  usesBceidProd,
   usesBcServicesCardProd,
   usesDigitalCredentialProd,
   usesSocial,
   usesOTPProd,
+  usesBceid,
 } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
+import { envMap } from '@app/helpers/meta';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO request submitted & additional important information (email 1 of 2)`;
 const template = getEmailTemplate('create-integration-submitted/create-integration-submitted.html');
@@ -32,14 +33,21 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
   integration: IntegrationData;
-  waitingBceidProdApproval?: boolean;
   waitingGithubProdApproval?: boolean;
   waitingSocialProdApproval?: boolean;
 }
 
+const formatEnvironments = (environments: string[] | undefined) => {
+  if (!environments || environments.length === 0) return '';
+  const formattedEnvironments = environments.map((env) => envMap[env].toLowerCase());
+  if (environments.length === 1) return formattedEnvironments[0];
+  return `${formattedEnvironments.slice(0, -1).join(', ')} and ${formattedEnvironments.slice(-1)}`;
+};
+
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
   const { integration } = originalData;
-  const data = { ...originalData, integration: await processRequest(integration) };
+  const environments = formatEnvironments(integration.environments);
+  const data = { ...originalData, integration: await processRequest(integration), environments };
 
   return {
     subject: subjectHandler(data),
@@ -53,7 +61,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   let cc = [SSO_EMAIL_ADDRESS];
   let bcc: string[] = [];
   const attachments = [];
-  if (usesBceidProd(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
+  if (usesBceid(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
   if (usesGithub(integration)) cc.push(OCIO_EMAIL_ADDRESS);
   if (usesSocial(integration)) {
     cc.push(SOCIAL_APPROVAL_EMAIL_ADDRESS);

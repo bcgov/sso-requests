@@ -74,13 +74,21 @@ export const checkRole = (roles: string[], role: string) => roles.includes(role)
 // };
 
 /**
- * Throws forbidden error if not an allowed approver, or updating bcsc attributes post approval. Resets approval if previously approved idp is remove.
+ * Throws forbidden error if not an allowed approver, or updating bcsc attributes post approval.
  */
 export const getIdpApprovalStatus = ({ session, originalData, updatedData }: any) => {
   const changedAttrs: any = {};
 
   const isApprovingBceid = !originalData.bceidApproved && updatedData.bceidApproved;
   if (isApprovingBceid && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_BCEID))
+    throw new createHttpError.Forbidden('not allowed to approve bceid');
+
+  const isApprovingDevBceid = !originalData.devBceidApproved && updatedData.devBceidApproved;
+  if (isApprovingDevBceid && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_BCEID))
+    throw new createHttpError.Forbidden('not allowed to approve bceid');
+
+  const isApprovingTestBceid = !originalData.testBceidApproved && updatedData.testBceidApproved;
+  if (isApprovingTestBceid && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_BCEID))
     throw new createHttpError.Forbidden('not allowed to approve bceid');
 
   const isApprovingGithub = !originalData.githubApproved && updatedData.githubApproved;
@@ -103,8 +111,13 @@ export const getIdpApprovalStatus = ({ session, originalData, updatedData }: any
     changedAttrs.otpApproved = false;
   }
 
-  if (originalData.bceidApproved && !updatedData.devIdps.some(checkBceidGroup)) {
+  if (
+    (originalData.bceidApproved || originalData.devBceidApproved || originalData.testBceidApproved) &&
+    !updatedData.devIdps.some(checkBceidGroup)
+  ) {
     changedAttrs.bceidApproved = false;
+    changedAttrs.devBceidApproved = false;
+    changedAttrs.testBceidApproved = false;
   }
 
   if (originalData.githubApproved && !updatedData.devIdps.some(checkGithubGroup)) {

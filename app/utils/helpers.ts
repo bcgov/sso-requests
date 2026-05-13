@@ -67,6 +67,8 @@ export const formatFilters = (idps: Option[], envs: Option[]) => {
 
 export const getRequestedEnvironments = (integration: Integration) => {
   const {
+    devBceidApproved,
+    testBceidApproved,
     bceidApproved,
     githubApproved,
     bcServicesCardApproved,
@@ -89,15 +91,21 @@ export const getRequestedEnvironments = (integration: Integration) => {
 
   if (serviceType === 'gold') {
     const bceidApplying = checkIfBceidProdApplying(integration);
+    const devBceidApplying = checkIfTargetValueUpdated(integration, 'devBceidApproved');
+    const testBceidApplying = checkIfTargetValueUpdated(integration, 'testBceidApproved');
     const githubApplying = checkIfGithubProdApplying(integration);
     const bcServicesCardApplying = checkIfBcServicesCardProdApplying(integration);
     const socialApplying = checkIfSocialProdApplying(integration);
     const otpApplying = checkIfOTPProdApplying(integration);
 
     let envs = options.filter((env) => environments.includes(env.name));
-    if (hasBceid && (!bceidApproved || bceidApplying))
+    if (hasBceid)
       envs = envs.map((env) => {
-        if (env.name === 'prod') env.idps = env.idps.filter(checkNotBceidGroup);
+        if (env.name === 'dev' && (!devBceidApproved || devBceidApplying))
+          env.idps = env.idps.filter(checkNotBceidGroup);
+        if (env.name === 'test' && (!testBceidApproved || testBceidApplying))
+          env.idps = env.idps.filter(checkNotBceidGroup);
+        if (env.name === 'prod' && (!bceidApproved || bceidApplying)) env.idps = env.idps.filter(checkNotBceidGroup);
         return env;
       });
 
@@ -129,7 +137,13 @@ export const getRequestedEnvironments = (integration: Integration) => {
   }
 
   let allowedEnvs = environments.concat() || [];
-  if (hasBceid && !bceidApproved) allowedEnvs = allowedEnvs.filter((env) => env !== 'prod');
+  if (hasBceid)
+    allowedEnvs = allowedEnvs.filter((env) => {
+      if (env === 'dev') return Boolean(devBceidApproved);
+      if (env === 'test') return Boolean(testBceidApproved);
+      if (env === 'prod') return Boolean(bceidApproved);
+      return true;
+    });
   return options.filter((env) => allowedEnvs.includes(env.name));
 };
 
@@ -284,7 +298,7 @@ export function canDeleteMember(members: User[], memberId?: number) {
 
 export const capitalize = (string: string) => string.charAt(0).toUpperCase() + string.slice(1);
 
-const checkIfProdApplying = (integration: Integration, target: string) => {
+const checkIfTargetValueUpdated = (integration: Integration, target: string) => {
   const displayStatus = getStatusDisplayName(integration.status || 'draft');
   if (displayStatus !== 'Submitted') return false;
   if (!integration.lastChanges || integration.lastChanges.length === 0) return false;
@@ -295,30 +309,30 @@ const checkIfProdApplying = (integration: Integration, target: string) => {
 };
 
 export const checkIfBceidProdApplying = (integration: Integration) => {
-  return checkIfProdApplying(integration, 'bceidApproved');
+  return checkIfTargetValueUpdated(integration, 'bceidApproved');
 };
 
 export const checkIfGithubProdApplying = (integration: Integration) => {
-  return checkIfProdApplying(integration, 'githubApproved');
+  return checkIfTargetValueUpdated(integration, 'githubApproved');
 };
 
 export const checkIfDigitalCredentialProdApplying = (integration: Integration) => {
-  const prodApplying = checkIfProdApplying(integration, 'digitalCredentialApproved');
+  const prodApplying = checkIfTargetValueUpdated(integration, 'digitalCredentialApproved');
   return prodApplying;
 };
 
 export const checkIfBcServicesCardProdApplying = (integration: Integration) => {
-  const prodApplying = checkIfProdApplying(integration, 'bcServicesCardApproved');
+  const prodApplying = checkIfTargetValueUpdated(integration, 'bcServicesCardApproved');
   return prodApplying;
 };
 
 export const checkIfSocialProdApplying = (integration: Integration) => {
-  const prodApplying = checkIfProdApplying(integration, 'social');
+  const prodApplying = checkIfTargetValueUpdated(integration, 'social');
   return prodApplying;
 };
 
 export const checkIfOTPProdApplying = (integration: Integration) => {
-  const prodApplying = checkIfProdApplying(integration, 'otp');
+  const prodApplying = checkIfTargetValueUpdated(integration, 'otp');
   return prodApplying;
 };
 
@@ -405,6 +419,8 @@ export const validateIDPs = ({
   updatedIdps,
   session,
   bceidApproved = false,
+  devBceidApproved = false,
+  testBceidApproved = false,
   protocol = 'oidc',
   githubApproved = false,
   bcServicesCardApproved = false,
@@ -413,6 +429,8 @@ export const validateIDPs = ({
   updatedIdps: string[];
   session: LoggedInUser | null;
   bceidApproved?: boolean;
+  devBceidApproved?: boolean;
+  testBceidApproved?: boolean;
   protocol?: string;
   githubApproved?: boolean;
   bcServicesCardApproved?: boolean;
@@ -446,7 +464,7 @@ export const validateIDPs = ({
     return false;
   }
 
-  if (bceidApproved) {
+  if (bceidApproved || devBceidApproved || testBceidApproved) {
     const newBceidIdps = updatedIdps.filter(checkBceidGroup);
     const previousBceidIdps = currentIdps.filter(checkBceidGroup);
     if (newBceidIdps.some((idp) => !previousBceidIdps.includes(idp))) return false;

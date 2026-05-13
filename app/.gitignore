@@ -38,3 +38,4 @@ jest/test-results
 
 # vercel
 .vercel
+jest-api/test-results

@@ -367,6 +367,7 @@ describe('integration email updates for teams', () => {
       const template = await renderTemplate(EMAILS.PROD_APPROVED, {
         integration: { ...integration, requestor: 'SSO Admin' },
         type: 'BCeID',
+        environment: 'production',
       });
 
       expect(emailList.length).toEqual(2);
@@ -411,6 +412,7 @@ describe('integration email updates for teams', () => {
       const template = await renderTemplate(EMAILS.PROD_APPROVED, {
         integration: { ...integration, requestor: 'SSO Admin' },
         type: 'GitHub',
+        environment: 'production',
       });
 
       expect(emailList.length).toEqual(2);
