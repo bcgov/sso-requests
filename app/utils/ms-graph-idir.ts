@@ -15,7 +15,8 @@ export const searchIdirEmail = async (email: string) => {
 
 /** Validate the provided email is linked to an existing IDIR account. */
 export const validateIdirEmail = async (email: string) => {
-  const url = `${MS_GRAPH_URL}/v1.0/users/${email}`;
+  const encodedEmail = encodeURIComponent(email);
+  const url = `${MS_GRAPH_URL}/v1.0/users/${encodedEmail}`;
   try {
     const response = await callAzureGraphApi(url);
     return { given_name: response.givenName, family_name: response.surname };

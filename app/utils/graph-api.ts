@@ -35,12 +35,23 @@ export async function getAzureAccessToken() {
  */
 export async function callAzureGraphApi(endpoint: string) {
   const accessToken = await getAzureAccessToken();
+  const graphBaseUrl = new URL(MS_GRAPH_URL);
+  const requestUrl = new URL(endpoint, graphBaseUrl);
+
+  if (
+    requestUrl.protocol !== graphBaseUrl.protocol ||
+    requestUrl.host !== graphBaseUrl.host ||
+    !requestUrl.pathname.startsWith('/v1.0/')
+  ) {
+    throw new createHttpError.BadRequest('Invalid Graph API endpoint');
+  }
+
   const options = {
     headers: {
       Authorization: `Bearer ${accessToken}`,
       ConsistencyLevel: 'eventual',
     },
   };
-  const response = await axios.get(endpoint, options);
+  const response = await axios.get(requestUrl.toString(), options);
   return response.data;
 }
