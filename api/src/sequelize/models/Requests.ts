@@ -708,13 +708,11 @@ export class Requests extends Model<RequestsAttributes, RequestsCreationAttribut
         },
         devBceidApproved: {
           type: DataTypes.BOOLEAN,
-          allowNull: false,
           defaultValue: false,
           field: 'dev_bceid_approved',
         },
         testBceidApproved: {
           type: DataTypes.BOOLEAN,
-          allowNull: false,
           defaultValue: false,
           field: 'test_bceid_approved',
         },

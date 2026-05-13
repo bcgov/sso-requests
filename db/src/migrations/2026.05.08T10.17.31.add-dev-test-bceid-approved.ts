@@ -5,13 +5,11 @@ export const name = '2026.05.08T10.17.31.add-dev-test-bceid-approved';
 export const up = async ({ context: sequelize }) => {
   await sequelize.getQueryInterface().addColumn('requests', 'dev_bceid_approved', {
     type: DataTypes.BOOLEAN,
-    allowNull: false,
     defaultValue: false,
   });
 
   await sequelize.getQueryInterface().addColumn('requests', 'test_bceid_approved', {
     type: DataTypes.BOOLEAN,
-    allowNull: false,
     defaultValue: false,
   });
 

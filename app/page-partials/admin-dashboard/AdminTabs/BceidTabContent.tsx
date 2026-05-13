@@ -49,7 +49,7 @@ function BceidTabContent({ integration, onApproved }: Props) {
       eventCode: 'all',
     });
 
-    if (data && data?.rows?.length > 0) {
+    if (data?.rows && Array.isArray(data.rows)) {
       const devEvents: Event[] = [];
       const testEvents: Event[] = [];
       const prodEvents: Event[] = [];

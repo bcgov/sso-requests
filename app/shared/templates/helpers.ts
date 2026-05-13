@@ -25,6 +25,13 @@ export const processUser = async (user: any) => {
   return user;
 };
 
+const formatEnvironments = (environments: string[] | undefined) => {
+  if (!environments || environments.length === 0) return '';
+  const formattedEnvironments = environments.map((env) => envMap[env].toLowerCase());
+  if (environments.length === 1) return formattedEnvironments[0];
+  return `${formattedEnvironments.slice(0, -1).join(', ')} and ${formattedEnvironments.slice(-1)}`;
+};
+
 export const processRequest = async (integrationOrModel: any) => {
   let integration!: Integration;
   if (integrationOrModel instanceof models.request) {
@@ -58,6 +65,8 @@ export const processRequest = async (integrationOrModel: any) => {
       (!integration.devBceidApproved && integration.environments?.includes('dev')) ||
       (!integration.testBceidApproved && integration.environments?.includes('test')));
 
+  const formattedEnvironments = formatEnvironments(integration.environments);
+
   return {
     ...integration,
     devValidRedirectUris,
@@ -70,6 +79,7 @@ export const processRequest = async (integrationOrModel: any) => {
     accountableEntity,
     browserLoginEnabled,
     waitingBceidApproval,
+    formattedEnvironments,
   };
 };
 

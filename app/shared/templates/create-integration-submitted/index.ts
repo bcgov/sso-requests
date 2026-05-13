@@ -37,17 +37,9 @@ interface DataProps {
   waitingSocialProdApproval?: boolean;
 }
 
-const formatEnvironments = (environments: string[] | undefined) => {
-  if (!environments || environments.length === 0) return '';
-  const formattedEnvironments = environments.map((env) => envMap[env].toLowerCase());
-  if (environments.length === 1) return formattedEnvironments[0];
-  return `${formattedEnvironments.slice(0, -1).join(', ')} and ${formattedEnvironments.slice(-1)}`;
-};
-
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
   const { integration } = originalData;
-  const environments = formatEnvironments(integration.environments);
-  const data = { ...originalData, integration: await processRequest(integration), environments };
+  const data = { ...originalData, integration: await processRequest(integration) };
 
   return {
     subject: subjectHandler(data),
