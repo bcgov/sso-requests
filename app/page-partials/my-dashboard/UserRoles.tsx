@@ -246,6 +246,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [loadingRight, setLoadingRight] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('');
+  const [allUsers, setAllUsers] = useState<(KeycloakUser & { source: string })[]>([]);
   const [rows, setRows] = useState<(KeycloakUser & { source: string })[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
@@ -330,6 +331,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   };
 
   const reset = () => {
+    setAllUsers([]);
     setRows([]);
     setUserRoles([]);
     setPage(1);
@@ -377,12 +379,12 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   }, [selectedRequest.id]);
 
   useEffect(() => {
-    searchResults(searchKey, undefined, page);
-  }, [page]);
+    setRows(sliceRows(page, allUsers));
+  }, [page, allUsers]);
 
   useEffect(() => {
-    searchResults(searchKey, undefined, 1);
-  }, [limit]);
+    setRows(sliceRows(page, allUsers));
+  }, [limit, allUsers]);
 
   useEffect(() => {
     reset();
@@ -431,6 +433,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setSearchKey(searchKey);
     setPage(_page);
     setSelectedProperty(property);
+    setAllUsers([]);
     setRows([]);
     setUserRoles([]);
     setSelectedUser(undefined);
@@ -483,7 +486,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     }
 
     if (users.length > 0) {
-      setRows(sliceRows(_page, users));
+      setAllUsers(users);
     }
 
     setSearched(true);
