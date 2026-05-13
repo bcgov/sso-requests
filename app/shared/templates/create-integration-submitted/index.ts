@@ -23,7 +23,6 @@ import {
   usesBceid,
 } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
-import { envMap } from '@app/helpers/meta';
 
 const SUBJECT_TEMPLATE = `Pathfinder SSO request submitted & additional important information (email 1 of 2)`;
 const template = getEmailTemplate('create-integration-submitted/create-integration-submitted.html');
