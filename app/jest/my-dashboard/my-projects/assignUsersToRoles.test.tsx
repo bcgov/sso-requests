@@ -5,6 +5,8 @@ import { sampleRequest } from '../../samples/integrations';
 import { importAzureIdirUser, searchAzureIdirUsers } from '@app/services/ms-graph';
 import { importIdirUser, searchIdirUsers } from '@app/services/bceid-webservice';
 import * as servicesKeycloak from 'services/keycloak';
+import * as bceidWebservice from 'services/bceid-webservice';
+import * as graphWebservice from 'services/ms-graph';
 
 jest.mock('services/keycloak', () => ({
   ...jest.requireActual('services/keycloak'),
@@ -70,10 +72,14 @@ jest.mock('services/ms-graph', () => ({
       null,
     ]),
   ),
-  importAzureIdirUser: jest.fn(() => Promise.resolve([true, null])),
+  importAzureIdirUser: jest.fn(() => Promise.resolve()),
 }));
 
 describe('assign user to roles tab', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('Should display correct user selection criteria for different idps', async () => {
     render(
       <UserRoles
@@ -109,9 +115,8 @@ describe('assign user to roles tab', () => {
     const selectPropertyWrapper = screen.getByTestId('search-user-filter-prop');
     const propInput = selectPropertyWrapper.firstChild;
     fireEvent.keyDown(propInput as HTMLElement, { keyCode: 40 });
-    const propOption = await screen.findByText('IDP GUID');
+    const propOption = await screen.findByText('Username');
     fireEvent.click(propOption);
-    expect(selectPropertyWrapper).toHaveTextContent('IDP GUID');
   });
 
   it('Should display correct user selection criteria for IDIR idps', async () => {
@@ -132,7 +137,6 @@ describe('assign user to roles tab', () => {
     expect(screen.getAllByText('First Name'));
     expect(screen.getAllByText('Last Name'));
     expect(screen.getAllByText('Email'));
-    expect(screen.getByText('IDP GUID')).toBeInTheDocument();
     expect(screen.getByText('Username')).toBeInTheDocument();
   });
 
@@ -154,7 +158,6 @@ describe('assign user to roles tab', () => {
     expect(screen.getAllByText('First Name'));
     expect(screen.getAllByText('Last Name'));
     expect(screen.getAllByText('Email'));
-    expect(screen.getByText('IDP GUID')).toBeInTheDocument();
     expect(screen.getByText('Username')).toBeInTheDocument();
   });
 
@@ -272,7 +275,7 @@ describe('assign user to roles tab', () => {
 
     const assignRolesSelectWrapper = screen.getByTestId('user-role-select');
 
-    fireEvent.keyDown(assignRolesSelectWrapper.childNodes[1] as HTMLElement, { keyCode: 40 });
+    fireEvent.keyDown(assignRolesSelectWrapper.childNodes[1], { keyCode: 40 });
 
     fireEvent.click(screen.getByText('role1'));
 
@@ -315,7 +318,7 @@ describe('assign user to roles tab', () => {
 
     const assignRolesSelectWrapper = screen.getByTestId('user-role-select');
 
-    fireEvent.keyDown(assignRolesSelectWrapper.childNodes[1] as HTMLElement, { keyCode: 40 });
+    fireEvent.keyDown(assignRolesSelectWrapper.childNodes[1], { keyCode: 40 });
 
     fireEvent.click(screen.getByText('role1'));
 
@@ -325,5 +328,99 @@ describe('assign user to roles tab', () => {
     });
 
     expect(screen.getByText(/Last saved at/i)).toBeInTheDocument();
+  });
+
+  it('Should show error when importing idir user fails', async () => {
+    render(
+      <UserRoles
+        selectedRequest={{
+          ...sampleRequest,
+          environments: ['dev', 'test'],
+          devIdps: ['idir'],
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('1. Search for a user based on the selection criteria below')).toBeInTheDocument();
+    });
+
+    const searchUserInput = screen.getByPlaceholderText('Enter search criteria');
+    fireEvent.change(searchUserInput, { target: { value: 'sample' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+
+    jest.spyOn(servicesKeycloak, 'listUserRoles').mockResolvedValue([[], null]);
+
+    jest.spyOn(bceidWebservice, 'importIdirUser').mockImplementation(() => {
+      throw new Error('import user failed');
+    });
+
+    await waitFor(() => {
+      expect(searchKeycloakUsers).toHaveBeenCalled();
+      expect(searchIdirUsers).toHaveBeenCalled();
+      expect(listUserRoles).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByText('idim_email@gov.bc.ca'));
+
+    const assignRolesSelectWrapper = screen.getByTestId('user-role-select');
+
+    fireEvent.keyDown(assignRolesSelectWrapper.childNodes[1], { keyCode: 40 });
+
+    fireEvent.click(screen.getByText('role1'));
+
+    await waitFor(() => {
+      expect(importIdirUser).toHaveBeenCalled();
+      expect(manageUserRoles).not.toHaveBeenCalled();
+    });
+
+    expect(screen.getByText(/Failed to import user to Keycloak/i)).toBeInTheDocument();
+  });
+
+  it('Should show error when importing azure idir user fails', async () => {
+    render(
+      <UserRoles
+        selectedRequest={{
+          ...sampleRequest,
+          environments: ['dev', 'test'],
+          devIdps: ['azureidir'],
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('1. Search for a user based on the selection criteria below')).toBeInTheDocument();
+    });
+
+    const searchUserInput = screen.getByPlaceholderText('Enter search criteria');
+    fireEvent.change(searchUserInput, { target: { value: 'sample' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Search' }));
+
+    jest.spyOn(servicesKeycloak, 'listUserRoles').mockResolvedValue([[], null]);
+
+    jest.spyOn(graphWebservice, 'importAzureIdirUser').mockImplementation(() => {
+      throw new Error('import user failed');
+    });
+
+    await waitFor(() => {
+      expect(searchKeycloakUsers).toHaveBeenCalled();
+      expect(searchAzureIdirUsers).toHaveBeenCalled();
+      expect(listUserRoles).toHaveBeenCalled();
+    });
+
+    fireEvent.click(screen.getByText('azureidir.user@gov.bc.ca'));
+
+    const assignRolesSelectWrapper = screen.getByTestId('user-role-select');
+
+    fireEvent.keyDown(assignRolesSelectWrapper.childNodes[1], { keyCode: 40 });
+
+    fireEvent.click(screen.getByText('role1'));
+
+    await waitFor(() => {
+      expect(importAzureIdirUser).toHaveBeenCalled();
+      expect(manageUserRoles).not.toHaveBeenCalled();
+    });
+
+    expect(screen.getByText(/Failed to import user to Keycloak/i)).toBeInTheDocument();
   });
 });

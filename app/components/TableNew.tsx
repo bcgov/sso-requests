@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import {
   flexRender,
@@ -168,6 +168,8 @@ export interface TableProps<T extends object> {
   colFilters?: TableFilter[];
 }
 
+export interface TableHandle {}
+
 const awesomePlaceholder = (
   <tr>
     <td colSpan={100}>
@@ -191,31 +193,34 @@ const FiltersContainer = styled.div<{ itemsLength: number }>`
   padding-right: 0.5em;
 `;
 
-const Table = <T extends object>({
-  variant = 'default',
-  columns = [],
-  hiddenColumns = [],
-  data = [],
-  readOnly = false,
-  onRowSelect = (rowData: T) => {},
-  defaultPageSize = 5,
-  enableGlobalSearch = true,
-  globalSearchPlaceholder = 'Search all columns...',
-  globalSearchStyle = {},
-  globalSearchValue = '',
-  globalSearchOnChange = undefined,
-  enablePagination = true,
-  serverPageIndex = 0,
-  pageSizeOptions = [5, 10, 20, 30, 40, 50],
-  noDataFoundMessage = <p>No data found</p>,
-  loading = false,
-  autoSelectFirstRow = true,
-  dataTestId = '',
-  onPageSizeChange = (pageSize: number) => {},
-  onPageChange = (pageIndex: number) => {},
-  totalRowCount = 0,
-  colFilters = [],
-}: TableProps<T>) => {
+const Table = <T extends object>(
+  {
+    variant = 'default',
+    columns = [],
+    hiddenColumns = [],
+    data = [],
+    readOnly = false,
+    onRowSelect = (rowData: T) => {},
+    defaultPageSize = 5,
+    enableGlobalSearch = true,
+    globalSearchPlaceholder = 'Search all columns...',
+    globalSearchStyle = {},
+    globalSearchValue = '',
+    globalSearchOnChange = undefined,
+    enablePagination = true,
+    serverPageIndex = 0,
+    pageSizeOptions = [5, 10, 20, 30, 40, 50],
+    noDataFoundMessage = <p>No data found</p>,
+    loading = false,
+    autoSelectFirstRow = true,
+    dataTestId = '',
+    onPageSizeChange = (pageSize: number) => {},
+    onPageChange = (pageIndex: number) => {},
+    totalRowCount = 0,
+    colFilters = [],
+  }: TableProps<T>,
+  ref: React.Ref<TableHandle>,
+) => {
   const [selectedRow, setSelectedRow] = useState<Row<T>>();
 
   const [pagination, setPagination] = React.useState<PaginationState>({
@@ -270,6 +275,10 @@ const Table = <T extends object>({
     }
   }, [table.getRowModel().rows.length]);
 
+  useImperativeHandle(ref, () => ({
+    resetPageIndex: () => table.resetPageIndex(true),
+  }));
+
   const onRowClick = (row: Row<unknown>) => {
     if (!readOnly) {
       setSelectedRow(row as Row<T>);
@@ -299,6 +308,8 @@ const Table = <T extends object>({
                 } else {
                   setGlobalFilter(String(e.target.value));
                 }
+                table.resetPageIndex(true);
+                onPageChange(1);
               }}
               placeholder={globalSearchPlaceholder}
               style={globalSearchStyle}
@@ -460,6 +471,8 @@ const Table = <T extends object>({
               }}
               options={pageSizeOptions.map((value) => ({ value, label: `${value} per page` }))}
               onChange={(e: any) => {
+                table.resetPageIndex(true);
+                onPageChange(1);
                 table.setPageSize(Number(e.value));
                 onPageSizeChange(Number(e.value));
               }}
@@ -472,4 +485,8 @@ const Table = <T extends object>({
   );
 };
 
-export default Table;
+const DataTable = forwardRef(Table) as <TData extends object>(
+  props: TableProps<TData> & { ref?: React.Ref<TableHandle> },
+) => React.ReactElement;
+
+export default DataTable;

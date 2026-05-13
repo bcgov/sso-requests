@@ -4,6 +4,7 @@ import { get, map } from 'lodash';
 import util from 'node:util';
 import { Session } from '@app/shared/interfaces';
 import { createIdirUser } from '@app/keycloak/users';
+import createHttpError from 'http-errors';
 
 export const parseStringSync = util.promisify(parseString);
 
@@ -98,13 +99,16 @@ export const getBceidAccounts = async (samlResponse: any) => {
 };
 
 export const searchIdirUsers = async (userSession: Session, { field, search }: { field: string; search: string }) => {
+  if (!['userId', 'firstName', 'lastName', 'email'].includes(field)) {
+    throw new Error('Allowed search fields are userId, firstName, lastName, email');
+  }
   try {
     const xml = generateXML(field as SearchCriteria, search, userSession.idir_userid);
     const { response }: any = await makeSoapRequest(xml);
     return await getBceidAccounts(response);
   } catch (err) {
-    console.error(err);
-    return false;
+    console.error('Failed searching IDIR users from BCEID webservice:', err);
+    throw new createHttpError.UnprocessableEntity('Failed to search IDIR users');
   }
 };
 
@@ -112,18 +116,26 @@ export const searchIdirUsers = async (userSession: Session, { field, search }: {
 export const importIdirUser = async (data: any) => {
   const { guid, firstName, lastName, email, idirUsername, displayName } = data;
 
-  await Promise.all(
-    ['dev', 'test', 'prod'].map((env) =>
-      createIdirUser({
-        environment: env,
-        guid,
-        userId: idirUsername,
-        email,
-        firstName,
-        lastName,
-        displayName,
-      }).catch(() => null),
-    ),
-  );
-  return true;
+  if (!guid || !firstName || !lastName || !email || !idirUsername) {
+    throw new Error('Missing required user data');
+  }
+
+  try {
+    await Promise.all(
+      ['dev'].map((env) =>
+        createIdirUser({
+          environment: env,
+          guid,
+          userId: idirUsername,
+          email,
+          firstName,
+          lastName,
+          displayName,
+        }).catch(() => null),
+      ),
+    );
+  } catch (err) {
+    console.error('Failed to import IDIR user into Keycloak:', err);
+    throw new createHttpError.UnprocessableEntity('Failed to import IDIR user');
+  }
 };

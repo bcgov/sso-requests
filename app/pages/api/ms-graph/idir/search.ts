@@ -9,11 +9,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!userSession) return res.status(401).json({ success: false, message: 'not authorized' });
 
     if (req.method === 'POST') {
-      const result = await searchIdirUsers(req.body);
-      if (result) {
+      try {
+        const result = await searchIdirUsers(req.body);
         return res.status(200).json(result);
-      } else {
-        return res.status(404).send({ success: false, message: 'No results found' });
+      } catch (err) {
+        handleError(res, err);
+        return;
       }
     } else {
       res.setHeader('Allow', ['POST']);
