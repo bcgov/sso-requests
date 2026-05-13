@@ -101,13 +101,13 @@ const init = (sequelize: any, DataTypes: any) => {
       },
       devBceidApproved: {
         type: DataTypes.BOOLEAN,
-        allowNull: true,
+        allowNull: false,
         defaultValue: false,
         field: 'dev_bceid_approved',
       },
       testBceidApproved: {
         type: DataTypes.BOOLEAN,
-        allowNull: true,
+        allowNull: false,
         defaultValue: false,
         field: 'test_bceid_approved',
       },
