@@ -74,7 +74,7 @@ export const checkRole = (roles: string[], role: string) => roles.includes(role)
 // };
 
 /**
- * Throws forbidden error if not an allowed approver, or updating bcsc attributes post approval.
+ * Throws forbidden error if not an allowed approver, or updating bcsc attributes post approval. Resets approval if previously approved idp is remove.
  */
 export const getIdpApprovalStatus = ({ session, originalData, updatedData }: any) => {
   const changedAttrs: any = {};
