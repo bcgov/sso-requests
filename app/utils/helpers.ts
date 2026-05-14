@@ -327,12 +327,12 @@ export const checkIfBcServicesCardProdApplying = (integration: Integration) => {
 };
 
 export const checkIfSocialProdApplying = (integration: Integration) => {
-  const prodApplying = checkIfTargetValueUpdated(integration, 'social');
+  const prodApplying = checkIfTargetValueUpdated(integration, 'socialApproved');
   return prodApplying;
 };
 
 export const checkIfOTPProdApplying = (integration: Integration) => {
-  const prodApplying = checkIfTargetValueUpdated(integration, 'otp');
+  const prodApplying = checkIfTargetValueUpdated(integration, 'otpApproved');
   return prodApplying;
 };
 
@@ -541,6 +541,8 @@ export const sanitizeRequest = (session: Session, data: Integration, isMerged: b
 
     if (!isBceidApprover(session)) {
       immutableFields.push('bceidApproved');
+      immutableFields.push('devBceidApproved');
+      immutableFields.push('testBceidApproved');
     }
 
     if (!isGithubApprover(session)) {

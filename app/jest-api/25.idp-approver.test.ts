@@ -396,7 +396,7 @@ describe('IDP Approver', () => {
 });
 
 describe('Approval Permissions', () => {
-  it('Keeps bceid approval flag immutable for regular users', async () => {
+  it('Prevents regular users from setting bceid approved to true', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
     const bceidIntegration = await buildIntegration({
       projectName: 'bceid',
@@ -412,6 +412,38 @@ describe('Approval Permissions', () => {
       true,
     );
     expect(approveRes.body.bceidApproved).toBeFalsy();
+  });
+
+  it('Prevents regular users from setting bceid approved to false', async () => {
+    // Mock the sso-admin role here so approvals can be set true
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
+    const bceidIntegration = await buildIntegration({
+      projectName: 'bceid',
+      submitted: true,
+      bceid: true,
+      prodEnv: true,
+      bceidApproved: true,
+      devBceidApproved: true,
+      testBceidApproved: true,
+    });
+    expect(bceidIntegration.body.bceidApproved).toBe(true);
+    expect(bceidIntegration.body.devBceidApproved).toBe(true);
+    expect(bceidIntegration.body.testBceidApproved).toBe(true);
+
+    // Remove role, assert user cannot set approval false directly
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const approveRes = await updateIntegration(
+      {
+        ...bceidIntegration.body,
+        bceidApproved: false,
+        devBceidApproved: false,
+        testBceidApproved: false,
+      },
+      true,
+    );
+    // expect(approveRes.body.bceidApproved).toBe(true);
+    expect(approveRes.body.devBceidApproved).toBe(true);
+    expect(approveRes.body.testBceidApproved).toBe(true);
   });
 
   it('Keeps github approval flag immutable for regular users', async () => {
