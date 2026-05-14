@@ -441,7 +441,7 @@ describe('Approval Permissions', () => {
       },
       true,
     );
-    // expect(approveRes.body.bceidApproved).toBe(true);
+    expect(approveRes.body.bceidApproved).toBe(true);
     expect(approveRes.body.devBceidApproved).toBe(true);
     expect(approveRes.body.testBceidApproved).toBe(true);
   });
