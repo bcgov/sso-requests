@@ -58,6 +58,8 @@ export const buildIntegration = async (args: {
   bceidBoth?: boolean;
   githubPublic?: boolean;
   bceidApproved?: boolean;
+  devBceidApproved?: boolean;
+  testBceidApproved?: boolean;
   githubApproved?: boolean;
   bcServicesCardApproved?: boolean;
   socialApproved?: boolean;
@@ -82,6 +84,8 @@ export const buildIntegration = async (args: {
     submitted = false,
     githubApproved = false,
     bceidApproved = false,
+    devBceidApproved = false,
+    testBceidApproved = false,
     bcServicesCardApproved = false,
     socialApproved = false,
     otpApproved = false,
@@ -119,6 +123,8 @@ export const buildIntegration = async (args: {
     authType,
     publicAccess,
     bceidApproved,
+    devBceidApproved,
+    testBceidApproved,
     githubApproved,
     bcServicesCardApproved,
     socialApproved,

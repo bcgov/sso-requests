@@ -244,6 +244,8 @@ function IntegrationInfoTabs({ integration }: Props) {
   const {
     status,
     environments = [],
+    devBceidApproved = false,
+    testBceidApproved = false,
     bceidApproved = false,
     githubApproved = false,
     digitalCredentialApproved = false,
@@ -252,6 +254,8 @@ function IntegrationInfoTabs({ integration }: Props) {
     socialApproved = false,
   } = integration;
   const displayStatus = getStatusDisplayName(status || 'draft');
+  const hasDev = environments.includes('dev');
+  const hasTest = environments.includes('test');
   const hasProd = environments.includes('prod');
   const hasBceid = usesBceid(integration);
   const hasGithub = usesGithub(integration);
@@ -269,6 +273,8 @@ function IntegrationInfoTabs({ integration }: Props) {
   const bcServicesCardProdApplying = checkIfBcServicesCardProdApplying(integration);
 
   const approvalContext: ApprovalContext = {
+    hasDev,
+    hasTest,
     hasProd,
     hasBceid,
     hasGithub,
@@ -277,6 +283,8 @@ function IntegrationInfoTabs({ integration }: Props) {
     hasDigitalCredential,
     hasBcServicesCard,
     hasOTP,
+    devBceidApproved,
+    testBceidApproved,
     bceidApproved,
     githubApproved,
     socialApproved,

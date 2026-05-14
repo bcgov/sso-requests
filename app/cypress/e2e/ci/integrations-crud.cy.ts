@@ -52,19 +52,19 @@ describe('Create Integration Requests', () => {
           cy.login(util.cssAdmin);
 
           if (data.approvals.bceid) {
-            req.approveRequest('BCeID', dashboardPage.confirmBceidButton);
+            req.approveRequest('BCeID Approval', dashboardPage.confirmBceidButton);
           }
 
           if (data.approvals.github) {
-            req.approveRequest('GitHub', dashboardPage.confirmGithubButton);
+            req.approveRequest('GitHub Prod', dashboardPage.confirmGithubButton);
           }
 
           if (data.approvals.bcsc) {
-            req.approveRequest('BC Services Card', dashboardPage.confirmBCSCButton);
+            req.approveRequest('BC Services Card Prod', dashboardPage.confirmBCSCButton);
           }
 
           if (data.approvals.otp) {
-            req.approveRequest('OTP', dashboardPage.confirmOTPButton);
+            req.approveRequest('OTP Prod', dashboardPage.confirmOTPButton);
           }
         });
       }

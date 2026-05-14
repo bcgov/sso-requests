@@ -7,21 +7,32 @@ interface Props {
 }
 
 function BceidStatusPanel({ approvalContext }: Readonly<Props>) {
-  const { hasProd, hasBceid, awaitingBceidProd, bceidApproved } = approvalContext;
-  if (!hasProd || !hasBceid) return null;
+  const { hasDev, hasTest, hasProd, hasBceid, devBceidApproved, testBceidApproved, bceidApproved } = approvalContext;
+  if (!hasBceid || (!hasDev && !hasTest && !hasProd)) return null;
 
   let content = null;
+  const allRequestedEnvironmentsApproved =
+    (!hasDev || devBceidApproved) && (!hasTest || testBceidApproved) && (!hasProd || bceidApproved);
 
-  if (bceidApproved) {
+  if (allRequestedEnvironmentsApproved) {
     content = <ApprovedAndAvailable />;
-  } else if (awaitingBceidProd) {
-    content = <BceidStatus />;
+  } else {
+    content = (
+      <BceidStatus
+        hasDev={hasDev}
+        hasTest={hasTest}
+        hasProd={hasProd}
+        devBceidApproved={devBceidApproved}
+        testBceidApproved={testBceidApproved}
+        bceidApproved={bceidApproved}
+      />
+    );
   }
 
   return (
     <>
       <br />
-      <SubTitle>Access to BCeID Prod</SubTitle>
+      <SubTitle>Access to BCeID Environments</SubTitle>
       <br />
       {content}
     </>
