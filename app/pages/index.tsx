@@ -6,7 +6,7 @@ import { PageProps } from 'interfaces/props';
 import StandardRealmsSVG from 'svg/StandardRealms';
 import WhatsNewSVG from '@app/svg/WhatsNewSVG';
 import { Accordion } from '@bcgov-sso/common-react-components';
-import { docusaurusURL, testimonials, formatWikiURL } from '@app/utils/constants';
+import { docusaurusURL, testimonials, formatWikiURL, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
 import Testimonial from 'components/Testimonial';
 import Carousel from 'components/Carousel';
 import useWindowDimensions from '@app/hooks/useWindowDimensions';
@@ -256,8 +256,8 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
                     <li>
                       Our service is available 24/7, except during planned outages within the Kamloops and Calgary data
                       centres. Planned outages are communicated through{' '}
-                      <Link external href="https://chat.developer.gov.bc.ca/channel/sso">
-                        RocketChat
+                      <Link external href={KEYCLOAK_TEAMS_CHANNEL_URL}>
+                        Microsoft Teams Keycloak How-to Channel
                       </Link>
                       .
                     </li>
@@ -298,8 +298,8 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
               <br />
               <h2>Need Help?</h2>
               Message us on{' '}
-              <Link href="https://chat.developer.gov.bc.ca/channel/sso" external>
-                RocketChat
+              <Link href={KEYCLOAK_TEAMS_CHANNEL_URL} external>
+                Microsoft Teams Keycloak How-to Channel
               </Link>
               <br />
               Send us an{' '}

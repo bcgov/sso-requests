@@ -9,6 +9,7 @@ import { useRouter } from 'next/router';
 import { faCommentDots, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
 
 const Column = styled.div`
   display: flex;
@@ -56,12 +57,13 @@ function MyIntegrations({ session }: PageProps) {
               <Column>
                 <div>
                   <a
-                    href="https://chat.developer.gov.bc.ca/channel/sso"
+                    href={KEYCLOAK_TEAMS_CHANNEL_URL}
                     target="_blank"
-                    title="Rocket Chat"
+                    title="Microsoft Teams Keycloak How-to channel"
                     style={{ color: '#0d6efd' }}
                   >
-                    <FontAwesomeIcon size="1x" icon={faCommentDots} color="#0d6efd" /> Rocketchat
+                    <FontAwesomeIcon size="1x" icon={faCommentDots} color="#0d6efd" /> Microsoft Teams Keycloak How-to
+                    Channel
                   </a>
                 </div>
               </Column>

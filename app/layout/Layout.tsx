@@ -7,7 +7,7 @@ import Navigation from './Navigation';
 import TopAlertProvider, { TopAlert } from './TopAlert';
 import UserProfileModal from './UserProfileModal';
 import GoldNotificationModal from './GoldNotificationModal';
-import { formatWikiURL } from '@app/utils/constants';
+import { formatWikiURL, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import Nav from 'react-bootstrap/Nav';
 import {
@@ -193,7 +193,7 @@ const RightMenuItems = () => (
     </UserProfileModal>
 
     <HoverItem>
-      <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat">
+      <a href={KEYCLOAK_TEAMS_CHANNEL_URL} target="_blank" title="Microsoft Teams Keycloak How-to channel">
         <FontAwesomeIcon size="2x" icon={faCommentDots} />
       </a>
     </HoverItem>
@@ -240,8 +240,8 @@ const MobileMenu = ({
 
   const helpLinks = [
     {
-      href: 'https://chat.developer.gov.bc.ca/channel/sso',
-      title: 'Rocket Chat',
+      href: KEYCLOAK_TEAMS_CHANNEL_URL,
+      title: 'Microsoft Teams Keycloak How-to channel',
       icon: faCommentDots,
     },
     {
