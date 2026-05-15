@@ -32,7 +32,7 @@ const content = (lines: string[]) => (
     </tspan>
     <tspan y="26">.</tspan>
     <tspan x="120" y="104">
-      If you need help, contact our SSO support team by
+      If you need help, contact our SSO support team by the
     </tspan>
     <tspan x="120" y="130" fill="#006fc4">
       <a
