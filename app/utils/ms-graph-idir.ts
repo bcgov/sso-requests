@@ -59,7 +59,7 @@ export const searchIdirUsers = async ({ field, search }: { field: string; search
     throw new Error('Allowed search fields are givenName, surname, mail, mailNickname');
   }
   try {
-    const url = `${MS_GRAPH_URL}/v1.0/users?$filter=startswith(${field},'${search}')&$top=50&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName`;
+    const url = `${MS_GRAPH_URL}/v1.0/users?$filter=startswith(${field},'${search}')&$top=100&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName`;
     const response = (await callAzureGraphApi(url)) as MsGraphUserResponse;
     const formattedUsers = response.value.map(formatUser);
     return formattedUsers;
