@@ -82,7 +82,7 @@ export default function FaqItems() {
       <StyledList>
         <li>
           Our service is available 24/7, except during planned outages within the Kamloops and Calgary data centres.
-          Planned outages are communicated through{' '}
+          Planned outages are communicated through the{' '}
           <Link external href={KEYCLOAK_TEAMS_CHANNEL_URL}>
             Microsoft Teams Keycloak How-to Channel
           </Link>
