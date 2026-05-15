@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import Link from '@app/components/Link';
 import { FORM_TOP_SPACING } from 'styles/theme';
-import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
+import { docusaurusURL, formatWikiURL, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
 
 const StyledList = styled.ul`
   & li {
@@ -28,8 +28,8 @@ export default function FaqItems() {
         <li>Keep your email address active, and if you are not using your integration, clean it up</li>
         <li>
           If you are not using your client app configuration,{' '}
-          <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
-            ask us at rocketchat
+          <Link external href={KEYCLOAK_TEAMS_CHANNEL_URL}>
+            ask us at Microsoft Teams Keycloak How-to Channel
           </Link>{' '}
           for the detailed info
         </li>
@@ -42,8 +42,8 @@ export default function FaqItems() {
       <StyledList>
         <li>
           As part of a community, we can solve things together and quickly. Please join the{' '}
-          <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
-            #SSO channel on Rocket.Chat
+          <Link external href={KEYCLOAK_TEAMS_CHANNEL_URL}>
+            Microsoft Teams Keycloak How-to Channel
           </Link>
         </li>
         <li>
@@ -55,8 +55,8 @@ export default function FaqItems() {
         <li>Coordinate load testing with the Pathfinder SSO Team, and please only use the Test environment</li>
         <li>
           The SSO Service is multitenancy; meaning you share with others, so please coordinate with us (
-          <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
-            #SSO channel on Rocket.Chat
+          <Link external href={KEYCLOAK_TEAMS_CHANNEL_URL}>
+            Microsoft Teams Keycloak How-to Channel
           </Link>{' '}
           or email at <Link href="mailto:bcgov.sso@gov.bc.ca">bcgov.sso@gov.bc.ca</Link>) :
           <ul>
@@ -82,9 +82,9 @@ export default function FaqItems() {
       <StyledList>
         <li>
           Our service is available 24/7, except during planned outages within the Kamloops and Calgary data centres.
-          Planned outages are communicated through{' '}
-          <Link external href="https://chat.developer.gov.bc.ca/channel/sso/">
-            RocketChat
+          Planned outages are communicated through the{' '}
+          <Link external href={KEYCLOAK_TEAMS_CHANNEL_URL}>
+            Microsoft Teams Keycloak How-to Channel
           </Link>
           .
         </li>
@@ -109,9 +109,9 @@ export default function FaqItems() {
       <h2>Contact Us</h2>
       <StyledList>
         <li>
-          If you have any questions, please reach out to us on{' '}
-          <Link external href="https://chat.developer.gov.bc.ca">
-            Rocket.Chat
+          If you have any questions, please reach out to us on the{' '}
+          <Link external href={KEYCLOAK_TEAMS_CHANNEL_URL}>
+            Microsoft Teams Keycloak How-to Channel
           </Link>{' '}
           or{' '}
           <Link external href="mailto:bcgov.sso@gov.bc.ca">

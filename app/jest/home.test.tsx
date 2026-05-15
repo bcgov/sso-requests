@@ -1,16 +1,14 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import Home from 'pages/index';
 import { session } from './utils/helpers';
-import { formatWikiURL } from '@app/utils/constants';
+import { formatWikiURL, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
 
 const handleLogin = jest.fn();
 const handleLogout = jest.fn();
 
 const KNOWLEDGE_BASE_HYPERLINK = formatWikiURL();
-const ROCKET_CHAT_HYPERLINK = 'https://chat.developer.gov.bc.ca/channel/sso';
 const PATHFINDER_SSO_HYPERLINK = 'mailto:bcgov.sso@gov.bc.ca';
 const LEARN_MORE_HERE_HYPERLINK = formatWikiURL('Useful-References#imit-identity-standards');
-const ROCKETCHAT_HYPERLINK = 'https://chat.developer.gov.bc.ca/channel/sso';
 const HELPFUL_DOCUMENTATION_HYPERLINK = formatWikiURL();
 
 describe('Home panel', () => {
@@ -27,13 +25,13 @@ describe('Home panel', () => {
       'href',
       KNOWLEDGE_BASE_HYPERLINK,
     );
-    const rocketChatLink = screen.getAllByRole('link', { name: 'RocketChat' });
-    expect(rocketChatLink[0]).toHaveAttribute('href', ROCKET_CHAT_HYPERLINK);
+    const teamsChannelLink = screen.getAllByRole('link', { name: 'Microsoft Teams Keycloak How-to Channel' });
+    expect(teamsChannelLink[0]).toHaveAttribute('href', KEYCLOAK_TEAMS_CHANNEL_URL);
 
     const PathfinderSsoLink = screen.getByRole('link', { name: 'Pathfinder SSO' });
     expect(PathfinderSsoLink).toHaveAttribute('href', PATHFINDER_SSO_HYPERLINK);
     expect(screen.getByRole('link', { name: 'learn more here' })).toHaveAttribute('href', LEARN_MORE_HERE_HYPERLINK);
-    expect(rocketChatLink[1]).toHaveAttribute('href', ROCKETCHAT_HYPERLINK);
+    expect(teamsChannelLink[1]).toHaveAttribute('href', KEYCLOAK_TEAMS_CHANNEL_URL);
     expect(screen.getByRole('link', { name: 'helpful documentation' })).toHaveAttribute(
       'href',
       HELPFUL_DOCUMENTATION_HYPERLINK,
