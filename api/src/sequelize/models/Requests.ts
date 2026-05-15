@@ -25,6 +25,8 @@ export interface RequestsAttributes {
   newToSso?: boolean;
   agreeWithTerms?: boolean;
   bceidApproved?: boolean;
+  devBceidApproved?: boolean;
+  testBceidApproved?: boolean;
   status: 'draft' | 'submitted' | 'pr' | 'prFailed' | 'planned' | 'planFailed' | 'approved' | 'applied' | 'applyFailed';
   archived: boolean;
   idirUserDisplayName?: string;
@@ -177,7 +179,9 @@ export type RequestsOptionalAttributes =
   | 'bcServicesCardApproved'
   | 'confirmSocial'
   | 'socialApproved'
-  | 'otpApproved';
+  | 'otpApproved'
+  | 'devBceidApproved'
+  | 'testBceidApproved';
 export type RequestsCreationAttributes = Optional<RequestsAttributes, RequestsOptionalAttributes>;
 
 export class Requests extends Model<RequestsAttributes, RequestsCreationAttributes> implements RequestsAttributes {
@@ -200,6 +204,8 @@ export class Requests extends Model<RequestsAttributes, RequestsCreationAttribut
   newToSso?: boolean;
   agreeWithTerms?: boolean;
   bceidApproved?: boolean;
+  devBceidApproved?: boolean;
+  testBceidApproved?: boolean;
   status!:
     | 'draft'
     | 'submitted'
@@ -699,6 +705,18 @@ export class Requests extends Model<RequestsAttributes, RequestsCreationAttribut
           allowNull: false,
           defaultValue: false,
           field: 'otp_approved',
+        },
+        devBceidApproved: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+          allowNull: false,
+          field: 'dev_bceid_approved',
+        },
+        testBceidApproved: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+          allowNull: false,
+          field: 'test_bceid_approved',
         },
         additionalRoleAttribute: {
           type: DataTypes.STRING(255),

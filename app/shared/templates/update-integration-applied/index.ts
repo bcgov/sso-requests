@@ -15,7 +15,7 @@ import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 import {
   usesBcServicesCardProd,
-  usesBceidProd,
+  usesBceid,
   usesDigitalCredential,
   usesDigitalCredentialProd,
   usesSocial,
@@ -29,7 +29,6 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
   integration: IntegrationData;
-  waitingBceidProdApproval?: boolean;
   hadBceid?: boolean;
   waitingGithubProdApproval?: boolean;
   waitingBcServicesCardProdApproval?: boolean;
@@ -55,7 +54,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
     (change) => change.path[0] === 'bceidApproved' && change.lhs === true && change.rhs === false,
   );
 
-  if (usesBceidProd(integration) || usesBcServicesCardProd(integration) || resettingBceidApproval)
+  if (usesBceid(integration) || usesBcServicesCardProd(integration) || resettingBceidApproval)
     cc.push(IDIM_EMAIL_ADDRESS);
   if (usesDigitalCredential(integration) && addingProd) cc.push(DIT_EMAIL_ADDRESS);
   if (usesDigitalCredentialProd(integration)) cc.push(DIT_ADDITIONAL_EMAIL_ADDRESS);

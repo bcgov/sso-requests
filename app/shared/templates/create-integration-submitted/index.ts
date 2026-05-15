@@ -16,11 +16,11 @@ import {
 import { EMAILS } from '@app/shared/enums';
 import {
   usesGithub,
-  usesBceidProd,
   usesBcServicesCardProd,
   usesDigitalCredentialProd,
   usesSocial,
   usesOTPProd,
+  usesBceid,
 } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
@@ -32,7 +32,6 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
   integration: IntegrationData;
-  waitingBceidProdApproval?: boolean;
   waitingGithubProdApproval?: boolean;
   waitingSocialProdApproval?: boolean;
 }
@@ -53,7 +52,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   let cc = [SSO_EMAIL_ADDRESS];
   let bcc: string[] = [];
   const attachments = [];
-  if (usesBceidProd(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
+  if (usesBceid(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
   if (usesGithub(integration)) cc.push(OCIO_EMAIL_ADDRESS);
   if (usesSocial(integration)) {
     cc.push(SOCIAL_APPROVAL_EMAIL_ADDRESS);

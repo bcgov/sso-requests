@@ -4,7 +4,7 @@ import { noop } from 'lodash';
 import { models } from '@app/shared/sequelize/models/models';
 import { EVENTS, EMAILS } from '@app/shared/enums';
 import { KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
-import prodApproved from './prod-approved';
+import environmentApproved from './environment-approved';
 import createIntegrationApplied from './create-integration-applied';
 import createIntegrationSubmitted from './create-integration-submitted';
 import deleteIntegrationSubmitted from './delete-integration-submitted';
@@ -111,7 +111,7 @@ const getBuilder = (key: string) => {
 
   switch (key) {
     case EMAILS.PROD_APPROVED:
-      builder = prodApproved;
+      builder = environmentApproved;
       break;
     case EMAILS.CREATE_INTEGRATION_APPLIED:
       builder = createIntegrationApplied;

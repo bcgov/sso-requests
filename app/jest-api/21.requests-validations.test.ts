@@ -421,3 +421,36 @@ describe('Approval Resets', () => {
     });
   });
 });
+
+describe('BCeID Per-Environment Approval Client Scopes', () => {
+  beforeEach(async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+  });
+
+  it('blocks changes to idps after dev approval', async () => {
+    createMockAuth(SSO_ADMIN_USERID_01, SSO_ADMIN_EMAIL_01, ['sso-admin']);
+    const integrationRes = await buildIntegration({
+      projectName: 'bceid-dev-reset',
+      bceid: true,
+      devBceidApproved: true,
+    });
+    expect(integrationRes.status).toBe(200);
+    expect(integrationRes.body.devBceidApproved).toBeTruthy();
+
+    const response = await updateIntegration({ ...integrationRes.body, devIdps: ['bceidbusiness'] }, true);
+    expect(response.status).toBe(422);
+  });
+
+  it('new integrations with bceid have devBceidApproved and testBceidApproved default to false', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const integrationRes = await buildIntegration({
+      projectName: 'bceid-defaults',
+      bceid: true,
+      submitted: true,
+    });
+    expect(integrationRes.status).toBe(200);
+    expect(integrationRes.body.devBceidApproved).toBeFalsy();
+    expect(integrationRes.body.testBceidApproved).toBeFalsy();
+    expect(integrationRes.body.bceidApproved).toBeFalsy();
+  });
+});

@@ -123,8 +123,9 @@ describe('integration email updates for teams', () => {
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(2);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc.length).toEqual(1);
-      expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS].sort());
+      expect(emailList[0].cc.length).toEqual(2);
+      expect(emailList[0].cc).toContain(SSO_EMAIL_ADDRESS);
+      expect(emailList[0].cc).toContain(IDIM_EMAIL_ADDRESS);
     });
 
     it('should render the expected template after submission of bceid integration in prod environment', async () => {
@@ -249,7 +250,7 @@ describe('integration email updates for teams', () => {
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(2);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc.length).toEqual(1);
+      expect(emailList[0].cc.length).toEqual(2);
       expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
     });
 
@@ -330,7 +331,7 @@ describe('integration email updates for teams', () => {
       expect(emailList[1].body).toEqual(template.body);
       expect(emailList[1].to.length).toEqual(2);
       expect(emailList[1].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[1].cc.length).toEqual(1);
+      expect(emailList[1].cc.length).toEqual(2);
       expect(emailList[1].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
     });
 
@@ -367,6 +368,7 @@ describe('integration email updates for teams', () => {
       const template = await renderTemplate(EMAILS.PROD_APPROVED, {
         integration: { ...integration, requestor: 'SSO Admin' },
         type: 'BCeID',
+        environment: 'production',
       });
 
       expect(emailList.length).toEqual(2);
@@ -411,6 +413,7 @@ describe('integration email updates for teams', () => {
       const template = await renderTemplate(EMAILS.PROD_APPROVED, {
         integration: { ...integration, requestor: 'SSO Admin' },
         type: 'GitHub',
+        environment: 'production',
       });
 
       expect(emailList.length).toEqual(2);

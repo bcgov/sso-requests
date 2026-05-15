@@ -39,6 +39,8 @@ const getUISchema = ({ integration, formData, session, teams, schemas, defaultSe
     devIdps = [],
     environments = [],
     bceidApproved = false,
+    devBceidApproved = false,
+    testBceidApproved = false,
     bcServicesCardApproved = false,
     githubApproved = false,
     otpApproved = false,
@@ -60,7 +62,7 @@ const getUISchema = ({ integration, formData, session, teams, schemas, defaultSe
     if (isSaml && bceidApproved) {
       allIdpsDisabled = true;
     }
-    if (bceidApproved) {
+    if (bceidApproved || devBceidApproved || testBceidApproved) {
       ['bceidbasic', 'bceidbusiness', 'bceidboth'].forEach((bceidIdp) => {
         if (!devIdps.includes(bceidIdp)) idpDisabled.push(bceidIdp);
       });

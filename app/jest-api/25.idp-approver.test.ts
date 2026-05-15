@@ -396,7 +396,7 @@ describe('IDP Approver', () => {
 });
 
 describe('Approval Permissions', () => {
-  it('Keeps bceid approval flag immutable for regular users', async () => {
+  it('Prevents regular users from setting bceid approved to true', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
     const bceidIntegration = await buildIntegration({
       projectName: 'bceid',
@@ -412,6 +412,38 @@ describe('Approval Permissions', () => {
       true,
     );
     expect(approveRes.body.bceidApproved).toBeFalsy();
+  });
+
+  it('Prevents regular users from setting bceid approved to false', async () => {
+    // Mock the sso-admin role here so approvals can be set true
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
+    const bceidIntegration = await buildIntegration({
+      projectName: 'bceid',
+      submitted: true,
+      bceid: true,
+      prodEnv: true,
+      bceidApproved: true,
+      devBceidApproved: true,
+      testBceidApproved: true,
+    });
+    expect(bceidIntegration.body.bceidApproved).toBe(true);
+    expect(bceidIntegration.body.devBceidApproved).toBe(true);
+    expect(bceidIntegration.body.testBceidApproved).toBe(true);
+
+    // Remove role, assert user cannot set approval false directly
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const approveRes = await updateIntegration(
+      {
+        ...bceidIntegration.body,
+        bceidApproved: false,
+        devBceidApproved: false,
+        testBceidApproved: false,
+      },
+      true,
+    );
+    expect(approveRes.body.bceidApproved).toBe(true);
+    expect(approveRes.body.devBceidApproved).toBe(true);
+    expect(approveRes.body.testBceidApproved).toBe(true);
   });
 
   it('Keeps github approval flag immutable for regular users', async () => {
@@ -449,6 +481,143 @@ describe('Approval Permissions', () => {
     );
     expect(approveRes.body.bcServicesCardApproved).toBeFalsy();
   });
+
+  it('Keeps devBceidApproved flag immutable for regular users', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const bceidIntegration = await buildIntegration({
+      projectName: 'bceid-dev-perm',
+      submitted: true,
+      bceid: true,
+    });
+    const approveRes = await updateIntegration(
+      {
+        ...bceidIntegration.body,
+        devBceidApproved: true,
+      },
+      true,
+    );
+    expect(approveRes.body.devBceidApproved).toBeFalsy();
+  });
+
+  it('Keeps testBceidApproved flag immutable for regular users', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const bceidIntegration = await buildIntegration({
+      projectName: 'bceid-test-perm',
+      submitted: true,
+      bceid: true,
+    });
+    const approveRes = await updateIntegration(
+      {
+        ...bceidIntegration.body,
+        testBceidApproved: true,
+      },
+      true,
+    );
+    expect(approveRes.body.testBceidApproved).toBeFalsy();
+  });
+
+  it('BCeID approver can set devBceidApproved and testBceidApproved flags', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const bceidIntegration = await buildIntegration({
+      projectName: 'bceid-env-approvals',
+      submitted: true,
+      bceid: true,
+      prodEnv: true,
+    });
+
+    createMockAuth(BCEID_ADMIN_IDIR_USERID_01, BCEID_ADMIN_IDIR_EMAIL_01, ['bceid-approver']);
+
+    const approveDevRes = await updateIntegration({ ...bceidIntegration.body, devBceidApproved: true }, true);
+    expect(approveDevRes.status).toEqual(200);
+    expect(approveDevRes.body.devBceidApproved).toEqual(true);
+    expect(approveDevRes.body.testBceidApproved).toEqual(false);
+    expect(approveDevRes.body.bceidApproved).toEqual(false);
+
+    const approveTestRes = await updateIntegration({ ...approveDevRes.body, testBceidApproved: true }, true);
+    expect(approveTestRes.status).toEqual(200);
+    expect(approveTestRes.body.testBceidApproved).toEqual(true);
+
+    const approveProdRes = await updateIntegration({ ...approveTestRes.body, bceidApproved: true }, true);
+    expect(approveProdRes.status).toEqual(200);
+    expect(approveProdRes.body.bceidApproved).toEqual(true);
+  });
 });
 
-// TODO: IDP approver can only update approved flag but can edit other fields for owned integrations
+describe('BCeID Type Change After Approval', () => {
+  beforeAll(async () => {
+    await cleanUpDatabaseTables();
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+  });
+
+  afterAll(async () => {
+    await cleanUpDatabaseTables();
+  });
+
+  it('Blocks BCeID type change after dev approval', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const bceidIntegration = await buildIntegration({
+      projectName: 'bceid-type-dev',
+      submitted: true,
+      bceid: true,
+    });
+
+    createMockAuth(BCEID_ADMIN_IDIR_USERID_01, BCEID_ADMIN_IDIR_EMAIL_01, ['bceid-approver']);
+    await updateIntegration({ ...bceidIntegration.body, devBceidApproved: true }, true);
+
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const changeTypeRes = await updateIntegration(
+      {
+        ...bceidIntegration.body,
+        devBceidApproved: true,
+        devIdps: ['bceidbusiness'],
+        testIdps: ['bceidbusiness'],
+      },
+      true,
+    );
+    expect(changeTypeRes.status).toEqual(422);
+  });
+
+  it('Blocks BCeID type change after test approval', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const bceidIntegration = await buildIntegration({
+      projectName: 'bceid-type-test',
+      submitted: true,
+      bceid: true,
+    });
+
+    createMockAuth(BCEID_ADMIN_IDIR_USERID_01, BCEID_ADMIN_IDIR_EMAIL_01, ['bceid-approver']);
+    await updateIntegration({ ...bceidIntegration.body, testBceidApproved: true }, true);
+
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const changeTypeRes = await updateIntegration(
+      {
+        ...bceidIntegration.body,
+        testBceidApproved: true,
+        devIdps: ['bceidbusiness'],
+        testIdps: ['bceidbusiness'],
+      },
+      true,
+    );
+    expect(changeTypeRes.status).toEqual(422);
+  });
+
+  it('Allows BCeID changes before any approval', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const bceidIntegration = await buildIntegration({
+      projectName: 'bceid-type-unapproved',
+      submitted: true,
+      bceid: true,
+    });
+
+    const changeTypeRes = await updateIntegration(
+      {
+        ...bceidIntegration.body,
+        devIdps: ['bceidbusiness'],
+        testIdps: ['bceidbusiness'],
+      },
+      true,
+    );
+    expect(changeTypeRes.status).toEqual(200);
+    expect(changeTypeRes.body.devIdps).toContain('bceidbusiness');
+  });
+});

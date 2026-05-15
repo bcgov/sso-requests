@@ -18,11 +18,11 @@ import { EMAILS } from '@app/shared/enums';
 import {
   usesGithub,
   usesBcServicesCardProd,
-  usesBceidProd,
   usesDigitalCredentialProd,
   usesDigitalCredential,
   usesSocial,
   usesOTPProd,
+  usesBceid,
 } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
@@ -58,7 +58,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   );
   let cc = [SSO_EMAIL_ADDRESS];
   let bcc: string[] = [];
-  if (usesBceidProd(integration) || usesBcServicesCardProd(integration) || resettingBceidApproval)
+  if (usesBceid(integration) || usesBcServicesCardProd(integration) || resettingBceidApproval)
     cc.push(IDIM_EMAIL_ADDRESS);
   if (usesGithub(integration)) cc.push(OCIO_EMAIL_ADDRESS);
   if (usesDigitalCredential(integration) && addingProd) {

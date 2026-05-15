@@ -62,7 +62,7 @@ function AdminTabs({
   const hasProd = environments.includes('prod');
 
   const hasBceid = usesBceid(integration);
-  const hasBceidProd = hasBceid && hasProd && currentUser && isBceidApprover(currentUser);
+  const hasBceidTab = hasBceid && currentUser && isBceidApprover(currentUser);
 
   const hasGithub = usesGithub(integration);
   const hasGithubProd = hasGithub && hasProd && currentUser && isGithubApprover(currentUser);
@@ -94,10 +94,10 @@ function AdminTabs({
     },
   ];
 
-  if (hasBceidProd) {
+  if (hasBceidTab) {
     tabs.push({
       key: 'bceid-prod',
-      label: 'BCeID Prod',
+      label: 'BCeID Approval',
       children: <BceidTabContent integration={integration} onApproved={handleBceidApproved} />,
     });
   }

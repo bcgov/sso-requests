@@ -6,8 +6,8 @@ import { getTeamById } from '@app/queries/team';
 import { getUserById } from '@app/queries/user';
 import { idpMap, envMap } from '@app/helpers/meta';
 import { Integration } from '@app/interfaces/Request';
-import path from 'path';
 import fs from 'fs';
+import { usesBceid } from '@app/helpers/integration';
 
 export const processTeam = async (team: any) => {
   if (team instanceof models.team) {
@@ -23,6 +23,13 @@ export const processUser = async (user: any) => {
   }
 
   return user;
+};
+
+const formatEnvironments = (environments: string[] | undefined) => {
+  if (!environments || environments.length === 0) return '';
+  const formattedEnvironments = environments.map((env) => envMap[env].toLowerCase());
+  if (environments.length === 1) return formattedEnvironments[0];
+  return `${formattedEnvironments.slice(0, -1).join(', ')} and ${formattedEnvironments.slice(-1)}`;
 };
 
 export const processRequest = async (integrationOrModel: any) => {
@@ -52,6 +59,14 @@ export const processRequest = async (integrationOrModel: any) => {
   }));
   const browserLoginEnabled = authType !== 'service-account';
 
+  const waitingBceidApproval =
+    usesBceid(integration) &&
+    ((!integration.bceidApproved && integration.environments?.includes('prod')) ||
+      (!integration.devBceidApproved && integration.environments?.includes('dev')) ||
+      (!integration.testBceidApproved && integration.environments?.includes('test')));
+
+  const formattedEnvironments = formatEnvironments(integration.environments);
+
   return {
     ...integration,
     devValidRedirectUris,
@@ -63,6 +78,8 @@ export const processRequest = async (integrationOrModel: any) => {
     redirectUris,
     accountableEntity,
     browserLoginEnabled,
+    waitingBceidApproval,
+    formattedEnvironments,
   };
 };
 

@@ -132,12 +132,12 @@ class Request {
     this.navigation.goToAdminDashboard();
     this.dashboardPage.selectRequest(this.projectName);
 
-    cy.contains('div[role="tab"]', `${title} Prod`).trigger('click');
+    cy.contains('div[role="tab"]', `${title}`).trigger('click');
 
     cy.contains('Approve Prod').click();
     cy.get(confirmSelector).trigger('click');
 
-    const confirmedText = 'This integration has already been approved.';
+    const confirmedText = 'Approved by';
     cy.contains(confirmedText);
   }
 
