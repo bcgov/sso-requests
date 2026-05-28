@@ -39,7 +39,18 @@ export const getAllStandardIntegrations = async () => {
   return results;
 };
 
+// Cannot paramaterize column and table names. Need to sanitize with allow-listed values.
+const ALLOWED_TABLES = new Set(['Requests', 'Users', 'Teams', 'Events']);
+const ALLOWED_ORDER_BY = new Set(['id', 'request_id']);
+
 export const getDatabaseTable = async (table: string, orderBy: string) => {
+  if (!ALLOWED_TABLES.has(table)) {
+    throw new Error(`Invalid table: ${table}`);
+  }
+  if (!ALLOWED_ORDER_BY.has(orderBy)) {
+    throw new Error(`Invalid orderBy: ${orderBy}`);
+  }
+
   if (table == 'Requests') {
     const [results] = await sequelize.query(`
     SELECT
