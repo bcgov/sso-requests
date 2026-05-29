@@ -1,5 +1,4 @@
 import { Response } from 'express';
-import { isString } from 'lodash';
 import createHttpError, { HttpError } from 'http-errors';
 import models from '@/sequelize/models/models';
 
