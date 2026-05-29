@@ -11,12 +11,11 @@ export const tryJSON = (str: string) => {
   }
 };
 
-export const handleError = (res: Response, err: HttpError) => {
-  let message = err.message || err;
-  if (isString(message)) {
-    message = tryJSON(message);
-  }
-  res.status(err.status || 422).json({ message });
+export const handleError = (res: Response, err: unknown) => {
+  const httpErr = err instanceof HttpError ? err : null;
+  // Only return intentionally thrown HttpError messages
+  let message = httpErr?.message ?? 'unknown exception';
+  res.status(httpErr?.status ?? 422).json({ message });
 };
 
 export const createEvent = async (data: any) => {

@@ -107,7 +107,7 @@ router.get(`/integrations`, async (req: Request, res: Response) => {
 router.get(`/integrations/:integrationId`, async (req: Request, res: Response) => {
   try {
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
-    const { integrationId } = req.params;
+    const { integrationId } = req.params as Record<string, string>;
     const result = await integrationController.getIntegration(Number(integrationId), req.teamId);
     res.status(200).json(result);
   } catch (err) {
@@ -117,7 +117,7 @@ router.get(`/integrations/:integrationId`, async (req: Request, res: Response) =
 
 router.get(`/integrations/:integrationId/:environment/logs`, logsRateLimiter, async (req: Request, res: Response) => {
   try {
-    const { integrationId, environment } = req.params;
+    const { integrationId, environment } = req.params as Record<string, string>;
     const { start, end } = req.query || {};
     const int = await getIntegrationByIdAndTeam(Number(integrationId), req.teamId);
     if (!int) {
@@ -140,7 +140,7 @@ router.get(`/integrations/:integrationId/:environment/logs`, logsRateLimiter, as
 router.get(`/integrations/:integrationId/:environment/roles`, async (req: Request, res: Response) => {
   try {
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
-    const { integrationId, environment } = req.params;
+    const { integrationId, environment } = req.params as Record<string, string>;
     const result = await roleController.list(req.teamId, Number(integrationId), environment);
     res.status(200).json({ data: result });
   } catch (err) {
@@ -151,7 +151,7 @@ router.get(`/integrations/:integrationId/:environment/roles`, async (req: Reques
 router.get(`/integrations/:integrationId/:environment/roles/:roleName`, async (req: Request, res: Response) => {
   try {
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
-    const { integrationId, environment, roleName } = req.params;
+    const { integrationId, environment, roleName } = req.params as Record<string, string>;
     const decodedRoleName = decodeURIComponent(roleName);
     const result = await roleController.get(req.teamId, Number(integrationId), environment, decodedRoleName);
     res.status(200).json(result);
@@ -163,7 +163,7 @@ router.get(`/integrations/:integrationId/:environment/roles/:roleName`, async (r
 router.post(`/integrations/:integrationId/:environment/roles`, async (req: Request, res: Response) => {
   try {
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
-    const { integrationId, environment } = req.params;
+    const { integrationId, environment } = req.params as Record<string, string>;
     const result = await roleController.create(req.teamId, Number(integrationId), req.body, environment);
     res.status(201).json(result);
   } catch (err) {
@@ -174,7 +174,7 @@ router.post(`/integrations/:integrationId/:environment/roles`, async (req: Reque
 router.put(`/integrations/:integrationId/:environment/roles/:roleName`, async (req: Request, res: Response) => {
   try {
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
-    const { integrationId, environment, roleName } = req.params;
+    const { integrationId, environment, roleName } = req.params as Record<string, string>;
     const decodedRoleName = decodeURIComponent(roleName);
     const result = await roleController.update(
       req.teamId,
@@ -192,7 +192,7 @@ router.put(`/integrations/:integrationId/:environment/roles/:roleName`, async (r
 router.delete(`/integrations/:integrationId/:environment/roles/:roleName`, async (req: Request, res: Response) => {
   try {
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
-    const { integrationId, environment, roleName } = req.params;
+    const { integrationId, environment, roleName } = req.params as Record<string, string>;
     const decodedRoleName = decodeURIComponent(roleName);
     await roleController.delete(req.teamId, Number(integrationId), decodedRoleName, environment);
     res.status(204).send();
@@ -206,7 +206,7 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
-      const { integrationId, environment, roleName } = req.params;
+      const { integrationId, environment, roleName } = req.params as Record<string, string>;
       const decodedRoleName = decodeURIComponent(roleName);
       const result = await roleController.getComposites(
         req.teamId,
@@ -226,7 +226,7 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
-      const { integrationId, environment, roleName, compositeRoleName } = req.params;
+      const { integrationId, environment, roleName, compositeRoleName } = req.params as Record<string, string>;
       const decodedRoleName = decodeURIComponent(roleName);
       const decodedCompositeRoleName = decodeURIComponent(compositeRoleName);
       const result = await roleController.getComposite(
@@ -248,7 +248,7 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
-      const { integrationId, environment, roleName } = req.params;
+      const { integrationId, environment, roleName } = req.params as Record<string, string>;
       const decodedRoleName = decodeURIComponent(roleName);
       const result = await roleController.createComposite(
         req.teamId,
@@ -269,7 +269,7 @@ router.delete(
   async (req: Request, res: Response) => {
     try {
       if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
-      const { integrationId, environment, roleName, compositeRoleName } = req.params;
+      const { integrationId, environment, roleName, compositeRoleName } = req.params as Record<string, string>;
       const decodedRoleName = decodeURIComponent(roleName);
       const decodedCompositeRoleName = decodeURIComponent(compositeRoleName);
       await roleController.deleteComposite(
@@ -288,7 +288,7 @@ router.delete(
 
 router.get(`/integrations/:integrationId/:environment/user-role-mappings`, async (req: Request, res: Response) => {
   try {
-    const { integrationId, environment } = req.params;
+    const { integrationId, environment } = req.params as Record<string, string>;
     const result = await userRoleMappingController.list(
       req.teamId,
       Number(integrationId),
@@ -304,7 +304,7 @@ router.get(`/integrations/:integrationId/:environment/user-role-mappings`, async
 router.post(`/integrations/:integrationId/:environment/user-role-mappings`, async (req: Request, res: Response) => {
   try {
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
-    const { integrationId, environment } = req.params;
+    const { integrationId, environment } = req.params as Record<string, string>;
     const result = await userRoleMappingController.manage(req.teamId, Number(integrationId), environment, req.body);
     req.body.operation === 'add' ? res.status(201).json(result) : res.status(204).send();
   } catch (err) {
@@ -314,7 +314,7 @@ router.post(`/integrations/:integrationId/:environment/user-role-mappings`, asyn
 
 router.get(`/:environment/idir/users`, async (req: Request, res: Response) => {
   try {
-    const { environment } = req.params;
+    const { environment } = req.params as Record<string, string>;
     const result = await userController.listUsers(environment, 'idir', req.query);
     res.status(200).json({ data: result });
   } catch (err) {
@@ -324,7 +324,7 @@ router.get(`/:environment/idir/users`, async (req: Request, res: Response) => {
 
 router.get(`/:environment/azure-idir/users`, async (req: Request, res: Response) => {
   try {
-    const { environment } = req.params;
+    const { environment } = req.params as Record<string, string>;
     const result = await userController.listUsers(environment, 'azureidir', req.query);
     res.status(200).json({ data: result });
   } catch (err) {
@@ -334,7 +334,7 @@ router.get(`/:environment/azure-idir/users`, async (req: Request, res: Response)
 
 router.get(`/:environment/github-bcgov/users`, async (req: Request, res: Response) => {
   try {
-    const { environment } = req.params;
+    const { environment } = req.params as Record<string, string>;
     const result = await userController.listUsers(environment, 'githubbcgov', req.query);
     res.status(200).json({ data: result });
   } catch (err) {
@@ -344,7 +344,7 @@ router.get(`/:environment/github-bcgov/users`, async (req: Request, res: Respons
 
 router.get(`/:environment/github-public/users`, async (req: Request, res: Response) => {
   try {
-    const { environment } = req.params;
+    const { environment } = req.params as Record<string, string>;
     const result = await userController.listUsers(environment, 'githubpublic', req.query);
     res.status(200).json({ data: result });
   } catch (err) {
@@ -354,7 +354,7 @@ router.get(`/:environment/github-public/users`, async (req: Request, res: Respon
 
 router.get(`/:environment/basic-bceid/users`, async (req: Request, res: Response) => {
   try {
-    const { environment } = req.params;
+    const { environment } = req.params as Record<string, string>;
     const result = await userController.listUsers(environment, 'bceidbasic', req.query);
     res.status(200).json({ data: result });
   } catch (err) {
@@ -364,7 +364,7 @@ router.get(`/:environment/basic-bceid/users`, async (req: Request, res: Response
 
 router.get(`/:environment/business-bceid/users`, async (req: Request, res: Response) => {
   try {
-    const { environment } = req.params;
+    const { environment } = req.params as Record<string, string>;
     const result = await userController.listUsers(environment, 'bceidbusiness', req.query);
     res.status(200).json({ data: result });
   } catch (err) {
@@ -374,7 +374,7 @@ router.get(`/:environment/business-bceid/users`, async (req: Request, res: Respo
 
 router.get(`/:environment/basic-business-bceid/users`, async (req: Request, res: Response) => {
   try {
-    const { environment } = req.params;
+    const { environment } = req.params as Record<string, string>;
     const result = await userController.listUsers(environment, 'bceidboth', req.query);
     res.status(200).json({ data: result });
   } catch (err) {
@@ -384,7 +384,7 @@ router.get(`/:environment/basic-business-bceid/users`, async (req: Request, res:
 
 router.get(`/integrations/:integrationId/:environment/bceid/users`, async (req: Request, res: Response) => {
   try {
-    const { integrationId, environment } = req.params;
+    const { integrationId, environment } = req.params as Record<string, string>;
     const result = await userController.listBceidUsers(
       req.teamId,
       Number(integrationId),
@@ -400,7 +400,7 @@ router.get(`/integrations/:integrationId/:environment/bceid/users`, async (req: 
 router.get(`/integrations/:integrationId/:environment/users/:username/roles`, async (req: Request, res: Response) => {
   try {
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
-    const { integrationId, environment, idp, username } = req.params;
+    const { integrationId, environment, username } = req.params as Record<string, string>;
     const result = await userRoleMappingController.listRolesByUsername(
       req.teamId,
       Number(integrationId),
@@ -415,7 +415,7 @@ router.get(`/integrations/:integrationId/:environment/users/:username/roles`, as
 
 router.get(`/integrations/:integrationId/:environment/roles/:roleName/users`, async (req: Request, res: Response) => {
   try {
-    const { integrationId, environment, roleName } = req.params;
+    const { integrationId, environment, roleName } = req.params as Record<string, string>;
     const decodedRoleName = decodeURIComponent(roleName);
     const result = await userRoleMappingController.listUsersByRolename(
       req.teamId,
@@ -433,7 +433,7 @@ router.get(`/integrations/:integrationId/:environment/roles/:roleName/users`, as
 router.post(`/integrations/:integrationId/:environment/users/:username/roles`, async (req: Request, res: Response) => {
   try {
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
-    const { integrationId, environment, username } = req.params;
+    const { integrationId, environment, username } = req.params as Record<string, string>;
     const result = await userRoleMappingController.addRoleToUser(
       req.teamId,
       Number(integrationId),
@@ -452,7 +452,7 @@ router.delete(
   async (req: Request, res: Response) => {
     try {
       if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
-      const { integrationId, environment, username, roleName } = req.params;
+      const { integrationId, environment, username, roleName } = req.params as Record<string, string>;
       const decodedRoleName = decodeURIComponent(roleName);
       const result = await userRoleMappingController.deleteRoleFromUser(
         req.teamId,
