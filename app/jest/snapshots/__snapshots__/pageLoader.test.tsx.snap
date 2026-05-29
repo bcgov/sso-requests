@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`should match the snapshot 1`] = `
 <DocumentFragment>
@@ -8,7 +8,7 @@ exports[`should match the snapshot 1`] = `
     <div
       aria-busy="true"
       aria-label="grid-loading"
-      class="sc-brayMQ eAjEvZ"
+      class="sc-bdDsCe fxPawB"
       data-testid="grid-loading"
       role="progressbar"
     >
