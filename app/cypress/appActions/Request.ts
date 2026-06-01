@@ -134,11 +134,19 @@ class Request {
 
     cy.contains('div[role="tab"]', `${title}`).trigger('click');
 
-    cy.contains('Approve Prod').click();
-    cy.get(confirmSelector).trigger('click');
+    let approvalButtons = ['Approve Prod'];
 
-    const confirmedText = 'Approved by';
-    cy.contains(confirmedText);
+    if (title.includes('BCeID Approval')) {
+      approvalButtons = approvalButtons.concat(['Approve Dev', 'Approve Test']);
+    }
+
+    approvalButtons.forEach((btnText) => {
+      cy.contains(btnText).click();
+      cy.get(confirmSelector).trigger('click');
+
+      const confirmedText = 'Approved by';
+      cy.contains(confirmedText);
+    });
   }
 
   createRequest() {

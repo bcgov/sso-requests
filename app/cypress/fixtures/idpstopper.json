@@ -33,7 +33,10 @@
     "prodroles": {},
     "delete": true,
     "smoketest": false,
-    "localtest": false
+    "localtest": false,
+    "approvals": {
+      "bceid": true
+    }
   },
   {
     "id": "",
@@ -70,6 +73,9 @@
     "prodroles": {},
     "delete": true,
     "smoketest": false,
-    "localtest": false
+    "localtest": false,
+    "approvals": {
+      "bceid": true
+    }
   }
 ]
