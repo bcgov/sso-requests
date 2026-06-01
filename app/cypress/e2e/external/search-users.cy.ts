@@ -4,9 +4,11 @@ import Request from '../../appActions/Request';
 import Playground from '../../pageObjects/playgroundPage';
 import Utilities from '../../appActions/Utilities';
 import { kebabCase } from 'lodash';
+import DashboardPage from '../../pageObjects/dashboardPage';
 
 let util = new Utilities();
 let playground = new Playground();
+const dashboardPage = new DashboardPage();
 
 describe('Create Integration Requests', () => {
   const req = new Request();
@@ -25,8 +27,12 @@ describe('Create Integration Requests', () => {
       req.showCreateContent(searchIntegration);
       req.populateCreateContent(searchIntegration);
       integration = req.createRequest();
+
+      if (searchIntegration.create.approvals.bceid) {
+        req.approveRequest('BCeID Approval', dashboardPage.confirmBceidButton);
+      }
       // Login with bceids to link user to client
-      integration.then(() => {
+      integration?.then(() => {
         ['bceidbasic', 'bceidbusiness'].forEach((idp) => {
           cy.visit(playground.path);
           const clientName = kebabCase(`${req.projectName}@$${req.uid} ${Number(req.id)}`);
