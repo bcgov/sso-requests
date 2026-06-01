@@ -28,6 +28,7 @@ describe('Run IDP Stopper Test', () => {
         integration = req.createRequest();
 
         if (data.approvals.bceid) {
+          cy.login(util.cssAdmin);
           req.approveRequest('BCeID Approval', dashboardPage.confirmBceidButton);
         }
 

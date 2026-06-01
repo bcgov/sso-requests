@@ -29,6 +29,7 @@ describe('Create Integration Requests', () => {
       integration = req.createRequest();
 
       if (searchIntegration.create.approvals.bceid) {
+        cy.login(util.cssAdmin);
         req.approveRequest('BCeID Approval', dashboardPage.confirmBceidButton);
       }
       // Login with bceids to link user to client
