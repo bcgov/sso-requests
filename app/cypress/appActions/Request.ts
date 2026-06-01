@@ -134,10 +134,23 @@ class Request {
 
     cy.contains('div[role="tab"]', `${title}`).trigger('click');
 
-    let approvalButtons = ['Approve Prod'];
+    const approvalButtons = [];
 
     if (title.includes('BCeID Approval')) {
-      approvalButtons = approvalButtons.concat(['Approve Dev', 'Approve Test']);
+      if (this.environments.includes('dev')) {
+        approvalButtons.push('Approve Dev');
+      }
+
+      if (this.environments.includes('test')) {
+        approvalButtons.push('Approve Test');
+      }
+
+      if (this.environments.includes('prod')) {
+        approvalButtons.push('Approve Prod');
+      }
+    } else {
+      // All other IDPs only have production approval
+      approvalButtons.push('Approve Prod');
     }
 
     approvalButtons.forEach((btnText) => {
