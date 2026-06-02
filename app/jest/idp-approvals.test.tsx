@@ -122,6 +122,19 @@ const sampleRequests: { [key: string]: Integration } = {
     authType: 'both',
     bceidApproved: false,
   },
+  bceidNoProd: {
+    ...sampleRequest,
+    id: 5,
+    projectName: `BCeID Approver Non Prod`,
+    status: 'applied',
+    serviceType: 'gold',
+    environments: ['dev', 'test'],
+    devIdps: ['bceidbasic'],
+    testIdps: ['bceidbasic'],
+    prodIdps: [],
+    authType: 'both',
+    bceidApproved: false,
+  },
   github: {
     ...sampleRequest,
     id: 2,
@@ -256,10 +269,10 @@ describe('IDP Approvals', () => {
     expect(screen.queryByText('GitHub Prod')).not.toBeInTheDocument();
     expect(screen.queryByText('BC Services Card Prod')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByText('BCeID Prod'));
+    fireEvent.click(screen.getByText('BCeID Approval'));
     const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });
     fireEvent.click(approveProdButton);
-    expect(screen.getByText('Bceid Approve'));
+    expect(screen.getByText('BCeID Approval'));
 
     jest
       .spyOn(requestModule, 'getRequestAll')
@@ -271,14 +284,14 @@ describe('IDP Approvals', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
     expect(updateRequest).toHaveBeenCalled();
     await waitFor(() => {
-      expect(screen.queryByText('Bceid Approve')).not.toBeInTheDocument();
+      expect(screen.queryByText('Approve Prod')).not.toBeInTheDocument();
     });
 
     const approvedString = `Approved by ${sampleEvents.bceidApproved.idirUserDisplayName} on ${new Date(
       sampleEvents.bceidApproved.createdAt,
     ).toLocaleString()}`;
 
-    expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(approvedString);
+    expect(screen.getByTestId('bceid-prod-approved-note')).toHaveTextContent(approvedString);
   });
 
   it('GitHub Approver', async () => {
@@ -308,7 +321,7 @@ describe('IDP Approvals', () => {
     fireEvent.click(within(adminDashboardTable).getByText('GitHub Approver'));
 
     // should not see other IDPs
-    expect(screen.queryByText('BCeID Prod')).not.toBeInTheDocument();
+    expect(screen.queryByText('BCeID Approval')).not.toBeInTheDocument();
     expect(screen.queryByText('BC Services Card Prod')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByText('GitHub Prod'));
@@ -333,6 +346,37 @@ describe('IDP Approvals', () => {
     ).toLocaleString()}`;
 
     expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(approvedString);
+  });
+
+  it('shows BCeID tab for non-prod BCeID integrations', async () => {
+    jest
+      .spyOn(requestModule, 'getRequestAll')
+      .mockImplementationOnce(() => Promise.resolve([{ count: 1, rows: [sampleRequests.bceidNoProd] }, null]));
+    jest.spyOn(requestModule, 'updateRequest').mockImplementation(() => Promise.resolve([{}, null]));
+    jest
+      .spyOn(eventModule, 'getEvents')
+      .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEventsArray as any }, null]));
+
+    render(
+      <AdminDashboard
+        session={{ ...sampleSession, client_roles: ['bceid-approver'] }}
+        onLoginClick={jest.fn}
+        onLogoutClick={jest.fn}
+      />,
+    );
+
+    await waitFor(() => {
+      screen.getAllByText('BCeID Approver Non Prod');
+    });
+
+    const adminDashboardTable = screen.getByTestId('admin-dashboard-table');
+    fireEvent.click(within(adminDashboardTable).getByText('BCeID Approver Non Prod'));
+
+    expect(screen.getByText('BCeID Approval')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('BCeID Approval'));
+    expect(screen.getByRole('button', { name: 'Approve Dev' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Approve Test' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Approve Prod' })).not.toBeInTheDocument();
   });
 
   it('Restricts Social Approver to social integrations and allows approval', async () => {
@@ -362,7 +406,7 @@ describe('IDP Approvals', () => {
     fireEvent.click(within(adminDashboardTable).getByText('Social Approver'));
 
     // should not see other IDPs
-    expect(screen.queryByText('BCeID Prod')).not.toBeInTheDocument();
+    expect(screen.queryByText('BCeID Approval')).not.toBeInTheDocument();
     expect(screen.queryByText('BC Services Card Prod')).not.toBeInTheDocument();
     expect(screen.queryByText('Github Prod')).not.toBeInTheDocument();
 
@@ -418,7 +462,7 @@ describe('IDP Approvals', () => {
     fireEvent.click(within(adminDashboardTable).getByText('OTP Approver'));
 
     // should not see other IDPs
-    expect(screen.queryByText('BCeID Prod')).not.toBeInTheDocument();
+    expect(screen.queryByText('BCeID Approval')).not.toBeInTheDocument();
     expect(screen.queryByText('BC Services Card Prod')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByText('OTP Prod'));
@@ -472,7 +516,7 @@ describe('IDP Approvals', () => {
 
     // should not see other IDPs
     expect(screen.queryByText('GitHub Prod')).not.toBeInTheDocument();
-    expect(screen.queryByText('BCeID Prod')).not.toBeInTheDocument();
+    expect(screen.queryByText('BCeID Approval')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByText('BC Services Card Prod'));
     const approveProdButton = screen.getByRole('button', { name: 'Approve Prod' });

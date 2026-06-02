@@ -27,7 +27,10 @@
       "submit": true,
       "confirm": true,
       "description": "Variant 1",
-      "devLoginTitle": "Testing bottom"
+      "devLoginTitle": "Testing bottom",
+      "approvals": {
+        "bceid": true
+      }
     },
     "smoketest": false,
     "localtest": false,

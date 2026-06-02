@@ -25,7 +25,10 @@
     "agreeWithTermstrue": true,
     "submit": true,
     "confirm": true,
-    "description": "This is a placeholder for the test automation script."
+    "description": "This is a placeholder for the test automation script.",
+    "approvals": {
+      "bceid": true
+    }
   },
   "delete": true,
   "smoketest": false,

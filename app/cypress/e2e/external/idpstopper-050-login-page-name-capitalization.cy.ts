@@ -2,11 +2,13 @@ import data from '../../fixtures/capitalization-fixtures.json'; // The data file
 import Request from '../../appActions/Request';
 import Utilities from '../../appActions/Utilities';
 import Playground from '../../pageObjects/playgroundPage';
+import DashboardPage from '../../pageObjects/dashboardPage';
 import { kebabCase } from 'lodash';
 
 let util = new Utilities();
 let req = new Request();
 let playground = new Playground();
+const dashboardPage = new DashboardPage();
 
 describe('Create Integration Requests For login page capitalization', () => {
   const request = data[0].create;
@@ -22,7 +24,12 @@ describe('Create Integration Requests For login page capitalization', () => {
       req.populateCreateContent(data[0]);
       integration = req.createRequest();
 
-      integration.then(() => {
+      if (data[0].create.approvals.bceid) {
+        cy.login(util.cssAdmin);
+        req.approveRequest('BCeID Approval', dashboardPage.confirmBceidButton);
+      }
+
+      integration?.then(() => {
         cy.visit(playground.path);
         cy.contains(playground.header);
 

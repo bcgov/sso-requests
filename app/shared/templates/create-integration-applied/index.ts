@@ -16,7 +16,7 @@ import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 import {
   usesBcServicesCardProd,
-  usesBceidProd,
+  usesBceid,
   usesDigitalCredentialProd,
   usesOTPProd,
   usesSocial,
@@ -30,7 +30,6 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 
 interface DataProps {
   integration: IntegrationData;
-  waitingBceidProdApproval?: boolean;
   hasBceid?: boolean;
   waitingGithubProdApproval?: boolean;
   waitingBcServicesCardProdApproval?: boolean;
@@ -53,7 +52,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const emails = await getIntegrationEmails(integration);
   let cc = [SSO_EMAIL_ADDRESS];
   let bcc: string[] = [];
-  if (usesBceidProd(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
+  if (usesBceid(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
   if (usesOTPProd(integration)) {
     cc = cc.concat(OTP_EMAIL_ADDRESS_CC);
     bcc = bcc.concat(OTP_EMAIL_ADDRESS_BCC);

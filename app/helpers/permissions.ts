@@ -83,6 +83,14 @@ export const getIdpApprovalStatus = ({ session, originalData, updatedData }: any
   if (isApprovingBceid && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_BCEID))
     throw new createHttpError.Forbidden('not allowed to approve bceid');
 
+  const isApprovingDevBceid = !originalData.devBceidApproved && updatedData.devBceidApproved;
+  if (isApprovingDevBceid && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_BCEID))
+    throw new createHttpError.Forbidden('not allowed to approve bceid');
+
+  const isApprovingTestBceid = !originalData.testBceidApproved && updatedData.testBceidApproved;
+  if (isApprovingTestBceid && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_BCEID))
+    throw new createHttpError.Forbidden('not allowed to approve bceid');
+
   const isApprovingGithub = !originalData.githubApproved && updatedData.githubApproved;
   if (isApprovingGithub && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_GITHUB))
     throw new createHttpError.Forbidden('not allowed to approve github');
@@ -103,8 +111,13 @@ export const getIdpApprovalStatus = ({ session, originalData, updatedData }: any
     changedAttrs.otpApproved = false;
   }
 
-  if (originalData.bceidApproved && !updatedData.devIdps.some(checkBceidGroup)) {
+  if (
+    (originalData.bceidApproved || originalData.devBceidApproved || originalData.testBceidApproved) &&
+    !updatedData.devIdps.some(checkBceidGroup)
+  ) {
     changedAttrs.bceidApproved = false;
+    changedAttrs.devBceidApproved = false;
+    changedAttrs.testBceidApproved = false;
   }
 
   if (originalData.githubApproved && !updatedData.devIdps.some(checkGithubGroup)) {

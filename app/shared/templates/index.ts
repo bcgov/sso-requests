@@ -3,7 +3,8 @@ import Handlebars from 'handlebars';
 import { noop } from 'lodash';
 import { models } from '@app/shared/sequelize/models/models';
 import { EVENTS, EMAILS } from '@app/shared/enums';
-import prodApproved from './prod-approved';
+import { KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
+import environmentApproved from './environment-approved';
 import createIntegrationApplied from './create-integration-applied';
 import createIntegrationSubmitted from './create-integration-submitted';
 import deleteIntegrationSubmitted from './delete-integration-submitted';
@@ -110,7 +111,7 @@ const getBuilder = (key: string) => {
 
   switch (key) {
     case EMAILS.PROD_APPROVED:
-      builder = prodApproved;
+      builder = environmentApproved;
       break;
     case EMAILS.CREATE_INTEGRATION_APPLIED:
       builder = createIntegrationApplied;
@@ -188,6 +189,7 @@ export interface RenderResult {
 export const renderTemplate = async (code: string, data: any): Promise<RenderResult> => {
   data.appUrl = APP_URL;
   data.apiUrl = API_URL;
+  data.teamsChannelUrl = KEYCLOAK_TEAMS_CHANNEL_URL;
   const prefix = APP_ENV === 'production' ? '' : '[DEV] ';
   const builder = getBuilder(code);
   const result = await builder.render(data);

@@ -8,7 +8,7 @@ import { envMap, idpMap } from '@app/helpers/meta';
 const compactUniq = (v: any) => uniq(compact(v));
 
 const httpsAgent = new https.Agent({
-  rejectUnauthorized: false,
+  rejectUnauthorized: true,
 });
 
 const fetchChesToken = async (username: string, password: string) => {

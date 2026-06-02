@@ -1,3 +1,5 @@
+import { KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
+
 export function getTemplate() {
   const title = 'Service is temporarily unavailable';
   const content = (
@@ -12,8 +14,13 @@ export function getTemplate() {
         If the problem persists, contact our SSO support team by{' '}
       </tspan>
       <tspan y="75" x="0" fill="#006fc4">
-        <a href="https://chat.developer.gov.bc.ca/channel/sso" target="_blank" title="Rocket Chat" rel="noreferrer">
-          Rocket.Chat
+        <a
+          href={KEYCLOAK_TEAMS_CHANNEL_URL}
+          target="_blank"
+          title="Microsoft Teams Keycloak How-to channel"
+          rel="noreferrer"
+        >
+          Microsoft Teams Keycloak How-to Channel
         </a>
       </tspan>
       <tspan y="75"> or </tspan>

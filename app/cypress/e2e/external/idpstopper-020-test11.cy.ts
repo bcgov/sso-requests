@@ -5,8 +5,10 @@ import Request from '../../appActions/Request';
 import Playground from '../../pageObjects/playgroundPage';
 import Utilities from '../../appActions/Utilities';
 import { kebabCase } from 'lodash';
+import DashboardPage from '../../pageObjects/dashboardPage';
 
 let util = new Utilities();
+const dashboardPage = new DashboardPage();
 
 let testData = data;
 
@@ -22,7 +24,12 @@ describe('Run IDP Stopper Test', () => {
         req.populateCreateContent(data);
         integration = req.createRequest();
 
-        integration.then(() => {
+        if (data.approvals.bceid) {
+          cy.login(util.cssAdmin);
+          req.approveRequest('BCeID Approval', dashboardPage.confirmBceidButton);
+        }
+
+        integration?.then(() => {
           let playground = new Playground();
 
           cy.visit(playground.path);

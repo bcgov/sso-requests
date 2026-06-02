@@ -8,6 +8,7 @@ interface Props {
 }
 
 const PaddedIcon = styled(FontAwesomeIcon)`
+  flex-shrink: 0;
   margin-right: 10px;
 `;
 
@@ -15,6 +16,7 @@ const FlexContainer = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
+  width: 100%;
 `;
 
 export function InfoMessage({ children }: Props) {
