@@ -1,9 +1,14 @@
 import '@testing-library/jest-dom';
-import { TextEncoder, TextDecoder } from 'util';
+import { TextEncoder, TextDecoder } from 'node:util';
+import { configure } from '@testing-library/react';
 
 Object.assign(global, { TextDecoder, TextEncoder });
 
 jest.setTimeout(10000); // in milliseconds
+
+configure({
+  asyncUtilTimeout: 5000, // in milliseconds
+});
 
 process.env.NEXT_PUBLIC_API_URL = 'http://localhost:3000/api';
 process.env.NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL = 'true';

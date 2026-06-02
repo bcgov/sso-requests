@@ -19,7 +19,7 @@ const WIKI_PAGE_HYPERLINK = formatWikiURL('Creating-a-Role');
 const DRAFT_MESSAGE = /Your request has not been submitted/;
 const PROGRESS_MESSAGE = /Access to environment\(s\) will be provided/;
 const INSTALLATION_LABEL = /Installation JSONs/;
-const BCEID_PROD_LABEL = /Access to BCeID Prod/;
+const BCEID_ENV_LABEL = /Access to BCeID Environments/;
 const BCEID_PROD_REQUESTED_MESSAGE = /Please reach out to IDIM/;
 const BCEID_PROD_APPROVED = /Your integration has been approved/;
 const BCEID_PROD_AVAILABLE = /Your integration is approved and available/;
@@ -35,10 +35,16 @@ const GITHUB_PROD_LABEL = /Access to GitHub Prod/;
 const GITHUB_PROD_REQUESTED_MESSAGE = /Requirements email sent to GCIO/;
 const GITHUB_PROD_APPROVED = /Your integration has been approved/;
 const GITHUB_PROD_AVAILABLE = /Your integration is approved and available/;
+const ALL_ENVIRONMENTS_PENDING = /All environments pending approval/;
 
 const DEV_IDIR_BCEID_ENV_HEADER =
   /Development \(IDIR - MFA, Basic BCeID, GitHub, Digital Credential, BC Services Card\)/;
 const TEST_IDIR_BCEID_ENV_HEADER = /Test \(IDIR - MFA, Basic BCeID, GitHub, Digital Credential, BC Services Card\)/;
+const DEV_IDIR_ONLY_ENV_HEADER = /Development \(IDIR - MFA\)/;
+const TEST_IDIR_ONLY_ENV_HEADER = /Test \(IDIR - MFA\)/;
+const PROD_IDIR_BCEID_ONLY_ENV_HEADER = /Production \(IDIR - MFA, Basic BCeID\)/;
+const DEV_IDIR_BCEID_ONLY_ENV_HEADER = /Development \(IDIR - MFA, Basic BCeID\)/;
+const TEST_IDIR_BCEID_ONLY_ENV_HEADER = /Test \(IDIR - MFA, Basic BCeID\)/;
 
 const DEV_OTP_ENV_HEADER = /Development \(One Time Passcode\)/;
 const PROD_OTP_ENV_HEADER = /Production \(One Time Passcode\)/;
@@ -79,7 +85,7 @@ describe('Draft Status', () => {
     notExpectAllTexts([
       PROGRESS_MESSAGE,
       INSTALLATION_LABEL,
-      BCEID_PROD_LABEL,
+      BCEID_ENV_LABEL,
       BCEID_PROD_REQUESTED_MESSAGE,
       BCEID_PROD_APPROVED,
       BCEID_PROD_AVAILABLE,
@@ -109,7 +115,7 @@ describe('Submitted Status', () => {
     notExpectAllTexts([
       DRAFT_MESSAGE,
       INSTALLATION_LABEL,
-      BCEID_PROD_LABEL,
+      BCEID_ENV_LABEL,
       BCEID_PROD_REQUESTED_MESSAGE,
       BCEID_PROD_APPROVED,
       BCEID_PROD_AVAILABLE,
@@ -196,7 +202,7 @@ describe('Applied Status', () => {
     notExpectAllTexts([
       DRAFT_MESSAGE,
       PROGRESS_MESSAGE,
-      BCEID_PROD_LABEL,
+      BCEID_ENV_LABEL,
       BCEID_PROD_REQUESTED_MESSAGE,
       BCEID_PROD_APPROVED,
       BCEID_PROD_AVAILABLE,
@@ -260,7 +266,7 @@ describe('Applied Status', () => {
 
     expectAllTexts([
       INSTALLATION_LABEL,
-      BCEID_PROD_LABEL,
+      BCEID_ENV_LABEL,
       BCEID_PROD_REQUESTED_MESSAGE,
       GITHUB_PROD_LABEL,
       GITHUB_PROD_REQUESTED_MESSAGE,
@@ -284,6 +290,8 @@ describe('Applied Status', () => {
           environments: ['dev', 'test', 'prod'],
           devIdps: ['azureidir', 'bceidbasic', 'githubpublic'],
           lastChanges: null,
+          devBceidApproved: true,
+          testBceidApproved: true,
           bceidApproved: true,
           githubApproved: true,
           serviceType: 'gold',
@@ -291,7 +299,7 @@ describe('Applied Status', () => {
       />,
     );
 
-    expectAllTexts([INSTALLATION_LABEL, BCEID_PROD_LABEL, GITHUB_PROD_LABEL]);
+    expectAllTexts([INSTALLATION_LABEL, BCEID_ENV_LABEL, GITHUB_PROD_LABEL]);
     expect(screen.getAllByText(BCEID_PROD_AVAILABLE)).toBeTruthy();
     notExpectAllTexts([
       DRAFT_MESSAGE,
@@ -300,6 +308,57 @@ describe('Applied Status', () => {
       BCEID_PROD_REQUESTED_MESSAGE,
       GITHUB_PROD_APPROVED,
       GITHUB_PROD_REQUESTED_MESSAGE,
+    ]);
+  });
+
+  it('should filter BCeID from dev and test installation jsons when only prod is approved', async () => {
+    render(
+      <IntegrationInfoTabs
+        integration={{
+          status: 'applied',
+          authType: 'browser-login',
+          environments: ['dev', 'test', 'prod'],
+          devIdps: ['azureidir', 'bceidbasic'],
+          lastChanges: null,
+          devBceidApproved: false,
+          testBceidApproved: false,
+          bceidApproved: true,
+          serviceType: 'gold',
+        }}
+      />,
+    );
+
+    expectAllTexts([
+      INSTALLATION_LABEL,
+      DEV_IDIR_ONLY_ENV_HEADER,
+      TEST_IDIR_ONLY_ENV_HEADER,
+      PROD_IDIR_BCEID_ONLY_ENV_HEADER,
+    ]);
+    notExpectAllTexts([DEV_IDIR_BCEID_ONLY_ENV_HEADER, TEST_IDIR_BCEID_ONLY_ENV_HEADER]);
+  });
+
+  it('should show pending approval message when no environments are available', async () => {
+    render(
+      <IntegrationInfoTabs
+        integration={{
+          status: 'applied',
+          authType: 'browser-login',
+          environments: ['dev', 'test', 'prod'],
+          devIdps: ['bceidbasic'],
+          lastChanges: null,
+          devBceidApproved: false,
+          testBceidApproved: false,
+          bceidApproved: false,
+          serviceType: 'gold',
+        }}
+      />,
+    );
+
+    expectText(ALL_ENVIRONMENTS_PENDING);
+    notExpectAllTexts([
+      DEV_IDIR_BCEID_ONLY_ENV_HEADER,
+      TEST_IDIR_BCEID_ONLY_ENV_HEADER,
+      PROD_IDIR_BCEID_ONLY_ENV_HEADER,
     ]);
   });
 
@@ -353,6 +412,8 @@ describe('Applied Status header, button and link test', () => {
           environments: ['dev', 'test'],
           devIdps: ['azureidir', 'bceidbasic', 'githubpublic', 'digitalcredential', 'bcservicescard'],
           lastChanges: null,
+          devBceidApproved: true,
+          testBceidApproved: true,
           bceidApproved: false,
           githubApproved: false,
           serviceType: 'gold',

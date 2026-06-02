@@ -24,17 +24,16 @@ export const searchIdirUsers = async ({
     const result = await instance.post('bceid-webservice/idir/search', { field, search }).then((res) => res.data);
     return [result, null];
   } catch (err: any) {
-    console.error(err);
+    console.error('Failed to search IDIR users from BCEID webservice:', err);
     return [null, err];
   }
 };
 
 export const importIdirUser = async (data: any) => {
   try {
-    const result = await instance.post('bceid-webservice/idir/import', data).then((res) => res.data);
-    return [result, null];
+    await instance.post('bceid-webservice/idir/import', data).then((res) => res.data);
   } catch (err: any) {
-    console.error(err);
-    return [null, err];
+    console.error('Failed to import IDIR user from BCEID webservice:', err);
+    throw err;
   }
 };

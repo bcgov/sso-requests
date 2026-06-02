@@ -8,7 +8,7 @@ import { getRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
 import { LoggedInUser } from 'interfaces/team';
 import PageLoader from 'components/PageLoader';
-import { messages } from '@app/utils/constants';
+import { messages, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
 
 const requestPageRules = defaultRules.map((rule) => (rule.width === 1127 ? { ...rule, marginTop: 20 } : rule));
 
@@ -45,7 +45,7 @@ function RequestEdit({ session, alert }: Props) {
               <span>
                 You are editing a project that is in a Silver realm, which will be retired on Jan. 30 2023*. Please{' '}
                 <a
-                  href="https://chat.developer.gov.bc.ca/channel/sso"
+                  href={KEYCLOAK_TEAMS_CHANNEL_URL}
                   target="_blank"
                   rel="noreferrer"
                   title="SSO Team"

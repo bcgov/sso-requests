@@ -4,6 +4,7 @@ import { get, map } from 'lodash';
 import util from 'node:util';
 import { Session } from '@app/shared/interfaces';
 import { createIdirUser } from '@app/keycloak/users';
+import createHttpError from 'http-errors';
 
 export const parseStringSync = util.promisify(parseString);
 
@@ -98,13 +99,16 @@ export const getBceidAccounts = async (samlResponse: any) => {
 };
 
 export const searchIdirUsers = async (userSession: Session, { field, search }: { field: string; search: string }) => {
+  if (!['userId', 'firstName', 'lastName', 'email'].includes(field)) {
+    throw new Error('Allowed search fields are userId, firstName, lastName, email');
+  }
   try {
     const xml = generateXML(field as SearchCriteria, search, userSession.idir_userid);
     const { response }: any = await makeSoapRequest(xml);
     return await getBceidAccounts(response);
   } catch (err) {
-    console.error(err);
-    return false;
+    console.error('Failed searching IDIR users from BCEID webservice:', err);
+    throw new createHttpError.UnprocessableEntity('Failed to search IDIR users');
   }
 };
 
@@ -112,8 +116,14 @@ export const searchIdirUsers = async (userSession: Session, { field, search }: {
 export const importIdirUser = async (data: any) => {
   const { guid, firstName, lastName, email, idirUsername, displayName } = data;
 
-  await Promise.all(
-    ['dev', 'test', 'prod'].map((env) =>
+  if (!guid || !firstName || !lastName || !email || !idirUsername) {
+    throw new Error('Missing required user data');
+  }
+
+  const environments = ['dev', 'test', 'prod'];
+
+  const results = await Promise.allSettled(
+    environments.map((env) =>
       createIdirUser({
         environment: env,
         guid,
@@ -122,8 +132,25 @@ export const importIdirUser = async (data: any) => {
         firstName,
         lastName,
         displayName,
-      }).catch(() => null),
+      }),
     ),
   );
-  return true;
+
+  const failures = results
+    .map((result, index) => ({ result, env: environments[index] }))
+    .filter(({ result }) => result.status === 'rejected');
+
+  if (failures.length > 0) {
+    console.error(
+      'Failed environments:',
+      failures.map(({ env, result }) => ({
+        env,
+        error: (result as PromiseRejectedResult).reason,
+      })),
+    );
+
+    throw new createHttpError.UnprocessableEntity(
+      `Failed to import user into ${failures.map((f) => f.env).join(', ')}`,
+    );
+  }
 };

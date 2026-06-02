@@ -536,7 +536,9 @@ export const updateRequest = async (
 
     const mergedData = getCurrentValue();
 
-    const isApprovingBceid = !originalData.bceidApproved && current.bceidApproved;
+    const isApprovingProdBceid = !originalData.bceidApproved && current.bceidApproved;
+    const isApprovingDevBceid = !originalData.devBceidApproved && current.devBceidApproved;
+    const isApprovingTestBceid = !originalData.testBceidApproved && current.testBceidApproved;
     const isApprovingGithub = !originalData.githubApproved && current.githubApproved;
     const isApprovingBCSC = !originalData.bcServicesCardApproved && current.bcServicesCardApproved;
     const isApprovingSocial = !originalData.socialApproved && current.socialApproved;
@@ -553,6 +555,8 @@ export const updateRequest = async (
       currentIdps: originalData.devIdps,
       updatedIdps: current.devIdps,
       bceidApproved: originalData.bceidApproved,
+      devBceidApproved: originalData.devBceidApproved,
+      testBceidApproved: originalData.testBceidApproved,
       githubApproved: originalData.githubApproved,
       bcServicesCardApproved: originalData.bcServicesCardApproved,
       protocol: current.protocol,
@@ -571,6 +575,8 @@ export const updateRequest = async (
       Object.assign(current, {
         ...originalData,
         bceidApproved: bceidApprover ? data.bceidApproved : originalData.bceidApproved,
+        devBceidApproved: bceidApprover ? data.devBceidApproved : originalData.devBceidApproved,
+        testBceidApproved: bceidApprover ? data.testBceidApproved : originalData.testBceidApproved,
         githubApproved: githubApprover ? data.githubApproved : originalData.githubApproved,
         bcServicesCardApproved: bcscApprover ? data.bcServicesCardApproved : originalData.bcServicesCardApproved,
         socialApproved: socialApprover ? data.socialApproved : originalData.socialApproved,
@@ -621,9 +627,6 @@ export const updateRequest = async (
       const hasProd = environments.includes('prod');
       addingProd = !originalData.environments.includes('prod') && hasProd;
 
-      const hasBceid = usesBceid(current);
-      const hasBceidProd = hasBceid && hasProd;
-
       const hasGithub = usesGithub(current);
       const hasGithubProd = hasGithub && hasProd;
 
@@ -636,7 +639,6 @@ export const updateRequest = async (
       const hasOTP = usesOTP(current);
       const hasOTPProd = hasOTP && hasProd;
 
-      const waitingBceidProdApproval = hasBceidProd && !current.bceidApproved;
       const waitingGithubProdApproval = hasGithubProd && !current.githubApproved;
       const waitingBcServicesCardProdApproval = hasBcServicesCardProd && !current.bcServicesCardApproved;
       const waitingSocialProdApproval = hasSocialProd && !current.socialApproved;
@@ -653,37 +655,46 @@ export const updateRequest = async (
 
       // updating...
       if (isMerged) {
-        if (isApprovingBceid) {
+        if (isApprovingDevBceid) {
           emails.push({
             code: EMAILS.PROD_APPROVED,
-            data: { integration: finalData, type: 'BCeID' },
+            data: { integration: finalData, type: 'BCeID', environment: 'development' },
+          });
+        } else if (isApprovingTestBceid) {
+          emails.push({
+            code: EMAILS.PROD_APPROVED,
+            data: { integration: finalData, type: 'BCeID', environment: 'test' },
+          });
+        } else if (isApprovingProdBceid) {
+          emails.push({
+            code: EMAILS.PROD_APPROVED,
+            data: { integration: finalData, type: 'BCeID', environment: 'production' },
           });
         } else if (isApprovingGithub) {
           emails.push({
             code: EMAILS.PROD_APPROVED,
-            data: { integration: finalData, type: 'GitHub' },
+            data: { integration: finalData, type: 'GitHub', environment: 'production' },
           });
         } else if (isApprovingBCSC) {
           emails.push({
             code: EMAILS.PROD_APPROVED,
-            data: { integration: finalData, type: 'BC Services Card' },
+            data: { integration: finalData, type: 'BC Services Card', environment: 'production' },
           });
         } else if (isApprovingSocial) {
           emails.push({
             code: EMAILS.PROD_APPROVED,
-            data: { integration: finalData, type: 'Social' },
+            data: { integration: finalData, type: 'Social', environment: 'production' },
           });
         } else if (isApprovingOTP) {
           emails.push({
             code: EMAILS.PROD_APPROVED,
-            data: { integration: finalData, type: 'One Time Passcode' },
+            data: { integration: finalData, type: 'One Time Passcode', environment: 'production' },
           });
         } else {
           emails.push({
             code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,
             data: {
               integration: finalData,
-              waitingBceidProdApproval,
               waitingGithubProdApproval,
               waitingBcServicesCardProdApproval,
               waitingSocialProdApproval,
@@ -705,7 +716,6 @@ export const updateRequest = async (
           code: EMAILS.CREATE_INTEGRATION_SUBMITTED,
           data: {
             integration: finalData,
-            waitingBceidProdApproval,
             waitingGithubProdApproval,
             waitingBcServicesCardProdApproval,
             waitingSocialProdApproval,
@@ -1094,6 +1104,16 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   if (baseData?.environments?.includes('test')) baseData.testIdps = baseData.devIdps;
   if (baseData?.environments?.includes('prod')) baseData.prodIdps = baseData.devIdps;
 
+  // prevent creating BCeID integration in dev environment if not approved
+  if (!baseData.devBceidApproved && hasBceid) {
+    baseData.devIdps = baseData?.devIdps?.filter(checkNotBceidGroup);
+  }
+
+  // prevent creating BCeID integration in test environment if not approved
+  if (!baseData.testBceidApproved && hasBceid) {
+    baseData.testIdps = baseData?.testIdps?.filter(checkNotBceidGroup);
+  }
+
   // prevent creating BCeID integration in prod environment if not approved
   if (!baseData.bceidApproved && hasBceid) {
     baseData.prodIdps = baseData?.prodIdps?.filter(checkNotBceidGroup);
@@ -1238,7 +1258,6 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
     const hasSocial = usesSocial(integration);
     const hasOTP = usesOTP(integration);
     const hasBcServicesCard = usesBcServicesCard(integration);
-    const waitingBceidProdApproval = hasBceid && hasProd && !integration.bceidApproved;
     const waitingGithubProdApproval = hasGithub && hasProd && !integration.githubApproved;
     const waitingSocialProdApproval = hasSocial && hasProd && !integration.socialApproved;
     const waitingBcServicesCardProdApproval = hasBcServicesCard && hasProd && !integration.bcServicesCardApproved;
@@ -1247,7 +1266,6 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
     const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPLIED : EMAILS.CREATE_INTEGRATION_APPLIED;
     await sendTemplate(emailCode, {
       integration,
-      waitingBceidProdApproval,
       hasBceid,
       waitingGithubProdApproval,
       waitingBcServicesCardProdApproval,

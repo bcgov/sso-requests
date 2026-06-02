@@ -140,12 +140,12 @@ describe('Request Queue', () => {
     expect(queueItems.length).toBe(1);
     expect(queueItems[0].attempts).toBe(MAX_ATTEMPTS);
     expect(kcClientSpy).not.toHaveBeenCalled();
-    // No rocket chat calls
+    // No teams calls
     expect(axios.post).not.toHaveBeenCalled();
     kcClientSpy.mockRestore();
   });
 
-  it('Sends a notification to rocket chat if max attempts is reached', async () => {
+  it('Sends a notification to microsoft teams channel if max attempts is reached', async () => {
     const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
     // Reject all
     kcClientSpy.mockImplementation(() => Promise.resolve(false));
@@ -161,7 +161,7 @@ describe('Request Queue', () => {
     expect(kcClientSpy).toHaveBeenCalledTimes(3);
 
     expect(axios.post).toHaveBeenCalledTimes(1);
-    // Check rocket chat message
+    // Check teams message
     const [_axiosUrl, axiosBody] = (axios.post as jest.Mock).mock.calls[0];
     expect(axiosBody.message).toBe(
       `SANDBOX: Request ${formDataProd.clientId} has reached maximum retries and requires manual intervention.`,

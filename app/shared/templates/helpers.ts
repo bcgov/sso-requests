@@ -6,8 +6,8 @@ import { getTeamById } from '@app/queries/team';
 import { getUserById } from '@app/queries/user';
 import { idpMap, envMap } from '@app/helpers/meta';
 import { Integration } from '@app/interfaces/Request';
-import path from 'path';
 import fs from 'fs';
+import { usesBceid } from '@app/helpers/integration';
 
 export const processTeam = async (team: any) => {
   if (team instanceof models.team) {
@@ -52,6 +52,12 @@ export const processRequest = async (integrationOrModel: any) => {
   }));
   const browserLoginEnabled = authType !== 'service-account';
 
+  const waitingBceidApproval =
+    usesBceid(integration) &&
+    ((!integration.bceidApproved && integration.environments?.includes('prod')) ||
+      (!integration.devBceidApproved && integration.environments?.includes('dev')) ||
+      (!integration.testBceidApproved && integration.environments?.includes('test')));
+
   return {
     ...integration,
     devValidRedirectUris,
@@ -63,6 +69,7 @@ export const processRequest = async (integrationOrModel: any) => {
     redirectUris,
     accountableEntity,
     browserLoginEnabled,
+    waitingBceidApproval,
   };
 };
 

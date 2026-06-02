@@ -5,7 +5,30 @@ import { faCheckCircle, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import StatusList from 'components/StatusList';
 import { Circle, StyledLi } from './shared';
 
-export default function Bceidstatus() {
+interface Props {
+  hasDev: boolean;
+  hasTest: boolean;
+  hasProd: boolean;
+  devBceidApproved: boolean;
+  testBceidApproved: boolean;
+  bceidApproved: boolean;
+}
+
+const EnvApprovalRow = ({ label, approved }: { label: string; approved: boolean }) => (
+  <StyledLi>
+    <p>{label}</p>
+    {approved ? <FontAwesomeIcon icon={faCheckCircle} color="#00C45B" /> : <Circle />}
+  </StyledLi>
+);
+
+export default function Bceidstatus({
+  hasDev,
+  hasTest,
+  hasProd,
+  devBceidApproved,
+  testBceidApproved,
+  bceidApproved,
+}: Readonly<Props>) {
   return (
     <>
       <StatusList>
@@ -20,10 +43,9 @@ export default function Bceidstatus() {
           </p>
           <FontAwesomeIcon icon={faEnvelope} color="#b3b3b3" />
         </StyledLi>
-        <StyledLi>
-          <p>Access to prod</p>
-          <Circle />
-        </StyledLi>
+        {hasDev && <EnvApprovalRow label="Access to dev" approved={devBceidApproved} />}
+        {hasTest && <EnvApprovalRow label="Access to test" approved={testBceidApproved} />}
+        {hasProd && <EnvApprovalRow label="Access to prod" approved={bceidApproved} />}
       </StatusList>
     </>
   );

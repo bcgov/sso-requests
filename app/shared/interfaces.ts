@@ -117,6 +117,7 @@ export interface MsGraphUserValue {
   surname: string;
   companyName: string;
   department: string;
+  userPrincipalName: string;
   jobTitle: string;
   mobilePhone: string;
   /** Extended attributes, see annotations for details. */

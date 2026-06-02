@@ -64,6 +64,8 @@ export interface Integration {
   requester?: string;
   status?: Status;
   bceidApproved?: boolean;
+  devBceidApproved?: boolean;
+  testBceidApproved?: boolean;
   githubApproved?: boolean;
   digitalCredentialApproved?: boolean;
   otpApproved?: boolean;

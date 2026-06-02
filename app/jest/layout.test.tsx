@@ -5,7 +5,7 @@ import { updateProfile } from 'services/user';
 import { session } from './utils/helpers';
 import { SessionContext } from '@app/utils/context';
 import { User } from 'interfaces/team';
-import { formatWikiURL } from '@app/utils/constants';
+import { formatWikiURL, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
 
 const handleLogin = jest.fn();
 const handleLogout = jest.fn();
@@ -30,7 +30,6 @@ function LayoutComponent() {
   );
 }
 
-const ROCKET_CHAT_HYPERLINK = 'https://chat.developer.gov.bc.ca/channel/sso';
 const PATHFINDER_SSO_HYPERLINK = 'mailto:bcgov.sso@gov.bc.ca';
 const DOCUMENTATION_HYPERLINK = formatWikiURL();
 const DISCLAIMER_HYPERLINK = 'https://www2.gov.bc.ca/gov/content/home/disclaimer';
@@ -83,7 +82,10 @@ describe('Layout page', () => {
       expect(screen.getByTestId('my-profile-link')).toBeInTheDocument();
     });
 
-    expect(screen.getAllByRole('link', { name: 'Rocket Chat' })[0]).toHaveAttribute('href', ROCKET_CHAT_HYPERLINK);
+    expect(screen.getAllByRole('link', { name: 'Microsoft Teams Keycloak How-to channel' })[0]).toHaveAttribute(
+      'href',
+      KEYCLOAK_TEAMS_CHANNEL_URL,
+    );
     expect(screen.getAllByRole('link', { name: 'Pathfinder SSO' })[0]).toHaveAttribute(
       'href',
       PATHFINDER_SSO_HYPERLINK,

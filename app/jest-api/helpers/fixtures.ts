@@ -148,6 +148,8 @@ export const getUpdateIntegrationData = (args: {
   authType?: string;
   publicAccess?: boolean;
   bceidApproved?: boolean;
+  devBceidApproved?: boolean;
+  testBceidApproved?: boolean;
   githubApproved?: boolean;
   bcServicesCardApproved?: boolean;
   socialApproved?: boolean;
@@ -161,6 +163,8 @@ export const getUpdateIntegrationData = (args: {
     authType = args.integration.authType || 'browser-login',
     publicAccess = args.integration.publicAccess || true,
     bceidApproved = args.integration.bceidApproved || false,
+    devBceidApproved = args.integration.devBceidApproved || false,
+    testBceidApproved = args.integration.testBceidApproved || false,
     githubApproved = args.integration.githubApproved || false,
     bcServicesCardApproved = args.integration.bcServicesCardApproved || false,
     socialApproved = args.integration.socialApproved || false,
@@ -185,6 +189,8 @@ export const getUpdateIntegrationData = (args: {
     teamId: args.integration.usesTeam ? args.integration.teamId?.toString() : undefined,
     authType,
     bceidApproved,
+    devBceidApproved,
+    testBceidApproved,
     githubApproved,
     bcServicesCardApproved,
     socialApproved,

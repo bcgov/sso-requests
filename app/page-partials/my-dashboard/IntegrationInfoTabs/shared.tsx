@@ -54,6 +54,8 @@ export const ApprovedAndAvailable = () => (
 );
 
 export interface ApprovalContext {
+  hasDev: boolean;
+  hasTest: boolean;
   hasProd: boolean;
   hasBceid: boolean;
   hasGithub: boolean;
@@ -63,6 +65,8 @@ export interface ApprovalContext {
   bcServicesCardApproved: boolean;
   hasOTP: boolean;
   bceidApproved: boolean;
+  devBceidApproved: boolean;
+  testBceidApproved: boolean;
   githubApproved: boolean;
   socialApproved: boolean;
   otpApproved: boolean;
