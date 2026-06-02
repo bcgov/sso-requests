@@ -134,11 +134,32 @@ class Request {
 
     cy.contains('div[role="tab"]', `${title}`).trigger('click');
 
-    cy.contains('Approve Prod').click();
-    cy.get(confirmSelector).trigger('click');
+    const approvalButtons = [];
 
-    const confirmedText = 'Approved by';
-    cy.contains(confirmedText);
+    if (title.includes('BCeID Approval')) {
+      if (this.environments.includes('dev')) {
+        approvalButtons.push('Approve Dev');
+      }
+
+      if (this.environments.includes('test')) {
+        approvalButtons.push('Approve Test');
+      }
+
+      if (this.environments.includes('prod')) {
+        approvalButtons.push('Approve Prod');
+      }
+    } else {
+      // All other IDPs only have production approval
+      approvalButtons.push('Approve Prod');
+    }
+
+    approvalButtons.forEach((btnText) => {
+      cy.contains(btnText).click();
+      cy.get(confirmSelector).trigger('click');
+
+      const confirmedText = 'Approved by';
+      cy.contains(confirmedText);
+    });
   }
 
   createRequest() {
