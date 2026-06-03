@@ -40,11 +40,8 @@ export const getEvents = async (
   if (!hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_EVENTS)) {
     const approvedKeys = [];
 
-    if (isBceidApprover(session)) {
-      approvedKeys.push('testBceidApproved');
-      approvedKeys.push('devBceidApproved');
-      approvedKeys.push('bceidApproved');
-    }
+    if (isBceidApprover(session)) approvedKeys.push('devBceidApproved', 'testBceidApproved', 'bceidApproved');
+
     if (isGithubApprover(session)) approvedKeys.push('githubApproved');
 
     if (isOTPApprover(session)) approvedKeys.push('otpApproved');
