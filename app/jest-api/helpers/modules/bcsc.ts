@@ -1,6 +1,5 @@
 import { testClient } from '../test-client';
 import { API_BASE_PATH } from '../constants';
-import requestsAllHandler from '@app/pages/api/requests-all';
 import claimsHandler from '@app/pages/api/bc-services-card/claim-types';
 import privacyZoneHandler from '@app/pages/api/bc-services-card/privacy-zones';
 
