@@ -40,7 +40,7 @@ export const getEvents = async (
   if (!hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_EVENTS)) {
     const approvedKeys = [];
 
-    if (isBceidApprover(session)) approvedKeys.push('bceidApproved');
+    if (isBceidApprover(session)) approvedKeys.push('devBceidApproved', 'testBceidApproved', 'bceidApproved');
 
     if (isGithubApprover(session)) approvedKeys.push('githubApproved');
 
@@ -51,21 +51,19 @@ export const getEvents = async (
     if (isSocialApprover(session)) approvedKeys.push('socialApproved');
 
     if (approvedKeys.length > 0) {
-      where[Op.or] = [
-        approvedKeys.map((key) => ({
-          details: {
-            [Op.contains]: {
-              changes: [
-                {
-                  rhs: true,
-                  kind: 'E',
-                  path: [key],
-                },
-              ],
-            },
+      where[Op.or] = approvedKeys.map((key) => ({
+        details: {
+          [Op.contains]: {
+            changes: [
+              {
+                rhs: true,
+                kind: 'E',
+                path: [key],
+              },
+            ],
           },
-        })),
-      ];
+        },
+      }));
     }
   }
 
