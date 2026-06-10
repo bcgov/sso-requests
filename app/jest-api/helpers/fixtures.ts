@@ -202,6 +202,9 @@ export const getUpdateIntegrationData = (args: {
     devLoginTitle: '',
     testLoginTitle: '',
     prodLoginTitle: '',
+    devHomePageUri: '',
+    testHomePageUri: '',
+    prodHomePageUri: '',
     confirmSocial: true,
   };
 };
