@@ -1083,6 +1083,8 @@ describe('Social IDP', () => {
 });
 
 describe('One Time Passcode IDP', () => {
+  const { NEXT_PUBLIC_INCLUDE_OTP, NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD } = process.env;
+
   const defaultRender = {
     id: 0,
     serviceType: 'gold',
@@ -1093,6 +1095,12 @@ describe('One Time Passcode IDP', () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_INCLUDE_OTP = 'true';
   });
+
+  afterAll(() => {
+    process.env.NEXT_PUBLIC_INCLUDE_OTP = NEXT_PUBLIC_INCLUDE_OTP;
+    process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD;
+  });
+
   it('Shows OTP IDP when the env variable is set', async () => {
     const { queryByText } = setUpRender(defaultRender, userSession);
 

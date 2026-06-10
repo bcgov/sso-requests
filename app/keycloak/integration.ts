@@ -211,11 +211,7 @@ export const keycloakClient = async (
 
     if (usesOTP(integration)) {
       const homeUri = integration[`${environment}HomePageUri` as keyof IntegrationData] as string | undefined;
-      if (homeUri) {
-        clientData.baseUrl = homeUri;
-      } else {
-        clientData.baseUrl = '';
-      }
+      clientData.baseUrl = homeUri ?? '';
     }
 
     const defaultScopes = getDefaultClientScopes(integration, environment);
