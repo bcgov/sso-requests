@@ -169,6 +169,9 @@ export const getUpdateIntegrationData = (args: {
     bcServicesCardApproved = args.integration.bcServicesCardApproved || false,
     socialApproved = args.integration.socialApproved || false,
     otpApproved = args.integration.otpApproved || false,
+    devHomePageUri = args.integration.devHomePageUri || false,
+    testHomePageUri = args.integration.testHomePageUri || false,
+    prodHomePageUri = args.integration.prodHomePageUri || false,
   } = args;
 
   const samlIntegration = protocol === 'saml';
@@ -202,9 +205,9 @@ export const getUpdateIntegrationData = (args: {
     devLoginTitle: '',
     testLoginTitle: '',
     prodLoginTitle: '',
-    devHomePageUri: '',
-    testHomePageUri: '',
-    prodHomePageUri: '',
+    devHomePageUri: devHomePageUri ?? '',
+    testHomePageUri: testHomePageUri ?? '',
+    prodHomePageUri: prodHomePageUri ?? '',
     confirmSocial: true,
   };
 };
