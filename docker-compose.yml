@@ -206,6 +206,9 @@ services:
 
   dev-kc-migration:
     container_name: dev-kc-migration
+    build:
+      context: .
+      dockerfile: Dockerfile.tf-modules
     depends_on:
       - dev-keycloak
     image: tf-modules-migrator:latest
@@ -222,6 +225,9 @@ services:
 
   test-kc-migration:
     container_name: test-kc-migration
+    build:
+      context: .
+      dockerfile: Dockerfile.tf-modules
     depends_on:
       - test-keycloak
       - dev-kc-migration
@@ -239,6 +245,9 @@ services:
 
   prod-kc-migration:
     container_name: prod-kc-migration
+    build:
+      context: .
+      dockerfile: Dockerfile.tf-modules
     depends_on:
       - prod-keycloak
       - test-kc-migration
