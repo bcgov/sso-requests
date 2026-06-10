@@ -8,6 +8,13 @@ import { getDefaultClientScopes } from '@app/keycloak/integration';
 jest.mock('@app/controllers/bc-services-card', () => {
   return {
     getPrivacyZones: jest.fn(() => Promise.resolve([{ privacy_zone_uri: 'zone', privacy_zone_name: 'zone' }])),
+    getAttributes: jest.fn(() =>
+      Promise.resolve([
+        { name: 'age', scope: 'profile' },
+        { name: 'postal_code', scope: 'address' },
+        { name: 'email', scope: 'email' },
+      ]),
+    ),
   };
 });
 
@@ -39,12 +46,23 @@ const otpDevIntegration: IntegrationData = {
   ...formDataDev,
   devIdps: ['otp', 'azureidir'],
   bcscPrivacyZone: 'zone',
+  devHomePageUri: '',
 };
 
 const otpProdIntegration: IntegrationData = {
   ...formDataProd,
   devIdps: ['otp', 'azureidir'],
   bcscPrivacyZone: 'zone',
+  devHomePageUri: '',
+  testHomePageUri: '',
+  prodHomePageUri: '',
+};
+
+const otpAndBcscDevIntegration: IntegrationData = {
+  ...formDataDev,
+  devIdps: ['otp', 'bcservicescard'],
+  bcscPrivacyZone: 'zone',
+  bcscAttributes: ['age'],
 };
 
 describe('Feature flag', () => {
@@ -79,6 +97,26 @@ describe('Validations', () => {
     process.env.NEXT_PUBLIC_INCLUDE_OTP = 'true';
     const result = await submitNewIntegration({ ...otpDevIntegration, bcscPrivacyZone: '' });
     expect(result.status).toBe(422);
+  });
+
+  it('Allows submission without homePageUri when only OTP is selected (homePageUri is optional)', async () => {
+    process.env.NEXT_PUBLIC_INCLUDE_OTP = 'true';
+    const result = await submitNewIntegration(otpDevIntegration);
+    expect(result.status).toBe(200);
+  });
+
+  it('Does not allow submission when both OTP and BCSC are selected without a valid homePageUri', async () => {
+    process.env.NEXT_PUBLIC_INCLUDE_OTP = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = 'true';
+    const result = await submitNewIntegration(otpAndBcscDevIntegration);
+    expect(result.status).toBe(422);
+  });
+
+  it('Allows submission when both OTP and BCSC are selected with a valid homePageUri', async () => {
+    process.env.NEXT_PUBLIC_INCLUDE_OTP = 'true';
+    process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = 'true';
+    const result = await submitNewIntegration({ ...otpAndBcscDevIntegration, devHomePageUri: 'https://example.com' });
+    expect(result.status).toBe(200);
   });
 });
 

@@ -3,7 +3,7 @@ import { getAdminClient } from './adminClient';
 import { IntegrationData } from '@app/shared/interfaces';
 import AuthenticationFlowRepresentation from '@keycloak/keycloak-admin-client/lib/defs/authenticationFlowRepresentation';
 import { createBCSCIntegration, deleteBCSCIntegration } from '@app/controllers/requests';
-import { usesBcServicesCard } from '@app/helpers/integration';
+import { usesBcServicesCard, usesOTP } from '@app/helpers/integration';
 import axios from 'axios';
 import createHttpError from 'http-errors';
 import { getByRequestId } from '@app/queries/bcsc-client';
@@ -208,6 +208,15 @@ export const keycloakClient = async (
       integration.protocol === 'oidc'
         ? openIdClientProfile(integration, environment, authenticationFlows.data)
         : samlClientProfile(integration, environment, authenticationFlows.data);
+
+    if (usesOTP(integration)) {
+      const homeUri = integration[`${environment}HomePageUri` as keyof IntegrationData] as string | undefined;
+      if (homeUri) {
+        clientData.baseUrl = homeUri;
+      } else {
+        clientData.baseUrl = '';
+      }
+    }
 
     const defaultScopes = getDefaultClientScopes(integration, environment);
     if (clients.length === 0) {

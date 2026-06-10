@@ -116,6 +116,9 @@ export const updateRequest = async (
     data.prodLoginTitle = data.prodLoginTitle || '';
     data.additionalRoleAttribute = data.additionalRoleAttribute || '';
     data.clientId = data.clientId || '';
+    data.devHomePageUri = data.devHomePageUri ?? '';
+    data.testHomePageUri = data.testHomePageUri ?? '';
+    data.prodHomePageUri = data.prodHomePageUri ?? '';
     data.primaryEndUsers = data.primaryEndUsers ?? [];
     data.primaryEndUsersOther = data.primaryEndUsersOther ?? '';
 

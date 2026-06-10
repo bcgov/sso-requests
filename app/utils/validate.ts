@@ -173,6 +173,11 @@ export const customValidate = (formData: any, errors: any, uiSchema: any, fields
     fieldMap[`${env}HomePageUri`] = () => {
       if (devIdps.includes('bcservicescard') && !isValidKeycloakURIProd(formData[`${env}HomePageUri`])) {
         errors[`${env}HomePageUri`]?.addError(validationMessage);
+      } else if (devIdps.includes('otp') && !devIdps.includes('bcservicescard')) {
+        const val = formData[`${env}HomePageUri`];
+        if (val && !isValidKeycloakURIProd(val)) {
+          errors[`${env}HomePageUri`]?.addError(validationMessage);
+        }
       }
     };
   });

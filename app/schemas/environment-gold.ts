@@ -4,6 +4,7 @@ import { devValidRedirectUris } from './providers';
 import FieldAccessTokenTop from '@app/form-components/FieldAccessTokenTop';
 import { LoggedInUser } from '@app/interfaces/team';
 import { appPermissions, hasAppPermission } from '@app/utils/authorize';
+import { usesOTP } from '@app/helpers/integration';
 
 export const roles = {
   type: 'array',
@@ -164,7 +165,10 @@ export default function getSchemas(formData: Integration, session: LoggedInUser 
 
     let additionalConfig: any = {};
 
-    if (process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD === 'true' && formData?.devIdps?.includes('bcservicescard')) {
+    if (
+      (process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD === 'true' && formData?.devIdps?.includes('bcservicescard')) ||
+      (process.env.NEXT_PUBLIC_INCLUDE_OTP === 'true' && usesOTP(formData))
+    ) {
       additionalConfig[homePageUriField] = {
         type: 'string',
         title: 'Home Page URL',
