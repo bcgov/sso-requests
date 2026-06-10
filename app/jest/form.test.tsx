@@ -1083,6 +1083,8 @@ describe('Social IDP', () => {
 });
 
 describe('One Time Passcode IDP', () => {
+  const { NEXT_PUBLIC_INCLUDE_OTP, NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD } = process.env;
+
   const defaultRender = {
     id: 0,
     serviceType: 'gold',
@@ -1093,6 +1095,12 @@ describe('One Time Passcode IDP', () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_INCLUDE_OTP = 'true';
   });
+
+  afterAll(() => {
+    process.env.NEXT_PUBLIC_INCLUDE_OTP = NEXT_PUBLIC_INCLUDE_OTP;
+    process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD;
+  });
+
   it('Shows OTP IDP when the env variable is set', async () => {
     const { queryByText } = setUpRender(defaultRender, userSession);
 
@@ -1257,5 +1265,84 @@ describe('One Time Passcode IDP', () => {
     expect(bcscCheckbox).toBeChecked();
     const bcscPrivacyZoneDropDown = screen.getByTestId('bcsc-privacy-zone') as HTMLElement;
     expect(bcscPrivacyZoneDropDown?.querySelector("input[type='text']")).toBeDisabled();
+  });
+
+  it('should hide home page URI field when OTP is not selected', async () => {
+    setUpRender(
+      {
+        id: 0,
+        serviceType: 'gold',
+        devIdps: ['azureidir', 'bceidbasic'],
+        status: 'draft',
+        environments: ['dev', 'test', 'prod'],
+      },
+      userSession,
+    );
+    fireEvent.click(sandbox.basicInfoBox);
+    fireEvent.click(sandbox.developmentBox);
+    expect(screen.queryByTestId('root_devHomePageUri_title')).toBeNull();
+  });
+
+  it('should show home page URI field when OTP is selected', async () => {
+    setUpRender(
+      {
+        id: 0,
+        serviceType: 'gold',
+        devIdps: ['otp'],
+        status: 'draft',
+        environments: ['dev', 'test', 'prod'],
+      },
+      userSession,
+    );
+    fireEvent.click(sandbox.basicInfoBox);
+    fireEvent.click(sandbox.developmentBox);
+    expect(screen.queryByTestId('root_devHomePageUri_title')).not.toBeNull();
+  });
+
+  it('should not show a validation error for home page URI when only OTP is selected (field is optional)', async () => {
+    setUpRender(
+      {
+        id: 0,
+        serviceType: 'gold',
+        devIdps: ['otp'],
+        status: 'draft',
+        environments: ['dev', 'test', 'prod'],
+        devValidRedirectUris: ['https://dev1.com'],
+        testValidRedirectUris: ['https://test1.com'],
+        prodValidRedirectUris: ['https://prod1.com'],
+      },
+      userSession,
+    );
+    fireEvent.click(sandbox.basicInfoBox);
+    const nextButton = screen.getByText('Next') as HTMLElement;
+    fireEvent.click(nextButton);
+    fireEvent.click(sandbox.basicInfoBox);
+    fireEvent.click(sandbox.developmentBox);
+    expect(screen.queryByTestId('root_devHomePageUri_title')).not.toBeNull();
+    expect(screen.queryByText('Please enter a valid URI')).toBeNull();
+  });
+
+  it('should show a validation error for home page URI when both OTP and BCSC are selected and field is empty', async () => {
+    process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = 'true';
+    setUpRender(
+      {
+        id: 0,
+        serviceType: 'gold',
+        devIdps: ['otp', 'bcservicescard'],
+        status: 'draft',
+        environments: ['dev', 'test', 'prod'],
+        devValidRedirectUris: ['https://dev1.com'],
+        testValidRedirectUris: ['https://test1.com'],
+        prodValidRedirectUris: ['https://prod1.com'],
+      },
+      userSession,
+    );
+    fireEvent.click(sandbox.basicInfoBox);
+    const nextButton = screen.getByText('Next') as HTMLElement;
+    fireEvent.click(nextButton);
+    fireEvent.click(sandbox.basicInfoBox);
+    fireEvent.click(sandbox.developmentBox);
+    expect(screen.queryByTestId('root_devHomePageUri_title')).not.toBeNull();
+    expect(screen.getByText('Please enter a valid URI')).toBeInTheDocument();
   });
 });
