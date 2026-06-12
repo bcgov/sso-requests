@@ -81,9 +81,9 @@ export const clientEventsAggregationQuery = async (
   };
   const res: any = await axios.post(`${process.env.GRAFANA_API_URL}/ds/query`, query, { headers });
 
-  const values = res?.data?.results?.A?.frames[0]?.data?.values;
+  const values = res?.data?.results?.A?.frames?.[0]?.data?.values;
 
-  if (values.length > 0) {
+  if (Array.isArray(values) && values.length > 0) {
     result = values[0].map((item: any) => {
       if (typeof item === 'string') return JSON.parse(item);
       else return item;
