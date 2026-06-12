@@ -84,7 +84,10 @@ export const clientEventsAggregationQuery = async (
   const values = res?.data?.results?.A?.frames[0]?.data?.values;
 
   if (values.length > 0) {
-    result = values[0].map((item: any) => JSON.parse(item));
+    result = values[0].map((item: any) => {
+      if (typeof item === 'string') return JSON.parse(item);
+      else return item;
+    });
   }
 
   return result;
