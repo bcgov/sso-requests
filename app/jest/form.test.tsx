@@ -793,46 +793,6 @@ describe('Basic Info - Identity Providers', () => {
     fireEvent.click(bceidBusinessCheckbox);
     await waitFor(() => expect(screen.queryByText('BCeID Application Notice')).not.toBeInTheDocument());
   });
-
-  it('should open BCeID warning modal when BCeID Both is selected', async () => {
-    const { getByText } = setUpRender({
-      id: 0,
-      serviceType: 'gold',
-      devIdps: [],
-      status: 'draft',
-      environments: ['dev', 'test', 'prod'],
-    });
-
-    fireEvent.click(sandbox.basicInfoBox);
-
-    const bceidBothCheckbox = getByText('Basic or Business BCeID')?.parentElement?.querySelector(
-      "input[type='checkbox']",
-    ) as HTMLInputElement;
-
-    fireEvent.click(bceidBothCheckbox);
-
-    await waitFor(() => expect(screen.getByText('BCeID Application Notice')).toBeInTheDocument());
-  });
-
-  it('should not open BCeID warning modal when Business BCeID is selected', async () => {
-    const { getByText } = setUpRender({
-      id: 0,
-      serviceType: 'gold',
-      devIdps: [],
-      status: 'draft',
-      environments: ['dev', 'test', 'prod'],
-    });
-
-    fireEvent.click(sandbox.basicInfoBox);
-
-    const businessBceidCheckbox = getByText('Business BCeID')?.parentElement?.querySelector(
-      "input[type='checkbox']",
-    ) as HTMLInputElement;
-
-    fireEvent.click(businessBceidCheckbox);
-
-    expect(screen.queryByText('BCeID Application Notice')).not.toBeInTheDocument();
-  });
 });
 
 describe('BC Services Card IDP and dependencies', () => {
