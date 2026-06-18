@@ -5,9 +5,8 @@ import { sendEmail } from '@app/utils/ches';
 import { getEmailTemplate, getTeamEmails, processIntegrationList, processTeam } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
-import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 
-const SUBJECT_TEMPLATE = `SSO CSS API Account created (email 2 of 2)`;
+const SUBJECT_TEMPLATE = `SSO CSS API Account created`;
 const template = getEmailTemplate('create-team-api-account-approved/create-team-api-account-approved.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
@@ -39,7 +38,6 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   return sendEmail({
     code: EMAILS.CREATE_TEAM_API_ACCOUNT_APPROVED,
     to: emails,
-    cc: [SSO_EMAIL_ADDRESS],
     ...rendered,
   });
 };

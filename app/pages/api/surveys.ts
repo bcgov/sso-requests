@@ -2,8 +2,6 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createSurvey } from '@app/controllers/user';
 import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
-import { sendTemplate } from '@app/shared/templates';
-import { EMAILS } from '@app/shared/enums';
 import { handleError } from '@app/utils/helpers';
 import { processUserSession } from '@app/controllers/user';
 
@@ -22,7 +20,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // awaiting so email won't send if db save errors
       await createSurvey(session, req.body);
-      await sendTemplate(EMAILS.SURVEY_COMPLETED, { user: session.user, rating, message, triggerEvent });
 
       return res.status(200).json({ message: 'Survey created successfully' });
     } else {

@@ -5,7 +5,6 @@ import { sendEmail } from '@app/utils/ches';
 import { getEmailTemplate, getTeamEmails, processTeam } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
-import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 
 const SUBJECT_TEMPLATE = `SSO CSS API Account deleted`;
 const template = getEmailTemplate('delete-team-api-account-submitted/delete-team-api-account-submitted.html');
@@ -36,7 +35,6 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   return sendEmail({
     code: EMAILS.DELETE_TEAM_API_ACCOUNT_SUBMITTED,
     to: emails,
-    cc: [SSO_EMAIL_ADDRESS],
     ...rendered,
   });
 };

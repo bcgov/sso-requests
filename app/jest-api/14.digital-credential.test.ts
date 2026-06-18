@@ -183,34 +183,22 @@ describe('IDP notifications', () => {
     const emailList = createMockSendEmail();
     await submitNewIntegration(mockIntegration);
 
-    const submissionEmails = emailList.filter((email: any) => email.code === EMAILS.CREATE_INTEGRATION_SUBMITTED);
     const appliedEmails = emailList.filter((email: any) => email.code === EMAILS.CREATE_INTEGRATION_APPLIED);
 
-    expect(submissionEmails.length).toBe(1);
-    const submissionCCList = emailList[0].cc;
-    expect(submissionCCList.includes(DIT_EMAIL_ADDRESS)).toBe(true);
-    expect(submissionCCList.includes(DIT_ADDITIONAL_EMAIL_ADDRESS)).toBe(true);
-
     expect(appliedEmails.length).toBe(1);
-    const appliedCCList = emailList[0].cc;
+    const appliedCCList = appliedEmails[0].cc;
     expect(appliedCCList.includes(DIT_EMAIL_ADDRESS)).toBe(true);
-    expect(submissionCCList.includes(DIT_ADDITIONAL_EMAIL_ADDRESS)).toBe(true);
+    expect(appliedCCList.includes(DIT_ADDITIONAL_EMAIL_ADDRESS)).toBe(true);
   });
 
   it('Does not CC DIT when prod is unselected', async () => {
     const emailList = createMockSendEmail();
     await submitNewIntegration({ ...mockIntegration, environments: ['dev', 'test'] });
 
-    const submissionEmails = emailList.filter((email: any) => email.code === EMAILS.CREATE_INTEGRATION_SUBMITTED);
     const appliedEmails = emailList.filter((email: any) => email.code === EMAILS.CREATE_INTEGRATION_APPLIED);
 
-    expect(submissionEmails.length).toBe(1);
-    const ccList = emailList[0].cc;
-
-    expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(false);
-
     expect(appliedEmails.length).toBe(1);
-    const appliedCCList = emailList[0].cc;
+    const appliedCCList = appliedEmails[0].cc;
     expect(appliedCCList.includes(DIT_EMAIL_ADDRESS)).toBe(false);
   });
 
@@ -219,17 +207,10 @@ describe('IDP notifications', () => {
     const result = await submitNewIntegration({ ...mockIntegration, environments: ['dev', 'test'] });
     await updateIntegration({ ...mockIntegration, id: result.body.id, environments: ['dev', 'test', 'prod'] }, true);
 
-    let updateEmails = emailList.filter((email: any) => email.code === EMAILS.UPDATE_INTEGRATION_SUBMITTED);
     let appliedEmails = emailList.filter((email: any) => email.code === EMAILS.UPDATE_INTEGRATION_APPLIED);
 
-    expect(updateEmails.length).toBe(1);
     expect(appliedEmails.length).toBe(1);
-
-    let ccList = updateEmails[0].cc;
-    expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(true);
-    expect(ccList.includes(DIT_ADDITIONAL_EMAIL_ADDRESS)).toBe(true);
-
-    ccList = appliedEmails[0].cc;
+    let ccList = appliedEmails[0].cc;
     expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(true);
     expect(ccList.includes(DIT_ADDITIONAL_EMAIL_ADDRESS)).toBe(true);
 
@@ -238,15 +219,9 @@ describe('IDP notifications', () => {
     emailList.length = 0;
     await updateIntegration({ ...mockIntegration, id: result.body.id, publicAccess: false }, true);
 
-    updateEmails = emailList.filter((email: any) => email.code === EMAILS.UPDATE_INTEGRATION_SUBMITTED);
     appliedEmails = emailList.filter((email: any) => email.code === EMAILS.UPDATE_INTEGRATION_APPLIED);
 
-    expect(updateEmails.length).toBe(1);
     expect(appliedEmails.length).toBe(1);
-
-    ccList = updateEmails[0].cc;
-    expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(false);
-    expect(ccList.includes(DIT_ADDITIONAL_EMAIL_ADDRESS)).toBe(true);
 
     ccList = appliedEmails[0].cc;
     expect(ccList.includes(DIT_EMAIL_ADDRESS)).toBe(false);

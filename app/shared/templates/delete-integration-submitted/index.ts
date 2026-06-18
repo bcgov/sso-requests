@@ -4,7 +4,6 @@ import { getEmailTemplate, processRequest } from '../helpers';
 import { IntegrationData } from '@app/shared/interfaces';
 import { sendEmail } from '@app/utils/ches';
 import {
-  SSO_EMAIL_ADDRESS,
   IDIM_EMAIL_ADDRESS,
   OCIO_EMAIL_ADDRESS,
   DIT_ADDITIONAL_EMAIL_ADDRESS,
@@ -48,7 +47,7 @@ export const render = async (originalData: DataProps): Promise<RenderResult> => 
 export const send = async (data: DataProps, rendered: RenderResult) => {
   const { integration } = data;
   const emails = await getIntegrationEmails(integration);
-  let cc = [SSO_EMAIL_ADDRESS];
+  let cc: string[] = [];
   let bcc: string[] = [];
   if (usesBceid(integration) || usesBcServicesCardProd(integration)) cc.push(IDIM_EMAIL_ADDRESS);
   if (usesGithub(integration)) cc.push(OCIO_EMAIL_ADDRESS);

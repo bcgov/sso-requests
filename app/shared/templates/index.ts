@@ -6,7 +6,6 @@ import { EVENTS, EMAILS } from '@app/shared/enums';
 import { KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
 import environmentApproved from './environment-approved';
 import createIntegrationApplied from './create-integration-applied';
-import createIntegrationSubmitted from './create-integration-submitted';
 import deleteIntegrationSubmitted from './delete-integration-submitted';
 import requestLimitExceeded from './request-limit-exceeded';
 import teamDeleted from './team-deleted';
@@ -14,13 +13,10 @@ import teamInvitation from './team-invitation';
 import teamMemberDeletedAdmins from './team-member-deleted-admins';
 import teamMemberDeletedUserRemoved from './team-member-deleted-user-removed';
 import updateIntegrationApplied from './update-integration-applied';
-import updateIntegrationSubmitted from './update-integration-submitted';
-import createTeamApiAccountSubmitted from './create-team-api-account-submitted';
 import createTeamApiAccountApproved from './create-team-api-account-approved';
 import deleteTeamApiAccountSubmitted from './delete-team-api-account-submitted';
 import deleteInactiveIdirUsers from './delete-inactive-idir-users';
 import removeInactiveIdirUserFromTeam from './remove-inactive-idir-user-from-team';
-import surveyCompleted from './survey-completed-notification';
 import restoreIntegration from './restore-integration';
 import restoreTeamApiAccount from './restore-team-api-account';
 import orphanIntegration from './orphan-integration';
@@ -46,7 +42,6 @@ const applySocialBottom = getEmailTemplate('apply-social-bottom.html');
 const integrationDetail = getEmailTemplate('integration-detail.html');
 const bcscClientDetail = getEmailTemplate('bcsc-client-detail.html');
 const dashboardLogin = getEmailTemplate('dashboard-login.html');
-const processingTime = getEmailTemplate('processing-time.html');
 const ssoUpdatesMailingListMessage = getEmailTemplate('sso-updates-mailing-list-message.html');
 const bceidWarning = getEmailTemplate('bceid-warning.html');
 const digitalCredentialInfoContact = getEmailTemplate('digital-credential-info-contact.html');
@@ -97,7 +92,6 @@ Handlebars.registerPartial('applyBcServicesCardBottom', applyBcServicesCardBotto
 Handlebars.registerPartial('integrationDetail', integrationDetail);
 Handlebars.registerPartial('bcscClientDetail', bcscClientDetail);
 Handlebars.registerPartial('dashboardLogin', dashboardLogin);
-Handlebars.registerPartial('processingTime', processingTime);
 Handlebars.registerPartial('ssoUpdatesMailingListMessage', ssoUpdatesMailingListMessage);
 Handlebars.registerPartial('bceidWarning', bceidWarning);
 Handlebars.registerPartial('digitalCredentialInfoContact', digitalCredentialInfoContact);
@@ -115,9 +109,6 @@ const getBuilder = (key: string) => {
       break;
     case EMAILS.CREATE_INTEGRATION_APPLIED:
       builder = createIntegrationApplied;
-      break;
-    case EMAILS.CREATE_INTEGRATION_SUBMITTED:
-      builder = createIntegrationSubmitted;
       break;
     case EMAILS.DELETE_INTEGRATION_SUBMITTED:
       builder = deleteIntegrationSubmitted;
@@ -140,12 +131,6 @@ const getBuilder = (key: string) => {
     case EMAILS.UPDATE_INTEGRATION_APPLIED:
       builder = updateIntegrationApplied;
       break;
-    case EMAILS.UPDATE_INTEGRATION_SUBMITTED:
-      builder = updateIntegrationSubmitted;
-      break;
-    case EMAILS.CREATE_TEAM_API_ACCOUNT_SUBMITTED:
-      builder = createTeamApiAccountSubmitted;
-      break;
     case EMAILS.CREATE_TEAM_API_ACCOUNT_APPROVED:
       builder = createTeamApiAccountApproved;
       break;
@@ -157,9 +142,6 @@ const getBuilder = (key: string) => {
       break;
     case EMAILS.REMOVE_INACTIVE_IDIR_USER_FROM_TEAM:
       builder = removeInactiveIdirUserFromTeam;
-      break;
-    case EMAILS.SURVEY_COMPLETED:
-      builder = surveyCompleted;
       break;
     case EMAILS.RESTORE_INTEGRATION:
       builder = restoreIntegration;
