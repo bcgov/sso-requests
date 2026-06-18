@@ -4,8 +4,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 
 exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED - no browser login 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
-<p>
-  Your Pathfinder SSO request ID 1 is ready to use. </p>
+<p>Your Pathfinder SSO request ID 1 is ready to use. </p>
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Environments: </strong>Development<br />
@@ -45,8 +44,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 
 exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ approved BC Services Card prod 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
-<p>
-  Your Pathfinder SSO request ID 1 is ready to use. </p>
+<p>Your Pathfinder SSO request ID 1 is ready to use. </p>
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
@@ -99,8 +97,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 
 exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ unapproved BC Services Card prod 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
-<p>
-  Your Pathfinder SSO request ID 1 is ready to use. </p>
+<p>Your Pathfinder SSO request ID 1 is ready to use. </p>
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
@@ -176,8 +173,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 
 exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ unapproved BCeID & GitHub prod 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
-<p>
-  Your Pathfinder SSO request ID 1 is ready to use. </p>
+<p>Your Pathfinder SSO request ID 1 is ready to use. </p>
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
@@ -230,8 +226,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 
 exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ unapproved BCeID prod 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
-<p>
-  Your Pathfinder SSO request ID 1 is ready to use. </p>
+<p>Your Pathfinder SSO request ID 1 is ready to use. </p>
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
@@ -282,8 +277,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 
 exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ unapproved GitHub prod 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
-<p>
-  Your Pathfinder SSO request ID 1 is ready to use. </p>
+<p>Your Pathfinder SSO request ID 1 is ready to use. </p>
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
@@ -336,8 +330,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 
 exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ unapproved Social prod 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
-<p>
-  Your Pathfinder SSO request ID 1 is ready to use. </p>
+<p>Your Pathfinder SSO request ID 1 is ready to use. </p>
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
@@ -389,8 +382,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 
 exports[`Email template snapshots Should return the expected email for CREATE_INTEGRATION_APPLIED 2`] = `
 "<h3>Hello Pathfinder SSO friend,</h3>
-<p>
-  Your Pathfinder SSO request ID 1 is ready to use. </p>
+<p>Your Pathfinder SSO request ID 1 is ready to use. </p>
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
