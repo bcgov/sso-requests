@@ -3,7 +3,6 @@ import Handlebars from 'handlebars';
 import { getEmailTemplate, processRequest } from '../helpers';
 import { IntegrationData } from '@app/shared/interfaces';
 import { sendEmail } from '@app/utils/ches';
-import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
@@ -35,7 +34,6 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   return sendEmail({
     code: EMAILS.CREATE_INTEGRATION_APPLIED,
     to: emails,
-    cc: [SSO_EMAIL_ADDRESS],
     ...rendered,
   });
 };

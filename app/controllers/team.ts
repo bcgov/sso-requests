@@ -291,8 +291,6 @@ export const requestServiceAccount = async (session: Session, userId: number, te
   };
   createEvent(eventData);
 
-  await sendTemplate(EMAILS.CREATE_TEAM_API_ACCOUNT_SUBMITTED, { requester, team, integrations });
-
   return serviceAccount;
 };
 

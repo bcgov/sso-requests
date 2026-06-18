@@ -4,7 +4,6 @@ import { getEmailTemplate, processRequest } from '../helpers';
 import { IntegrationData } from '@app/shared/interfaces';
 import { getReadableIntegrationDiff, sendEmail } from '@app/utils/ches';
 import {
-  SSO_EMAIL_ADDRESS,
   DIT_EMAIL_ADDRESS,
   IDIM_EMAIL_ADDRESS,
   DIT_ADDITIONAL_EMAIL_ADDRESS,
@@ -21,7 +20,7 @@ import {
   usesSocial,
 } from '@app/helpers/integration';
 
-const SUBJECT_TEMPLATE = `Pathfinder SSO change request approved and can be downloaded (email 2 of 2)`;
+const SUBJECT_TEMPLATE = `Pathfinder SSO change request complete`;
 const template = getEmailTemplate('update-integration-applied/update-integration-applied.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
@@ -49,7 +48,7 @@ export const render = async (originalData: DataProps): Promise<RenderResult> => 
 export const send = async (data: DataProps, rendered: RenderResult) => {
   const { integration, addingProd } = data;
   const emails = await getIntegrationEmails(integration);
-  const cc = [SSO_EMAIL_ADDRESS];
+  const cc: string[] = [];
   const resettingBceidApproval = data.integration.lastChanges?.some(
     (change) => change.path[0] === 'bceidApproved' && change.lhs === true && change.rhs === false,
   );
