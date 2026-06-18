@@ -754,7 +754,7 @@ describe('Basic Info - Identity Providers', () => {
     expect(digitalCredentialCheckbox?.checked).toBeFalsy();
   });
 
-  it.only('should open BCeID warning modal when Basic BCeID or BCeID both are selected', async () => {
+  it('should open BCeID warning modal when Basic BCeID or BCeID both are selected', async () => {
     const { getByText } = setUpRender({
       id: 0,
       serviceType: 'gold',
