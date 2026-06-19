@@ -753,6 +753,46 @@ describe('Basic Info - Identity Providers', () => {
 
     expect(digitalCredentialCheckbox?.checked).toBeFalsy();
   });
+
+  it('should open BCeID warning modal when Basic BCeID or BCeID both are selected', async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: [],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+    });
+
+    fireEvent.click(sandbox.basicInfoBox);
+
+    const basicBceidCheckbox = getByText('Basic BCeID')?.parentElement?.querySelector(
+      "input[type='checkbox']",
+    ) as HTMLInputElement;
+
+    fireEvent.click(basicBceidCheckbox);
+    await waitFor(() => expect(screen.getByText('BCeID Application Notice')).toBeInTheDocument());
+
+    // clear message
+    fireEvent.click(getByText('I Understand'));
+    await waitFor(() => expect(screen.queryByText('BCeID Application Notice')).not.toBeInTheDocument());
+
+    // Check fires on bceid both
+    const bceidBothCheckbox = getByText('Basic or Business BCeID')?.parentElement?.querySelector(
+      "input[type='checkbox']",
+    ) as HTMLInputElement;
+    fireEvent.click(bceidBothCheckbox);
+    await waitFor(() => expect(screen.getByText('BCeID Application Notice')).toBeInTheDocument());
+
+    fireEvent.click(getByText('I Understand'));
+    await waitFor(() => expect(screen.queryByText('BCeID Application Notice')).not.toBeInTheDocument());
+
+    // Check bceid business does not show it
+    const bceidBusinessCheckbox = getByText('Business BCeID')?.parentElement?.querySelector(
+      "input[type='checkbox']",
+    ) as HTMLInputElement;
+    fireEvent.click(bceidBusinessCheckbox);
+    await waitFor(() => expect(screen.queryByText('BCeID Application Notice')).not.toBeInTheDocument());
+  });
 });
 
 describe('BC Services Card IDP and dependencies', () => {

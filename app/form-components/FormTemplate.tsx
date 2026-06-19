@@ -158,6 +158,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [bcscPrivacyZones, setBcscPrivacyZones] = useState<BcscPrivacyZone[]>(defaultBcscPrivacyZones());
   const [bcscAttributes, setBcscAttributes] = useState<BcscAttribute[]>(defaultBcscAttributes());
   const [openSubmissionModal, setOpenSubmissionModal] = useState(false);
+  const [openBceidWarningModal, setOpenBceidWarningModal] = useState(false);
   const [defaultSessionSettings, setDefaultSessionSettings] = useState<GetStandardSettingsResponse>({
     dev: defaultStandardRealmSettings,
     test: defaultStandardRealmSettings,
@@ -234,6 +235,10 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     // Reset additionalRoleAttribute when no role-assignable IDPs are selected
 
     setFormData(processed);
+
+    const bceidWarningIdps = ['bceidbasic', 'bceidboth'];
+    const newlyAddedBceidWarning = bceidWarningIdps.some((idp) => devIdps.includes(idp) && !currentIdps.includes(idp));
+    if (newlyAddedBceidWarning) setOpenBceidWarningModal(true);
 
     throttleUpdate(processed);
   };
@@ -526,6 +531,21 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         }
         title="Submitting Request"
         onConfirm={handleSubmit}
+      />
+      <CenteredModal
+        id="bceid-warning-modal"
+        openModal={openBceidWarningModal}
+        handleClose={() => setOpenBceidWarningModal(false)}
+        title="BCeID Application Notice"
+        showCancel={false}
+        confirmText="I Understand"
+        onConfirm={() => setOpenBceidWarningModal(false)}
+        content={
+          <p>
+            <strong>Basic BCeID and BCeID Both are no longer accepting new applications from general clients.</strong>{' '}
+            Only choose these options if you have received a special exemption.
+          </p>
+        }
       />
     </>
   );
