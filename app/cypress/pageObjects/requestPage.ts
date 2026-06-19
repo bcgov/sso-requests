@@ -288,6 +288,14 @@ class RequestPage {
       cy.contains(matcher).find('input[type="checkbox"]').uncheck();
       if (identityProviders.some((idpLabel) => idpLabel === matcher)) {
         cy.contains(matcher).find('input[type="checkbox"]').check();
+        // Dismiss BCeID warning modal if it appears after selecting Basic BCeID or BCeID Both
+        if (matcher === this.idpLabels.basicBceidLabel || matcher === this.idpLabels.basicOrBusinessBceidLabel) {
+          cy.get('body').then(($body) => {
+            if ($body.find('#bceid-warning-modal').length) {
+              cy.get('#bceid-warning-modal').contains('button', 'I Understand').click();
+            }
+          });
+        }
       }
     });
     // Agree to social when included
