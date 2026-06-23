@@ -542,7 +542,10 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         onConfirm={() => setOpenBceidWarningModal(false)}
         content={
           <p>
-            <strong>Basic BCeID and BCeID Both are no longer accepting new applications from general clients.</strong>{' '}
+            <strong>
+              <em>Basic BCeID</em> and <em>Basic or Business BCeID</em> are no longer accepting new applications from
+              general clients.
+            </strong>{' '}
             Only choose these options if you have received a special exemption.
           </p>
         }
