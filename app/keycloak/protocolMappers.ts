@@ -44,9 +44,8 @@ export const createClientRolesMapper = async (
   }
 };
 
-export const managePpidMapper = async (
+export const managePpidSamlMapper = async (
   kcAdminClient: KeycloakAdminClient,
-  protocol: string,
   clientId: string,
   realm: string,
   privacyZoneUri: string,
@@ -54,32 +53,15 @@ export const managePpidMapper = async (
 ) => {
   let config: ProtocolMapperRepresentation = { name: 'ppid' };
   try {
-    if (protocol === 'oidc') {
-      config = {
-        ...config,
-        protocol: 'openid-connect',
-        protocolMapper: 'oidc-idp-ppid-mapper',
-        config: {
-          'access.token.claim': 'true',
-          'claim.name': 'sub',
-          'id.token.claim': 'true',
-          'introspection.token.claim': 'true',
-          'lightweight.claim': 'false',
-          'userinfo.token.claim': 'true',
-          privacy_zone: privacyZoneUri,
-        },
-      };
-    } else {
-      config = {
-        ...config,
-        protocol: 'saml',
-        protocolMapper: 'saml-ppid-nameid-mapper',
-        config: {
-          'nameid.format': 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent',
-          privacy_zone: privacyZoneUri,
-        },
-      };
-    }
+    config = {
+      ...config,
+      protocol: 'saml',
+      protocolMapper: 'saml-ppid-nameid-mapper',
+      config: {
+        'nameid.format': 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent',
+        privacy_zone: privacyZoneUri,
+      },
+    };
 
     if (!mapperId) {
       await kcAdminClient.clients.addProtocolMapper(

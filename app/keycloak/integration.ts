@@ -16,6 +16,7 @@ import {
   deleteMapper,
   listClientProtocolMappers,
   manageAdditionalClientRolesMapper,
+  managePpidSamlMapper,
 } from './protocolMappers';
 import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
 
@@ -116,7 +117,7 @@ export const samlClientProfile = (
 /** Client scopes to add when social is selected. */
 export const socialIdps = ['google', 'microsoft', 'apple'];
 
-export const getDefaultClientScopes = (integration: IntegrationData, environment: string) => {
+export const getDefaultClientScopes = async (integration: IntegrationData, environment: string) => {
   let defaultScopes = integration.protocol === 'oidc' ? ['common', 'profile', 'email'] : ['common'];
 
   // BCSC and Social client scopes are not the same as the IDP name and need to be handled individually.
@@ -141,6 +142,16 @@ export const getDefaultClientScopes = (integration: IntegrationData, environment
   ) {
     defaultScopes.push(integration?.clientId!);
   }
+
+  if (
+    integration.protocol === 'oidc' &&
+    usesOTP(integration) &&
+    integration[`${environment}Idps` as keyof IntegrationData].includes('otp')
+  ) {
+    const privacyZoneUri = await getPrivacyZoneURI(environment, integration.bcscPrivacyZone!);
+    defaultScopes.push(privacyZoneUri);
+  }
+
   return defaultScopes;
 };
 
@@ -214,7 +225,7 @@ export const keycloakClient = async (
       clientData.baseUrl = homeUri ?? '';
     }
 
-    const defaultScopes = getDefaultClientScopes(integration, environment);
+    const defaultScopes = await getDefaultClientScopes(integration, environment);
     if (clients.length === 0) {
       // if client does not exist then just create client
       client = await kcAdminClient.clients.create({ realm, ...clientData });
@@ -363,20 +374,13 @@ export const keycloakClient = async (
         );
       }
 
-      if (defaultScopes.includes('otp') || defaultScopes.includes('otp-saml')) {
+      if (defaultScopes.includes('otp-saml')) {
         const privacyZoneUri = await getPrivacyZoneURI(environment, integration.bcscPrivacyZone!);
         const ppidMapper = protocolMappersForClient.find((mapper) => mapper.name === 'ppid');
         if (!ppidMapper) {
-          await managePpidMapper(kcAdminClient, integration.protocol || 'oidc', client.id!, realm, privacyZoneUri, '');
+          await managePpidSamlMapper(kcAdminClient, client.id!, realm, privacyZoneUri, '');
         } else {
-          await managePpidMapper(
-            kcAdminClient,
-            integration.protocol || 'oidc',
-            client.id!,
-            realm,
-            privacyZoneUri,
-            ppidMapper?.id!,
-          );
+          await managePpidSamlMapper(kcAdminClient, client.id!, realm, privacyZoneUri, ppidMapper?.id!);
         }
       } else {
         const ppidMapper = protocolMappersForClient.find((mapper) => mapper.name === 'ppid');
