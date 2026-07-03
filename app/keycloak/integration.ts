@@ -10,7 +10,6 @@ import { getByRequestId } from '@app/queries/bcsc-client';
 import {
   createAccessTokenAudMapper,
   createClientRolesMapper,
-  managePpidMapper,
   createPreferredUsernameMapper,
   createTeamMapper,
   deleteMapper,
