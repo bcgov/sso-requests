@@ -15,7 +15,6 @@ import {
   deleteMapper,
   listClientProtocolMappers,
   manageAdditionalClientRolesMapper,
-  managePpidSamlMapper,
 } from './protocolMappers';
 import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
 
@@ -142,12 +141,9 @@ export const getDefaultClientScopes = async (integration: IntegrationData, envir
     defaultScopes.push(integration?.clientId!);
   }
 
-  if (
-    integration.protocol === 'oidc' &&
-    usesOTP(integration) &&
-    integration[`${environment}Idps` as keyof IntegrationData].includes('otp')
-  ) {
-    const privacyZoneUri = await getPrivacyZoneURI(environment, integration.bcscPrivacyZone!);
+  if (usesOTP(integration) && integration[`${environment}Idps` as keyof IntegrationData].includes('otp')) {
+    let privacyZoneUri = await getPrivacyZoneURI(environment, integration.bcscPrivacyZone!);
+    if (integration.protocol === 'saml') privacyZoneUri = `${privacyZoneUri}-saml`;
     defaultScopes.push(privacyZoneUri);
   }
 
@@ -371,19 +367,6 @@ export const keycloakClient = async (
           '',
           integration.clientId!,
         );
-      }
-
-      if (defaultScopes.includes('otp-saml')) {
-        const privacyZoneUri = await getPrivacyZoneURI(environment, integration.bcscPrivacyZone!);
-        const ppidMapper = protocolMappersForClient.find((mapper) => mapper.name === 'ppid');
-        if (!ppidMapper) {
-          await managePpidSamlMapper(kcAdminClient, client.id!, realm, privacyZoneUri, '');
-        } else {
-          await managePpidSamlMapper(kcAdminClient, client.id!, realm, privacyZoneUri, ppidMapper?.id!);
-        }
-      } else {
-        const ppidMapper = protocolMappersForClient.find((mapper) => mapper.name === 'ppid');
-        if (ppidMapper) await deleteMapper(kcAdminClient, client.id!, realm, ppidMapper.id!);
       }
     } else if (!protocolMappersForClient.find((mapper) => mapper.name === 'team')) {
       await createTeamMapper(kcAdminClient, client.id!, realm, String(integration.teamId));
