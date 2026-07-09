@@ -345,8 +345,8 @@ describe('Build Github Dispatch', () => {
     expect(processedIntegration?.devIdps?.includes('bcservicescard')).toBe(true);
   });
 
-  it('Does not add the idp scope if not in the production idp list', () => {
-    const result = getDefaultClientScopes(
+  it('Does not add the idp scope if not in the production idp list', async () => {
+    const result = await getDefaultClientScopes(
       {
         ...bcscProdIntegration,
         clientId: 'myClient',
@@ -365,8 +365,8 @@ describe('Build Github Dispatch', () => {
     expect(processedIntegration?.prodIdps?.includes('bcservicescard')).toBe(true);
   });
 
-  it('Does add the idp scope if included in the production idp list', () => {
-    const result = getDefaultClientScopes(
+  it('Does add the idp scope if included in the production idp list', async () => {
+    const result = await getDefaultClientScopes(
       {
         ...bcscProdIntegration,
         clientId: 'myClient',

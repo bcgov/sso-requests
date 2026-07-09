@@ -134,8 +134,8 @@ describe('Build Github Dispatch', () => {
     expect(processedIntegration?.devIdps?.includes('otp')).toBe(true);
   });
 
-  it('Does not add the idp scopes to production if otp is excluded from the production idp list', () => {
-    const result = getDefaultClientScopes(
+  it('Does not add the idp scopes to production if otp is excluded from the production idp list', async () => {
+    const result = await getDefaultClientScopes(
       {
         ...otpProdIntegration,
         clientId: 'myClient',
@@ -149,8 +149,8 @@ describe('Build Github Dispatch', () => {
     expect(result.includes('otp')).toBeFalsy();
   });
 
-  it('Does add the idp scope if included in the production idp list', () => {
-    const result = getDefaultClientScopes(
+  it('Does add the idp scope if included in the production idp list', async () => {
+    const result = await getDefaultClientScopes(
       {
         ...otpProdIntegration,
         clientId: 'myClient',
