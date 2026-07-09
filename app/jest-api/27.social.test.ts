@@ -95,8 +95,8 @@ describe('Build Github Dispatch', () => {
     expect(processedIntegration?.devIdps?.includes('social')).toBe(true);
   });
 
-  it('Does not add the idp scopes to production if social is excluded from the production idp list', () => {
-    const result = getDefaultClientScopes(
+  it('Does not add the idp scopes to production if social is excluded from the production idp list', async () => {
+    const result = await getDefaultClientScopes(
       {
         ...socialProdIntegration,
         clientId: 'myClient',
@@ -118,8 +118,8 @@ describe('Build Github Dispatch', () => {
     expect(processedIntegration?.prodIdps?.includes('social')).toBe(true);
   });
 
-  it('Does add the idp scope if included in the production idp list', () => {
-    const result = getDefaultClientScopes(
+  it('Does add the idp scope if included in the production idp list', async () => {
+    const result = await getDefaultClientScopes(
       {
         ...socialProdIntegration,
         clientId: 'myClient',
