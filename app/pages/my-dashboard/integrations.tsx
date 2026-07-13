@@ -51,7 +51,7 @@ function MyIntegrations({ session }: PageProps) {
         content={
           <div>
             <div>
-              <p>The integration request could not be completed. Please contact the Pathfinder SSO Team.</p>
+              <p>The integration request could not be completed. Please contact the SSO Team.</p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', width: '100%' }}>
               <Column>
@@ -69,7 +69,7 @@ function MyIntegrations({ session }: PageProps) {
               </Column>
               <Column>
                 <div>
-                  <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" style={{ color: '#0d6efd' }}>
+                  <a href="mailto:bcgov.sso@gov.bc.ca" title="SSO Team Email" style={{ color: '#0d6efd' }}>
                     <FontAwesomeIcon size="1x" icon={faEnvelope} color="#0d6efd" /> Email
                   </a>
                 </div>

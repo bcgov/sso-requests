@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import TeamList from 'page-partials/my-dashboard/TeamList';
 import { createTeam, deleteTeam, editTeamName } from 'services/team';
 import { SessionContext } from '@app/utils/context';
-import { formatWikiURL } from '@app/utils/constants';
+import { docusaurusURL } from '@app/utils/constants';
 
 function TeamListComponent() {
   return (
@@ -29,7 +29,7 @@ const sampleTeam = [
     updatedAt: '',
   },
 ];
-const HYPERLINK = formatWikiURL('CSS-App-My-Teams#ive-created-a-team-now-what');
+const HYPERLINK = `${docusaurusURL}/css-application/teams#allowed-actions-by-role`;
 const setTeam = jest.fn();
 const loadTeams = jest.fn();
 

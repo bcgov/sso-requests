@@ -126,7 +126,7 @@ function TabContent({ integration, type, canApproveProd, notApplied, onApproved 
           <ErrorMessage>
             Your request for {type} approval could not be completed. Please{' '}
             <Link external href="mailto:bcgov.sso@gov.bc.ca">
-              contact the Pathfinder SSO Team
+              contact the SSO Team
             </Link>
           </ErrorMessage>
         </div>

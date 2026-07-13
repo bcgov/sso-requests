@@ -7,7 +7,7 @@ import Navigation from './Navigation';
 import TopAlertProvider, { TopAlert } from './TopAlert';
 import UserProfileModal from './UserProfileModal';
 import GoldNotificationModal from './GoldNotificationModal';
-import { formatWikiURL, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
+import { docusaurusURL, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import Nav from 'react-bootstrap/Nav';
 import {
@@ -125,7 +125,7 @@ const routes: Route[] = [
   },
   { path: '/admin-reports', label: 'SSO Reports', private: true, permission: appPermissions.DOWNLOAD_ADMIN_REPORTS },
   {
-    path: '/faq',
+    path: `${docusaurusURL}/category/frequently-asked-questions`,
     label: 'FAQ',
     private: false,
   },
@@ -198,12 +198,12 @@ const RightMenuItems = () => (
       </a>
     </HoverItem>
     <HoverItem>
-      <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO">
+      <a href="mailto:bcgov.sso@gov.bc.ca" title="SSO Team Email">
         <FontAwesomeIcon size="2x" icon={faEnvelope} />
       </a>
     </HoverItem>
     <HoverItem>
-      <a href={formatWikiURL()} target="_blank" title="Documentation">
+      <a href={docusaurusURL} target="_blank" title="Documentation">
         <FontAwesomeIcon size="2x" icon={faFileAlt} />
       </a>
     </HoverItem>
@@ -250,7 +250,7 @@ const MobileMenu = ({
       icon: faEnvelope,
     },
     {
-      href: formatWikiURL(),
+      href: docusaurusURL,
       title: 'Documentation',
       icon: faFileAlt,
     },

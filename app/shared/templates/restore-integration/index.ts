@@ -7,7 +7,7 @@ import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 
-const SUBJECT_TEMPLATE = `Pathfinder SSO request restored`;
+const SUBJECT_TEMPLATE = `SSO request restored`;
 const template = getEmailTemplate('restore-integration/restore-integration.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });

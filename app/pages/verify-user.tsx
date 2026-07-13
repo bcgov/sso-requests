@@ -46,7 +46,7 @@ const content = (lines: string[]) => (
     </tspan>
     <tspan y="130"> or </tspan>
     <tspan y="130" fill="#006fc4">
-      <a href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO" target="_blank" rel="noreferrer">
+      <a href="mailto:bcgov.sso@gov.bc.ca" title="SSO Team Email" target="_blank" rel="noreferrer">
         Email us
       </a>
       .

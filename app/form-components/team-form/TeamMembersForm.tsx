@@ -6,7 +6,7 @@ import { faPlusCircle, faMinusCircle, faStar } from '@fortawesome/free-solid-svg
 import { User, LoggedInUser } from 'interfaces/team';
 import ErrorText from 'components/ErrorText';
 import Link from '@app/components/Link';
-import { formatWikiURL } from '@app/utils/constants';
+import { docusaurusURL } from '@app/utils/constants';
 import AsyncSelect from 'react-select/async';
 import { SingleValue, components } from 'react-select';
 import { throttledIdirSearch } from '@app/utils/users';
@@ -177,7 +177,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
         <br />
         <div>
           <span className="underline">
-            <Link external href={formatWikiURL('CSS-App-My-Teams#ive-created-a-team-now-what')}>
+            <Link external href={`${docusaurusURL}/css-application/teams#allowed-actions-by-role`}>
               View a detailed breakdown of roles on our wiki page
             </Link>
           </span>

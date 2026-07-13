@@ -2,9 +2,9 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
 import { addTeamMembers, inviteTeamMember, deleteTeamMember } from 'services/team';
 import { MyTeamsComponent } from './helpers';
-import { formatWikiURL } from '@app/utils/constants';
+import { docusaurusURL } from '@app/utils/constants';
 
-const HYPERLINK = formatWikiURL('CSS-App-My-Teams#ive-created-a-team-now-what');
+const HYPERLINK = `${docusaurusURL}/css-application/teams#allowed-actions-by-role`;
 
 const spyValidateTeam = jest
   .spyOn(require('form-components/team-form/TeamMembersForm'), 'validateTeam')

@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import IntegrationInfoTabs from 'page-partials/my-dashboard/IntegrationInfoTabs';
 import { getInstallation } from 'services/keycloak';
-import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
+import { docusaurusURL } from '@app/utils/constants';
 
 type Text = string | RegExp;
 const expectText = (text: Text) => expect(screen.getByText(text)).toBeTruthy();
@@ -14,7 +14,7 @@ const bceidApprovedLastChange = { lhs: false, rhs: true, kind: 'E', path: ['bcei
 const githubApprovedLastChange = { lhs: false, rhs: true, kind: 'E', path: ['githubApproved'] };
 
 const HYPERLINK = `${docusaurusURL}/integrating-your-application/installation-json`;
-const WIKI_PAGE_HYPERLINK = formatWikiURL('Creating-a-Role');
+const WIKI_PAGE_HYPERLINK = `${docusaurusURL}/css-application/roles`;
 
 const DRAFT_MESSAGE = /Your request has not been submitted/;
 const PROGRESS_MESSAGE = /Access to environment\(s\) will be provided/;
@@ -429,7 +429,7 @@ describe('Applied Status header, button and link test', () => {
     );
     fireEvent.click(screen.getByRole('tab', { name: 'Role Management' }));
     await waitFor(() => {
-      expect(screen.getByRole('link', { name: 'wiki page' })).toHaveAttribute('href', WIKI_PAGE_HYPERLINK);
+      expect(screen.getByRole('link', { name: 'documentation' })).toHaveAttribute('href', WIKI_PAGE_HYPERLINK);
     });
   });
 

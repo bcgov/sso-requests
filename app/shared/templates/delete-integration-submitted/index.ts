@@ -23,7 +23,7 @@ import {
 } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
-const SUBJECT_TEMPLATE = `Pathfinder SSO integration ID {{integration.id}} deleted`;
+const SUBJECT_TEMPLATE = `SSO integration ID {{integration.id}} deleted`;
 const template = getEmailTemplate('delete-integration-submitted/delete-integration-submitted.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });

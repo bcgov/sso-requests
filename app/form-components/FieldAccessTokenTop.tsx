@@ -25,7 +25,7 @@ export default (
       Additional Settings (Optional)&nbsp;
       <InfoText>
         *If you would like to configure the Additional Settings, or have any questions,{' '}
-        <Link href="mailto:bcgov.sso@gov.bc.ca">please contact the Pathfinder SSO Team</Link>.
+        <Link href="mailto:bcgov.sso@gov.bc.ca">please contact the SSO Team</Link>.
       </InfoText>
     </Title>
   </Container>

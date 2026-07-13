@@ -20,7 +20,7 @@ import {
   usesSocial,
 } from '@app/helpers/integration';
 
-const SUBJECT_TEMPLATE = `Pathfinder SSO change request complete`;
+const SUBJECT_TEMPLATE = `SSO change request complete`;
 const template = getEmailTemplate('update-integration-applied/update-integration-applied.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });

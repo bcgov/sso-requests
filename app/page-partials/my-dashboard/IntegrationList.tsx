@@ -14,7 +14,7 @@ import { getRequests } from 'services/request';
 import { hasAnyPendingStatus } from 'utils/helpers';
 import { authTypeDisplay } from 'metadata/display';
 import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
-import { formatWikiURL } from 'utils/constants';
+import { docusaurusURL } from 'utils/constants';
 import { AxiosError } from 'axios';
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
 import TableNew from '@app/components/TableNew';
@@ -72,7 +72,10 @@ const NewEntityButton = ({
                 <NumberedContents number={2} title="Technical Info" children={null} />
                 <PNoMargin>
                   <FontAwesomeIcon icon={faCheck} /> Client type (
-                  <Link href={formatWikiURL('Useful-References#client')}>Public or Confidential, learn more</Link>)
+                  <Link external href={`${docusaurusURL}/css-application/client-types`}>
+                    Public or Confidential, learn more
+                  </Link>
+                  )
                 </PNoMargin>
                 <PNoMargin>
                   <FontAwesomeIcon icon={faCheck} /> Identity Provider (IDIR, Azure, BCeID or Basic)

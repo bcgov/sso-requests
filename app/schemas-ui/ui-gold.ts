@@ -194,15 +194,15 @@ const getUISchema = ({ integration, formData, session, teams, schemas, defaultSe
       'ui:classNames': 'short-field-string',
     },
     devLoginTitle: {
-      'ui:placeholder': 'Pathfinder SSO Login Page Name',
+      'ui:placeholder': 'SSO Login Page Name',
       'ui:classNames': 'short-field-string',
     },
     testLoginTitle: {
-      'ui:placeholder': 'Pathfinder SSO Login Page Name',
+      'ui:placeholder': 'SSO Login Page Name',
       'ui:classNames': 'short-field-string',
     },
     prodLoginTitle: {
-      'ui:placeholder': 'Pathfinder SSO Login Page Name',
+      'ui:placeholder': 'SSO Login Page Name',
       'ui:classNames': 'short-field-string',
     },
     devDisplayHeaderTitle: {
