@@ -181,21 +181,6 @@ spec:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
                   key: rc_webhook_url
-            - name: GH_APP_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "..fullname" . }}
-                  key: gh-app-id
-            - name: GH_APP_PRIVATE_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "..fullname" . }}
-                  key: gh-app-private-key
-            - name: GH_APP_INSTALLATION_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "..fullname" . }}
-                  key: gh-app-installation-id
             {{- range $key, $val := .Values.env }}
             - name: {{  $key | quote | upper }}
               value: {{ $val | quote }}

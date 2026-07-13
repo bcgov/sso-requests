@@ -6,7 +6,7 @@ import { PageProps } from 'interfaces/props';
 import StandardRealmsSVG from 'svg/StandardRealms';
 import WhatsNewSVG from '@app/svg/WhatsNewSVG';
 import { Accordion } from '@bcgov-sso/common-react-components';
-import { docusaurusURL, testimonials, formatWikiURL, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
+import { docusaurusURL, testimonials, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
 import Testimonial from 'components/Testimonial';
 import Carousel from 'components/Carousel';
 import useWindowDimensions from '@app/hooks/useWindowDimensions';
@@ -120,7 +120,7 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
         <Row>
           <Col sm={12} md={6}>
             <Panel marginRight>
-              <h1>Common Hosted Single Sign-On (CSS) Vision</h1>
+              <h1>Common Hosted Single Sign-On (CSS)</h1>
               <p className="text-large">
                 Use our self-service app to integrate
                 <br />
@@ -159,12 +159,6 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
                   </ul>
                 </div>
               </StandardRealmsSplashContainer>
-              <p style={{ paddingLeft: '0px' }}>
-                To learn more about Pathfinder SSO visit the{' '}
-                <Link href={formatWikiURL()} external>
-                  SSO Pathfinder Knowledge Base
-                </Link>
-              </p>
             </Panel>
           </Col>
         </Row>
@@ -180,20 +174,12 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
                 <WhatsNewSVG />
               </Col>
               <Col span={5}>
-                <h2>What&apos;s new at SSO?</h2>
-                <ul>
-                  <li>
-                    We&apos;ve updated our wiki into two areas of focus: one for{' '}
-                    <Link href={formatWikiURL()} title="Business" external>
-                      business
-                    </Link>{' '}
-                    areas and one for{' '}
-                    <Link href={docusaurusURL} title="Technical" external>
-                      technical
-                    </Link>
-                    , take a look.
-                  </li>
-                </ul>
+                <h2>Want to learn more?</h2>
+                Visit our{' '}
+                <Link href={docusaurusURL} title="Business" external>
+                  documentation
+                </Link>{' '}
+                to learn more about our service.
               </Col>
             </Row>
           </Row>
@@ -229,7 +215,7 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
               <HorizontalRule />
               <h2>About</h2>
               <Accordion>
-                <Accordion.Panel key={'sso'} title="What is Pathfinder's Common Hosted Single Sign-On (CSS) App?">
+                <Accordion.Panel key={'sso'} title="What is the Common Hosted Single Sign-On (CSS) App?">
                   <ul>
                     <li>We provide a login service that connects your users to your applications</li>
                     <li>
@@ -264,13 +250,13 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
                     <li>
                       Our regular business hours are weekdays from 9:00 am to 5:00 pm Pacific Time, excluding statutory
                       holidays. Client provisioning questions and requests will be reviewed and handled during normal
-                      business hours. After hours support is provided by the Pathfinder SSO team, and is only available
-                      for service outages and other incidents that impact the service.
+                      business hours. After hours support is provided by the SSO team, and is only available for service
+                      outages and other incidents that impact the service.
                     </li>
                     <li>
                       To learn more about our service uptime monitoring, please visit our{' '}
-                      <Link external href={formatWikiURL('Pathfinder-Uptime-Monitoring/')}>
-                        uptime page on our wiki
+                      <Link external href="https://status.loginproxy.gov.bc.ca/">
+                        uptime page
                       </Link>{' '}
                       and join our{' '}
                       <Link external href="https://digital.gov.bc.ca/sso-notifications/">
@@ -288,10 +274,6 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
                       <li>Will be experiencing high volume transactions</li>
                       <li>Requires session management, scopes or changes in token times</li>
                     </ul>
-                    If you would like to learn more about IM IT Standards,{' '}
-                    <Link href={formatWikiURL('Useful-References#imit-identity-standards')} external>
-                      learn more here
-                    </Link>
                   </div>
                 </Accordion.Panel>
               </Accordion>
@@ -303,12 +285,12 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
               </Link>
               <br />
               Send us an{' '}
-              <Link href="mailto:bcgov.sso@gov.bc.ca" title="Pathfinder SSO">
+              <Link href="mailto:bcgov.sso@gov.bc.ca" title="SSO Team Email">
                 email
               </Link>
               <br />
               Review our{' '}
-              <Link href={formatWikiURL()} external>
+              <Link href={docusaurusURL} external>
                 helpful documentation
               </Link>
               <br />

@@ -21,7 +21,7 @@ import {
   usesSocial,
 } from '@app/helpers/integration';
 
-const SUBJECT_TEMPLATE = `Pathfinder SSO request ready`;
+const SUBJECT_TEMPLATE = `SSO integration request ready`;
 const template = getEmailTemplate('create-integration-applied/create-integration-applied.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });

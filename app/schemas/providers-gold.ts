@@ -1,6 +1,6 @@
 import { Integration } from '../interfaces/Request';
 import { Schema } from './index';
-import { docusaurusURL, formatWikiURL } from '@app/utils/constants';
+import { docusaurusURL } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { usesBcServicesCard, usesOTP, usesSocial } from '@app/helpers/integration';
 import { getDiscontinuedIdps } from '@app/utils/helpers';
@@ -157,10 +157,8 @@ export default function getSchema(
           return {
             content: `
             To learn the difference between IDIR and IDIR with MFA,
-            <a href="${formatWikiURL(
-              '/Our-Partners-the-Identity-Providers#idir-with-mfa',
-            )}" target="_blank" title="IDIR vs IDIR with MFA">
-            please visit our GitHub page about choosing an Identity Provider
+            <a href="${docusaurusURL}/css-application/identity-providers#idir---mfa-mfa-notes" target="_blank" title="IDIR vs IDIR with MFA">
+            please visit our documentation about IDIR - MFA
             </a>
             `,
             hide: 3000,
@@ -168,17 +166,13 @@ export default function getSchema(
         }
         if (idp === 'digitalcredential') {
           return {
-            content: `To learn more about using the Digital Credential option visit our <a href="${formatWikiURL(
-              'Our-Partners-the-Identity-Providers#what-are-identity-providers',
-            )}" target="_blank">additional information</a>.`,
+            content: `To learn more about using the Digital Credential option visit our <a href="${docusaurusURL}/css-application/identity-providers#digital-credential-configuration" target="_blank">additional information</a>.`,
             hide: 3000,
           };
         }
         if (idp === 'bcservicescard') {
           return {
-            content: `To learn more about using the BC Services Card option visit our <a href="${formatWikiURL(
-              'Our-Partners-the-Identity-Providers#what-are-identity-providers',
-            )}" target="_blank">additional information</a>.`,
+            content: `To learn more about using the BC Services Card option visit our <a href="${docusaurusURL}/css-application/identity-providers#bc-services-card-integration" target="_blank">additional information</a>.`,
             hide: 3000,
           };
         }

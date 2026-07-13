@@ -729,7 +729,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                         <ErrorMessage>
                           Your request for an API account could not be completed. Please{' '}
                           <Link external href="mailto:bcgov.sso@gov.bc.ca">
-                            contact the Pathfinder SSO Team
+                            contact the SSO Team
                           </Link>
                         </ErrorMessage>
                       </div>

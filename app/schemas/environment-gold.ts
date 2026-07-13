@@ -142,7 +142,7 @@ export default function getSchemas(formData: Integration, session: LoggedInUser 
             type: 'string',
             title: 'Pathfinder SSO Login Page Name',
             tooltip: {
-              content: `Enter a name that you would like to be displayed for users, as they're logging into the Pathfinder SSO Login Page. If you leave this field blank, the page will automatically display "Standard"`,
+              content: `Enter a name that you would like to be displayed for users, as they're logging into the SSO Login Page. If you leave this field blank, the page will automatically display "Standard"`,
             },
             maxLength: 100,
           },
