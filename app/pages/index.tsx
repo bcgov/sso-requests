@@ -16,13 +16,13 @@ import { Col, Row } from 'react-bootstrap';
 import Image from 'next/image';
 
 interface PanelProps {
-  fullWidth?: boolean;
+  $fullWidth?: boolean;
   marginLeft?: boolean;
   marginRight?: boolean;
 }
 
 const Panel = styled.div<PanelProps>`
-  max-width: ${(props) => (props.fullWidth ? '100%' : '450px')};
+  max-width: ${(props) => (props.$fullWidth ? '100%' : '450px')};
   ${(props) => props.marginLeft && 'margin-left: auto;'}
   ${(props) => props.marginRight && 'margin-right: auto;'}
   height: 100%;
@@ -139,7 +139,7 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
             </Panel>
           </Col>
           <Col md={8} sm={12} className="splash-image">
-            <Panel fullWidth>
+            <Panel $fullWidth>
               <Image
                 src="/standard-realm-home.png"
                 alt="SSO Illustration"
@@ -150,7 +150,6 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
           </Col>
         </Row>
       </ResponsiveContainer>
-
       <br />
 
       <WhatsNew>
