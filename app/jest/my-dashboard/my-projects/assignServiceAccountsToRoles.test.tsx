@@ -36,7 +36,10 @@ describe('assign service accounts to roles', () => {
   it('Should match the correct table headers, external link address', () => {
     render(<ServiceAccountRolesComponent />);
     expect(screen.getByText('Service Account')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'click to visit our wiki page' })).toHaveAttribute('href', HYPERLINK);
+    expect(screen.getByRole('link', { name: 'click to visit our documentation page' })).toHaveAttribute(
+      'href',
+      HYPERLINK,
+    );
   });
 
   it('Should be able to switch between environments', async () => {

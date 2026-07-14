@@ -105,10 +105,9 @@ describe('Members tab', () => {
     const addNewMemberButton = screen.findByText('+ Add New Team Members');
     fireEvent.click(await addNewMemberButton);
     expect(screen.getByText('Add a New Team Member')).toBeVisible();
-    expect(screen.getByRole('link', { name: 'View a detailed breakdown of roles on our wiki page' })).toHaveAttribute(
-      'href',
-      HYPERLINK,
-    );
+    expect(
+      screen.getByRole('link', { name: 'View a detailed breakdown of roles on our documentation page' }),
+    ).toHaveAttribute('href', HYPERLINK);
     expect(screen.findByRole('option', { name: 'Member' }));
 
     await waitFor(() => {
