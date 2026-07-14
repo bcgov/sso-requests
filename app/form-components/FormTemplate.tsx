@@ -483,7 +483,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         <Description>
           If new to SSO, please{' '}
           <Link external href={`${docusaurusURL}/category/integrating-your-application`}>
-            click to learn more on our wiki page
+            click to learn more on our documentation page
           </Link>
           .
         </Description>

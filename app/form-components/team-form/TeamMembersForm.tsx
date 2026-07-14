@@ -178,7 +178,7 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
         <div>
           <span className="underline">
             <Link external href={`${docusaurusURL}/css-application/teams#allowed-actions-by-role`}>
-              View a detailed breakdown of roles on our wiki page
+              View a detailed breakdown of roles on our documentation page
             </Link>
           </span>
         </div>
