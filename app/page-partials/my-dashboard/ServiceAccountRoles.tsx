@@ -238,7 +238,7 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
           <span className="normal">
             There may be a security risk if you rely on client roles of a service account,{' '}
             <Link external href={`${docusaurusURL}/css-application/roles#service-account-role-management`}>
-              click to visit our wiki page
+              click to visit our documentation page
             </Link>
           </span>
         </Alert>

@@ -742,7 +742,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                   <InfoMessage>
                     For more information on how to use the CSS API Account with your integrations,{' '}
                     <Link href={`${docusaurusURL}/integrating-your-application/css-app-api`} external>
-                      click to learn more on our wiki page
+                      click to learn more on our documentation page
                     </Link>
                     .
                   </InfoMessage>

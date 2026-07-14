@@ -97,6 +97,7 @@ interface Route {
   label: string | ((query: any) => string);
   private: boolean;
   permission?: string;
+  external?: boolean;
 }
 
 const routes: Route[] = [
@@ -128,6 +129,7 @@ const routes: Route[] = [
     path: `${docusaurusURL}/category/frequently-asked-questions`,
     label: 'FAQ',
     private: false,
+    external: true,
   },
 ];
 
@@ -169,7 +171,14 @@ const LeftMenuItems = ({
         };
 
         return (
-          <Nav.Link key={route.path} as={Link} href={route.path} style={style} active={isCurrent(route.path)}>
+          <Nav.Link
+            key={route.path}
+            as={Link}
+            href={route.path}
+            style={style}
+            active={isCurrent(route.path)}
+            target={route.external ? '_blank' : '_self'}
+          >
             {label}
           </Nav.Link>
         );

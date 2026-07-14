@@ -118,7 +118,10 @@ describe('Team List', () => {
       .querySelector('[class$="-singleValue"]');
     expect(secondMemberRoleDropdownValue.textContent).toBe('Member');
 
-    expect(getByRole('link', 'View a detailed breakdown of roles on our wiki page')).toHaveAttribute('href', HYPERLINK);
+    expect(getByRole('link', 'View a detailed breakdown of roles on our documentation page')).toHaveAttribute(
+      'href',
+      HYPERLINK,
+    );
 
     fireEvent.click(screen.getByRole('img', { name: 'Add Item' }));
     expect(screen.queryAllByText('Enter email address')).toHaveLength(1);

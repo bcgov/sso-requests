@@ -121,7 +121,7 @@ describe('CSS API Account tab', () => {
     const serviceAccountsTable = screen.getByTestId('service-accounts-table');
     const serviceAccountsTableRows = within(serviceAccountsTable).getAllByRole('row');
     expect(serviceAccountsTableRows[1]).toHaveTextContent('1');
-    expect(screen.getByRole('link', { name: 'click to learn more on our wiki page' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'click to learn more on our documentation page' })).toHaveAttribute(
       'href',
       HYPERLINK,
     );

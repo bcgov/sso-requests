@@ -134,7 +134,7 @@ const InstallationPanel = ({ integration, alert }: Props) => {
       <InfoMessage>
         For more information on how to use these details, or for the public endpoints associated to your client,{' '}
         <Link href={`${docusaurusURL}/integrating-your-application/installation-json`} external>
-          click to learn more on our wiki page
+          click to learn more on our documentation page
         </Link>
         .
       </InfoMessage>

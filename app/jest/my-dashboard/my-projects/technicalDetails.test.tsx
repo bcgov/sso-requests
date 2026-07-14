@@ -14,7 +14,7 @@ const bceidApprovedLastChange = { lhs: false, rhs: true, kind: 'E', path: ['bcei
 const githubApprovedLastChange = { lhs: false, rhs: true, kind: 'E', path: ['githubApproved'] };
 
 const HYPERLINK = `${docusaurusURL}/integrating-your-application/installation-json`;
-const WIKI_PAGE_HYPERLINK = `${docusaurusURL}/css-application/roles`;
+const DOCS_PAGE_HYPERLINK = `${docusaurusURL}/css-application/roles`;
 
 const DRAFT_MESSAGE = /Your request has not been submitted/;
 const PROGRESS_MESSAGE = /Access to environment\(s\) will be provided/;
@@ -423,13 +423,13 @@ describe('Applied Status header, button and link test', () => {
 
     expectText(DEV_IDIR_BCEID_ENV_HEADER);
     expectText(TEST_IDIR_BCEID_ENV_HEADER);
-    expect(screen.getByRole('link', { name: 'click to learn more on our wiki page' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'click to learn more on our documentation page' })).toHaveAttribute(
       'href',
       HYPERLINK,
     );
     fireEvent.click(screen.getByRole('tab', { name: 'Role Management' }));
     await waitFor(() => {
-      expect(screen.getByRole('link', { name: 'documentation' })).toHaveAttribute('href', WIKI_PAGE_HYPERLINK);
+      expect(screen.getByRole('link', { name: 'documentation' })).toHaveAttribute('href', DOCS_PAGE_HYPERLINK);
     });
   });
 
