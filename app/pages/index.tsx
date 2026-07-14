@@ -3,30 +3,31 @@ import styled from 'styled-components';
 import Link from '@app/components/Link';
 import ResponsiveContainer, { defaultRules } from 'components/ResponsiveContainer';
 import { PageProps } from 'interfaces/props';
-import StandardRealmsSVG from 'svg/StandardRealms';
 import WhatsNewSVG from '@app/svg/WhatsNewSVG';
 import { Accordion } from '@bcgov-sso/common-react-components';
 import { docusaurusURL, testimonials, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
 import Testimonial from 'components/Testimonial';
 import Carousel from 'components/Carousel';
 import useWindowDimensions from '@app/hooks/useWindowDimensions';
+import useMediaQuery from '@app/hooks/useMediaQuery';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faQuoteLeft } from '@fortawesome/free-solid-svg-icons';
 import { Col, Row } from 'react-bootstrap';
+import Image from 'next/image';
 
 interface PanelProps {
+  fullWidth?: boolean;
   marginLeft?: boolean;
   marginRight?: boolean;
 }
 
 const Panel = styled.div<PanelProps>`
-  max-width: 450px;
+  max-width: ${(props) => (props.fullWidth ? '100%' : '450px')};
   ${(props) => props.marginLeft && 'margin-left: auto;'}
   ${(props) => props.marginRight && 'margin-right: auto;'}
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
 
   @media only screen and (max-width: 800px) {
     margin-left: 0;
@@ -111,6 +112,8 @@ const TopQuoteContainer = styled.div`
 
 export default function Home({ onLoginClick }: Readonly<PageProps>) {
   const { width } = useWindowDimensions();
+  const isMobile = useMediaQuery('(max-width: 800px)');
+
   return (
     <>
       <Head>
@@ -118,8 +121,8 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
       </Head>
       <ResponsiveContainer rules={defaultRules}>
         <Row>
-          <Col sm={12} md={6}>
-            <Panel marginRight>
+          <Col sm={12} md={4}>
+            <Panel>
               <h1>Common Hosted Single Sign-On (CSS)</h1>
               <p className="text-large">
                 Use our self-service app to integrate
@@ -135,30 +138,14 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
               </ButtonContainer>
             </Panel>
           </Col>
-          <Col>
-            <Panel marginLeft>
-              <StandardRealmsSplashContainer>
-                <div className="splash-image">
-                  <StandardRealmsSVG />
-                </div>
-                <div className="splash-text">
-                  <p className="text-large">Included:</p>
-                  <ul>
-                    <li>Pre-configured realms</li>
-                    <li>Access to dev and test</li>
-                    <li>Client IDs and secrets</li>
-                    <li>24/7 service availability</li>
-                    <li>Service Accounts</li>
-                    <li>Roles</li>
-                  </ul>
-                  <p className="text-large">Not Included:</p>
-                  <ul>
-                    <li>Authentication flows</li>
-                    <li>Offline sessions</li>
-                    <li>Custom scopes</li>
-                  </ul>
-                </div>
-              </StandardRealmsSplashContainer>
+          <Col md={8} sm={12} className="splash-image">
+            <Panel fullWidth>
+              <Image
+                src="/standard-realm-home.png"
+                alt="SSO Illustration"
+                width={isMobile ? 450 : 900}
+                height={isMobile ? 250 : 500}
+              />
             </Panel>
           </Col>
         </Row>
