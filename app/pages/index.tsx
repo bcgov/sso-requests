@@ -141,10 +141,11 @@ export default function Home({ onLoginClick }: Readonly<PageProps>) {
           <Col md={8} sm={12} className="splash-image">
             <Panel $fullWidth>
               <Image
-                src="/standard-realm-home.png"
+                src="/standard-realm-home-hero.jpg"
                 alt="SSO Illustration"
                 width={isMobile ? 450 : 900}
                 height={isMobile ? 250 : 500}
+                unoptimized
               />
             </Panel>
           </Col>
