@@ -31,11 +31,11 @@ const prodValidRedirectUris = {
   title: 'Prod Redirect URIs',
 };
 
-const validURIlink = `<a target="_blank" class="link" href="${docusaurusURL}/integrating-your-application/redirects#valid-redirect-format">valid URI </a>`;
+const validURIlink = `<a target="_blank" class="link" href="${docusaurusURL}/css-application/redirects#valid-redirect-uri-format">valid URI </a>`;
 
 export const devValidRedirectUris = {
   ...commonRedirectUris,
-  description: `You can use any ${validURIlink} for your redirect URIs. We <a target="_blank" class="link" href="${docusaurusURL}/best-practices/dos-donts#do-not-reuse-clients-for-multiple-applications">recommend</a> only using your client for one application.`,
+  description: `You can use any ${validURIlink} for your redirect URIs. We <a target="_blank" class="link" href="${docusaurusURL}/best-practices/dos-donts#dont-reuse-the-same-keycloak-client-across-multiple-applications">recommend</a> only using your client for one application.`,
   title: 'Dev Redirect URIs',
   tooltip: redirectUriTooltip,
 };
