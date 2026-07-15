@@ -44,7 +44,7 @@ export const openIdClientProfile = (
   const hasFullHostnameWildcard =
     integration.publicAccess &&
     environment !== 'prod' &&
-    (validRedirectUris as string[]).some((uri) => /^[a-zA-Z][a-zA-Z-.]*:\/\/\*(\/|$)/.test(uri));
+    (validRedirectUris as string[]).some((uri) => /^https?:\/\/\*(\/|$)/.test(uri));
   const webOrigins = (validRedirectUris as string[]).concat('+').concat(hasFullHostnameWildcard ? ['*'] : []);
 
   let oidcClient: ClientRepresentation = {

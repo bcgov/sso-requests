@@ -73,6 +73,18 @@ describe('WebOrigins with scheme://* redirect URIs', () => {
       expect(profile.webOrigins).not.toContain('*');
       expect(profile.webOrigins).toContain('+');
     });
+
+    it('does not include * for non-http/https schemes (e.g. custom deep links)', () => {
+      const integration = {
+        ...baseIntegration,
+        publicAccess: true,
+        devValidRedirectUris: ['myapp://*'],
+      } as IntegrationData;
+
+      const profile = openIdClientProfile(integration, 'dev', authFlows);
+
+      expect(profile.webOrigins).not.toContain('*');
+    });
   });
 
   describe('public client in test', () => {
