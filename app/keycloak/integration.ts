@@ -39,6 +39,14 @@ export const openIdClientProfile = (
   const validRedirectUris = integration[`${environment}ValidRedirectUris` as keyof IntegrationData] || [];
   const pkceCodeChallengeMethod = integration.publicAccess ? 'S256' : '';
 
+  // For public clients in dev/test, scheme://* in redirect URIs doesn't map to a valid
+  // CORS origin via '+', so explicitly add '*' to cover it.
+  const hasFullHostnameWildcard =
+    integration.publicAccess &&
+    environment !== 'prod' &&
+    (validRedirectUris as string[]).some((uri) => /^[a-zA-Z][a-zA-Z-.]*:\/\/\*$/.test(uri));
+  const webOrigins = (validRedirectUris as string[]).concat('+').concat(hasFullHostnameWildcard ? ['*'] : []);
+
   let oidcClient: ClientRepresentation = {
     clientId: integration.clientId,
     name: clientName || integration.clientId,
@@ -60,7 +68,7 @@ export const openIdClientProfile = (
     serviceAccountsEnabled: ['service-account', 'both'].includes(integration?.authType!),
     publicClient: integration.publicAccess || false,
     redirectUris: validRedirectUris,
-    webOrigins: validRedirectUris.concat('+'),
+    webOrigins,
     fullScopeAllowed: false,
     authenticationFlowBindingOverrides: {
       browser: authFlows.find((flow) => flow.alias === integration.browserFlowOverride)?.id || '',
