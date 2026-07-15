@@ -49,6 +49,18 @@ describe('WebOrigins with scheme://* redirect URIs', () => {
       expect(profile.webOrigins).toContain('+');
     });
 
+    it('includes * in webOrigins when https://*/path is a redirect URI', () => {
+      const integration = {
+        ...baseIntegration,
+        publicAccess: true,
+        devValidRedirectUris: ['https://*/some-specific-path'],
+      } as IntegrationData;
+
+      const profile = openIdClientProfile(integration, 'dev', authFlows);
+
+      expect(profile.webOrigins).toContain('*');
+    });
+
     it('does not include * when no scheme://* redirect URI is present', () => {
       const integration = {
         ...baseIntegration,
