@@ -10,7 +10,7 @@ import {
   postTeam,
 } from './helpers/fixtures';
 import { deleteIntegration, updateIntegration } from './helpers/modules/integrations';
-import { createTeam, verifyTeamMember } from './helpers/modules/teams';
+import { createTeam } from './helpers/modules/teams';
 import { cleanUpDatabaseTables } from './helpers/utils';
 import { Integration } from '@app/interfaces/Request';
 import { renderTemplate } from '@app/shared/templates';
@@ -18,7 +18,6 @@ import { EMAILS } from '@app/shared/enums';
 import { IDIM_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { buildIntegration } from './helpers/modules/common';
 import { getAuthenticatedUser } from './helpers/modules/users';
-import { generateInvitationToken } from '@app/helpers/token';
 import { createMockAuth } from './mocks/authenticate';
 import { createMockSendEmail } from './mocks/mail';
 
@@ -68,9 +67,6 @@ describe('integration email updates for teams', () => {
       const result = await createTeam(postTeam);
       teamId = result.body.id;
       createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
-      const userRes = await getAuthenticatedUser();
-      const token = generateInvitationToken(userRes.body as any, teamId);
-      await verifyTeamMember(token);
     });
 
     afterAll(async () => {

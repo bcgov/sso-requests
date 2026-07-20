@@ -18,13 +18,10 @@ import {
   deleteTeam,
   getMembersOfTeam,
   getTeams,
-  sendTeamInvite,
   updateTeam,
   updateTeamMember,
-  verifyTeamMember,
 } from './helpers/modules/teams';
 import { getAuthenticatedUser } from './helpers/modules/users';
-import { generateInvitationToken } from '@app/helpers/token';
 import { sendEmail } from '@app/utils/ches';
 import { models } from '@app/shared/sequelize/models/models';
 import { findOrCreateUser } from '@app/controllers/user';
@@ -126,7 +123,7 @@ describe('users and teams', () => {
       });
     });
 
-    it('should not add duplicate users upon inviting to a team by admin', async () => {
+    it('should not create duplicate users upon adding to a team by admin', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const teamsRes = await createTeam({
         name: 'dummy_team',
@@ -151,34 +148,18 @@ describe('users and teams', () => {
       expect(teamsRes.body).toEqual([]);
     });
 
-    it('should be redirected without team token to validate', async () => {
-      const result = await verifyTeamMember('');
-      expect(result.status).toEqual(307);
-      expect(result.headers.location).toEqual('/verify-user?message=notoken');
-    });
-
-    it('should have an error with invalid team invitation token', async () => {
-      const result = await verifyTeamMember('qerasdf');
-      expect(result.status).toEqual(307);
-      expect(result.headers.location).toEqual('/verify-user?message=malformed');
-    });
-
     it('should verify team admins added by the admin', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_02, TEAM_ADMIN_IDIR_EMAIL_02);
       const userRes = await getAuthenticatedUser();
-      const token = generateInvitationToken(userRes.body as any, teamId);
-      await verifyTeamMember(token);
       const users = await models.usersTeam.findAll({ where: { userId: userRes.body.id, teamId } });
-      expect(users[0].pending).not.toBeTruthy;
+      expect(users[0].pending).not.toBeTruthy();
     });
 
     it('should verify team members added by the admin', async () => {
       createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
       const userRes = await getAuthenticatedUser();
-      const token = generateInvitationToken(userRes.body as any, teamId);
-      await verifyTeamMember(token);
       const users = await models.usersTeam.findAll({ where: { userId: userRes.body.id, teamId } });
-      expect(users[0].pending).not.toBeTruthy;
+      expect(users[0].pending).not.toBeTruthy();
     });
 
     it('should not allow non-admins to add users to their team', async () => {
@@ -228,19 +209,6 @@ describe('users and teams', () => {
       expect(result.body.role).toBe('admin');
     });
 
-    it('should allow admins to re-send invitations', async () => {
-      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-      const result = await sendTeamInvite(teamId, postTeamMembers[0]);
-      expect(result.status).toEqual(200);
-      expect(sendEmail).toHaveBeenCalled();
-    });
-
-    it('should not allow non-admins to resend invitations', async () => {
-      createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
-      const result = await sendTeamInvite(teamId, postTeamMembers[2]);
-      expect(result.status).toEqual(403);
-    });
-
     it('should not allow non-admins to delete team', async () => {
       createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
       const result = await deleteTeam(teamId);
@@ -281,7 +249,7 @@ describe('User creation and Updating', () => {
   });
 
   it('Updates the existing information when email already exists in the database', async () => {
-    // User exists with only email via invite
+    // User exists with only email
     await models.user.create({
       idirEmail: 'no_userid_user@domain.com',
     });
@@ -304,19 +272,19 @@ describe('User creation and Updating', () => {
     expect(users.map((user: any) => user.idirEmail)).toContain('no_userid_user@domain.com');
   });
 
-  it('Cleans up users if re-invited on a new email address and existing GUID', async () => {
+  it('Cleans up users if added to a team on a new email address and existing GUID', async () => {
     // User initially exists with an old email and id
     await models.user.create({
       idirEmail: 'old@email.com',
       idirUserid: 'TEST',
     });
 
-    // User invited with new email. No guid inserted yet since hasn't logged in
+    // User added with new email. No guid inserted yet since hasn't logged in
     await models.user.create({
       idirEmail: 'second@email.com',
     });
 
-    // Simulate login step using new email from invite, same guid as before
+    // Simulate login step using new email after user has been added to a team, same guid as before
     await findOrCreateUser({
       idir_userid: 'TEST',
       email: 'second@email.com',

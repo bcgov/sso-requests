@@ -28,7 +28,6 @@ const knownRoutes = [
   '/api/teams/[teamId]/service-accounts/[saId]/restore',
   '/api/teams/[teamId]/service-accounts/[saId]/credentials',
   '/api/teams/[teamId]/service-accounts/[saId]',
-  '/api/teams/[teamId]/invite',
   '/api/teams/[teamId]/members/[memberId]',
   '/api/teams/[teamId]/members',
   '/api/teams/[teamId]',

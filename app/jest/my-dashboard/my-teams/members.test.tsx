@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
-import { addTeamMembers, inviteTeamMember, deleteTeamMember } from 'services/team';
+import { addTeamMembers, deleteTeamMember } from 'services/team';
 import { MyTeamsComponent } from './helpers';
 import { docusaurusURL } from '@app/utils/constants';
 
@@ -64,7 +64,6 @@ jest.mock('services/team', () => ({
     null,
   ]),
   addTeamMembers: jest.fn(() => [, null]),
-  inviteTeamMember: jest.fn(() => [, null]),
   deleteTeamMember: jest.fn(() => [, null]),
 }));
 
@@ -135,21 +134,11 @@ describe('Members tab', () => {
     render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'Members' }));
 
-    screen.getByRole('columnheader', { name: 'Invite Status' });
     screen.findByText('Email');
     screen.getByRole('columnheader', { name: 'Role' });
     screen.getAllByRole('columnheader', { name: 'Actions' });
     screen.getByRole('row', { name: 'admin01@gov.bc.ca Admin' });
-    screen.getByRole('row', { name: 'member01@gov.bc.ca Member Resend Invitation Delete User' });
-  });
-
-  it('Should be able to click the resend invitation button', async () => {
-    render(<MyTeamsComponent />);
-    fireEvent.click(await screen.findByRole('tab', { name: 'Members' }));
-
-    const resendButton = screen.findByRole('img', { name: 'Resend Invitation' });
-    fireEvent.click(await resendButton);
-    expect(inviteTeamMember).toHaveBeenCalledTimes(1);
+    screen.getByRole('row', { name: 'member01@gov.bc.ca Member Delete User' });
   });
 
   it('Should be able to click the Delete button', async () => {

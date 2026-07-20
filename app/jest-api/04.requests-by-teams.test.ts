@@ -1,4 +1,3 @@
-import { generateInvitationToken } from '@app/helpers/token';
 import {
   TEAM_ADMIN_IDIR_EMAIL_01,
   TEAM_ADMIN_IDIR_USERID_01,
@@ -19,7 +18,7 @@ import {
   getIntegration,
   updateIntegration,
 } from './helpers/modules/integrations';
-import { createTeam, verifyTeamMember } from './helpers/modules/teams';
+import { createTeam } from './helpers/modules/teams';
 import { getAuthenticatedUser } from './helpers/modules/users';
 import { cleanUpDatabaseTables } from './helpers/utils';
 import { models } from '@app/shared/sequelize/models/models';
@@ -65,8 +64,6 @@ describe('create/manage integrations by authenticated user', () => {
   it('should verify team members added by the admin', async () => {
     createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
     const userRes = await getAuthenticatedUser();
-    const token = generateInvitationToken(userRes.body as any, teamId);
-    await verifyTeamMember(token);
     const users = await models.usersTeam.findAll({ where: { userId: userRes.body.id, teamId } });
     expect(users[0].pending).not.toBeTruthy;
   });

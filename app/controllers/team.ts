@@ -12,15 +12,12 @@ import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { sendTemplate } from '@app/shared/templates';
 import { EMAILS, EVENTS } from '@app/shared/enums';
 import { User, Team, Member, Session } from '@app/shared/interfaces';
-import { processIntegrationRequest } from '@app/controllers/requests';
+import { processIntegrationRequest, checkIfRequestMerged, createEvent } from '@app/controllers/requests';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
 import { generateInstallation, updateClientSecret } from '../keycloak/installation';
-import { getIntegrationsByTeam } from '@app/queries/request';
-import { checkIfRequestMerged, createEvent } from '@app/controllers/requests';
 import createHttpError from 'http-errors';
-import { generateInvitationToken } from '@app/helpers/token';
 import { hasTeamPermission, teamPermissions } from '@app/utils/authorize';
 
 export const listTeams = async (user: User) => {
@@ -40,33 +37,59 @@ export const addUsersToTeam = async (teamId: number, userId: number, members: Me
   const userRole = await getTeamRoleByUserId(userId, teamId);
   const authorized = hasTeamPermission(userRole?.role, teamPermissions.ADD_MEMBER);
   if (userRole?.pending || !authorized) throw new createHttpError.Forbidden('not allowed to add users to team');
-  members = members.map((member) => ({ ...member, idirEmail: lowcase(member?.idirEmail!) }));
+  const dedupedMembers = Array.from(
+    members
+      .map((member) => ({ ...member, idirEmail: lowcase(member?.idirEmail!) }))
+      .reduce((acc, member) => {
+        acc.set(member.idirEmail, member);
+        return acc;
+      }, new Map<string, Member>())
+      .values(),
+  );
 
   const usersEmailsAlreadyOnTeam = await findAllowedTeamUsers(teamId, userId).then((result) =>
     result.map((member: any) => member.idirEmail),
   );
-  const membersToAdd = members.filter((member) => !usersEmailsAlreadyOnTeam.includes(member.idirEmail));
+  const membersToAdd = dedupedMembers.filter((member) => !usersEmailsAlreadyOnTeam.includes(member.idirEmail));
+  if (membersToAdd.length === 0) {
+    return [];
+  }
+
   const memberEmails = membersToAdd.map((member) => member.idirEmail);
   const existingUsers = await models.user.findAll({
     where: {
       idir_email: { [Op.in]: memberEmails },
     },
   });
-  const existingUserEmails = existingUsers.map((user: any) => user.idirEmail);
-  const missingUsers = membersToAdd.filter((member) => !existingUserEmails.includes(member.idirEmail));
+  const existingUserEmails = new Set(existingUsers.map((user: any) => user.idirEmail));
+  const missingUsers = membersToAdd.filter((member) => !existingUserEmails.has(member.idirEmail));
   const newUsers = await Promise.all(missingUsers.map((user) => models.user.create({ idirEmail: user.idirEmail })));
+  const usersByEmail = new Map([...existingUsers, ...newUsers].map((user: any) => [user.idirEmail, user]));
+
   const allUsers = membersToAdd.map((member) => {
     const { idirEmail, role } = member;
-    let user = [...existingUsers, ...newUsers].find((user) => user.dataValues.idirEmail === idirEmail);
-    user.role = role;
-    return user;
+    const user = usersByEmail.get(idirEmail);
+    if (!user) {
+      throw new createHttpError.UnprocessableEntity(`failed to resolve user for email ${idirEmail}`);
+    }
+    return {
+      id: user.id,
+      idirEmail,
+      role,
+    };
   });
 
   // Return IDs of new users
-  return Promise.all([
-    ...allUsers.map((user) => models.usersTeam.create({ teamId, userId: user.id, role: user.role, pending: true })),
-    inviteTeamMembers(userId, allUsers, teamId),
-  ]).then((result) => result.slice(0, -1).map((userTeam) => userTeam.userId));
+  const userTeams = await Promise.all(
+    allUsers.map(async (user) => {
+      const team = await getTeamById(teamId);
+      const userTeam = await models.usersTeam.create({ teamId, userId: user.id, role: user.role, pending: false });
+      await sendTemplate(EMAILS.TEAM_MEMBER_ADDED, { email: user.idirEmail, team, role: user.role });
+      return userTeam;
+    }),
+  );
+
+  return userTeams.map((userTeam) => userTeam.userId);
 };
 
 export const updateTeam = async (user: User, teamId: string, data: { name: string }) => {
@@ -131,19 +154,6 @@ export const deleteTeam = async (session: Session, teamId: number) => {
   await sendTemplate(EMAILS.TEAM_DELETED, { team });
   await team.destroy();
   return true;
-};
-
-export const verifyTeamMember = async (userId: number, teamId: number) => {
-  const result = await models.usersTeam.update(
-    { pending: false },
-    {
-      where: {
-        userId,
-        teamId,
-      },
-    },
-  );
-  return result[0] === 1;
 };
 
 export const userCanReadTeam = async (user: User, teamId: number) => {
@@ -258,8 +268,6 @@ export const requestServiceAccount = async (session: Session, userId: number, te
     throw new createHttpError.Conflict('team already has api account');
   }
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
-  const integrations = await getIntegrationsByTeam(teamId, 'gold');
-  const team = await getTeamById(teamId);
 
   const serviceAccount = await models.request.create({
     projectName: `Service Account for team #${teamId}`,
@@ -463,19 +471,3 @@ export const restoreTeamServiceAccount = async (session: Session, userId: number
 
   return serviceAccount;
 };
-
-export async function inviteTeamMembers(userId: number, users: (User & { role: string })[], teamId: number) {
-  const userRole = await getTeamRoleByUserId(userId, teamId);
-  const authorized = hasTeamPermission(userRole?.role, teamPermissions.ADD_MEMBER);
-  if (userRole?.pending || !authorized)
-    throw new createHttpError.Forbidden(`not allowed to invite members for the team #${teamId}`);
-  const team = await getTeamById(teamId);
-  return Promise.all(
-    users.map(async (user) => {
-      const invitationLink = generateInvitationToken(user, team.id);
-      const { idirEmail: email, role } = user;
-      await sendTemplate(EMAILS.TEAM_INVITATION, { email, team, invitationLink, role });
-      return true;
-    }),
-  );
-}

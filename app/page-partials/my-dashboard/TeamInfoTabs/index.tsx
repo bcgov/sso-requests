@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { Tabs } from '@bcgov-sso/common-react-components';
@@ -13,7 +13,6 @@ import {
   getTeamMembers,
   updateTeamMember,
   deleteTeamMember,
-  inviteTeamMember,
   getServiceAccount,
   requestServiceAccount,
   getServiceAccounts,
@@ -28,7 +27,6 @@ import {
   faClock,
   faTimesCircle,
   faCheckCircle,
-  faShare,
   faEye,
 } from '@fortawesome/free-solid-svg-icons';
 import { canDeleteMember, capitalize } from 'utils/helpers';
@@ -47,8 +45,6 @@ import TableNew from '@app/components/TableNew';
 import Select from 'react-select';
 import { Col, Row } from 'react-bootstrap';
 import ActionButton from '@app/components/ActionButton';
-
-const INVITATION_EXPIRY_DAYS = 2;
 
 const TabWrapper = styled.div<{ marginTop?: string; marginBottom?: string; marginLeft?: string; marginRight?: string }>`
   padding-left: 1rem;
@@ -182,29 +178,6 @@ const RequestStatusIcon = ({ status }: { status?: Status }) => {
     icon = faCheckCircle;
   }
   return <FontAwesomeIcon icon={icon} aria-label={status} style={{ color }} />;
-};
-
-const MemberStatusIcon = ({ pending, invitationSendTime }: { pending?: boolean; invitationSendTime?: string }) => {
-  if (!invitationSendTime) return null;
-  const invitationAgeMilliseconds = new Date().getTime() - new Date(invitationSendTime).getTime();
-  const invitationAgeDays = invitationAgeMilliseconds / (60 * 60 * 24 * 1000);
-  let icon;
-  let color;
-  let title;
-  if (pending && invitationAgeDays > INVITATION_EXPIRY_DAYS) {
-    icon = faExclamationCircle;
-    color = '#ff0303';
-    title = 'Invitation Expired';
-  } else if (pending) {
-    icon = faClock;
-    color = '#fcba19';
-    title = 'Invitation Sent';
-  } else {
-    color = '#2e8540';
-    icon = faCheckCircle;
-    title = 'Active Member';
-  }
-  return <FontAwesomeIcon icon={icon} aria-label={title} style={{ color }} />;
 };
 
 const Requester = styled.div`
@@ -379,26 +352,6 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
     router.push({ pathname: '/my-dashboard/integrations', query: { integr: integrationId } });
   };
 
-  const inviteMember = async (member: User) => {
-    if (!team.id) return;
-    const [, err] = await inviteTeamMember(member, team.id);
-    if (err) {
-      alert.show({
-        variant: 'danger',
-        fadeOut: 10000,
-        closable: true,
-        content: `Failed to resend invitation.`,
-      });
-    } else {
-      alert.show({
-        variant: 'success',
-        fadeOut: 10000,
-        closable: true,
-        content: `Sent new invitation for team member ${member.idirEmail}`,
-      });
-    }
-  };
-
   const handleMemberRoleChange = async (memberId: number, role: string) => {
     const [data, err] = await updateTeamMember(team.id as number, memberId, { role });
     if (err) {
@@ -453,23 +406,6 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                   header: '',
                 },
                 {
-                  accessorKey: 'invitiationSendTime',
-                  header: '',
-                },
-                {
-                  accessorKey: 'status',
-                  header: 'Invite Status',
-
-                  cell: (props) => {
-                    return (
-                      <MemberStatusIcon
-                        pending={props.row.getValue('status')}
-                        invitationSendTime={props.row.getValue('invitiationSendTime')}
-                      />
-                    );
-                  },
-                },
-                {
                   accessorKey: 'idirEmail',
                   header: 'Email',
                 },
@@ -515,22 +451,11 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                   accessorKey: 'actions',
                   header: () => <MembersActionsHeader />,
                   cell: (props) => {
-                    const member = members.find((member) => member.id === props.row.getValue('id'));
                     const adminActionsAllowed =
                       hasTeamPermission(myself?.role, teamPermissions.UPDATE_MEMBER_ROLE) &&
                       myself.id !== props.row.getValue('id');
                     return (
                       <RightFloat>
-                        {adminActionsAllowed && props.row.original.status && (
-                          <ActionButton
-                            icon={faShare}
-                            size="lg"
-                            onClick={() => inviteMember(member!)}
-                            aria-label="Resend Invitation"
-                            style={{ marginRight: '6px' }}
-                            data-testid="resend-invitation"
-                          />
-                        )}
                         {adminActionsAllowed && (
                           <ActionButton
                             icon={faTrash}
@@ -552,11 +477,10 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                   status: Boolean(member.pending),
                   idirEmail: member.idirEmail,
                   role: member.role,
-                  invitiationSendTime: member.createdAt,
                 };
               })}
               enableGlobalSearch={false}
-              hiddenColumns={['id', 'invitiationSendTime']}
+              hiddenColumns={['id']}
               enablePagination={false}
             ></TableNew>
           </ReactPlaceholder>
