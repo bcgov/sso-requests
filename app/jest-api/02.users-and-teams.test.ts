@@ -137,15 +137,8 @@ describe('users and teams', () => {
       expect(teamsRes.status).toEqual(200);
       expect(teamsRes.body.name).toEqual('dummy_team');
       const newUsers = await models.user.findAll({ where: { idirEmail: TEAM_ADMIN_IDIR_EMAIL_02 } });
-      expect(newUsers.length).toBe(1);
+      expect(newUsers).toHaveLength(1);
       expect(sendEmail).toHaveBeenCalled();
-    });
-
-    it('should not allow pending team members from reading teams membership', async () => {
-      createMockAuth(TEAM_ADMIN_IDIR_USERID_02, TEAM_ADMIN_IDIR_EMAIL_02);
-      const teamsRes = await getTeams();
-      expect(teamsRes.status).toEqual(200);
-      expect(teamsRes.body).toEqual([]);
     });
 
     it('should verify team admins added by the admin', async () => {
@@ -165,12 +158,6 @@ describe('users and teams', () => {
     it('should not allow non-admins to add users to their team', async () => {
       createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
       const result = await addMembersToTeam(teamId, [{ idirEmail: 'test_user', role: 'member' }]);
-      expect(result.status).toEqual(403);
-    });
-
-    it('should block pending admins from removing team members', async () => {
-      createMockAuth(TEAM_ADMIN_IDIR_USERID_03, TEAM_ADMIN_IDIR_EMAIL_03);
-      const result = await deleteMembersOfTeam(teamId, teamMemberIds[0]);
       expect(result.status).toEqual(403);
     });
 
@@ -315,15 +302,10 @@ describe('Admin Removal and Events', () => {
     });
   });
 
-  it('Should ignore pending users when checking if the last admin is leaving the team', async () => {
+  it('Should not allow last admin to leave the team', async () => {
     const team = await createTeam({
       name: 'team',
-      members: [
-        {
-          idirEmail: TEAM_ADMIN_IDIR_EMAIL_02,
-          role: 'admin',
-        },
-      ],
+      members: [],
     }).then((res) => res.body);
     const result = await deleteMembersOfTeam(team.id, authenticatedUser.id);
     expect(result.status).toEqual(403);

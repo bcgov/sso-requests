@@ -66,7 +66,6 @@ describe('integration email updates for teams', () => {
       emailList = createMockSendEmail();
       const result = await createTeam(postTeam);
       teamId = result.body.id;
-      createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
     });
 
     afterAll(async () => {
@@ -98,7 +97,8 @@ describe('integration email updates for teams', () => {
       expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
+      // Expecting 5 recipients as all the team members are added
+      expect(emailList[0].to.length).toEqual(5);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
       expect(emailList[0].cc).toEqual([]);
     });
@@ -127,7 +127,8 @@ describe('integration email updates for teams', () => {
       expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
+      // Expecting 5 recipients as all the team members are added
+      expect(emailList[0].to.length).toEqual(5);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
       expect(emailList[0].cc).toEqual([]);
     });
@@ -166,7 +167,8 @@ describe('integration email updates for teams', () => {
       expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
+      // Expecting 5 recipients as all the team members are added
+      expect(emailList[0].to.length).toEqual(5);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
       expect(emailList[0].cc).toEqual([IDIM_EMAIL_ADDRESS]);
     });
@@ -210,7 +212,8 @@ describe('integration email updates for teams', () => {
       expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
+      // Expecting 5 recipients as all the team members are added
+      expect(emailList[0].to.length).toEqual(5);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
       expect(emailList[0].cc.length).toEqual(2);
       expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
@@ -255,7 +258,8 @@ describe('integration email updates for teams', () => {
       expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
+      // Expecting 5 recipients as all the team members are added
+      expect(emailList[0].to.length).toEqual(5);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
       expect(emailList[0].cc).toEqual([SSO_TEAM_IDIR_EMAIL]);
     });
@@ -284,7 +288,8 @@ describe('integration email updates for teams', () => {
       expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
+      // Expecting 5 recipients as all the team members are added
+      expect(emailList[0].to.length).toEqual(5);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
       expect(emailList[0].cc).toEqual([]);
     });
@@ -315,7 +320,8 @@ describe('integration email updates for teams', () => {
       expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
+      // Expecting 5 recipients as all the team members are added
+      expect(emailList[0].to.length).toEqual(5);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
       expect(emailList[0].cc).toEqual([IDIM_EMAIL_ADDRESS]);
     });

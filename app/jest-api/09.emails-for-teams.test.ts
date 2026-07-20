@@ -46,11 +46,14 @@ describe('emails for teams', () => {
     });
     // four users are being added when creating a team
     expect(emailList.length).toEqual(4);
-    expect(emailList[0].subject).toEqual(template.subject);
-    expect(emailList[0].body).toEqual(template.body);
-    expect(emailList[0].to.length).toEqual(1);
-    expect(emailList[0].to[0]).toEqual(TEAM_ADMIN_IDIR_EMAIL_02);
-    expect(emailList[0].cc.length).toEqual(0);
+
+    const email = emailList.find((email: any) => email.to.includes(TEAM_ADMIN_IDIR_EMAIL_02));
+
+    expect(email.subject).toEqual(template.subject);
+    expect(email.body).toEqual(template.body);
+    expect(email.to.length).toEqual(1);
+    expect(email.to[0]).toEqual(TEAM_ADMIN_IDIR_EMAIL_02);
+    expect(email.cc.length).toEqual(0);
   });
 
   it('should render the expected template in the email being sent to deleted user', async () => {
