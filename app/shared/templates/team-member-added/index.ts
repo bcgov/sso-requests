@@ -1,12 +1,11 @@
-import * as fs from 'fs';
 import Handlebars from 'handlebars';
 import { sendEmail } from '@app/utils/ches';
 import { getEmailTemplate, processTeam } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 
-const SUBJECT_TEMPLATE = `Invitation to join {{team.name}}`;
-const template = getEmailTemplate('team-invitation/team-invitation.html');
+const SUBJECT_TEMPLATE = `You have been added to {{team.name}} as {{role}}`;
+const template = getEmailTemplate('team-member-added/team-member-added.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });
 const bodyHandler = Handlebars.compile(template, { noEscape: true });
@@ -14,8 +13,6 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 interface DataProps {
   email: string;
   team: string;
-  invitationLink: string;
-  apiUrl: string;
   role: string;
 }
 
@@ -33,7 +30,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   const { email } = data;
 
   return sendEmail({
-    code: EMAILS.TEAM_INVITATION,
+    code: EMAILS.TEAM_MEMBER_ADDED,
     to: [email],
     cc: [],
     ...rendered,

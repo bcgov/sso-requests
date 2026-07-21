@@ -10,7 +10,7 @@ import {
   postTeam,
 } from './helpers/fixtures';
 import { deleteIntegration, updateIntegration } from './helpers/modules/integrations';
-import { createTeam, verifyTeamMember } from './helpers/modules/teams';
+import { createTeam } from './helpers/modules/teams';
 import { cleanUpDatabaseTables } from './helpers/utils';
 import { Integration } from '@app/interfaces/Request';
 import { renderTemplate } from '@app/shared/templates';
@@ -18,7 +18,6 @@ import { EMAILS } from '@app/shared/enums';
 import { IDIM_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { buildIntegration } from './helpers/modules/common';
 import { getAuthenticatedUser } from './helpers/modules/users';
-import { generateInvitationToken } from '@app/helpers/token';
 import { createMockAuth } from './mocks/authenticate';
 import { createMockSendEmail } from './mocks/mail';
 
@@ -67,10 +66,6 @@ describe('integration email updates for teams', () => {
       emailList = createMockSendEmail();
       const result = await createTeam(postTeam);
       teamId = result.body.id;
-      createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
-      const userRes = await getAuthenticatedUser();
-      const token = generateInvitationToken(userRes.body as any, teamId);
-      await verifyTeamMember(token);
     });
 
     afterAll(async () => {
@@ -102,7 +97,8 @@ describe('integration email updates for teams', () => {
       expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
+      // Expecting 5 recipients as all the team members are added
+      expect(emailList[0].to.length).toEqual(5);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
       expect(emailList[0].cc).toEqual([]);
     });
@@ -131,7 +127,8 @@ describe('integration email updates for teams', () => {
       expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
+      // Expecting 5 recipients as all the team members are added
+      expect(emailList[0].to.length).toEqual(5);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
       expect(emailList[0].cc).toEqual([]);
     });
@@ -170,7 +167,8 @@ describe('integration email updates for teams', () => {
       expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
+      // Expecting 5 recipients as all the team members are added
+      expect(emailList[0].to.length).toEqual(5);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
       expect(emailList[0].cc).toEqual([IDIM_EMAIL_ADDRESS]);
     });
@@ -214,7 +212,8 @@ describe('integration email updates for teams', () => {
       expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
+      // Expecting 5 recipients as all the team members are added
+      expect(emailList[0].to.length).toEqual(5);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
       expect(emailList[0].cc.length).toEqual(2);
       expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
@@ -259,7 +258,8 @@ describe('integration email updates for teams', () => {
       expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
+      // Expecting 5 recipients as all the team members are added
+      expect(emailList[0].to.length).toEqual(5);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
       expect(emailList[0].cc).toEqual([SSO_TEAM_IDIR_EMAIL]);
     });
@@ -288,7 +288,8 @@ describe('integration email updates for teams', () => {
       expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
+      // Expecting 5 recipients as all the team members are added
+      expect(emailList[0].to.length).toEqual(5);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
       expect(emailList[0].cc).toEqual([]);
     });
@@ -319,7 +320,8 @@ describe('integration email updates for teams', () => {
       expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(2);
+      // Expecting 5 recipients as all the team members are added
+      expect(emailList[0].to.length).toEqual(5);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
       expect(emailList[0].cc).toEqual([IDIM_EMAIL_ADDRESS]);
     });

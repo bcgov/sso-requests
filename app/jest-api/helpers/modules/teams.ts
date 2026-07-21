@@ -5,8 +5,6 @@ import teamsHandler from '@app/pages/api/teams';
 import teamHandler from '@app/pages/api/teams/[teamId]';
 import teamMembersHandler from '@app/pages/api/teams/[teamId]/members';
 import teamMemberHandler from '@app/pages/api/teams/[teamId]/members/[memberId]';
-import teamVerifyHandler from '@app/pages/api/teams/verify';
-import teamInviteHandler from '@app/pages/api/teams/[teamId]/invite';
 
 export const getTeams = async () => {
   return await testClient(teamsHandler).get(`${API_BASE_PATH}/teams`);
@@ -34,19 +32,8 @@ export const getMembersOfTeam = async (teamId: number) => {
   return await testClient(teamMembersHandler).get(`${API_BASE_PATH}/teams/${teamId}/members`);
 };
 
-export const verifyTeamMember = async (token: string) => {
-  return await testClient(teamVerifyHandler).get(`${API_BASE_PATH}/teams/verify${token ? '?token=' + token : ''}`);
-};
-
 export const deleteMembersOfTeam = async (teamId: number, userId: number) => {
   return await testClient(teamMemberHandler).delete(`${API_BASE_PATH}/teams/${teamId}/members/${userId}`);
-};
-
-export const sendTeamInvite = async (teamId: number, data: { idirEmail: string; role: string }) => {
-  return await testClient(teamInviteHandler)
-    .post(`${API_BASE_PATH}/teams/${teamId}/invite`)
-    .send(data)
-    .set('Accept', 'application/json');
 };
 
 export const deleteTeam = async (teamId: number) => {

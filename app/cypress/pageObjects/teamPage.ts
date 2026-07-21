@@ -11,7 +11,7 @@ class TeamPage {
   editTeamButton: string = '[data-testid="edit-team-button"]';
   deleteTeamButton: string = '[data-testid="delete-team-button"]';
   teamName: string = '[data-testid="team-name"]';
-  sendInvitation: string = 'button[data-testid="send-invitation"]';
+  createTeamBtn: string = 'button[data-testid="create-team"]';
   modalCancelBtn: string = 'button[data-testid^="modal-cancel-btn"]';
   modalConfirmBtn: string = 'button[data-testid^="modal-confirm-btn"]';
   modalCreateTeam: string = '#create-team-modal';
@@ -27,7 +27,6 @@ class TeamPage {
   editTeamName: string = '[data-testid="edit-name"]';
   saveEditTeamName: string = '[data-testid="save-edit-name"]';
   cancelEditTeamName: string = '[data-testid="cancel-edit-name"]';
-  resendInvitation: string = '[data-testid="resend-invitation"]';
   deleteMember: string = '[data-testid="delete-member"]';
   addNewTeamMember: string = '[data-testid="add-new-team-member"]';
 

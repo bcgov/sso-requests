@@ -9,7 +9,6 @@ import createIntegrationApplied from './create-integration-applied';
 import deleteIntegrationSubmitted from './delete-integration-submitted';
 import requestLimitExceeded from './request-limit-exceeded';
 import teamDeleted from './team-deleted';
-import teamInvitation from './team-invitation';
 import teamMemberDeletedAdmins from './team-member-deleted-admins';
 import teamMemberDeletedUserRemoved from './team-member-deleted-user-removed';
 import updateIntegrationApplied from './update-integration-applied';
@@ -22,6 +21,7 @@ import restoreTeamApiAccount from './restore-team-api-account';
 import orphanIntegration from './orphan-integration';
 import { getEmailTemplate, isNonProdDigitalCredentialRequest } from './helpers';
 import disableBcscIdp from './disable-bcsc-idp';
+import teamMemberAdded from './team-member-added';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/app';
@@ -119,8 +119,8 @@ const getBuilder = (key: string) => {
     case EMAILS.REQUEST_LIMIT_EXCEEDED:
       builder = requestLimitExceeded;
       break;
-    case EMAILS.TEAM_INVITATION:
-      builder = teamInvitation;
+    case EMAILS.TEAM_MEMBER_ADDED:
+      builder = teamMemberAdded;
       break;
     case EMAILS.TEAM_MEMBER_DELETED_ADMINS:
       builder = teamMemberDeletedAdmins;

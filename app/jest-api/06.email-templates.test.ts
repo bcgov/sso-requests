@@ -9,8 +9,7 @@ import {
   formDataProd,
   postTeam,
 } from './helpers/fixtures';
-import { generateInvitationToken } from '@app/helpers/token';
-import { createTeam, verifyTeamMember } from './helpers/modules/teams';
+import { createTeam } from './helpers/modules/teams';
 import { getAuthenticatedUser } from './helpers/modules/users';
 import { cleanUpDatabaseTables } from './helpers/utils';
 import { createMockAuth } from './mocks/authenticate';
@@ -42,8 +41,6 @@ describe('Email template snapshots', () => {
     teamId = result.body.id;
     createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
     const userRes = await getAuthenticatedUser();
-    const token = generateInvitationToken(userRes.body as any, teamId);
-    await verifyTeamMember(token);
   });
 
   afterAll(async () => {
@@ -170,22 +167,20 @@ describe('Email template snapshots', () => {
     expect(rendered.body).toMatchSnapshot();
   });
 
-  it('Should return the expected email for TEAM_INVITATION members', async () => {
-    const rendered = await renderTemplate(EMAILS.TEAM_INVITATION, {
+  it('Should return the expected email for TEAM_MEMBER_ADDED members', async () => {
+    const rendered = await renderTemplate(EMAILS.TEAM_MEMBER_ADDED, {
       email: 'teat@bcgov.bc.ca',
       team: { id: 1, name: 'testteam' },
-      invitationLink: `https://mysite.com/invitation-link`,
       role: 'member',
     });
     expect(rendered.subject).toMatchSnapshot();
     expect(rendered.body).toMatchSnapshot();
   });
 
-  it('Should return the expected email for TEAM_INVITATION admins', async () => {
-    const rendered = await renderTemplate(EMAILS.TEAM_INVITATION, {
+  it('Should return the expected email for TEAM_MEMBER_ADDED admins', async () => {
+    const rendered = await renderTemplate(EMAILS.TEAM_MEMBER_ADDED, {
       email: 'teat@bcgov.bc.ca',
       team: { id: 1, name: 'testteam' },
-      invitationLink: `https://mysite.com/invitation-link`,
       role: 'admin',
     });
     expect(rendered.subject).toMatchSnapshot();
