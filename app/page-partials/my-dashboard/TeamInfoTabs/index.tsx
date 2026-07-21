@@ -423,7 +423,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                 },
                 {
                   accessorKey: 'status',
-                  header: 'Invite Status',
+                  header: 'Status',
 
                   cell: (props) => {
                     return <MemberStatusIcon pending={props.row.getValue('status')} />;

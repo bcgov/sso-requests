@@ -1078,7 +1078,7 @@ class Request {
 
       row.trigger('click');
       // Check team details table has loaded
-      cy.contains('Invite Status');
+      cy.contains('Status');
       row.parent().find(this.teamPage.deleteTeamButton).trigger('click');
       cy.contains('Once you delete this team, this action cannot be undone');
       cy.get(this.teamPage.modalDeleteTeam).find(this.teamPage.confirmDeleteTeam).trigger('click');
