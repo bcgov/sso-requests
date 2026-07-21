@@ -134,11 +134,12 @@ describe('Members tab', () => {
     render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'Members' }));
 
+    screen.getByRole('columnheader', { name: 'Invite Status' });
     screen.findByText('Email');
     screen.getByRole('columnheader', { name: 'Role' });
     screen.getAllByRole('columnheader', { name: 'Actions' });
-    screen.getByRole('row', { name: 'admin01@gov.bc.ca Admin' });
-    screen.getByRole('row', { name: 'member01@gov.bc.ca Member Delete User' });
+    screen.getByRole('row', { name: 'Active Member admin01@gov.bc.ca Admin' });
+    screen.getByRole('row', { name: 'Inactive Member member01@gov.bc.ca Member Delete User' });
   });
 
   it('Should be able to click the Delete button', async () => {

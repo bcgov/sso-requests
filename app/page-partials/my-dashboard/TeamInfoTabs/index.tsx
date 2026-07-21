@@ -180,6 +180,22 @@ const RequestStatusIcon = ({ status }: { status?: Status }) => {
   return <FontAwesomeIcon icon={icon} aria-label={status} style={{ color }} />;
 };
 
+const MemberStatusIcon = ({ pending }: { pending?: boolean }) => {
+  let icon;
+  let color;
+  let title;
+  if (pending) {
+    icon = faClock;
+    color = '#fcba19';
+    title = 'Inactive Member';
+  } else {
+    color = '#2e8540';
+    icon = faCheckCircle;
+    title = 'Active Member';
+  }
+  return <FontAwesomeIcon icon={icon} aria-label={title} style={{ color }} />;
+};
+
 const Requester = styled.div`
   font-size: 18px;
   font-weight: bold;
@@ -404,6 +420,14 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
                 {
                   accessorKey: 'id',
                   header: '',
+                },
+                {
+                  accessorKey: 'status',
+                  header: 'Invite Status',
+
+                  cell: (props) => {
+                    return <MemberStatusIcon pending={props.row.getValue('status')} />;
+                  },
                 },
                 {
                   accessorKey: 'idirEmail',
