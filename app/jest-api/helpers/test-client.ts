@@ -23,7 +23,6 @@ const knownRoutes = [
   '/api/request',
   '/api/surveys',
   '/api/events',
-  '/api/teams/verify',
   '/api/teams/[teamId]/service-accounts',
   '/api/teams/[teamId]/service-accounts/[saId]/restore',
   '/api/teams/[teamId]/service-accounts/[saId]/credentials',

@@ -79,10 +79,11 @@ export const addUsersToTeam = async (teamId: number, userId: number, members: Me
     };
   });
 
+  const team = await getTeamById(teamId);
+
   // Return IDs of new users
   const userTeams = await Promise.all(
     allUsers.map(async (user) => {
-      const team = await getTeamById(teamId);
       const userTeam = await models.usersTeam.create({ teamId, userId: user.id, role: user.role, pending: false });
       await sendTemplate(EMAILS.TEAM_MEMBER_ADDED, { email: user.idirEmail, team, role: user.role });
       return userTeam;
