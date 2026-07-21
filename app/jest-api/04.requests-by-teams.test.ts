@@ -65,7 +65,7 @@ describe('create/manage integrations by authenticated user', () => {
     createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
     const userRes = await getAuthenticatedUser();
     const users = await models.usersTeam.findAll({ where: { userId: userRes.body.id, teamId } });
-    expect(users[0].pending).not.toBeTruthy;
+    expect(users[0].pending).not.toBeTruthy();
   });
 
   it('should allow admin to create an integration belonging to a team', async () => {
