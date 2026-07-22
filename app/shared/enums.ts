@@ -28,7 +28,7 @@ export const EMAILS = {
   CREATE_INTEGRATION_APPLIED: 'create-integration-applied',
   UPDATE_INTEGRATION_APPLIED: 'update-integration-applied',
   DELETE_INTEGRATION_SUBMITTED: 'delete-integration-submitted',
-  TEAM_INVITATION: 'team-invitation',
+  TEAM_MEMBER_ADDED: 'team-member-added',
   TEAM_MEMBER_DELETED_ADMINS: 'team-member-deleted-admins',
   TEAM_MEMBER_DELETED_USER_REMOVED: 'team-member-deleted-user-removed',
   TEAM_DELETED: 'team-deleted',

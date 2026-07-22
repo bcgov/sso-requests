@@ -10,12 +10,11 @@ import {
   postTeam,
 } from './helpers/fixtures';
 import { createIntegration, updateIntegration } from './helpers/modules/integrations';
-import { createTeam, verifyTeamMember } from './helpers/modules/teams';
+import { createTeam } from './helpers/modules/teams';
 import { cleanUpDatabaseTables } from './helpers/utils';
 import { Integration } from '@app/interfaces/Request';
 import { buildIntegration } from './helpers/modules/common';
 import { getAuthenticatedUser } from './helpers/modules/users';
-import { generateInvitationToken } from '@app/helpers/token';
 import { models } from '@app/shared/sequelize/models/models';
 import { createMockAuth } from './mocks/authenticate';
 
@@ -75,8 +74,6 @@ describe('integration validations', () => {
       teamId = result.body.id;
       createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
       const userRes = await getAuthenticatedUser();
-      const token = generateInvitationToken(userRes.body as any, teamId);
-      await verifyTeamMember(token);
       const projectName: string = 'Integration Validations';
       const integrationRes = await buildIntegration({ projectName, teamId, submitted: true, prodEnv: true });
       expect(integrationRes.status).toEqual(200);

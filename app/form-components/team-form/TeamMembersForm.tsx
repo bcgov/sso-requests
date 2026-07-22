@@ -143,9 +143,8 @@ function TeamMembersForm({ errors, members, setMembers, allowDelete = true, curr
   return (
     <div>
       <p>
-        Enter your team member’s government email address and they will be sent an invitation to join the project. Once
-        they accept the invitation, they will have access to your project. Their invitation will expire in{' '}
-        <strong>2 business days</strong>.
+        Enter your team member’s government email address to add them to your team. You can add multiple members and
+        assign them a role. You can also add members later from <strong>Team Details (Members)</strong> view.
       </p>
       <div>
         <span className="strong">Roles:</span>

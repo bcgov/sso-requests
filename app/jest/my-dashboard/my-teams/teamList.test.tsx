@@ -129,13 +129,13 @@ describe('Team List', () => {
     fireEvent.click(removeMember[1]);
     expect(screen.queryAllByText('Enter email address')).toHaveLength(0);
 
-    const sendInvitationButton = getByRole('button', 'Send Invitation');
+    const createTeamBtn = getByRole('button', 'Create');
     await waitFor(() => {
-      expect(sendInvitationButton).toBeInTheDocument();
+      expect(createTeamBtn).toBeInTheDocument();
     });
 
     await waitFor(async () => {
-      fireEvent.click(sendInvitationButton);
+      fireEvent.click(createTeamBtn);
     });
     await waitFor(() => {
       expect(createTeam).toHaveBeenCalledTimes(1);

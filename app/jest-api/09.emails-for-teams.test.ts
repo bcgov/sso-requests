@@ -22,14 +22,6 @@ jest.mock('@app/keycloak/integration', () => {
   };
 });
 
-jest.mock('@app/helpers/token', () => {
-  const actual = jest.requireActual('@app/helpers/token');
-  return {
-    ...actual,
-    generateInvitationToken: jest.fn(() => TEST_TOKEN),
-  };
-});
-
 describe('emails for teams', () => {
   let emailList: any = [];
   let team: any = {};
@@ -46,16 +38,22 @@ describe('emails for teams', () => {
     team = result.body;
   });
 
-  it('should render the expected template in the teams invitation email sent to users', async () => {
+  it('should render the expected template when user added to the team', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-    const template = await renderTemplate(EMAILS.TEAM_INVITATION, { team, invitationLink: TEST_TOKEN, role: 'admin' });
+    const template = await renderTemplate(EMAILS.TEAM_MEMBER_ADDED, {
+      team,
+      role: 'admin',
+    });
     // four users are being added when creating a team
     expect(emailList.length).toEqual(4);
-    expect(emailList[0].subject).toEqual(template.subject);
-    expect(emailList[0].body).toEqual(template.body);
-    expect(emailList[0].to.length).toEqual(1);
-    expect(emailList[0].to[0]).toEqual(TEAM_ADMIN_IDIR_EMAIL_02);
-    expect(emailList[0].cc.length).toEqual(0);
+
+    const email = emailList.find((email: any) => email.to.includes(TEAM_ADMIN_IDIR_EMAIL_02));
+
+    expect(email.subject).toEqual(template.subject);
+    expect(email.body).toEqual(template.body);
+    expect(email.to.length).toEqual(1);
+    expect(email.to[0]).toEqual(TEAM_ADMIN_IDIR_EMAIL_02);
+    expect(email.cc.length).toEqual(0);
   });
 
   it('should render the expected template in the email being sent to deleted user', async () => {

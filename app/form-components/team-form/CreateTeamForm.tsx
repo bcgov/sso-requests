@@ -103,8 +103,8 @@ function CreateTeamForm({ onSubmit, alert, setOpenCreateTeamModal }: Props) {
         <button className="secondary" onClick={handleCancel}>
           Cancel
         </button>
-        <button className="primary" type="button" onClick={handleCreate} data-testid="send-invitation">
-          {loading ? <SpinnerGrid color="#FFF" height={18} width={50} visible={loading} /> : 'Send Invitation'}
+        <button className="primary" type="button" onClick={handleCreate} data-testid="create-team">
+          {loading ? <SpinnerGrid color="#FFF" height={18} width={50} visible={loading} /> : 'Create'}
         </button>
       </ButtonsContainer>
     </div>
