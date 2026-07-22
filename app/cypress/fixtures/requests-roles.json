@@ -185,13 +185,13 @@
         {
           "test_id": "Add User 1 to Role 2",
           "role": "Role 2",
-          "user": "Nithin",
+          "user": "Pathfinder",
           "description": "Add User 1 to Role 3"
         },
         {
           "test_id": "Add User 1 to Role 2",
           "role": "Role 3",
-          "user": "Nithin",
+          "user": "Pathfinder",
           "description": "Add User 1 to Role 3"
         }
       ],
@@ -199,7 +199,7 @@
         {
           "test_id": "Remove User 1 from Role 2",
           "role": "Role 2",
-          "user": "Nithin",
+          "user": "Pathfinder",
           "description": "Remove User 1 from Role 2"
         }
       ]
@@ -519,13 +519,13 @@
         {
           "test_id": "Add User 1 to Role 2",
           "role": "Role 2",
-          "user": "Nithin",
+          "user": "Pathfinder",
           "description": "Add User 1 to Role 3"
         },
         {
           "test_id": "Add User 1 to Role 2",
           "role": "Role 3",
-          "user": "Nithin",
+          "user": "Pathfinder",
           "description": "Add User 1 to Role 3"
         }
       ],
@@ -533,7 +533,7 @@
         {
           "test_id": "Remove User 1 from Role 2",
           "role": "Role 2",
-          "user": "Nithin",
+          "user": "Pathfinder",
           "description": "Remove User 1 from Role 2"
         }
       ]
@@ -854,13 +854,13 @@
         {
           "test_id": "Add User 1 to Role 2",
           "role": "Role 2",
-          "user": "Nithin",
+          "user": "Pathfinder",
           "description": "Add User 1 to Role 3"
         },
         {
           "test_id": "Add User 1 to Role 2",
           "role": "Role 3",
-          "user": "Nithin",
+          "user": "Pathfinder",
           "description": "Add User 1 to Role 3"
         }
       ],
@@ -868,7 +868,7 @@
         {
           "test_id": "Remove User 1 from Role 2",
           "role": "Role 2",
-          "user": "Nithin",
+          "user": "Pathfinder",
           "description": "Remove User 1 from Role 2"
         }
       ]
