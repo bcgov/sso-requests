@@ -641,6 +641,8 @@ class Request {
     cy.get(this.reqPage.confirmCreateNewRole).click({
       force: true,
     });
+
+    cy.get(this.reqPage.confirmCreateNewRole).should('not.exist');
   }
 
   addUsertoRole(id: string, role: string, env: string, user: string): boolean {
