@@ -7,4 +7,7 @@ done
 
 echo "keycloak is up"
 
+cp /tf-src/*.tf /terraform/
+[ -f /tf-src/.terraform.lock.hcl ] && cp /tf-src/.terraform.lock.hcl /terraform/
+
 terraform init && terraform plan && terraform apply --auto-approve

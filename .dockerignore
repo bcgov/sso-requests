@@ -32,3 +32,4 @@ LICENSE
 **/cypress
 **/jest
 **/dist
+**/terraform.tfstate*
