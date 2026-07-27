@@ -18,6 +18,7 @@ jest.mock('services/request', () => {
     createRequest: jest.fn(),
     updateRequest: jest.fn(() => Promise.resolve([{}, null])),
     getRequest: jest.fn(),
+    isRequestBcscExcluded: jest.fn(() => Promise.resolve([false, null])),
   };
 });
 

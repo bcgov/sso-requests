@@ -12,9 +12,13 @@ export const up = async ({ context: sequelize }) => {
       defaultValue: sequelize.UUIDV4,
       autoIncrement: true,
     },
-    request_id: {
+    requestId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      field: 'request_id',
+      references: { model: 'requests', key: 'id' },
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
     },
     createdAt: {
       type: DataTypes.DATE,

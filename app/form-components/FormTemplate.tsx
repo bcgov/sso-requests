@@ -291,7 +291,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
   const isBcscExcluded = async () => {
     const [bcscExcluded] = await isRequestBcscExcluded(request as Integration);
-    setBcscExcluded(bcscExcluded || false);
+    setBcscExcluded(!!bcscExcluded);
   };
 
   useEffect(() => {
