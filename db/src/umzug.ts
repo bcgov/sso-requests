@@ -63,6 +63,7 @@ export const createMigrator = async () => {
       await import('./migrations/2025.06.17T12.31.60.add-otp-approved'),
       await import('./migrations/2025.08.22T09.00.00.create-api-usage-metrics'),
       await import('./migrations/2026.05.08T10.17.31.add-dev-test-bceid-approved'),
+      await import('./migrations/2026.07.27T10.00.00.add-custom-requests-table'),
     ],
     context: sequelize,
     storage: new SequelizeStorage({

@@ -17,6 +17,7 @@ import {
   manageAdditionalClientRolesMapper,
 } from './protocolMappers';
 import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
+import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
 
 const realm = 'standard';
 
@@ -149,7 +150,10 @@ export const getDefaultClientScopes = async (integration: IntegrationData, envir
     defaultScopes.push(integration?.clientId!);
   }
 
-  if (usesOTP(integration) && integration[`${environment}Idps` as keyof IntegrationData].includes('otp')) {
+  if (
+    !(await doSkipPrivacyZoneScope(integration.id!)) &&
+    ['bcservicescard', 'otp'].some((idp) => integration[`${environment}Idps` as keyof IntegrationData].includes(idp))
+  ) {
     let privacyZoneUri = await getPrivacyZoneURI(environment, integration.bcscPrivacyZone!);
     if (integration.protocol === 'saml') privacyZoneUri = `${privacyZoneUri}-saml`;
     defaultScopes.push(privacyZoneUri);
