@@ -4,10 +4,13 @@ export const doSkipPrivacyZoneScope = async (requestId: number) => {
   const customRequest = await models.customRequest.findOne({
     where: {
       requestId: requestId,
+      conditions: {
+        skipPrivacyZoneScope: true,
+      },
     },
   });
 
-  if (customRequest?.conditions?.skipPrivacyZoneScope) {
+  if (customRequest) {
     return true;
   }
 

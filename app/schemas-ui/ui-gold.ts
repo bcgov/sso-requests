@@ -28,11 +28,20 @@ interface Props {
   teams: Team[];
   schemas: any;
   defaultSessionSettings: GetStandardSettingsResponse;
+  bcscExcluded: boolean;
 }
 
 const envs = environments as Environment[];
 
-const getUISchema = ({ integration, formData, session, teams, schemas, defaultSessionSettings }: Props) => {
+const getUISchema = ({
+  integration,
+  formData,
+  session,
+  teams,
+  schemas,
+  defaultSessionSettings,
+  bcscExcluded,
+}: Props) => {
   const {
     id,
     status,
@@ -55,6 +64,10 @@ const getUISchema = ({ integration, formData, session, teams, schemas, defaultSe
   let idpDisabled: string[] = [];
   let idpHidden: string[] = [];
   let allIdpsDisabled = false;
+
+  if (bcscExcluded) {
+    idpDisabled.push('otp');
+  }
 
   // If applied AND approved, ALL users can only remove. Removal will reset the approval, allowing them to add again.
   // Allowing this in one swipe really complicates things, mostly because there is one "bceidapproved" flag and not 3.

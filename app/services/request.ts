@@ -146,3 +146,12 @@ export const updateRequestMetadata = async (data: Integration): Promise<[Integra
     return handleAxiosError(err);
   }
 };
+
+export const isRequestBcscExcluded = async (data: Integration): Promise<[boolean, null] | [null, AxiosError]> => {
+  try {
+    const result = await instance.get(`requests/${data.id}/is-bcsc-excluded`).then((res) => res.data);
+    return [result.message, null];
+  } catch (err: any) {
+    return handleAxiosError(err);
+  }
+};
