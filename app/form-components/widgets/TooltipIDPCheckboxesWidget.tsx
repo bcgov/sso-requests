@@ -42,6 +42,11 @@ function TooltipIDPCheckboxesWidget(props: WidgetProps) {
   const eDisabled = Array.isArray(idpsDisabled) ? idpsDisabled.map((item) => item.idp) : [];
   const eHidden = Array.isArray(enumHidden) ? enumHidden : [];
 
+  const getReasonForDisabled = (idp: string) => {
+    const disabledItem = (idpsDisabled as Array<{ idp: string; reason: string }>).find((item) => item.idp === idp);
+    return disabledItem ? disabledItem.reason : '';
+  };
+
   return (
     <div className="checkboxes" id={id}>
       {eOptions.map((option, index) => {
@@ -71,8 +76,8 @@ function TooltipIDPCheckboxesWidget(props: WidgetProps) {
             {tooltips[index]?.alpha && <AlphaTag>alpha</AlphaTag>}
             {tooltips[index] && <InfoOverlay {...tooltips[index]} />}
             &nbsp;
-            {eDisabled.length > 0 && Array.isArray(idpsDisabled) && (
-              <span style={{ color: 'red' }}>{idpsDisabled.find((item) => item.idp === option.value)?.reason}</span>
+            {itemDisabled && getReasonForDisabled(option.value) !== '' && (
+              <span style={{ color: 'red' }}>{getReasonForDisabled(option.value)}</span>
             )}
           </span>
         );

@@ -91,10 +91,14 @@ const getUISchema = ({
     }
   }
 
-  // remove duplicates from idpsDisabled json array
-  idpsDisabled = Array.from(new Set(idpsDisabled.map((element) => JSON.stringify(element)))).map((element) =>
-    JSON.parse(element),
-  );
+  // remove duplicates from idpsDisabled json array by idp
+  const seenIdps = new Set();
+  idpsDisabled = idpsDisabled.filter((element) => {
+    const key = `${element.idp}|${element.reason}`;
+    if (seenIdps.has(key)) return false;
+    seenIdps.add(key);
+    return true;
+  });
 
   // Only admins or integrations already using public github can use the IDP.
   if (

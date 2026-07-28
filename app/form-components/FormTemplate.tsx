@@ -290,7 +290,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   };
 
   const isBcscExcluded = async () => {
-    const [bcscExcluded] = await isRequestBcscExcluded(request as Integration);
+    const [bcscExcluded] = await isRequestBcscExcluded(request?.id!);
     setBcscExcluded(!!bcscExcluded);
   };
 
