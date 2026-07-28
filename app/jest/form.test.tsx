@@ -8,7 +8,6 @@ import { defaultStandardRealmSettings, errorMessages } from '../utils/constants'
 import { sampleRequest } from './samples/integrations';
 import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from '@app/utils/validate';
 import userEvent from '@testing-library/user-event';
-import { debug } from 'jest-preview';
 
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
