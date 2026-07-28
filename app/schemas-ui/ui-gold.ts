@@ -1,4 +1,4 @@
-import { isNil, uniq, get } from 'lodash';
+import { get } from 'lodash';
 import FieldProjectTeam from '@app/form-components/FieldProjectTeam';
 import ClientTypeWidget from '@app/form-components/widgets/ClientTypeWidget';
 import ClientTokenWidget from '@app/form-components/widgets/ClientTokenWidget';
@@ -43,7 +43,6 @@ const getUISchema = ({
   bcscExcluded,
 }: Props) => {
   const {
-    id,
     status,
     devIdps = [],
     environments = [],
@@ -54,19 +53,18 @@ const getUISchema = ({
     githubApproved = false,
     otpApproved = false,
   } = integration || {};
-  const isNew = isNil(id);
   const isApplied = status === 'applied';
   const disableBcscUpdateApproved = integration?.devIdps?.includes('bcservicescard') && bcServicesCardApproved;
   const disableOtpUpdateApproved = integration?.devIdps?.includes('otp') && otpApproved;
   const isSaml = integration?.protocol === 'saml';
 
   const envDisabled = isApplied ? environments?.concat() || [] : ['dev'];
-  let idpDisabled: string[] = [];
+  let idpsDisabled: { idp: string; reason: string }[] = [];
   let idpHidden: string[] = [];
   let allIdpsDisabled = false;
 
   if (bcscExcluded && !devIdps.includes('otp')) {
-    idpDisabled.push('otp');
+    idpsDisabled.push({ idp: 'otp', reason: 'Disabled as client is in bc services card exclusion list' });
   }
 
   // If applied AND approved, ALL users can only remove. Removal will reset the approval, allowing them to add again.
@@ -77,23 +75,26 @@ const getUISchema = ({
     }
     if (bceidApproved || devBceidApproved || testBceidApproved) {
       ['bceidbasic', 'bceidbusiness', 'bceidboth'].forEach((bceidIdp) => {
-        if (!devIdps.includes(bceidIdp)) idpDisabled.push(bceidIdp);
+        if (!devIdps.includes(bceidIdp)) idpsDisabled.push({ idp: bceidIdp, reason: '' });
       });
     }
     if (githubApproved) {
       ['githubpublic', 'githubbcgov'].forEach((githubIdp) => {
-        if (!devIdps.includes(githubIdp)) idpDisabled.push(githubIdp);
+        if (!devIdps.includes(githubIdp)) idpsDisabled.push({ idp: githubIdp, reason: '' });
       });
     }
     if (bcServicesCardApproved) {
-      idpDisabled.push('bcservicescard');
+      idpsDisabled.push({ idp: 'bcservicescard', reason: '' });
     }
     if (otpApproved) {
-      idpDisabled.push('otp');
+      idpsDisabled.push({ idp: 'otp', reason: '' });
     }
   }
 
-  idpDisabled = uniq(idpDisabled);
+  // remove duplicates from idpsDisabled json array
+  idpsDisabled = Array.from(new Set(idpsDisabled.map((element) => JSON.stringify(element)))).map((element) =>
+    JSON.parse(element),
+  );
 
   // Only admins or integrations already using public github can use the IDP.
   if (
@@ -107,7 +108,7 @@ const getUISchema = ({
 
   // Disabling saml for DC integrations until appending pres_req_conf_id is figured out.
   if (formData?.protocol === 'saml') {
-    idpDisabled.push('digitalcredential');
+    idpsDisabled.push({ idp: 'digitalcredential', reason: '' });
   }
 
   const includeComment = isApplied && hasAppPermission(session?.client_roles, appPermissions.ADD_REQUEST_COMMENT);
@@ -277,7 +278,7 @@ const getUISchema = ({
     devIdps: {
       'ui:disabled': allIdpsDisabled,
       'ui:widget': TooltipIDPCheckboxesWidget,
-      'ui:enumDisabled': idpDisabled,
+      'ui:idpsDisabled': idpsDisabled,
       'ui:enumHidden': idpHidden,
       'ui:enumNames': schemas[1]?.properties?.devIdps?.items?.enum.map((idp: string) => idpMap[idp]) || [],
     },

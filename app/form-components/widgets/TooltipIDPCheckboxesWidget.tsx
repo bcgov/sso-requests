@@ -1,4 +1,3 @@
-import React from 'react';
 import clsx from 'clsx';
 import InfoOverlay from 'components/InfoOverlay';
 import styled from 'styled-components';
@@ -33,16 +32,15 @@ function deselectValue(value: string, selected: string[]) {
  */
 function TooltipIDPCheckboxesWidget(props: WidgetProps) {
   const { id, disabled, options, value, autofocus = false, readonly, onChange, schema } = props;
-  const { enumOptions, enumDisabled, enumHidden, inline = false } = options;
+  const { enumOptions, idpsDisabled = [], enumHidden, inline = false } = options;
   const { tooltips, warningMessage } = schema as RJSFSchema & {
     tooltips: { content: string; hide?: number; alpha?: boolean }[];
     warningMessage: string;
   };
 
   const eOptions = Array.isArray(enumOptions) ? enumOptions : [];
-  const eDisabled = Array.isArray(enumDisabled) ? enumDisabled : [];
+  const eDisabled = Array.isArray(idpsDisabled) ? idpsDisabled.map((item) => item.idp) : [];
   const eHidden = Array.isArray(enumHidden) ? enumHidden : [];
-  const formData = props.formContext.formData;
 
   return (
     <div className="checkboxes" id={id}>
@@ -72,6 +70,10 @@ function TooltipIDPCheckboxesWidget(props: WidgetProps) {
             &nbsp;
             {tooltips[index]?.alpha && <AlphaTag>alpha</AlphaTag>}
             {tooltips[index] && <InfoOverlay {...tooltips[index]} />}
+            &nbsp;
+            {eDisabled.length > 0 && Array.isArray(idpsDisabled) && (
+              <span style={{ color: 'red' }}>{idpsDisabled.find((item) => item.idp === option.value)?.reason}</span>
+            )}
           </span>
         );
 
