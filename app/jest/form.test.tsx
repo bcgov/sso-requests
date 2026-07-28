@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import FormTemplate from 'form-components/FormTemplate';
-import { updateRequest } from 'services/request';
+import { isRequestBcscExcluded, updateRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
 import { fetchDefaultSessionSettings } from 'services/keycloak';
 import { setUpRouter } from './utils/setup';
@@ -18,6 +18,7 @@ jest.mock('services/request', () => {
     createRequest: jest.fn(),
     updateRequest: jest.fn(() => Promise.resolve([{}, null])),
     getRequest: jest.fn(),
+    isRequestBcscExcluded: jest.fn(() => Promise.resolve([false, null])),
   };
 });
 
@@ -1384,5 +1385,48 @@ describe('One Time Passcode IDP', () => {
     fireEvent.click(sandbox.developmentBox);
     expect(screen.queryByTestId('root_devHomePageUri_title')).not.toBeNull();
     expect(screen.getByText('Please enter a valid URI')).toBeInTheDocument();
+  });
+});
+
+describe('BCSC Excluded Clients', () => {
+  const defaultRender = {
+    id: 0,
+    serviceType: 'gold',
+    status: 'draft',
+    environments: ['dev', 'test', 'prod'],
+  };
+  const userSession = { email: 'user-session@gov.bc.ca', client_roles: ['sso-admin'] };
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.NEXT_PUBLIC_INCLUDE_OTP = 'true';
+  });
+
+  it('Does not disable OTP IDP when request is not in the BCSC exclusion list', async () => {
+    const { queryByText } = setUpRender(defaultRender, userSession);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    await waitFor(() => {
+      const checkbox = queryByText('One Time Passcode')?.parentElement?.querySelector(
+        "input[type='checkbox']",
+      ) as HTMLInputElement;
+      expect(checkbox).toBeTruthy();
+      expect(checkbox).not.toBeDisabled();
+    });
+  });
+
+  it('Disables OTP IDP when request is in the BCSC exclusion list', async () => {
+    const mockedIsRequestBcscExcluded = isRequestBcscExcluded as jest.MockedFunction<typeof isRequestBcscExcluded>;
+    mockedIsRequestBcscExcluded.mockResolvedValue([true, null]);
+    const { queryByText } = setUpRender(defaultRender, userSession);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    await waitFor(() => {
+      const checkbox = queryByText('One Time Passcode')?.parentElement?.querySelector(
+        "input[type='checkbox']",
+      ) as HTMLInputElement;
+      expect(checkbox).toBeTruthy();
+      expect(checkbox).toBeDisabled();
+      expect(screen.getByText('Disabled as client is in bc services card exclusion list')).toBeInTheDocument();
+    });
   });
 });

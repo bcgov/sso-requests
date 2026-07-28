@@ -28,7 +28,7 @@ import { getSchemas } from 'schemas';
 import { Integration } from 'interfaces/Request';
 import { Team, LoggedInUser } from 'interfaces/team';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
-import { createRequest, updateRequest } from 'services/request';
+import { createRequest, isRequestBcscExcluded, updateRequest } from 'services/request';
 import { SurveyContext } from '@app/utils/context';
 import { defaultStandardRealmSettings, docusaurusURL } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
@@ -164,6 +164,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     test: defaultStandardRealmSettings,
     prod: defaultStandardRealmSettings,
   });
+  const [bcscExcluded, setBcscExcluded] = useState(false);
 
   const surveyContext = useContext(SurveyContext);
 
@@ -288,11 +289,17 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     setSchemas(schemas);
   };
 
+  const isBcscExcluded = async () => {
+    const [bcscExcluded] = await isRequestBcscExcluded(request?.id!);
+    setBcscExcluded(!!bcscExcluded);
+  };
+
   useEffect(() => {
     loadTeams();
     loadBcscPrivacyZones();
     loadBcscAttributes();
     loadDefaultSessionSettings();
+    isBcscExcluded();
   }, []);
 
   // Clear other details when other is unselected
@@ -337,6 +344,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     teams,
     schemas,
     defaultSessionSettings,
+    bcscExcluded,
   });
 
   const handleFormSubmit = async () => {

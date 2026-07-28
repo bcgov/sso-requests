@@ -94,6 +94,7 @@ import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import { Event } from '@app/interfaces/Event';
+import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
@@ -532,6 +533,7 @@ export const updateRequest = async (
     }
 
     const allowedData = sanitizeRequest(session, rest, isMerged);
+
     assign(current, allowedData);
 
     const mergedData = getCurrentValue();
@@ -556,6 +558,14 @@ export const updateRequest = async (
     });
     if (!validIDPSelection) {
       throw new createHttpError[400]('Invalid IDP Selection');
+    }
+
+    const isBcscExcludedRequest = await doSkipPrivacyZoneScope(originalData.id);
+
+    if (isBcscExcludedRequest && usesOTP(current)) {
+      throw new createHttpError[400](
+        'OTP IDP is not allowed for this integration as it is part of BCSC exclusion list',
+      );
     }
 
     // IDP approvers are not allowed to update other fields except approved flag if request doesn't belong to them
