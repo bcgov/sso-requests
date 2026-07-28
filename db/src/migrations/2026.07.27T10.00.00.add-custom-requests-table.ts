@@ -9,7 +9,6 @@ export const up = async ({ context: sequelize }) => {
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
-      defaultValue: sequelize.UUIDV4,
       autoIncrement: true,
     },
     requestId: {

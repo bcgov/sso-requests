@@ -65,7 +65,7 @@ const getUISchema = ({
   let idpHidden: string[] = [];
   let allIdpsDisabled = false;
 
-  if (bcscExcluded) {
+  if (bcscExcluded && !devIdps.includes('otp')) {
     idpDisabled.push('otp');
   }
 

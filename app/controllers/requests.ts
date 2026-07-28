@@ -560,9 +560,9 @@ export const updateRequest = async (
       throw new createHttpError[400]('Invalid IDP Selection');
     }
 
-    const allowOtpIdp = await doSkipPrivacyZoneScope(originalData.id);
+    const isBcscExcludedRequest = await doSkipPrivacyZoneScope(originalData.id);
 
-    if (allowOtpIdp && usesOTP(current)) {
+    if (isBcscExcludedRequest && usesOTP(current)) {
       throw new createHttpError[400](
         'OTP IDP is not allowed for this integration as it is part of BCSC exclusion list',
       );
