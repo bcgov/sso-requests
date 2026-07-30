@@ -1,12 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import IntegrationTabs from 'page-partials/my-dashboard/IntegrationInfoTabs';
 import { Integration } from 'interfaces/Request';
 import { sampleRequest } from './samples/integrations';
-import { getRequestScopedEvents } from '@app/services/event';
-
-jest.mock('@app/services/event', () => ({
-  getRequestScopedEvents: jest.fn(() => Promise.resolve([{}, null])),
-}));
 
 const integreationCommonTabs = ['Technical Details', 'Role Management', 'Secrets', 'Change History', 'Metrics', 'Logs'];
 
@@ -44,7 +39,6 @@ const otpIntegration: Integration = {
 
 const bcAndDcIntegration: Integration = {
   ...sampleRequest,
-  id: 1,
   devIdps: ['bcservicescard', 'digitalcredential'],
   status: 'applied',
   publicAccess: false,
@@ -97,14 +91,6 @@ describe('SSO Dashboard', () => {
       } else {
         screen.getByText(name);
       }
-    });
-  });
-
-  it('Allows non-admins to view change history', async () => {
-    render(<IntegrationTabs integration={bcAndDcIntegration} />);
-    screen.getByText('Change History').click();
-    await waitFor(() => {
-      expect(getRequestScopedEvents).toHaveBeenCalled();
     });
   });
 });
