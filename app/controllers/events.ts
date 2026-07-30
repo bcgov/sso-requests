@@ -10,6 +10,25 @@ import {
 import { Op } from 'sequelize';
 import { isSocialApprover } from '@app/utils/helpers';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
+import { getAllowedRequest } from '@app/queries/request';
+import { EVENTS } from '@app/shared/enums';
+import createHttpError from 'http-errors';
+
+/**
+ * Fetch request update events for the given user session and request id. If user does not own integration throws 403.
+ * @param session
+ * @param requestId
+ * @returns Promise<{count: number, rows: Event[]}>
+ */
+export const getRequestScopedEvents = async (session: Session, requestId: string) => {
+  const authorized = await getAllowedRequest(session, Number(requestId));
+  if (!authorized) throw new createHttpError.Forbidden('User is not authorized to view request events');
+
+  return models.event.findAndCountAll({
+    where: { requestId, eventCode: EVENTS.REQUEST_UPDATE_SUCCESS },
+    order: [['createdAt', 'desc']],
+  });
+};
 
 export const getEvents = async (
   session: Session,
