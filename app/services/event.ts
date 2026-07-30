@@ -15,6 +15,16 @@ interface EventsResult {
   rows: Event[];
 }
 
+export const getRequestScopedEvents = async (requestId: number): Promise<[EventsResult, null] | [null, any]> => {
+  try {
+    const result: EventsResult = await instance.get(`requests/${requestId}/events`).then((res) => res.data);
+    return [result, null];
+  } catch (err: any) {
+    console.error(err);
+    return [null, err];
+  }
+};
+
 export const getEvents = async (criteria: EventSearchCriteria): Promise<[EventsResult, null] | [null, any]> => {
   try {
     const result: EventsResult = await instance.post('events', criteria).then((res) => res.data);

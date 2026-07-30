@@ -16,6 +16,7 @@ const knownRoutes = [
   '/api/requests/[id]/logs',
   '/api/requests/[id]/resubmit',
   '/api/requests/[id]/metrics',
+  '/api/requests/[id]/events',
   '/api/bceid-webservice/idir/search',
   '/api/bceid-webservice/idir/import',
   '/api/requests-all',
