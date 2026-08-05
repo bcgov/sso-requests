@@ -94,6 +94,7 @@ import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import { Event } from '@app/interfaces/Event';
+import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
@@ -532,17 +533,10 @@ export const updateRequest = async (
     }
 
     const allowedData = sanitizeRequest(session, rest, isMerged);
+
     assign(current, allowedData);
 
     const mergedData = getCurrentValue();
-
-    const isApprovingProdBceid = !originalData.bceidApproved && current.bceidApproved;
-    const isApprovingDevBceid = !originalData.devBceidApproved && current.devBceidApproved;
-    const isApprovingTestBceid = !originalData.testBceidApproved && current.testBceidApproved;
-    const isApprovingGithub = !originalData.githubApproved && current.githubApproved;
-    const isApprovingBCSC = !originalData.bcServicesCardApproved && current.bcServicesCardApproved;
-    const isApprovingSocial = !originalData.socialApproved && current.socialApproved;
-    const isApprovingOTP = !originalData.otpApproved && current.otpApproved;
 
     const updatedAttributes = getIdpApprovalStatus({
       session,
@@ -564,6 +558,14 @@ export const updateRequest = async (
     });
     if (!validIDPSelection) {
       throw new createHttpError[400]('Invalid IDP Selection');
+    }
+
+    const isBcscExcludedRequest = await doSkipPrivacyZoneScope(originalData.id);
+
+    if (isBcscExcludedRequest && usesOTP(current)) {
+      throw new createHttpError[400](
+        'OTP IDP is not allowed for this integration as it is part of BCSC exclusion list',
+      );
     }
 
     // IDP approvers are not allowed to update other fields except approved flag if request doesn't belong to them
@@ -627,103 +629,17 @@ export const updateRequest = async (
       const hasProd = environments.includes('prod');
       addingProd = !originalData.environments.includes('prod') && hasProd;
 
-      const hasGithub = usesGithub(current);
-      const hasGithubProd = hasGithub && hasProd;
-
-      const hasBcServicesCard = usesBcServicesCard(current);
-      const hasBcServicesCardProd = hasBcServicesCard && hasProd;
-
-      const hasSocial = usesSocial(current);
-      const hasSocialProd = hasSocial && hasProd;
-
-      const hasOTP = usesOTP(current);
-      const hasOTPProd = hasOTP && hasProd;
-
-      const waitingGithubProdApproval = hasGithubProd && !current.githubApproved;
-      const waitingBcServicesCardProdApproval = hasBcServicesCardProd && !current.bcServicesCardApproved;
-      const waitingSocialProdApproval = hasSocialProd && !current.socialApproved;
-      const waitingOTPProdApproval = hasOTPProd && !current.otpApproved;
-
       const removingBcscIdp =
         originalData.devIdps.includes('bcservicescard') && !current.devIdps.includes('bcservicescard');
 
       current.requester = await getRequester(session, current.id);
 
       finalData = getCurrentValue();
-      const emails: { code: string; data: any }[] = [];
       changes = getDifferences(finalData, originalData);
 
-      // updating...
-      if (isMerged) {
-        if (isApprovingDevBceid) {
-          emails.push({
-            code: EMAILS.PROD_APPROVED,
-            data: { integration: finalData, type: 'BCeID', environment: 'development' },
-          });
-        } else if (isApprovingTestBceid) {
-          emails.push({
-            code: EMAILS.PROD_APPROVED,
-            data: { integration: finalData, type: 'BCeID', environment: 'test' },
-          });
-        } else if (isApprovingProdBceid) {
-          emails.push({
-            code: EMAILS.PROD_APPROVED,
-            data: { integration: finalData, type: 'BCeID', environment: 'production' },
-          });
-        } else if (isApprovingGithub) {
-          emails.push({
-            code: EMAILS.PROD_APPROVED,
-            data: { integration: finalData, type: 'GitHub', environment: 'production' },
-          });
-        } else if (isApprovingBCSC) {
-          emails.push({
-            code: EMAILS.PROD_APPROVED,
-            data: { integration: finalData, type: 'BC Services Card', environment: 'production' },
-          });
-        } else if (isApprovingSocial) {
-          emails.push({
-            code: EMAILS.PROD_APPROVED,
-            data: { integration: finalData, type: 'Social', environment: 'production' },
-          });
-        } else if (isApprovingOTP) {
-          emails.push({
-            code: EMAILS.PROD_APPROVED,
-            data: { integration: finalData, type: 'One Time Passcode', environment: 'production' },
-          });
-        } else {
-          emails.push({
-            code: EMAILS.UPDATE_INTEGRATION_SUBMITTED,
-            data: {
-              integration: finalData,
-              waitingGithubProdApproval,
-              waitingBcServicesCardProdApproval,
-              waitingSocialProdApproval,
-              waitingOTPProdApproval,
-              changes,
-              addingProd,
-            },
-          });
-        }
-
-        if (removingBcscIdp) {
-          emails.push({
-            code: EMAILS.DISABLE_BCSC_IDP,
-            data: { integration: finalData },
-          });
-        }
-      } else {
-        emails.push({
-          code: EMAILS.CREATE_INTEGRATION_SUBMITTED,
-          data: {
-            integration: finalData,
-            waitingGithubProdApproval,
-            waitingBcServicesCardProdApproval,
-            waitingSocialProdApproval,
-            waitingOTPProdApproval,
-          },
-        });
+      if (isMerged && removingBcscIdp && hasProd) {
+        await sendTemplate(EMAILS.DISABLE_BCSC_IDP, { code: EMAILS.DISABLE_BCSC_IDP, integration: finalData });
       }
-      await sendTemplates(emails);
     }
 
     current.lastChanges = changes || null;
@@ -1263,16 +1179,40 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
     const waitingBcServicesCardProdApproval = hasBcServicesCard && hasProd && !integration.bcServicesCardApproved;
     const waitingOTPProdApproval = hasOTP && hasProd && !integration.otpApproved;
 
-    const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPLIED : EMAILS.CREATE_INTEGRATION_APPLIED;
-    await sendTemplate(emailCode, {
-      integration,
-      hasBceid,
-      waitingGithubProdApproval,
-      waitingBcServicesCardProdApproval,
-      waitingSocialProdApproval,
-      waitingOTPProdApproval,
-      addingProd,
+    const approvals = {
+      bceidApproved: { type: 'BCeID', environment: 'production', integration },
+      devBceidApproved: { type: 'BCeID', environment: 'development', integration },
+      testBceidApproved: { type: 'BCeID', environment: 'test', integration },
+      githubApproved: { type: 'GitHub', environment: 'production', integration },
+      bcServicesCardApproved: { type: 'BC Services Card', environment: 'production', integration },
+      socialApproved: { type: 'Social', environment: 'production', integration },
+      otpApproved: { type: 'One Time Passcode', environment: 'production', integration },
+    };
+
+    let approvalType;
+    const isApproval = integration?.lastChanges?.some((change) => {
+      // change example: {lhs: false, rhs: true, path: ['devBceidApproved']} when approving dev Bceid
+      if (!change.lhs && change.rhs === true && Object.keys(approvals).includes(change.path[0])) {
+        approvalType = change.path[0];
+        return true;
+      }
+      return false;
     });
+
+    if (isApproval && approvalType) {
+      await sendTemplate(EMAILS.PROD_APPROVED, approvals[approvalType as keyof typeof approvals]);
+    } else {
+      const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPLIED : EMAILS.CREATE_INTEGRATION_APPLIED;
+      await sendTemplate(emailCode, {
+        integration,
+        hasBceid,
+        waitingGithubProdApproval,
+        waitingBcServicesCardProdApproval,
+        waitingSocialProdApproval,
+        waitingOTPProdApproval,
+        addingProd,
+      });
+    }
   }
 };
 

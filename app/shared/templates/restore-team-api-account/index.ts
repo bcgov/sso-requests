@@ -5,7 +5,6 @@ import { sendEmail } from '@app/utils/ches';
 import { getEmailTemplate, getTeamEmails, processIntegrationList, processTeam } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
-import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 
 const SUBJECT_TEMPLATE = `SSO CSS API Account restored`;
 const template = getEmailTemplate('restore-team-api-account/restore-team-api-account.html');
@@ -39,7 +38,6 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   return sendEmail({
     code: EMAILS.RESTORE_TEAM_API_ACCOUNT,
     to: emails,
-    cc: [SSO_EMAIL_ADDRESS],
     ...rendered,
   });
 };

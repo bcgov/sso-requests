@@ -5,6 +5,7 @@ import { models } from '@app/shared/sequelize/models/models';
 import requestsHandler from '@app/pages/api/requests';
 import requestMetricsHandler from '@app/pages/api/requests/[id]/metrics';
 import requestsRestoreHandler from '@app/pages/api/requests/[id]/restore';
+import requestsEventHandler from '@app/pages/api/requests/[id]/events';
 import requestHandler from '@app/pages/api/request';
 import requestsAllHandler from '@app/pages/api/requests-all';
 import kcBulkRolesHandler from '@app/pages/api/keycloak/bulk-roles';
@@ -173,5 +174,11 @@ export const getEvents = async (requestId: number, eventCode: string = 'all') =>
       requestId,
       eventCode,
     })
+    .set('Accept', 'application/json');
+};
+
+export const getRequestScopedEvents = async (requestId: number) => {
+  return await testClient(requestsEventHandler)
+    .get(`${API_BASE_PATH}/requests/${requestId}/events`)
     .set('Accept', 'application/json');
 };

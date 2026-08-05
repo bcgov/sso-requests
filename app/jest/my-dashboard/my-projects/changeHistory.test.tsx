@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import UserEventPanel from 'components/UserEventPanel';
-import { getEvents } from 'services/event';
+import { getRequestScopedEvents } from 'services/event';
 
 jest.mock('services/event', () => ({
-  getEvents: jest.fn(() => [[], null]),
+  getRequestScopedEvents: jest.fn(() => [[], null]),
 }));
 
 describe('change history tab', () => {
@@ -12,6 +12,6 @@ describe('change history tab', () => {
     await waitFor(() => {
       expect(screen.getByText('No events found'));
     });
-    expect(getEvents).toHaveBeenCalledTimes(1);
+    expect(getRequestScopedEvents).toHaveBeenCalledTimes(1);
   });
 });

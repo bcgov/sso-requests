@@ -30,7 +30,7 @@ import MetricsPanel from './MetricsPanel';
 import { ErrorMessage } from '@app/components/MessageBox';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import LogsPanel from './LogsPanel';
-import { formatWikiURL } from 'utils/constants';
+import { docusaurusURL } from 'utils/constants';
 import OTPStatusPanel from './OTPStatusPanel';
 import { Col, Row } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -83,7 +83,7 @@ const getIntegrationErrorTab = () => {
             <ErrorMessage>
               Your request for an integration could not be completed. Please{' '}
               <Link external href="mailto:bcgov.sso@gov.bc.ca">
-                contact the Pathfinder SSO Team
+                contact the SSO Team
               </Link>
             </ErrorMessage>
           </div>
@@ -150,8 +150,8 @@ const getRoleManagementTab = ({ integration }: { integration: Integration }) => 
         <br />
         <div>
           Please visit our{' '}
-          <Link external href={formatWikiURL('Creating-a-Role')}>
-            wiki page
+          <Link external href={`${docusaurusURL}/css-application/roles`}>
+            documentation
           </Link>{' '}
           for more information on roles.
         </div>

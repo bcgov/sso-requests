@@ -10,7 +10,7 @@ import { listClientRoles, listUserRoles, manageUserRoles } from 'services/keyclo
 import TopAlertWrapper from '@app/components/TopAlertWrapper';
 import Link from '@app/components/Link';
 import { getServiceAccountUsername } from '@app/helpers/users';
-import { formatWikiURL } from '@app/utils/constants';
+import { docusaurusURL } from '@app/utils/constants';
 import TableNew from '@app/components/TableNew';
 import { Col, Row } from 'react-bootstrap';
 
@@ -237,8 +237,8 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
         <Alert variant="info" closable={false} data-testid={`assign-svc-acct-role-risk-alert`}>
           <span className="normal">
             There may be a security risk if you rely on client roles of a service account,{' '}
-            <Link external href={formatWikiURL('Creating-a-Role#service-account-role-management')}>
-              click to visit our wiki page
+            <Link external href={`${docusaurusURL}/css-application/roles#service-account-role-management`}>
+              click to visit our documentation page
             </Link>
           </span>
         </Alert>

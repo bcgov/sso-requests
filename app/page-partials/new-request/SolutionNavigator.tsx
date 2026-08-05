@@ -106,10 +106,7 @@ function SolutionNavigator({ id, open, onChange = noop }: Props) {
                 <p>
                   To learn more about the difference between confidential and public clients, and to understand PKCEs
                   better, visit our{' '}
-                  <Link
-                    external
-                    href="https://github.com/bcgov/ocp-sso/wiki/Using-Your-SSO-Client#confidential-vs-private-client"
-                  >
+                  <Link external href="https://bcgov.github.io/sso-docs/css-application/client-types">
                     wiki page.
                   </Link>
                 </p>

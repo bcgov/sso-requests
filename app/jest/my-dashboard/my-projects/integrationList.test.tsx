@@ -1,13 +1,13 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import IntegrationList from 'page-partials/my-dashboard/IntegrationList';
 import { sampleRequest } from '../../samples/integrations';
-import { formatWikiURL } from '@app/utils/constants';
+import { docusaurusURL } from '@app/utils/constants';
 import * as requestService from 'services/request';
 import { Integration } from '@app/interfaces/Request';
 
 const setIntegration = jest.fn();
 const setIntegrationCount = jest.fn();
-const HYPERLINK = formatWikiURL('Useful-References#client');
+const HYPERLINK = `${docusaurusURL}/css-application/client-types`;
 
 function IntegrationListComponent() {
   return <IntegrationList setIntegration={setIntegration} setIntegrationCount={setIntegrationCount} />;

@@ -1,7 +1,7 @@
 import ServiceAccountRoles from '@app/page-partials/my-dashboard/ServiceAccountRoles';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { sampleRequest } from '@app/jest/samples/integrations';
-import { formatWikiURL } from '@app/utils/constants';
+import { docusaurusURL } from '@app/utils/constants';
 
 function ServiceAccountRolesComponent() {
   return (
@@ -19,7 +19,7 @@ function ServiceAccountRolesComponent() {
 }
 
 const listClientRolesResponse = 'role1';
-const HYPERLINK = formatWikiURL('Creating-a-Role#service-account-role-management');
+const HYPERLINK = `${docusaurusURL}/css-application/roles#service-account-role-management`;
 
 jest.mock('services/keycloak', () => ({
   listClientRoles: jest.fn(() => Promise.resolve([[{ name: listClientRolesResponse }], null])),
@@ -36,7 +36,10 @@ describe('assign service accounts to roles', () => {
   it('Should match the correct table headers, external link address', () => {
     render(<ServiceAccountRolesComponent />);
     expect(screen.getByText('Service Account')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'click to visit our wiki page' })).toHaveAttribute('href', HYPERLINK);
+    expect(screen.getByRole('link', { name: 'click to visit our documentation page' })).toHaveAttribute(
+      'href',
+      HYPERLINK,
+    );
   });
 
   it('Should be able to switch between environments', async () => {

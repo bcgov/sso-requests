@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import TeamList from 'page-partials/my-dashboard/TeamList';
 import { createTeam, deleteTeam, editTeamName } from 'services/team';
 import { SessionContext } from '@app/utils/context';
-import { formatWikiURL } from '@app/utils/constants';
+import { docusaurusURL } from '@app/utils/constants';
 
 function TeamListComponent() {
   return (
@@ -29,7 +29,7 @@ const sampleTeam = [
     updatedAt: '',
   },
 ];
-const HYPERLINK = formatWikiURL('CSS-App-My-Teams#ive-created-a-team-now-what');
+const HYPERLINK = `${docusaurusURL}/css-application/teams#allowed-actions-by-role`;
 const setTeam = jest.fn();
 const loadTeams = jest.fn();
 
@@ -118,7 +118,10 @@ describe('Team List', () => {
       .querySelector('[class$="-singleValue"]');
     expect(secondMemberRoleDropdownValue.textContent).toBe('Member');
 
-    expect(getByRole('link', 'View a detailed breakdown of roles on our wiki page')).toHaveAttribute('href', HYPERLINK);
+    expect(getByRole('link', 'View a detailed breakdown of roles on our documentation page')).toHaveAttribute(
+      'href',
+      HYPERLINK,
+    );
 
     fireEvent.click(screen.getByRole('img', { name: 'Add Item' }));
     expect(screen.queryAllByText('Enter email address')).toHaveLength(1);
@@ -126,13 +129,13 @@ describe('Team List', () => {
     fireEvent.click(removeMember[1]);
     expect(screen.queryAllByText('Enter email address')).toHaveLength(0);
 
-    const sendInvitationButton = getByRole('button', 'Send Invitation');
+    const createTeamBtn = getByRole('button', 'Create');
     await waitFor(() => {
-      expect(sendInvitationButton).toBeInTheDocument();
+      expect(createTeamBtn).toBeInTheDocument();
     });
 
     await waitFor(async () => {
-      fireEvent.click(sendInvitationButton);
+      fireEvent.click(createTeamBtn);
     });
     await waitFor(() => {
       expect(createTeam).toHaveBeenCalledTimes(1);

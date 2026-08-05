@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import FormTemplate from 'form-components/FormTemplate';
-import { updateRequest } from 'services/request';
+import { isRequestBcscExcluded, updateRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
 import { fetchDefaultSessionSettings } from 'services/keycloak';
 import { setUpRouter } from './utils/setup';
@@ -18,6 +18,7 @@ jest.mock('services/request', () => {
     createRequest: jest.fn(),
     updateRequest: jest.fn(() => Promise.resolve([{}, null])),
     getRequest: jest.fn(),
+    isRequestBcscExcluded: jest.fn(() => Promise.resolve([false, null])),
   };
 });
 
@@ -753,6 +754,46 @@ describe('Basic Info - Identity Providers', () => {
 
     expect(digitalCredentialCheckbox?.checked).toBeFalsy();
   });
+
+  it('should open BCeID warning modal when Basic BCeID or BCeID both are selected', async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      serviceType: 'gold',
+      devIdps: [],
+      status: 'draft',
+      environments: ['dev', 'test', 'prod'],
+    });
+
+    fireEvent.click(sandbox.basicInfoBox);
+
+    const basicBceidCheckbox = getByText('Basic BCeID')?.parentElement?.querySelector(
+      "input[type='checkbox']",
+    ) as HTMLInputElement;
+
+    fireEvent.click(basicBceidCheckbox);
+    await waitFor(() => expect(screen.getByText('BCeID Application Notice')).toBeInTheDocument());
+
+    // clear message
+    fireEvent.click(getByText('I Understand'));
+    await waitFor(() => expect(screen.queryByText('BCeID Application Notice')).not.toBeInTheDocument());
+
+    // Check fires on bceid both
+    const bceidBothCheckbox = getByText('Basic or Business BCeID')?.parentElement?.querySelector(
+      "input[type='checkbox']",
+    ) as HTMLInputElement;
+    fireEvent.click(bceidBothCheckbox);
+    await waitFor(() => expect(screen.getByText('BCeID Application Notice')).toBeInTheDocument());
+
+    fireEvent.click(getByText('I Understand'));
+    await waitFor(() => expect(screen.queryByText('BCeID Application Notice')).not.toBeInTheDocument());
+
+    // Check bceid business does not show it
+    const bceidBusinessCheckbox = getByText('Business BCeID')?.parentElement?.querySelector(
+      "input[type='checkbox']",
+    ) as HTMLInputElement;
+    fireEvent.click(bceidBusinessCheckbox);
+    await waitFor(() => expect(screen.queryByText('BCeID Application Notice')).not.toBeInTheDocument());
+  });
 });
 
 describe('BC Services Card IDP and dependencies', () => {
@@ -1083,6 +1124,8 @@ describe('Social IDP', () => {
 });
 
 describe('One Time Passcode IDP', () => {
+  const { NEXT_PUBLIC_INCLUDE_OTP, NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD } = process.env;
+
   const defaultRender = {
     id: 0,
     serviceType: 'gold',
@@ -1093,6 +1136,12 @@ describe('One Time Passcode IDP', () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_INCLUDE_OTP = 'true';
   });
+
+  afterAll(() => {
+    process.env.NEXT_PUBLIC_INCLUDE_OTP = NEXT_PUBLIC_INCLUDE_OTP;
+    process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD;
+  });
+
   it('Shows OTP IDP when the env variable is set', async () => {
     const { queryByText } = setUpRender(defaultRender, userSession);
 
@@ -1257,5 +1306,127 @@ describe('One Time Passcode IDP', () => {
     expect(bcscCheckbox).toBeChecked();
     const bcscPrivacyZoneDropDown = screen.getByTestId('bcsc-privacy-zone') as HTMLElement;
     expect(bcscPrivacyZoneDropDown?.querySelector("input[type='text']")).toBeDisabled();
+  });
+
+  it('should hide home page URI field when OTP is not selected', async () => {
+    setUpRender(
+      {
+        id: 0,
+        serviceType: 'gold',
+        devIdps: ['azureidir', 'bceidbasic'],
+        status: 'draft',
+        environments: ['dev', 'test', 'prod'],
+      },
+      userSession,
+    );
+    fireEvent.click(sandbox.basicInfoBox);
+    fireEvent.click(sandbox.developmentBox);
+    expect(screen.queryByTestId('root_devHomePageUri_title')).toBeNull();
+  });
+
+  it('should show home page URI field when OTP is selected', async () => {
+    setUpRender(
+      {
+        id: 0,
+        serviceType: 'gold',
+        devIdps: ['otp'],
+        status: 'draft',
+        environments: ['dev', 'test', 'prod'],
+      },
+      userSession,
+    );
+    fireEvent.click(sandbox.basicInfoBox);
+    fireEvent.click(sandbox.developmentBox);
+    expect(screen.queryByTestId('root_devHomePageUri_title')).not.toBeNull();
+  });
+
+  it('should not show a validation error for home page URI when only OTP is selected (field is optional)', async () => {
+    setUpRender(
+      {
+        id: 0,
+        serviceType: 'gold',
+        devIdps: ['otp'],
+        status: 'draft',
+        environments: ['dev', 'test', 'prod'],
+        devValidRedirectUris: ['https://dev1.com'],
+        testValidRedirectUris: ['https://test1.com'],
+        prodValidRedirectUris: ['https://prod1.com'],
+      },
+      userSession,
+    );
+    fireEvent.click(sandbox.basicInfoBox);
+    const nextButton = screen.getByText('Next') as HTMLElement;
+    fireEvent.click(nextButton);
+    fireEvent.click(sandbox.basicInfoBox);
+    fireEvent.click(sandbox.developmentBox);
+    expect(screen.queryByTestId('root_devHomePageUri_title')).not.toBeNull();
+    expect(screen.queryByText('Please enter a valid URI')).toBeNull();
+  });
+
+  it('should show a validation error for home page URI when both OTP and BCSC are selected and field is empty', async () => {
+    process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = 'true';
+    setUpRender(
+      {
+        id: 0,
+        serviceType: 'gold',
+        devIdps: ['otp', 'bcservicescard'],
+        status: 'draft',
+        environments: ['dev', 'test', 'prod'],
+        devValidRedirectUris: ['https://dev1.com'],
+        testValidRedirectUris: ['https://test1.com'],
+        prodValidRedirectUris: ['https://prod1.com'],
+      },
+      userSession,
+    );
+    fireEvent.click(sandbox.basicInfoBox);
+    const nextButton = screen.getByText('Next') as HTMLElement;
+    fireEvent.click(nextButton);
+    fireEvent.click(sandbox.basicInfoBox);
+    fireEvent.click(sandbox.developmentBox);
+    expect(screen.queryByTestId('root_devHomePageUri_title')).not.toBeNull();
+    expect(screen.getByText('Please enter a valid URI')).toBeInTheDocument();
+  });
+});
+
+describe('BCSC Excluded Clients', () => {
+  const defaultRender = {
+    id: 0,
+    serviceType: 'gold',
+    status: 'draft',
+    environments: ['dev', 'test', 'prod'],
+  };
+  const userSession = { email: 'user-session@gov.bc.ca', client_roles: ['sso-admin'] };
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.NEXT_PUBLIC_INCLUDE_OTP = 'true';
+  });
+
+  it('Does not disable OTP IDP when request is not in the BCSC exclusion list', async () => {
+    const { queryByText } = setUpRender(defaultRender, userSession);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    await waitFor(() => {
+      const checkbox = queryByText('One Time Passcode')?.parentElement?.querySelector(
+        "input[type='checkbox']",
+      ) as HTMLInputElement;
+      expect(checkbox).toBeTruthy();
+      expect(checkbox).not.toBeDisabled();
+    });
+  });
+
+  it('Disables OTP IDP when request is in the BCSC exclusion list', async () => {
+    const mockedIsRequestBcscExcluded = isRequestBcscExcluded as jest.MockedFunction<typeof isRequestBcscExcluded>;
+    mockedIsRequestBcscExcluded.mockResolvedValue([true, null]);
+    const { queryByText } = setUpRender(defaultRender, userSession);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    await waitFor(() => {
+      const checkbox = queryByText('One Time Passcode')?.parentElement?.querySelector(
+        "input[type='checkbox']",
+      ) as HTMLInputElement;
+      expect(checkbox).toBeTruthy();
+      expect(checkbox).toBeDisabled();
+      expect(screen.getByText('Disabled as client is in bc services card exclusion list')).toBeInTheDocument();
+    });
   });
 });

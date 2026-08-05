@@ -7,7 +7,7 @@ import { IDIM_EMAIL_ADDRESS, OTP_EMAIL_ADDRESS_BCC, OTP_EMAIL_ADDRESS_CC, SSO_EM
 import { usesBceid, usesBcServicesCardProd, usesOTPProd } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
-const SUBJECT_TEMPLATE = `{{type}} Request ID {{integration.id}} approved and being processed (email 1 of 2)`;
+const SUBJECT_TEMPLATE = `{{type}} Request ID {{integration.id}} approved`;
 const template = getEmailTemplate('environment-approved/environment-approved.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });

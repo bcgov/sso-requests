@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react';
-import { addTeamMembers, inviteTeamMember, deleteTeamMember } from 'services/team';
+import { addTeamMembers, deleteTeamMember } from 'services/team';
 import { MyTeamsComponent } from './helpers';
-import { formatWikiURL } from '@app/utils/constants';
+import { docusaurusURL } from '@app/utils/constants';
 
-const HYPERLINK = formatWikiURL('CSS-App-My-Teams#ive-created-a-team-now-what');
+const HYPERLINK = `${docusaurusURL}/css-application/teams#allowed-actions-by-role`;
 
 const spyValidateTeam = jest
   .spyOn(require('form-components/team-form/TeamMembersForm'), 'validateTeam')
@@ -64,7 +64,6 @@ jest.mock('services/team', () => ({
     null,
   ]),
   addTeamMembers: jest.fn(() => [, null]),
-  inviteTeamMember: jest.fn(() => [, null]),
   deleteTeamMember: jest.fn(() => [, null]),
 }));
 
@@ -105,10 +104,9 @@ describe('Members tab', () => {
     const addNewMemberButton = screen.findByText('+ Add New Team Members');
     fireEvent.click(await addNewMemberButton);
     expect(screen.getByText('Add a New Team Member')).toBeVisible();
-    expect(screen.getByRole('link', { name: 'View a detailed breakdown of roles on our wiki page' })).toHaveAttribute(
-      'href',
-      HYPERLINK,
-    );
+    expect(
+      screen.getByRole('link', { name: 'View a detailed breakdown of roles on our documentation page' }),
+    ).toHaveAttribute('href', HYPERLINK);
     expect(screen.findByRole('option', { name: 'Member' }));
 
     await waitFor(() => {
@@ -136,21 +134,12 @@ describe('Members tab', () => {
     render(<MyTeamsComponent />);
     fireEvent.click(await screen.findByRole('tab', { name: 'Members' }));
 
-    screen.getByRole('columnheader', { name: 'Invite Status' });
+    screen.getByRole('columnheader', { name: 'Status' });
     screen.findByText('Email');
     screen.getByRole('columnheader', { name: 'Role' });
     screen.getAllByRole('columnheader', { name: 'Actions' });
-    screen.getByRole('row', { name: 'admin01@gov.bc.ca Admin' });
-    screen.getByRole('row', { name: 'member01@gov.bc.ca Member Resend Invitation Delete User' });
-  });
-
-  it('Should be able to click the resend invitation button', async () => {
-    render(<MyTeamsComponent />);
-    fireEvent.click(await screen.findByRole('tab', { name: 'Members' }));
-
-    const resendButton = screen.findByRole('img', { name: 'Resend Invitation' });
-    fireEvent.click(await resendButton);
-    expect(inviteTeamMember).toHaveBeenCalledTimes(1);
+    screen.getByRole('row', { name: 'Active Member admin01@gov.bc.ca Admin' });
+    screen.getByRole('row', { name: 'Inactive Member member01@gov.bc.ca Member Delete User' });
   });
 
   it('Should be able to click the Delete button', async () => {

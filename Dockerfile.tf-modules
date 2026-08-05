@@ -1,15 +1,12 @@
 FROM hashicorp/terraform:1.11.0
 
-RUN apk update
-RUN apk upgrade
-RUN apk add --no-cache curl
+RUN apk update && apk upgrade && apk add --no-cache curl
 
-# Set working directory
-WORKDIR /terraform
-
-COPY /local/terraform/ .
+# Stage terraform source separately from the runtime volume mount point
+COPY /local/terraform/ /tf-src/
 COPY /local/tf-migration-entrypoint.sh /tmp/tf-migration-entrypoint.sh
 
 RUN chmod +x /tmp/tf-migration-entrypoint.sh
+WORKDIR /terraform
 
 ENTRYPOINT ["/tmp/tf-migration-entrypoint.sh"]

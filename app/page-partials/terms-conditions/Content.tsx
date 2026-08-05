@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import Link from '@app/components/Link';
 import { FORM_TOP_SPACING } from 'styles/theme';
-import { docusaurusURL, formatWikiURL, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
+import { docusaurusURL, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
 
 const StyledList = styled.ul`
   & li {
@@ -19,8 +19,8 @@ const Container = styled.div`
   margin-top: ${FORM_TOP_SPACING};
 `;
 
-export default function FaqItems() {
-  const wikiUrl = formatWikiURL();
+export default function TermsAndConditions() {
+  const wikiUrl = docusaurusURL;
   return (
     <Container>
       <h2>Requirements</h2>
@@ -96,8 +96,8 @@ export default function FaqItems() {
         </li>
         <li>
           To learn more about our service uptime monitoring, please visit our{' '}
-          <Link external href={formatWikiURL('Pathfinder-Uptime-Monitoring/')}>
-            uptime page on our wiki
+          <Link external href="https://status.loginproxy.gov.bc.ca">
+            uptime page
           </Link>{' '}
           and join our{' '}
           <Link external href="https://digital.gov.bc.ca/sso-notifications/">
@@ -120,15 +120,11 @@ export default function FaqItems() {
           the Pathfinder SSO Product Owner.
         </li>
         <li>
-          Visit our documentation: one for{' '}
+          Visit our{' '}
           <Link external href={wikiUrl}>
-            business
+            documentation
           </Link>{' '}
-          areas and one for{' '}
-          <Link external href={docusaurusURL}>
-            technical
-          </Link>{' '}
-          areas.
+          .
         </li>
       </StyledList>
     </Container>

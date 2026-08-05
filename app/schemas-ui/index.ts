@@ -11,6 +11,7 @@ interface Props {
   teams: Team[];
   schemas: any;
   defaultSessionSettings: GetStandardSettingsResponse;
+  bcscExcluded: boolean;
 }
 
 export const getUISchema = (props: Props) => {

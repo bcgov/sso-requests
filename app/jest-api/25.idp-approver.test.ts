@@ -179,6 +179,27 @@ describe('IDP Approver', () => {
     expect(restoreRes.status).toEqual(403);
   });
 
+  it('BCeID approver can view bceid approval events for all environments', async () => {
+    createMockAuth(BCEID_ADMIN_IDIR_USERID_01, BCEID_ADMIN_IDIR_EMAIL_01, ['bceid-approver']);
+    const requests = await getRequestsForAdmins();
+
+    const updated = await updateIntegration({ ...requests.body.rows[0], devBceidApproved: true }, true);
+    await updateIntegration({ ...updated.body, testBceidApproved: true }, true);
+
+    const eventsRes = await getEvents(requests.body.rows[0].id);
+    expect(eventsRes.status).toEqual(200);
+    expect(eventsRes.body.count).toEqual(3);
+    expect(eventsRes.body.rows.length).toEqual(3);
+
+    expect(eventsRes.body.rows.some((row: any) => row.details.changes[0].path.includes('bceidApproved'))).toBeTruthy();
+    expect(
+      eventsRes.body.rows.some((row: any) => row.details.changes[0].path.includes('devBceidApproved')),
+    ).toBeTruthy();
+    expect(
+      eventsRes.body.rows.some((row: any) => row.details.changes[0].path.includes('testBceidApproved')),
+    ).toBeTruthy();
+  });
+
   it('BCeID approver can edit/approve/delete owned integrations', async () => {
     createMockAuth(BCEID_ADMIN_IDIR_USERID_01, BCEID_ADMIN_IDIR_EMAIL_01, ['bceid-approver']);
     const bceidApproverIntegration = await buildIntegration({

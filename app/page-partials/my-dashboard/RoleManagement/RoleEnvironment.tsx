@@ -127,6 +127,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const confirmModalRef = useRef<ModalRef>(emptyRef);
   const removeUserModalRef = useRef<ModalRef>(emptyRef);
   const removeServiceAccountModalRef = useRef<ModalRef>(emptyRef);
+  const isFetchingRolesRef = useRef(false);
   const [roleLoading, setRoleLoading] = useState(false);
   const [userLoading, setUserLoading] = useState(false);
   const [compositeLoading, setCompositeLoading] = useState(false);
@@ -191,7 +192,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
 
         if (!err) setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
         await setSaving(false);
-        fetchRoles();
+        fetchRoles(false);
         return true;
       },
       2000,
@@ -228,31 +229,36 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     return optionizeAll(roles);
   }, [roles]);
 
-  const fetchRoles = async () => {
-    if (roleLoading) return;
-    setRoleLoading(true);
-    const [data, err] = await listClientRoles({
-      environment,
-      integrationId: integration.id as number,
-      search: searchKey,
-    });
-
-    const _roles = data == null ? [] : data.map((role: any) => role.name);
-
-    if (err || !data) {
-      alert.show({
-        variant: 'danger',
-        content: 'Failed to fetch roles.',
+  const fetchRoles = async (showLoader = true) => {
+    if (isFetchingRolesRef.current) return;
+    isFetchingRolesRef.current = true;
+    if (showLoader) setRoleLoading(true);
+    try {
+      const [data, err] = await listClientRoles({
+        environment,
+        integrationId: integration.id as number,
+        search: searchKey,
       });
-    }
 
-    setRoles(_roles.filter((role: string) => role.toLowerCase().includes(searchKey.toLowerCase())));
-    setCompositeResult(data == null ? [] : data.map((role: any) => role.composite));
+      const _roles = data == null ? [] : data.map((role: any) => role.name);
 
-    if (_roles.length === 1) {
-      setSelectedRole(_roles[0]);
+      if (err || !data) {
+        alert.show({
+          variant: 'danger',
+          content: 'Failed to fetch roles.',
+        });
+      }
+
+      setRoles(_roles.filter((role: string) => role.toLowerCase().includes(searchKey.toLowerCase())));
+      setCompositeResult(data == null ? [] : data.map((role: any) => role.composite));
+
+      if (_roles.length === 1) {
+        setSelectedRole(_roles[0]);
+      }
+    } finally {
+      if (showLoader) setRoleLoading(false);
+      isFetchingRolesRef.current = false;
     }
-    setRoleLoading(false);
   };
 
   const fetchUsers = async (loadFirst: boolean, roleName: string) => {
@@ -333,7 +339,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       if (!users || users.length === 0) break;
       data.push(
         ...users.map((user) => {
-          const identityProvider = user.username.split('@')[1];
+          const [userGuid, identityProvider] = user.username.split('@');
           const githubOrBceidUser =
             identityProvider && (identityProvider.startsWith('bceid') || identityProvider.startsWith('github'));
           const username =
@@ -344,13 +350,14 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
           const firstName = githubOrBceidUser ? '' : user.firstName;
           const lastName = githubOrBceidUser ? '' : user.lastName;
           const displayName = githubOrBceidUser ? user.firstName : user.attributes?.display_name?.[0] || '';
-          return _.pick({ ...user, username, identityProvider, firstName, lastName, displayName }, [
+          return _.pick({ ...user, username, identityProvider, firstName, lastName, displayName, userGuid }, [
             'firstName',
             'lastName',
             'email',
             'username',
             'identityProvider',
             'displayName',
+            'userGuid',
           ]);
         }),
       );
@@ -654,19 +661,15 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
 
   return (
     <>
-      {roleLoading ? (
-        <LoaderContainer />
-      ) : (
-        <Row>
-          <Col>{leftPanel}</Col>
-          <Col>
-            {selectedRole && (
-              <Tabs onChange={handleRightPanelTabSelect} activeKey={rightPanelTab} tabBarGutter={30} items={tabItems} />
-            )}
-            {rightPanel}
-          </Col>
-        </Row>
-      )}
+      <Row>
+        <Col>{leftPanel}</Col>
+        <Col>
+          {selectedRole && (
+            <Tabs onChange={handleRightPanelTabSelect} activeKey={rightPanelTab} tabBarGutter={30} items={tabItems} />
+          )}
+          {rightPanel}
+        </Col>
+      </Row>
       <GenericModal
         ref={confirmModalRef}
         title="Delete Role"

@@ -7,7 +7,7 @@ import { getEmailTemplate, processUser } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 
-const SUBJECT_TEMPLATE = `Pathfinder SSO request limit reached`;
+const SUBJECT_TEMPLATE = `SSO request limit reached`;
 const template = getEmailTemplate('request-limit-exceeded/request-limit-exceeded.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });

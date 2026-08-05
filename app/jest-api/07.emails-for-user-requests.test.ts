@@ -70,73 +70,6 @@ describe('integration email updates for individual users', () => {
 
     let emailList;
 
-    it('should render the expected template after submission of non-bceid integration', async () => {
-      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-      emailList = createMockSendEmail();
-      const projectName: string = 'Non BCeID Submit';
-      const integrationRes = await buildIntegration({ projectName, submitted: true });
-      expect(integrationRes.status).toEqual(200);
-      integration = integrationRes.body;
-      const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
-        integration,
-        waitingBceidProdApproval: false,
-        waitingGithubProdApproval: false,
-      });
-
-      expect(emailList.length).toEqual(2);
-      expect(emailList[0].subject).toEqual(template.subject);
-      expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(1);
-      expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc.length).toEqual(1);
-      expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
-    });
-
-    it('should render the expected template after submission  of bceid integration in non-prod environment', async () => {
-      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-      emailList = createMockSendEmail();
-      const projectName: string = 'BCeID Non Prod Submit';
-      const integrationRes = await buildIntegration({ projectName, bceid: true, submitted: true });
-      expect(integrationRes.status).toEqual(200);
-      integration = integrationRes.body;
-      const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
-        integration,
-        waitingBceidProdApproval: false,
-        waitingGithubProdApproval: false,
-      });
-
-      expect(emailList.length).toEqual(2);
-      expect(emailList[0].subject).toEqual(template.subject);
-      expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(1);
-      expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc.length).toEqual(2);
-      expect(emailList[0].cc).toContain(SSO_EMAIL_ADDRESS);
-      expect(emailList[0].cc).toContain(IDIM_EMAIL_ADDRESS);
-    });
-
-    it('should render the expected template after submission of bceid integration in prod environment', async () => {
-      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-      emailList = createMockSendEmail();
-      const projectName: string = 'BCeID Prod Submit';
-      const integrationRes = await buildIntegration({ projectName, bceid: true, prodEnv: true, submitted: true });
-      expect(integrationRes.status).toEqual(200);
-      integration = integrationRes.body;
-      const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
-        integration,
-        waitingBceidProdApproval: true,
-        waitingGithubProdApproval: false,
-      });
-
-      expect(emailList.length).toEqual(2);
-      expect(emailList[0].subject).toEqual(template.subject);
-      expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(1);
-      expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc.length).toEqual(2);
-      expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS].sort());
-    });
-
     it('should render the expected template after approval of an integration', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const projectName: string = 'Non BCeID Apply';
@@ -149,13 +82,12 @@ describe('integration email updates for individual users', () => {
         integration,
       });
 
-      expect(emailList.length).toEqual(2);
-      expect(emailList[1].subject).toEqual(template.subject);
-      expect(emailList[1].body).toEqual(template.body);
-      expect(emailList[1].to.length).toEqual(1);
-      expect(emailList[1].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[1].cc.length).toEqual(1);
-      expect(emailList[1].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
+      expect(emailList.length).toEqual(1);
+      expect(emailList[0].subject).toEqual(template.subject);
+      expect(emailList[0].body).toEqual(template.body);
+      expect(emailList[0].to.length).toEqual(1);
+      expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
+      expect(emailList[0].cc).toEqual([]);
     });
 
     it('should cc the bceid team when removing bceid idps from a previously approved integration', async () => {
@@ -169,11 +101,9 @@ describe('integration email updates for individual users', () => {
 
       // Remove BCeID to check new emails
       await updateIntegration({ ...integrationRes.body, devIdps: ['azureidir'] }, true);
-      expect(emailList.length).toBe(2);
+      expect(emailList.length).toBe(1);
       emailList.forEach((emailData: any) => {
-        expect(emailData.cc.length).toBe(2);
-        expect(emailData.cc.includes(IDIM_EMAIL_ADDRESS)).toBeTruthy();
-        expect(emailData.cc.includes(SSO_EMAIL_ADDRESS)).toBeTruthy();
+        expect(emailData.cc).toEqual([IDIM_EMAIL_ADDRESS]);
       });
     });
 
@@ -194,7 +124,7 @@ describe('integration email updates for individual users', () => {
       // Remove BCeID to check new emails
       const newProjectName = 'new project';
       await updateIntegration({ ...integrationRes.body, projectName: newProjectName }, true);
-      expect(emailList.length).toBe(2);
+      expect(emailList.length).toBe(1);
       emailList.forEach((emailData: any) => {
         expect(emailData.body.includes(`${originalProjectName} => ${newProjectName}`)).toBeTruthy();
       });
@@ -218,94 +148,12 @@ describe('integration email updates for individual users', () => {
         authType: 'service-account',
       });
 
-      expect(emailList.length).toEqual(2);
-      expect(emailList[1].subject).toEqual(template.subject);
-      expect(emailList[1].body).toEqual(template.body);
-      expect(emailList[1].to.length).toEqual(1);
-      expect(emailList[1].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[1].cc.length).toEqual(1);
-      expect(emailList[1].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
-    });
-
-    it('should render the expected template after submitting approved bceid integration in non prod', async () => {
-      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-      const projectName: string = 'BCeID Non Prod Re-Submit';
-      let integrationRes = await buildIntegration({
-        projectName,
-        bceid: true,
-        submitted: true,
-      });
-      expect(integrationRes.status).toEqual(200);
-      let integration = integrationRes.body;
-
-      emailList = createMockSendEmail();
-
-      const updateIntRes = await updateIntegration(
-        getUpdateIntegrationData({
-          integration,
-          identityProviders: integration.devIdps,
-        }),
-        true,
-      );
-
-      expect(updateIntRes.status).toEqual(200);
-      integration = updateIntRes.body;
-
-      const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
-        integration,
-        waitingBceidProdApproval: false,
-        waitingGithubProdApproval: false,
-      });
-
-      expect(emailList.length).toEqual(2);
+      expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(1);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc.length).toEqual(2);
-      expect(emailList[0].cc).toContain(SSO_EMAIL_ADDRESS);
-      expect(emailList[0].cc).toContain(IDIM_EMAIL_ADDRESS);
-    });
-
-    it('should render the expected template after submitting approved bceid integration in prod', async () => {
-      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-      const projectName: string = 'BCeID Prod Re-Submit';
-      let integrationRes = await buildIntegration({
-        projectName,
-        bceid: true,
-        prodEnv: true,
-        submitted: true,
-      });
-      expect(integrationRes.status).toEqual(200);
-      let integration = integrationRes.body;
-
-      emailList = createMockSendEmail();
-
-      const updateIntRes = await updateIntegration(
-        getUpdateIntegrationData({
-          integration,
-          identityProviders: integration.devIdps,
-          envs: ['dev', 'test', 'prod'],
-        }),
-        true,
-      );
-
-      expect(updateIntRes.status).toEqual(200);
-      integration = updateIntRes.body;
-
-      const template = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
-        integration,
-        waitingBceidProdApproval: true,
-        waitingGithubProdApproval: false,
-      });
-
-      expect(emailList.length).toEqual(2);
-      expect(emailList[0].subject).toEqual(template.subject);
-      expect(emailList[0].body).toEqual(template.body);
-      expect(emailList[0].to.length).toEqual(1);
-      expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc.length).toEqual(2);
-      expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS].sort());
+      expect(emailList[0].cc).toEqual([]);
     });
 
     it('should render the expected template after applying approved bceid integration in non prod', async () => {
@@ -337,14 +185,12 @@ describe('integration email updates for individual users', () => {
         hasBceid: true,
       });
 
-      expect(emailList.length).toEqual(2);
-      expect(emailList[1].subject).toEqual(template.subject);
-      expect(emailList[1].body).toEqual(template.body);
-      expect(emailList[1].to.length).toEqual(1);
-      expect(emailList[1].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[1].cc.length).toEqual(2);
-      expect(emailList[1].cc).toContain(SSO_EMAIL_ADDRESS);
-      expect(emailList[1].cc).toContain(IDIM_EMAIL_ADDRESS);
+      expect(emailList.length).toEqual(1);
+      expect(emailList[0].subject).toEqual(template.subject);
+      expect(emailList[0].body).toEqual(template.body);
+      expect(emailList[0].to.length).toEqual(1);
+      expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
+      expect(emailList[0].cc).toEqual([IDIM_EMAIL_ADDRESS]);
     });
 
     it('should render the expected template after applying non prod approved bceid integration', async () => {
@@ -379,13 +225,12 @@ describe('integration email updates for individual users', () => {
         waitingBceidProdApproval: true,
       });
 
-      expect(emailList.length).toEqual(2);
-      expect(emailList[1].subject).toEqual(template.subject);
-      expect(emailList[1].body).toEqual(template.body);
-      expect(emailList[1].to.length).toEqual(1);
-      expect(emailList[1].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[1].cc.length).toEqual(2);
-      expect(emailList[1].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
+      expect(emailList.length).toEqual(1);
+      expect(emailList[0].subject).toEqual(template.subject);
+      expect(emailList[0].body).toEqual(template.body);
+      expect(emailList[0].to.length).toEqual(1);
+      expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
+      expect(emailList[0].cc).toEqual([IDIM_EMAIL_ADDRESS]);
     });
 
     it('should render the expected template after bceid prod approval of an integration', async () => {
@@ -423,7 +268,7 @@ describe('integration email updates for individual users', () => {
         environment: 'production',
       });
 
-      expect(emailList.length).toEqual(2);
+      expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(1);
@@ -466,7 +311,7 @@ describe('integration email updates for individual users', () => {
         environment: 'development',
       });
 
-      expect(emailList.length).toEqual(2);
+      expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
@@ -506,7 +351,7 @@ describe('integration email updates for individual users', () => {
         environment: 'test',
       });
 
-      expect(emailList.length).toEqual(2);
+      expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
@@ -547,13 +392,12 @@ describe('integration email updates for individual users', () => {
         environment: 'production',
       });
 
-      expect(emailList.length).toEqual(2);
+      expect(emailList.length).toEqual(1);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(1);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc.length).toEqual(1);
-      expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
+      expect(emailList[0].cc).toEqual([SSO_EMAIL_ADDRESS]);
     });
 
     it('should render the expected template after submission to delete an integration', async () => {
@@ -581,8 +425,7 @@ describe('integration email updates for individual users', () => {
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(1);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc.length).toEqual(1);
-      expect(emailList[0].cc[0]).toEqual(SSO_EMAIL_ADDRESS);
+      expect(emailList[0].cc).toEqual([]);
     });
 
     it('should render the expected template after submission to delete bceid integration for prod', async () => {
@@ -612,8 +455,7 @@ describe('integration email updates for individual users', () => {
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(1);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc.length).toEqual(2);
-      expect(emailList[0].cc.sort()).toEqual([SSO_EMAIL_ADDRESS, IDIM_EMAIL_ADDRESS].sort());
+      expect(emailList[0].cc).toEqual([IDIM_EMAIL_ADDRESS]);
     });
     it('should render the expected template after removing bc services card idp from prod integration', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
@@ -643,7 +485,7 @@ describe('integration email updates for individual users', () => {
         integration,
       });
 
-      expect(emailList.length).toEqual(3);
+      expect(emailList.length).toEqual(2);
       expect(emailList[0].subject).toEqual(template.subject);
       expect(emailList[0].body).toEqual(template.body);
     });
@@ -657,26 +499,15 @@ describe('integration email updates for individual users', () => {
       expect(integrationRes.status).toEqual(200);
       integration = integrationRes.body;
 
-      expect(emailList.length).toEqual(2);
-      // Expect submission email first with attached spreadsheet
-      expect(emailList[0].attachments.length).toBe(1);
+      expect(emailList.length).toEqual(1);
+      expect(emailList[0].attachments).toBeFalsy();
       expect(emailList[0].cc.includes(SOCIAL_APPROVAL_EMAIL_ADDRESS)).toBeTruthy();
 
-      // Other email does not re-send attachment
-      expect(emailList[1].attachments).toBeFalsy();
-      expect(emailList[1].cc.includes(SOCIAL_APPROVAL_EMAIL_ADDRESS)).toBeTruthy();
-
-      // Updates should also attach form on the first email only
       emailList = createMockSendEmail();
       await updateIntegration(integrationRes.body, true);
-      expect(emailList.length).toEqual(2);
-      // Expect update submitted email first with attached spreadsheet
-      expect(emailList[0].attachments.length).toBe(1);
+      expect(emailList.length).toEqual(1);
+      expect(emailList[0].attachments).toBeFalsy();
       expect(emailList[0].cc.includes(SOCIAL_APPROVAL_EMAIL_ADDRESS)).toBeTruthy();
-
-      // Update finalized email does not re-send attachment
-      expect(emailList[1].attachments).toBeFalsy();
-      expect(emailList[1].cc.includes(SOCIAL_APPROVAL_EMAIL_ADDRESS)).toBeTruthy();
     });
 
     it('should render the expected template after submission of a one time passcode integration', async () => {
@@ -687,8 +518,8 @@ describe('integration email updates for individual users', () => {
       const integrationRes = await buildIntegration({ projectName, submitted: true, otp: true, prodEnv: true });
       expect(integrationRes.status).toEqual(200);
       integration = integrationRes.body;
-      expect(emailList.length).toEqual(2);
-      expect(emailList[0].cc).toEqual([SSO_EMAIL_ADDRESS, ...OTP_EMAIL_ADDRESS_CC]);
+      expect(emailList.length).toEqual(1);
+      expect(emailList[0].cc).toEqual(OTP_EMAIL_ADDRESS_CC);
       expect(emailList[0].bcc).toEqual(OTP_EMAIL_ADDRESS_BCC);
     });
 
@@ -702,7 +533,7 @@ describe('integration email updates for individual users', () => {
       createMockAuth(SSO_ADMIN_USERID_01, SSO_ADMIN_EMAIL_01, ['sso-admin']);
       emailList = createMockSendEmail();
       await updateIntegration({ ...integrationRes.body, otpApproved: true }, true);
-      expect(emailList.length).toEqual(2);
+      expect(emailList.length).toEqual(1);
       const prodApprovalEmail = emailList.find((email: any) => email.code === EMAILS.PROD_APPROVED);
       expect(prodApprovalEmail.cc).toEqual([SSO_EMAIL_ADDRESS, ...OTP_EMAIL_ADDRESS_CC]);
       expect(prodApprovalEmail.bcc).toEqual(OTP_EMAIL_ADDRESS_BCC);
