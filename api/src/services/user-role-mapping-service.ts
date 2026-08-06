@@ -15,6 +15,13 @@ import { MsGraphService, AzureIdirAccount } from '@/services/ms-graph-idir';
 const AUTO_PROVISION_IDPS = [...BCEID_SOAP_IDPS, 'azureidir'] as const;
 type AutoProvisionIdp = typeof AUTO_PROVISION_IDPS[number];
 
+/**
+ * The GUID portion of a `<guid>@<idp>` username is interpolated unescaped into upstream requests
+ * (a SOAP XML body for BCeID IDPs, and an OData filter string for azureidir). Only allow the
+ * standard hex UUID character set so it can never be used to inject markup/filter syntax.
+ */
+const GUID_PATTERN = /^[0-9a-fA-F]{32}$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
 @injectable()
 export class UserRoleMappingService {
   keycloakServiceFactory = container.resolve(KeycloakServiceFactory);
@@ -247,6 +254,10 @@ export class UserRoleMappingService {
       throw new createHttpError.BadRequest(`invalid username ${username}`);
     }
     const [guid, idp] = parts;
+
+    if (!GUID_PATTERN.test(guid)) {
+      throw new createHttpError.BadRequest(`invalid username ${username}`);
+    }
 
     if (!AUTO_PROVISION_IDPS.includes(idp as AutoProvisionIdp)) {
       throw new createHttpError.BadRequest(`invalid idp ${idp}`);

@@ -55,7 +55,10 @@ export class MsGraphService {
    */
   public async verifyAzureIdirAccountByGuid(guid: string): Promise<AzureIdirAccount | null> {
     try {
-      const url = `${MS_GRAPH_URL}/v1.0/users?$filter=onPremisesExtensionAttributes/extensionAttribute12 eq '${guid}'&$count=true&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,userPrincipalName`;
+      // OData string literals delimit with single quotes; escape any embedded single quote by
+      // doubling it (the OData standard) so the GUID cannot break out of the filter expression.
+      const escapedGuid = guid.replace(/'/g, "''");
+      const url = `${MS_GRAPH_URL}/v1.0/users?$filter=onPremisesExtensionAttributes/extensionAttribute12 eq '${escapedGuid}'&$count=true&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,userPrincipalName`;
       const response = await callAzureGraphApi(url);
       const match = response?.value?.find(
         (user: any) => user.onPremisesExtensionAttributes?.extensionAttribute12?.toLowerCase() === guid.toLowerCase(),
