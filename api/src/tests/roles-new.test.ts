@@ -176,6 +176,54 @@ describe('roles-new endpoint', () => {
     expect(createUserMock).toHaveBeenCalled();
   });
 
+  it.each(['githubbcgov', 'githubpublic'])(
+    'assigns a role directly for an existing %s user without attempting provisioning',
+    async (idp) => {
+      mockRoleAssignment();
+      const getUserMock = jest
+        .spyOn(KeycloakService.prototype, 'getUser')
+        .mockImplementation(() => Promise.resolve({ id: 'user-1', username: `existinguser@${idp}` }));
+      const createUserMock = jest.spyOn(KeycloakService.prototype, 'createUser');
+      const bceidVerifyMock = jest.spyOn(BceidWebserviceService.prototype, 'verifyAccountByGuid');
+      const graphVerifyMock = jest.spyOn(MsGraphService.prototype, 'verifyAzureIdirAccountByGuid');
+
+      const result = await supertest(app)
+        .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/existinguser@${idp}/roles-new`)
+        .send([{ name: 'role1' }])
+        .set('Accept', 'application/json')
+        .expect(201);
+
+      expect(createUserMock).not.toHaveBeenCalled();
+      expect(bceidVerifyMock).not.toHaveBeenCalled();
+      expect(graphVerifyMock).not.toHaveBeenCalled();
+      expect(result.body.data[0].name).toBe('role1');
+    },
+  );
+
+  it.each(['githubbcgov', 'githubpublic'])(
+    'returns 404 for a non-existent %s user instead of attempting to auto-provision them',
+    async (idp) => {
+      jest.spyOn(KeycloakService.prototype, 'listClientRoles').mockImplementation(() => Promise.resolve(clientRoles));
+      jest
+        .spyOn(KeycloakService.prototype, 'getClient')
+        .mockImplementation(() => Promise.resolve({ id: 'client-1', enabled: true, name: 'test client' }));
+      // addClientUserRoleMapping looks the user up internally and 404s if not found; simulate that
+      // here since we don't call getUser ourselves for non-auto-provisionable idps like github.
+      jest
+        .spyOn(KeycloakService.prototype, 'addClientUserRoleMapping')
+        .mockRejectedValue(new (require('http-errors')[404])('user not found'));
+      const createUserMock = jest.spyOn(KeycloakService.prototype, 'createUser');
+
+      await supertest(app)
+        .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/nonexistentuser@${idp}/roles-new`)
+        .send([{ name: 'role1' }])
+        .set('Accept', 'application/json')
+        .expect(404);
+
+      expect(createUserMock).not.toHaveBeenCalled();
+    },
+  );
+
   it('returns 400 for a username with no @ sign', async () => {
     mockRoleAssignment();
     jest.spyOn(KeycloakService.prototype, 'getUser').mockRejectedValue(new (require('http-errors')[404])('not found'));
