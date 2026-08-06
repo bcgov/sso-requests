@@ -104,7 +104,7 @@ describe('roles-new endpoint', () => {
       .set('Accept', 'application/json')
       .expect(201);
 
-    expect(verifyMock).toHaveBeenCalledWith('idir', 'newguid1234');
+    expect(verifyMock).toHaveBeenCalledWith('idir', 'newguid1234', 'dev');
     expect(createUserMock).toHaveBeenCalled();
     expect(result.body.data[0].name).toBe('role1');
   });
@@ -130,7 +130,7 @@ describe('roles-new endpoint', () => {
         .set('Accept', 'application/json')
         .expect(201);
 
-      expect(verifyMock).toHaveBeenCalledWith(idp, 'newguid5678');
+      expect(verifyMock).toHaveBeenCalledWith(idp, 'newguid5678', 'dev');
       expect(createUserMock).toHaveBeenCalled();
     },
   );
