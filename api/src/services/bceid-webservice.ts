@@ -113,9 +113,7 @@ async function extractAccount(body: string): Promise<BceidAccount | null> {
 export class BceidWebserviceService {
   /**
    * Verifies that the given GUID resolves to a real, existing account for the given IDP with the
-   * BCeID web service. The BCeID web service has separate instances/credentials per environment,
-   * so `environment` ('dev' | 'test' | 'prod') selects which one is used. Returns the matched
-   * account, or null if no account was found.
+   * BCeID web service. Returns the matched account, or null if no account was found.
    */
   public async verifyAccountByGuid(idp: BceidSoapIdp, guid: string, environment: string): Promise<BceidAccount | null> {
     try {
