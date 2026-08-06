@@ -107,6 +107,26 @@ spec:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
                   key: redis-host
+            - name: BCEID_SERVICE_BASIC_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: bceid-service-basic-auth
+            - name: BCEID_SERVICE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: bceid-service-id
+            - name: BCEID_WEB_SERVICE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: bceid-web-service-url
+            - name: BCEID_REQUESTER_USER_GUID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: bceid-requester-user-guid
             {{- range $key, $val := .Values.api.extraEnvs }}
             - name: {{  $key | quote | upper }}
               value: {{ $val | quote }}

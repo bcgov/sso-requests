@@ -56,3 +56,12 @@ export const getKeycloakCredentials = (environment: string) => {
     keycloakPassword,
   };
 };
+
+export const getBceidCredentials = () => {
+  return {
+    bceidServiceBasicAuth: process.env.BCEID_SERVICE_BASIC_AUTH,
+    bceidServiceId: process.env.BCEID_SERVICE_ID,
+    bceidWebServiceUrl: process.env.BCEID_WEB_SERVICE_URL,
+    bceidRequesterUserGuid: process.env.BCEID_REQUESTER_USER_GUID,
+  };
+};
