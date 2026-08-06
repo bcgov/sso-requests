@@ -118,7 +118,7 @@ export class BceidWebserviceService {
   public async verifyAccountByGuid(idp: BceidSoapIdp, guid: string, environment: string): Promise<BceidAccount | null> {
     try {
       const { bceidServiceBasicAuth, bceidServiceId, bceidWebServiceUrl, bceidRequesterUserGuid } =
-        getBceidCredentials();
+        getBceidCredentials(environment);
       const accountTypeCodes = getAccountTypeCodes(idp);
       for (const accountTypeCode of accountTypeCodes) {
         const xml = generateAccountDetailXML(guid, accountTypeCode, bceidServiceId, bceidRequesterUserGuid);

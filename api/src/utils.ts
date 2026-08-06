@@ -57,11 +57,29 @@ export const getKeycloakCredentials = (environment: string) => {
   };
 };
 
-export const getBceidCredentials = () => {
+export const getBceidCredentials = (environment: string) => {
+  const bceidServiceBasicAuth: string = process.env.BCEID_SERVICE_BASIC_AUTH;
+  const bceidRequesterUserGuid: string = process.env.BCEID_REQUESTER_USER_GUID;
+  let bceidServiceId: string;
+  let bceidWebServiceUrl: string;
+
+  if (environment === 'dev') {
+    bceidServiceId = process.env.BCEID_SERVICE_ID_DEV;
+    bceidWebServiceUrl = process.env.BCEID_WEB_SERVICE_URL_DEV;
+  } else if (environment === 'test') {
+    bceidServiceId = process.env.BCEID_SERVICE_ID_TEST;
+    bceidWebServiceUrl = process.env.BCEID_WEB_SERVICE_URL_TEST;
+  } else if (environment === 'prod') {
+    bceidServiceId = process.env.BCEID_SERVICE_ID_PROD;
+    bceidWebServiceUrl = process.env.BCEID_WEB_SERVICE_URL_PROD;
+  } else {
+    throw new createHttpError.BadRequest('invalid environment');
+  }
+
   return {
-    bceidServiceBasicAuth: process.env.BCEID_SERVICE_BASIC_AUTH,
-    bceidServiceId: process.env.BCEID_SERVICE_ID,
-    bceidWebServiceUrl: process.env.BCEID_WEB_SERVICE_URL,
-    bceidRequesterUserGuid: process.env.BCEID_REQUESTER_USER_GUID,
+    bceidServiceBasicAuth,
+    bceidServiceId,
+    bceidWebServiceUrl,
+    bceidRequesterUserGuid,
   };
 };
