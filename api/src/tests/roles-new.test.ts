@@ -90,21 +90,25 @@ describe('roles-new endpoint', () => {
     jest
       .spyOn(KeycloakService.prototype, 'getUser')
       .mockRejectedValueOnce(new (require('http-errors')[404])('not found'))
-      .mockImplementationOnce(() => Promise.resolve({ id: 'user-1', username: 'newguid1234@idir' }));
+      .mockImplementationOnce(() =>
+        Promise.resolve({ id: 'user-1', username: 'aaaaaaaa11112222333344445555aaaa@idir' }),
+      );
     const createUserMock = jest
       .spyOn(KeycloakService.prototype, 'createUser')
       .mockImplementation(() => Promise.resolve({ id: 'user-1' }));
     const verifyMock = jest
       .spyOn(BceidWebserviceService.prototype, 'verifyAccountByGuid')
-      .mockImplementation(() => Promise.resolve({ guid: 'newguid1234', firstName: 'New', lastName: 'User' }));
+      .mockImplementation(() =>
+        Promise.resolve({ guid: 'aaaaaaaa11112222333344445555aaaa', firstName: 'New', lastName: 'User' }),
+      );
 
     const result = await supertest(app)
-      .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/newguid1234@idir/roles-new`)
+      .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/aaaaaaaa11112222333344445555aaaa@idir/roles-new`)
       .send([{ name: 'role1' }])
       .set('Accept', 'application/json')
       .expect(201);
 
-    expect(verifyMock).toHaveBeenCalledWith('idir', 'newguid1234', 'dev');
+    expect(verifyMock).toHaveBeenCalledWith('idir', 'aaaaaaaa11112222333344445555aaaa', 'dev');
     expect(createUserMock).toHaveBeenCalled();
     expect(result.body.data[0].name).toBe('role1');
   });
@@ -116,21 +120,27 @@ describe('roles-new endpoint', () => {
       jest
         .spyOn(KeycloakService.prototype, 'getUser')
         .mockRejectedValueOnce(new (require('http-errors')[404])('not found'))
-        .mockImplementationOnce(() => Promise.resolve({ id: 'user-1', username: `newguid5678@${idp}` }));
+        .mockImplementationOnce(() =>
+          Promise.resolve({ id: 'user-1', username: `bbbbbbbb11112222333344445555bbbb@${idp}` }),
+        );
       const createUserMock = jest
         .spyOn(KeycloakService.prototype, 'createUser')
         .mockImplementation(() => Promise.resolve({ id: 'user-1' }));
       const verifyMock = jest
         .spyOn(BceidWebserviceService.prototype, 'verifyAccountByGuid')
-        .mockImplementation(() => Promise.resolve({ guid: 'newguid5678', firstName: 'New', lastName: 'User' }));
+        .mockImplementation(() =>
+          Promise.resolve({ guid: 'bbbbbbbb11112222333344445555bbbb', firstName: 'New', lastName: 'User' }),
+        );
 
       await supertest(app)
-        .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/newguid5678@${idp}/roles-new`)
+        .post(
+          `${API_BASE_PATH}/integrations/${integration.id}/dev/users/bbbbbbbb11112222333344445555bbbb@${idp}/roles-new`,
+        )
         .send([{ name: 'role1' }])
         .set('Accept', 'application/json')
         .expect(201);
 
-      expect(verifyMock).toHaveBeenCalledWith(idp, 'newguid5678', 'dev');
+      expect(verifyMock).toHaveBeenCalledWith(idp, 'bbbbbbbb11112222333344445555bbbb', 'dev');
       expect(createUserMock).toHaveBeenCalled();
     },
   );
@@ -140,23 +150,29 @@ describe('roles-new endpoint', () => {
     jest
       .spyOn(KeycloakService.prototype, 'getUser')
       .mockRejectedValueOnce(new (require('http-errors')[404])('not found'))
-      .mockImplementationOnce(() => Promise.resolve({ id: 'user-1', username: 'azguid999@azureidir' }));
+      .mockImplementationOnce(() =>
+        Promise.resolve({ id: 'user-1', username: 'cccccccc11112222333344445555cccc@azureidir' }),
+      );
     const createUserMock = jest
       .spyOn(KeycloakService.prototype, 'createUser')
       .mockImplementation(() => Promise.resolve({ id: 'user-1' }));
     const bceidVerifyMock = jest.spyOn(BceidWebserviceService.prototype, 'verifyAccountByGuid');
     const graphVerifyMock = jest
       .spyOn(MsGraphService.prototype, 'verifyAzureIdirAccountByGuid')
-      .mockImplementation(() => Promise.resolve({ guid: 'azguid999', firstName: 'Az', lastName: 'User' }));
+      .mockImplementation(() =>
+        Promise.resolve({ guid: 'cccccccc11112222333344445555cccc', firstName: 'Az', lastName: 'User' }),
+      );
 
     await supertest(app)
-      .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/azguid999@azureidir/roles-new`)
+      .post(
+        `${API_BASE_PATH}/integrations/${integration.id}/dev/users/cccccccc11112222333344445555cccc@azureidir/roles-new`,
+      )
       .send([{ name: 'role1' }])
       .set('Accept', 'application/json')
       .expect(201);
 
     expect(bceidVerifyMock).not.toHaveBeenCalled();
-    expect(graphVerifyMock).toHaveBeenCalledWith('azguid999');
+    expect(graphVerifyMock).toHaveBeenCalledWith('cccccccc11112222333344445555cccc');
     expect(createUserMock).toHaveBeenCalled();
   });
 
@@ -201,7 +217,7 @@ describe('roles-new endpoint', () => {
       .mockImplementation(() => Promise.resolve(null));
 
     await supertest(app)
-      .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/unknownguid@idir/roles-new`)
+      .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/dddddddd11112222333344445555dddd@idir/roles-new`)
       .send([{ name: 'role1' }])
       .set('Accept', 'application/json')
       .expect(400);
