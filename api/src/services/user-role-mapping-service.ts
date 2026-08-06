@@ -8,6 +8,27 @@ import { updateRoleProps } from '@/helpers/roles';
 import { listOfrolesValidator } from '@/schemas/role';
 import { parseErrors } from '@/utils';
 import { KeycloakServiceFactory } from './keycloak-service';
+import { BceidWebserviceService, BCEID_SOAP_IDPS, BceidSoapIdp, BceidAccount } from '@/services/bceid-webservice';
+import { MsGraphService, AzureIdirAccount } from '@/services/ms-graph-idir';
+
+/** IDPs supported for the auto-provisioning ("roles-new") flow, and how each is verified. */
+const AUTO_PROVISION_IDPS = [...BCEID_SOAP_IDPS, 'azureidir'] as const;
+type AutoProvisionIdp = typeof AUTO_PROVISION_IDPS[number];
+
+/**
+ * IDPs that support direct role assignment on the "roles-new" route but not auto-provisioning,
+ * since there's no upstream service available to verify a GUID exists before creating the user.
+ * For these, the route behaves like the older addRoleToUser route: it assigns the role if the user
+ * already exists in Keycloak, and 404s if they don't.
+ */
+const ROLE_ONLY_IDPS = ['githubbcgov', 'githubpublic'] as const;
+
+/**
+ * The GUID portion of a `<guid>@<idp>` username is interpolated unescaped into upstream requests
+ * (a SOAP XML body for BCeID IDPs, and an OData filter string for azureidir). Only allow the
+ * standard hex UUID character set so it can never be used to inject markup/filter syntax.
+ */
+const GUID_PATTERN = /^[0-9a-fA-F]{32}$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 
 @injectable()
 export class UserRoleMappingService {
@@ -15,6 +36,8 @@ export class UserRoleMappingService {
   constructor(
     @inject('IntegrationService') private integrationService: IntegrationService,
     @inject('RoleService') private roleService: RoleService,
+    @inject('BceidWebserviceService') private bceidWebserviceService: BceidWebserviceService,
+    @inject('MsGraphService') private msGraphService: MsGraphService,
   ) {}
 
   /**
@@ -181,6 +204,109 @@ export class UserRoleMappingService {
     return {
       data: updateRoleProps(await keycloakService.addClientUserRoleMapping(int.clientId, parsedUsername, roles)),
     };
+  }
+
+  /**
+   * Same as addRoleToUser, but if the user does not yet exist in the standard realm and their idp
+   * supports auto-provisioning (see AUTO_PROVISION_IDPS), attempts to verify their GUID against the
+   * upstream identity provider (parsed from the `<guid>@<idp>` username) and, if verified, imports
+   * the user into Keycloak before assigning the role. IDPs that aren't auto-provisionable (e.g.
+   * githubpublic/githubbcgov, which have no upstream GUID-verification service) skip provisioning
+   * entirely and fall through to addClientUserRoleMapping, which 404s if the user isn't found -
+   * matching the behavior of the older addRoleToUser route.
+   */
+  public async addRoleToUserWithProvisioning(
+    teamId: number,
+    integrationId: number,
+    environment: string,
+    username: string,
+    roles: RolePayload[],
+  ) {
+    const valid = listOfrolesValidator(roles);
+    if (!valid) throw new createHttpError[400](parseErrors(listOfrolesValidator.errors));
+    const int = await this.integrationService.getById(integrationId, teamId);
+    const parsedUsername = this.parseUsername(int.clientId, username);
+    const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
+    for (let role of roles) {
+      this.roleService.validateRole(role);
+    }
+
+    const isServiceAccount = parsedUsername.startsWith('service-account-');
+
+    if (!isServiceAccount) {
+      const parts = parsedUsername.split('@');
+      if (parts.length !== 2 || !parts[0] || !parts[1]) {
+        throw new createHttpError.BadRequest(`invalid username ${parsedUsername}`);
+      }
+      const [, idp] = parts;
+
+      if (AUTO_PROVISION_IDPS.includes(idp as AutoProvisionIdp)) {
+        const userExists = await keycloakService
+          .getUser(parsedUsername)
+          .then(() => true)
+          .catch((err) => {
+            if (err instanceof createHttpError.NotFound) return false;
+            throw err;
+          });
+
+        if (!userExists) {
+          await this.provisionUpstreamUser(keycloakService, int, parsedUsername, environment);
+        }
+      } else if (!(ROLE_ONLY_IDPS as readonly string[]).includes(idp)) {
+        throw new createHttpError.BadRequest(`invalid idp ${idp}`);
+      }
+      // else: idp is in ROLE_ONLY_IDPS (e.g. github) - skip provisioning; addClientUserRoleMapping
+      // below will look the user up itself and 404 if they don't already exist in Keycloak.
+    }
+
+    const added = await keycloakService.addClientUserRoleMapping(int.clientId, parsedUsername, roles);
+    const data = updateRoleProps(added);
+    return {
+      data,
+    };
+  }
+
+  /**
+   * Parses the `<guid>@<idp>` username, verifies the GUID exists with the upstream identity
+   * provider, and imports the user into Keycloak's standard realm for the given environment.
+   * Throws a 400 if the username is malformed, the idp is not supported/enabled, or the upstream
+   * provider has no matching account.
+   */
+  private async provisionUpstreamUser(keycloakService: any, integration: any, username: string, environment: string) {
+    const parts = username.split('@');
+    if (parts.length !== 2 || !parts[0] || !parts[1]) {
+      throw new createHttpError.BadRequest(`invalid username ${username}`);
+    }
+    const [guid, idp] = parts;
+
+    if (!GUID_PATTERN.test(guid)) {
+      throw new createHttpError.BadRequest(`invalid username ${username}`);
+    }
+
+    if (!AUTO_PROVISION_IDPS.includes(idp as AutoProvisionIdp)) {
+      throw new createHttpError.BadRequest(`invalid idp ${idp}`);
+    }
+    if (!integration.devIdps.includes(idp)) {
+      throw new createHttpError.BadRequest(`invalid idp ${idp}`);
+    }
+
+    const isBceidSoapIdp = (BCEID_SOAP_IDPS as readonly string[]).includes(idp);
+    const account: BceidAccount | AzureIdirAccount = isBceidSoapIdp
+      ? await this.bceidWebserviceService.verifyAccountByGuid(idp as BceidSoapIdp, guid, environment)
+      : await this.msGraphService.verifyAzureIdirAccountByGuid(guid);
+
+    if (!account) {
+      throw new createHttpError.BadRequest(`could not verify user ${username} with the upstream identity provider`);
+    }
+
+    // Only the username is created here; profile data (email, name, etc.) varies by IDP and syncs
+    // into Keycloak automatically on the user's first login.
+    const lowGuid = guid.toLowerCase();
+    await keycloakService.createUser({
+      username: `${lowGuid}@${idp}`,
+      idpAlias: idp,
+      idpUserId: lowGuid,
+    });
   }
 
   public async deleteRoleFromUser(

@@ -20,6 +20,8 @@ import { IntegrationService } from './services/integration-service';
 import { RoleService } from './services/role-service';
 import { UserRoleMappingService } from './services/user-role-mapping-service';
 import { UserService } from './services/user-service';
+import { BceidWebserviceService } from './services/bceid-webservice';
+import { MsGraphService } from './services/ms-graph-idir';
 import { handleError } from './utils';
 import { Auth, authenticate } from './modules/authenticate';
 import createHttpError from 'http-errors';
@@ -40,6 +42,8 @@ container.registerSingleton('RoleService', RoleService);
 container.registerSingleton('IntegrationService', IntegrationService);
 container.registerSingleton('UserRoleMappingService', UserRoleMappingService);
 container.registerSingleton('UserService', UserService);
+container.registerSingleton('BceidWebserviceService', BceidWebserviceService);
+container.registerSingleton('MsGraphService', MsGraphService);
 const integrationController = container.resolve(IntegrationController);
 const roleController = container.resolve(RoleController);
 const userRoleMappingController = container.resolve(UserRoleMappingController);
@@ -446,6 +450,26 @@ router.post(`/integrations/:integrationId/:environment/users/:username/roles`, a
     handleError(res, err);
   }
 });
+
+router.post(
+  `/integrations/:integrationId/:environment/users/:username/roles-new`,
+  async (req: Request, res: Response) => {
+    try {
+      if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
+      const { integrationId, environment, username } = req.params as Record<string, string>;
+      const result = await userRoleMappingController.addRoleToUserWithProvisioning(
+        req.teamId,
+        Number(integrationId),
+        environment,
+        username,
+        req.body,
+      );
+      res.status(201).json(result);
+    } catch (err) {
+      handleError(res, err);
+    }
+  },
+);
 
 router.delete(
   `/integrations/:integrationId/:environment/users/:username/roles/:roleName`,

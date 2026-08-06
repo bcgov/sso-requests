@@ -61,6 +61,22 @@ export class UserRoleMappingController {
     return await this.userRoleMappingService.addRoleToUser(teamId, integrationId, environment, username, roles);
   }
 
+  public async addRoleToUserWithProvisioning(
+    teamId: number,
+    integrationId: number,
+    environment: string,
+    username: string,
+    roles: RolePayload[],
+  ) {
+    return await this.userRoleMappingService.addRoleToUserWithProvisioning(
+      teamId,
+      integrationId,
+      environment,
+      username,
+      roles,
+    );
+  }
+
   public async deleteRoleFromUser(
     teamId: number,
     integrationId: number,

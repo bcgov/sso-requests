@@ -487,6 +487,56 @@ export class KeycloakService {
     return data;
   }
 
+  /**
+   * Creates a bare-bones user (username only) in the standard realm and links it to the given
+   * IDP's federated identity.
+   * If the user already exists (409 conflict, e.g. a race with another request), it is fetched
+   * and returned instead of failing.
+   */
+  async createUser({ username, idpAlias, idpUserId }: { username: string; idpAlias: string; idpUserId: string }) {
+    const accessToken = await this.getAccessToken();
+
+    try {
+      await this.httpClient.post(
+        `/auth/admin/realms/${this.realm}/users`,
+        {
+          username,
+          enabled: true,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 409) {
+        return await this.getUser(username);
+      }
+      throw error;
+    }
+
+    const user = await this.getUser(username);
+
+    await this.httpClient.post(
+      `/auth/admin/realms/${this.realm}/users/${user?.id}/federated-identity/${idpAlias}`,
+      {
+        userId: idpUserId,
+        userName: idpUserId,
+        identityProvider: idpAlias,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+
+    return user;
+  }
+
   async getUserRealmRoles(username: string) {
     const accessToken = await this.getAccessToken();
     const user = await this.getUser(username);
