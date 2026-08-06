@@ -641,6 +641,8 @@ class Request {
     cy.get(this.reqPage.confirmCreateNewRole).click({
       force: true,
     });
+
+    cy.get(this.reqPage.confirmCreateNewRole).should('not.exist');
   }
 
   addUsertoRole(id: string, role: string, env: string, user: string): boolean {
@@ -1065,7 +1067,7 @@ class Request {
 
         cy.get('#team-member-role-0').click();
         cy.get('[role="option"]').contains('Admin').click();
-        cy.get('[data-testid="send-invitation"]').scrollIntoView().click({ force: true });
+        cy.get('[data-testid="create-team"]').scrollIntoView().click({ force: true });
       });
   }
 
@@ -1078,7 +1080,7 @@ class Request {
 
       row.trigger('click');
       // Check team details table has loaded
-      cy.contains('Invite Status');
+      cy.contains('Status');
       row.parent().find(this.teamPage.deleteTeamButton).trigger('click');
       cy.contains('Once you delete this team, this action cannot be undone');
       cy.get(this.teamPage.modalDeleteTeam).find(this.teamPage.confirmDeleteTeam).trigger('click');

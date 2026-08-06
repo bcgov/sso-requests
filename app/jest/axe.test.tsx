@@ -27,6 +27,7 @@ jest.mock('services/request', () => {
     getRequestAll: jest.fn(() => []),
     getTeamIntegrations: jest.fn(() => []),
     getRequests: jest.fn(() => []),
+    isRequestBcscExcluded: jest.fn(() => Promise.resolve([false, null])),
   };
 });
 

@@ -10,6 +10,25 @@ import {
 import { Op } from 'sequelize';
 import { isSocialApprover } from '@app/utils/helpers';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
+import { getAllowedRequest } from '@app/queries/request';
+import { EVENTS } from '@app/shared/enums';
+import createHttpError from 'http-errors';
+
+/**
+ * Fetch request update events for the given user session and request id. If user does not own integration throws 403.
+ * @param session
+ * @param requestId
+ * @returns Promise<{count: number, rows: Event[]}>
+ */
+export const getRequestScopedEvents = async (session: Session, requestId: string) => {
+  const authorized = await getAllowedRequest(session, Number(requestId));
+  if (!authorized) throw new createHttpError.Forbidden('User is not authorized to view request events');
+
+  return models.event.findAndCountAll({
+    where: { requestId, eventCode: EVENTS.REQUEST_UPDATE_SUCCESS },
+    order: [['createdAt', 'desc']],
+  });
+};
 
 export const getEvents = async (
   session: Session,
@@ -40,7 +59,7 @@ export const getEvents = async (
   if (!hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_EVENTS)) {
     const approvedKeys = [];
 
-    if (isBceidApprover(session)) approvedKeys.push('bceidApproved');
+    if (isBceidApprover(session)) approvedKeys.push('devBceidApproved', 'testBceidApproved', 'bceidApproved');
 
     if (isGithubApprover(session)) approvedKeys.push('githubApproved');
 
@@ -51,21 +70,19 @@ export const getEvents = async (
     if (isSocialApprover(session)) approvedKeys.push('socialApproved');
 
     if (approvedKeys.length > 0) {
-      where[Op.or] = [
-        approvedKeys.map((key) => ({
-          details: {
-            [Op.contains]: {
-              changes: [
-                {
-                  rhs: true,
-                  kind: 'E',
-                  path: [key],
-                },
-              ],
-            },
+      where[Op.or] = approvedKeys.map((key) => ({
+        details: {
+          [Op.contains]: {
+            changes: [
+              {
+                rhs: true,
+                kind: 'E',
+                path: [key],
+              },
+            ],
           },
-        })),
-      ];
+        },
+      }));
     }
   }
 

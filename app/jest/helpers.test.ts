@@ -8,6 +8,17 @@ describe('kecloak URIs', () => {
     expect(isValidKeycloakURIDev(':/')).toBe(false);
     expect(isValidKeycloakURIDev('//')).toBe(false);
     expect(isValidKeycloakURIDev('example://*')).toBe(true);
+
+    // Keycloak 26.6.4: wildcards in hostnames are no longer valid
+    expect(isValidKeycloakURIDev('https://example.com*')).toBe(false);
+    expect(isValidKeycloakURIDev('https://*.example.com')).toBe(false);
+    expect(isValidKeycloakURIDev('https://exam*ple.com')).toBe(false);
+    // full hostname wildcard (scheme://*) is still accepted
+    expect(isValidKeycloakURIDev('https://*')).toBe(true);
+    // wildcard in path is still accepted
+    expect(isValidKeycloakURIDev('https://example.com/*')).toBe(true);
+    expect(isValidKeycloakURIDev('https://example.com/path*')).toBe(true);
+
     expect(isValidKeycloakURIProd('*')).toBe(false);
 
     expect(isValidKeycloakURIProd('http://a')).toBe(true);

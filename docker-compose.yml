@@ -95,7 +95,7 @@ services:
 
   dev-keycloak:
     container_name: dev-keycloak
-    image: ghcr.io/bcgov/sso:26.4.11-build.2
+    image: ghcr.io/bcgov/sso:v26.6.8-build.1
 
     depends_on:
       - sso-db
@@ -132,7 +132,7 @@ services:
 
   test-keycloak:
     container_name: test-keycloak
-    image: ghcr.io/bcgov/sso:26.4.11-build.2
+    image: ghcr.io/bcgov/sso:v26.6.8-build.1
 
     depends_on:
       - sso-db
@@ -169,7 +169,7 @@ services:
 
   prod-keycloak:
     container_name: prod-keycloak
-    image: ghcr.io/bcgov/sso:26.4.11-build.2
+    image: ghcr.io/bcgov/sso:v26.6.8-build.1
 
     depends_on:
       - sso-db
@@ -206,6 +206,9 @@ services:
 
   dev-kc-migration:
     container_name: dev-kc-migration
+    build:
+      context: .
+      dockerfile: Dockerfile.tf-modules
     depends_on:
       - dev-keycloak
     image: tf-modules-migrator:latest
@@ -222,6 +225,9 @@ services:
 
   test-kc-migration:
     container_name: test-kc-migration
+    build:
+      context: .
+      dockerfile: Dockerfile.tf-modules
     depends_on:
       - test-keycloak
       - dev-kc-migration
@@ -239,6 +245,9 @@ services:
 
   prod-kc-migration:
     container_name: prod-kc-migration
+    build:
+      context: .
+      dockerfile: Dockerfile.tf-modules
     depends_on:
       - prod-keycloak
       - test-kc-migration

@@ -55,7 +55,7 @@ class Team {
             n++;
           }
         }
-        cy.get(this.teamPage.sendInvitation, { timeout: 10000 }).scrollIntoView().click({ force: true }); // or Member
+        cy.get(this.teamPage.createTeamBtn, { timeout: 10000 }).scrollIntoView().click({ force: true }); // or Member
       });
     cy.contains('successfully created');
     return true;

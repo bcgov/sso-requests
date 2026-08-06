@@ -28,7 +28,7 @@ import { getSchemas } from 'schemas';
 import { Integration } from 'interfaces/Request';
 import { Team, LoggedInUser } from 'interfaces/team';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
-import { createRequest, updateRequest } from 'services/request';
+import { createRequest, isRequestBcscExcluded, updateRequest } from 'services/request';
 import { SurveyContext } from '@app/utils/context';
 import { defaultStandardRealmSettings, docusaurusURL } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
@@ -158,11 +158,13 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [bcscPrivacyZones, setBcscPrivacyZones] = useState<BcscPrivacyZone[]>(defaultBcscPrivacyZones());
   const [bcscAttributes, setBcscAttributes] = useState<BcscAttribute[]>(defaultBcscAttributes());
   const [openSubmissionModal, setOpenSubmissionModal] = useState(false);
+  const [openBceidWarningModal, setOpenBceidWarningModal] = useState(false);
   const [defaultSessionSettings, setDefaultSessionSettings] = useState<GetStandardSettingsResponse>({
     dev: defaultStandardRealmSettings,
     test: defaultStandardRealmSettings,
     prod: defaultStandardRealmSettings,
   });
+  const [bcscExcluded, setBcscExcluded] = useState(false);
 
   const surveyContext = useContext(SurveyContext);
 
@@ -235,6 +237,10 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
     setFormData(processed);
 
+    const bceidWarningIdps = ['bceidbasic', 'bceidboth'];
+    const newlyAddedBceidWarning = bceidWarningIdps.some((idp) => devIdps.includes(idp) && !currentIdps.includes(idp));
+    if (newlyAddedBceidWarning) setOpenBceidWarningModal(true);
+
     throttleUpdate(processed);
   };
 
@@ -283,11 +289,17 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     setSchemas(schemas);
   };
 
+  const isBcscExcluded = async () => {
+    const [bcscExcluded] = await isRequestBcscExcluded(request?.id!);
+    setBcscExcluded(!!bcscExcluded);
+  };
+
   useEffect(() => {
     loadTeams();
     loadBcscPrivacyZones();
     loadBcscAttributes();
     loadDefaultSessionSettings();
+    isBcscExcluded();
   }, []);
 
   // Clear other details when other is unselected
@@ -332,6 +344,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     teams,
     schemas,
     defaultSessionSettings,
+    bcscExcluded,
   });
 
   const handleFormSubmit = async () => {
@@ -478,7 +491,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         <Description>
           If new to SSO, please{' '}
           <Link external href={`${docusaurusURL}/category/integrating-your-application`}>
-            click to learn more on our wiki page
+            click to learn more on our documentation page
           </Link>
           .
         </Description>
@@ -526,6 +539,24 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         }
         title="Submitting Request"
         onConfirm={handleSubmit}
+      />
+      <CenteredModal
+        id="bceid-warning-modal"
+        openModal={openBceidWarningModal}
+        handleClose={() => setOpenBceidWarningModal(false)}
+        title="BCeID Application Notice"
+        showCancel={false}
+        confirmText="I Understand"
+        onConfirm={() => setOpenBceidWarningModal(false)}
+        content={
+          <p>
+            <strong>
+              <em>Basic BCeID</em> and <em>Basic or Business BCeID</em> are no longer accepting new applications from
+              general clients.
+            </strong>{' '}
+            Only choose these options if you have received a special exemption.
+          </p>
+        }
       />
     </>
   );

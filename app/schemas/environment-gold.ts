@@ -4,6 +4,7 @@ import { devValidRedirectUris } from './providers';
 import FieldAccessTokenTop from '@app/form-components/FieldAccessTokenTop';
 import { LoggedInUser } from '@app/interfaces/team';
 import { appPermissions, hasAppPermission } from '@app/utils/authorize';
+import { usesOTP } from '@app/helpers/integration';
 
 export const roles = {
   type: 'array',
@@ -141,7 +142,7 @@ export default function getSchemas(formData: Integration, session: LoggedInUser 
             type: 'string',
             title: 'Pathfinder SSO Login Page Name',
             tooltip: {
-              content: `Enter a name that you would like to be displayed for users, as they're logging into the Pathfinder SSO Login Page. If you leave this field blank, the page will automatically display "Standard"`,
+              content: `Enter a name that you would like to be displayed for users, as they're logging into the SSO Login Page. If you leave this field blank, the page will automatically display "Standard"`,
             },
             maxLength: 100,
           },
@@ -164,12 +165,15 @@ export default function getSchemas(formData: Integration, session: LoggedInUser 
 
     let additionalConfig: any = {};
 
-    if (process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD === 'true' && formData?.devIdps?.includes('bcservicescard')) {
+    if (
+      (process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD === 'true' && formData?.devIdps?.includes('bcservicescard')) ||
+      (process.env.NEXT_PUBLIC_INCLUDE_OTP === 'true' && usesOTP(formData))
+    ) {
       additionalConfig[homePageUriField] = {
         type: 'string',
         title: 'Home Page URL',
         tooltip: {
-          content: `URL of the home page of your application. The value of this field MUST point to a valid Web page, and will be presented to end users in BCSC Service Listing, and possibly during authentication.`,
+          content: `URL of the home page of your application. The value of this field must point to a valid Web page. Your selected identity providers may use this to identify or link to your application.`,
         },
         placeholder: 'e.g. https://example.com',
         default: '',

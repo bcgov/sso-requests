@@ -116,6 +116,9 @@ export const updateRequest = async (
     data.prodLoginTitle = data.prodLoginTitle || '';
     data.additionalRoleAttribute = data.additionalRoleAttribute || '';
     data.clientId = data.clientId || '';
+    data.devHomePageUri = data.devHomePageUri ?? '';
+    data.testHomePageUri = data.testHomePageUri ?? '';
+    data.prodHomePageUri = data.prodHomePageUri ?? '';
     data.primaryEndUsers = data.primaryEndUsers ?? [];
     data.primaryEndUsersOther = data.primaryEndUsersOther ?? '';
 
@@ -139,6 +142,15 @@ export const updateRequestMetadata = async (data: Integration): Promise<[Integra
   try {
     const result = await instance.put('request-metadata', data).then((res) => res.data);
     return [processRequest(result), null];
+  } catch (err: any) {
+    return handleAxiosError(err);
+  }
+};
+
+export const isRequestBcscExcluded = async (id: number): Promise<[boolean, null] | [null, AxiosError]> => {
+  try {
+    const result = await instance.get(`requests/${id}/is-bcsc-excluded`).then((res) => res.data);
+    return [result.message === true, null];
   } catch (err: any) {
     return handleAxiosError(err);
   }

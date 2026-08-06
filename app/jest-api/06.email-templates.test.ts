@@ -6,12 +6,10 @@ import {
   TEAM_MEMBER_IDIR_EMAIL_01,
   TEAM_MEMBER_IDIR_USERID_01,
   formDataDev,
-  formDataDevTest,
   formDataProd,
   postTeam,
 } from './helpers/fixtures';
-import { generateInvitationToken } from '@app/helpers/token';
-import { createTeam, verifyTeamMember } from './helpers/modules/teams';
+import { createTeam } from './helpers/modules/teams';
 import { getAuthenticatedUser } from './helpers/modules/users';
 import { cleanUpDatabaseTables } from './helpers/utils';
 import { createMockAuth } from './mocks/authenticate';
@@ -43,79 +41,10 @@ describe('Email template snapshots', () => {
     teamId = result.body.id;
     createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
     const userRes = await getAuthenticatedUser();
-    const token = generateInvitationToken(userRes.body as any, teamId);
-    await verifyTeamMember(token);
   });
 
   afterAll(async () => {
     await cleanUpDatabaseTables();
-  });
-
-  it('Should return the expected email for CREATE_INTEGRATION_SUBMITTED', async () => {
-    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
-      integration: formDataDevTest,
-      waitingBceidProdApproval: false,
-      waitingGithubProdApproval: false,
-    });
-
-    expect(rendered.subject).toMatchSnapshot();
-    expect(rendered.body).toMatchSnapshot();
-  });
-
-  it('Should return the expected email for CREATE_INTEGRATION_SUBMITTED w/ BCeID', async () => {
-    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
-      integration: formDataProd,
-      waitingBceidProdApproval: true,
-      waitingGithubProdApproval: false,
-    });
-
-    expect(rendered.subject).toMatchSnapshot();
-    expect(rendered.body).toMatchSnapshot();
-  });
-
-  it('Should return the expected email for CREATE_INTEGRATION_SUBMITTED w/ Social', async () => {
-    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
-      integration: { ...formDataProd, devIdps: ['social'] },
-      waitingBceidProdApproval: false,
-      waitingGithubProdApproval: false,
-      waitingSocialProdApproval: true,
-    });
-
-    expect(rendered.subject).toMatchSnapshot();
-    expect(rendered.body).toMatchSnapshot();
-  });
-
-  it('Should return the expected email for CREATE_INTEGRATION_SUBMITTED w/ GitHub', async () => {
-    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
-      integration: formDataProd,
-      waitingBceidProdApproval: false,
-      waitingGithubProdApproval: true,
-    });
-
-    expect(rendered.subject).toMatchSnapshot();
-    expect(rendered.body).toMatchSnapshot();
-  });
-
-  it('Should return the expected email for CREATE_INTEGRATION_SUBMITTED w/ BCeID & GitHub', async () => {
-    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
-      integration: formDataProd,
-      waitingBceidProdApproval: true,
-      waitingGithubProdApproval: true,
-    });
-
-    expect(rendered.subject).toMatchSnapshot();
-    expect(rendered.body).toMatchSnapshot();
-  });
-
-  it('Should return the expected email for CREATE_INTEGRATION_SUBMITTED - no browser login', async () => {
-    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
-      integration: { ...formDataProd, authType: 'service-account' },
-      waitingBceidProdApproval: true,
-      waitingGithubProdApproval: true,
-    });
-
-    expect(rendered.subject).toMatchSnapshot();
-    expect(rendered.body).toMatchSnapshot();
   });
 
   it('Should return the expected email for CREATE_INTEGRATION_APPLIED', async () => {
@@ -176,22 +105,6 @@ describe('Email template snapshots', () => {
     expect(rendered.body).toMatchSnapshot();
   });
 
-  it('Should return the expected email for CREATE_INTEGRATION_SUBMITTED w/ BC Services Card', async () => {
-    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_SUBMITTED, {
-      integration: {
-        ...formDataProd,
-        devIdps: ['bcservicescard'],
-        testIdps: ['bcservicescard'],
-        prodIdps: ['bcservicescard'],
-        bcscPrivacyZone: MOCK_PRIVACY_ZONE_URI,
-      },
-      waitingBcServicesCardProdApproval: true,
-    });
-
-    expect(rendered.subject).toMatchSnapshot();
-    expect(rendered.body).toMatchSnapshot();
-  });
-
   it('Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ approved BC Services Card prod', async () => {
     const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
       integration: { ...formDataDev, devIdps: ['bcservicescard'], bcscPrivacyZone: MOCK_PRIVACY_ZONE_URI },
@@ -205,71 +118,6 @@ describe('Email template snapshots', () => {
   it('Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ unapproved BC Services Card prod', async () => {
     const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
       integration: { ...formDataDev, devIdps: ['bcservicescard'], bcscPrivacyZone: MOCK_PRIVACY_ZONE_URI },
-      waitingBcServicesCardProdApproval: true,
-    });
-
-    expect(rendered.subject).toMatchSnapshot();
-    expect(rendered.body).toMatchSnapshot();
-  });
-
-  it('Should return the expected email for UPDATE_INTEGRATION_SUBMITTED', async () => {
-    const rendered = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
-      integration: formDataDevTest,
-      waitingBceidProdApproval: false,
-      waitingGithubProdApproval: false,
-      changes: formDataProd.lastChanges,
-    });
-
-    expect(rendered.subject).toMatchSnapshot();
-    expect(rendered.body).toMatchSnapshot();
-  });
-
-  it('Should return the expected email for UPDATE_INTEGRATION_SUBMITTED w/ BCeID', async () => {
-    const rendered = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
-      integration: formDataProd,
-      waitingBceidProdApproval: true,
-      waitingGithubProdApproval: false,
-      changes: formDataProd.lastChanges,
-    });
-
-    expect(rendered.subject).toMatchSnapshot();
-    expect(rendered.body).toMatchSnapshot();
-  });
-
-  it('Should return the expected email for UPDATE_INTEGRATION_SUBMITTED w/ GitHub', async () => {
-    const rendered = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
-      integration: formDataProd,
-      waitingBceidProdApproval: false,
-      waitingGithubProdApproval: true,
-      changes: formDataProd.lastChanges,
-    });
-
-    expect(rendered.subject).toMatchSnapshot();
-    expect(rendered.body).toMatchSnapshot();
-  });
-
-  it('Should return the expected email for UPDATE_INTEGRATION_SUBMITTED w/ BCeID & GitHub', async () => {
-    const rendered = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
-      integration: formDataProd,
-      waitingBceidProdApproval: true,
-      waitingGithubProdApproval: true,
-      changes: formDataProd.lastChanges,
-    });
-
-    expect(rendered.subject).toMatchSnapshot();
-    expect(rendered.body).toMatchSnapshot();
-  });
-
-  it('Should return the expected email for UPDATE_INTEGRATION_SUBMITTED w/ unapproved BC Services Card', async () => {
-    const rendered = await renderTemplate(EMAILS.UPDATE_INTEGRATION_SUBMITTED, {
-      integration: {
-        ...formDataProd,
-        devIdps: ['bcservicescard'],
-        testIdps: ['bcservicescard'],
-        prodIdps: ['bcservicescard'],
-        bcscPrivacyZone: MOCK_PRIVACY_ZONE_URI,
-        changes: formDataProd.lastChanges,
-      },
       waitingBcServicesCardProdApproval: true,
     });
 
@@ -319,22 +167,20 @@ describe('Email template snapshots', () => {
     expect(rendered.body).toMatchSnapshot();
   });
 
-  it('Should return the expected email for TEAM_INVITATION members', async () => {
-    const rendered = await renderTemplate(EMAILS.TEAM_INVITATION, {
+  it('Should return the expected email for TEAM_MEMBER_ADDED members', async () => {
+    const rendered = await renderTemplate(EMAILS.TEAM_MEMBER_ADDED, {
       email: 'teat@bcgov.bc.ca',
       team: { id: 1, name: 'testteam' },
-      invitationLink: `https://mysite.com/invitation-link`,
       role: 'member',
     });
     expect(rendered.subject).toMatchSnapshot();
     expect(rendered.body).toMatchSnapshot();
   });
 
-  it('Should return the expected email for TEAM_INVITATION admins', async () => {
-    const rendered = await renderTemplate(EMAILS.TEAM_INVITATION, {
+  it('Should return the expected email for TEAM_MEMBER_ADDED admins', async () => {
+    const rendered = await renderTemplate(EMAILS.TEAM_MEMBER_ADDED, {
       email: 'teat@bcgov.bc.ca',
       team: { id: 1, name: 'testteam' },
-      invitationLink: `https://mysite.com/invitation-link`,
       role: 'admin',
     });
     expect(rendered.subject).toMatchSnapshot();
@@ -380,20 +226,6 @@ describe('Email template snapshots', () => {
       teamAdmin: true,
       env: 'dev',
     });
-    expect(rendered.subject).toMatchSnapshot();
-    expect(rendered.body).toMatchSnapshot();
-  });
-
-  it('Should return the expected email for CREATE_TEAM_API_ACCOUNT_SUBMITTED', async () => {
-    const rendered = await renderTemplate(EMAILS.CREATE_TEAM_API_ACCOUNT_SUBMITTED, {
-      team: {
-        id: 1,
-        name: 'Test Team',
-      },
-      requester: 'Test User',
-      integrations: [formDataDev],
-    });
-
     expect(rendered.subject).toMatchSnapshot();
     expect(rendered.body).toMatchSnapshot();
   });

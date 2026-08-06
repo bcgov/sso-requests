@@ -16,7 +16,7 @@ The github actions require 1 secrets to deploy resources in Gold
 
 To generate this secret run:
 
-`oc create token sso-action-deployer-b29129 --duration=$((365\*24))h`
+`oc create token sso-action-deployer-b29129 --duration=$((365*24))h`
 
 And save it as `OPENSHIFT_TOKEN`, this token is not stored as an openshift secret.
 

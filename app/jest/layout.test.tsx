@@ -5,7 +5,7 @@ import { updateProfile } from 'services/user';
 import { session } from './utils/helpers';
 import { SessionContext } from '@app/utils/context';
 import { User } from 'interfaces/team';
-import { formatWikiURL, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
+import { docusaurusURL, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
 
 const handleLogin = jest.fn();
 const handleLogout = jest.fn();
@@ -31,7 +31,7 @@ function LayoutComponent() {
 }
 
 const PATHFINDER_SSO_HYPERLINK = 'mailto:bcgov.sso@gov.bc.ca';
-const DOCUMENTATION_HYPERLINK = formatWikiURL();
+const DOCUMENTATION_HYPERLINK = docusaurusURL;
 const DISCLAIMER_HYPERLINK = 'https://www2.gov.bc.ca/gov/content/home/disclaimer';
 const PRIVACY_HYPERLINK = 'https://www2.gov.bc.ca/gov/content/home/privacy';
 const ACCESSIBILITY_HYPERLINK = 'https://www2.gov.bc.ca/gov/content/home/accessible-government';
@@ -76,7 +76,10 @@ describe('Layout page', () => {
     expect(screen.getAllByRole('link', { name: 'My Dashboard' })[0]).toHaveAttribute('href', '/my-dashboard');
     expect(screen.getAllByRole('link', { name: 'SSO Dashboard' })[0]).toHaveAttribute('href', '/admin-dashboard');
     expect(screen.getAllByRole('link', { name: 'SSO Reports' })[0]).toHaveAttribute('href', '/admin-reports');
-    expect(screen.getAllByRole('link', { name: 'FAQ' })[0]).toHaveAttribute('href', '/faq');
+    expect(screen.getAllByRole('link', { name: 'FAQ' })[0]).toHaveAttribute(
+      'href',
+      `${docusaurusURL}/category/frequently-asked-questions`,
+    );
 
     await waitFor(() => {
       expect(screen.getByTestId('my-profile-link')).toBeInTheDocument();
@@ -86,7 +89,7 @@ describe('Layout page', () => {
       'href',
       KEYCLOAK_TEAMS_CHANNEL_URL,
     );
-    expect(screen.getAllByRole('link', { name: 'Pathfinder SSO' })[0]).toHaveAttribute(
+    expect(screen.getAllByRole('link', { name: 'SSO Team Email' })[0]).toHaveAttribute(
       'href',
       PATHFINDER_SSO_HYPERLINK,
     );

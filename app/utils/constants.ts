@@ -49,7 +49,7 @@ export const messages = {
   GET_REQUEST_ERROR: 'There was an error loading the request. Please try again later.',
   ADD_TEAM_MEMBERS_ERROR:
     'Failed to add new members. Please ensure the emails you have entered are valid, and reach out to the SSO team if the problem persists',
-  ADD_TEAM_MEMBERS_SUCCESS: 'Invited new members to your team!',
+  ADD_TEAM_MEMBERS_SUCCESS: 'Successfully added new members to your team!',
   DELETE_TEAM_MEMBER_ERROR: 'Failed to delete team member',
 };
 
@@ -163,11 +163,6 @@ export const testimonials: ITestimonial[] = [
     rating: 4,
   },
 ];
-
-export const formatWikiURL = (page?: string) =>
-  `https://mvp.developer.gov.bc.ca/docs/default/component/css-docs/${
-    page ?? ''
-  }?utm_source=sso-wiki&utm_medium=web&utm_campaign=retirement-notice-sso`;
 
 export const bcscPrivacyZones = () => {
   return [

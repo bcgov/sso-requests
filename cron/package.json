@@ -23,6 +23,7 @@
     "typescript": "^5.9.3"
   },
   "resolutions": {
+    "picomatch": ">=4.0.4",
     "flatted": ">=3.4.2"
   }
 }

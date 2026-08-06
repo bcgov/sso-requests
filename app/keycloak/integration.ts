@@ -3,14 +3,13 @@ import { getAdminClient } from './adminClient';
 import { IntegrationData } from '@app/shared/interfaces';
 import AuthenticationFlowRepresentation from '@keycloak/keycloak-admin-client/lib/defs/authenticationFlowRepresentation';
 import { createBCSCIntegration, deleteBCSCIntegration } from '@app/controllers/requests';
-import { usesBcServicesCard } from '@app/helpers/integration';
+import { usesBcServicesCard, usesOTP } from '@app/helpers/integration';
 import axios from 'axios';
 import createHttpError from 'http-errors';
 import { getByRequestId } from '@app/queries/bcsc-client';
 import {
   createAccessTokenAudMapper,
   createClientRolesMapper,
-  managePpidMapper,
   createPreferredUsernameMapper,
   createTeamMapper,
   deleteMapper,
@@ -18,6 +17,7 @@ import {
   manageAdditionalClientRolesMapper,
 } from './protocolMappers';
 import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
+import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
 
 const realm = 'standard';
 
@@ -40,6 +40,14 @@ export const openIdClientProfile = (
   const validRedirectUris = integration[`${environment}ValidRedirectUris` as keyof IntegrationData] || [];
   const pkceCodeChallengeMethod = integration.publicAccess ? 'S256' : '';
 
+  // For public clients in dev/test, scheme://* in redirect URIs doesn't map to a valid
+  // CORS origin via '+', so explicitly add '*' to cover it.
+  const hasFullHostnameWildcard =
+    integration.publicAccess &&
+    environment !== 'prod' &&
+    (validRedirectUris as string[]).some((uri) => /^https?:\/\/\*(\/|$)/.test(uri));
+  const webOrigins = (validRedirectUris as string[]).concat('+').concat(hasFullHostnameWildcard ? ['*'] : []);
+
   let oidcClient: ClientRepresentation = {
     clientId: integration.clientId,
     name: clientName || integration.clientId,
@@ -61,7 +69,7 @@ export const openIdClientProfile = (
     serviceAccountsEnabled: ['service-account', 'both'].includes(integration?.authType!),
     publicClient: integration.publicAccess || false,
     redirectUris: validRedirectUris,
-    webOrigins: validRedirectUris.concat('+'),
+    webOrigins,
     fullScopeAllowed: false,
     authenticationFlowBindingOverrides: {
       browser: authFlows.find((flow) => flow.alias === integration.browserFlowOverride)?.id || '',
@@ -116,7 +124,7 @@ export const samlClientProfile = (
 /** Client scopes to add when social is selected. */
 export const socialIdps = ['google', 'microsoft', 'apple'];
 
-export const getDefaultClientScopes = (integration: IntegrationData, environment: string) => {
+export const getDefaultClientScopes = async (integration: IntegrationData, environment: string) => {
   let defaultScopes = integration.protocol === 'oidc' ? ['common', 'profile', 'email'] : ['common'];
 
   // BCSC and Social client scopes are not the same as the IDP name and need to be handled individually.
@@ -141,6 +149,16 @@ export const getDefaultClientScopes = (integration: IntegrationData, environment
   ) {
     defaultScopes.push(integration?.clientId!);
   }
+
+  if (
+    !(await doSkipPrivacyZoneScope(integration.id!)) &&
+    ['bcservicescard', 'otp'].some((idp) => integration[`${environment}Idps` as keyof IntegrationData].includes(idp))
+  ) {
+    let privacyZoneUri = await getPrivacyZoneURI(environment, integration.bcscPrivacyZone!);
+    if (integration.protocol === 'saml') privacyZoneUri = `${privacyZoneUri}-saml`;
+    defaultScopes.push(privacyZoneUri);
+  }
+
   return defaultScopes;
 };
 
@@ -209,7 +227,12 @@ export const keycloakClient = async (
         ? openIdClientProfile(integration, environment, authenticationFlows.data)
         : samlClientProfile(integration, environment, authenticationFlows.data);
 
-    const defaultScopes = getDefaultClientScopes(integration, environment);
+    if (usesOTP(integration)) {
+      const homeUri = integration[`${environment}HomePageUri` as keyof IntegrationData] as string | undefined;
+      clientData.baseUrl = homeUri ?? '';
+    }
+
+    const defaultScopes = await getDefaultClientScopes(integration, environment);
     if (clients.length === 0) {
       // if client does not exist then just create client
       client = await kcAdminClient.clients.create({ realm, ...clientData });
@@ -356,26 +379,6 @@ export const keycloakClient = async (
           '',
           integration.clientId!,
         );
-      }
-
-      if (defaultScopes.includes('otp') || defaultScopes.includes('otp-saml')) {
-        const privacyZoneUri = await getPrivacyZoneURI(environment, integration.bcscPrivacyZone!);
-        const ppidMapper = protocolMappersForClient.find((mapper) => mapper.name === 'ppid');
-        if (!ppidMapper) {
-          await managePpidMapper(kcAdminClient, integration.protocol || 'oidc', client.id!, realm, privacyZoneUri, '');
-        } else {
-          await managePpidMapper(
-            kcAdminClient,
-            integration.protocol || 'oidc',
-            client.id!,
-            realm,
-            privacyZoneUri,
-            ppidMapper?.id!,
-          );
-        }
-      } else {
-        const ppidMapper = protocolMappersForClient.find((mapper) => mapper.name === 'ppid');
-        if (ppidMapper) await deleteMapper(kcAdminClient, client.id!, realm, ppidMapper.id!);
       }
     } else if (!protocolMappersForClient.find((mapper) => mapper.name === 'team')) {
       await createTeamMapper(kcAdminClient, client.id!, realm, String(integration.teamId));

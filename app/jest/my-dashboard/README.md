@@ -206,8 +206,8 @@ under path `/sso-requests/app`
         AND client should be able to input an email address under `Member` column,
         AND client should be able to select either `Admin` or `Member` from the `Role` drop-down box,
         AND client should be able to open correct hyper link page after click on the link,
-        WHEN client click on the `Send Invitation` button,
-        THEN the invitation will be sent, if the email address is valid;
+        WHEN client click on the `Create` button,
+        THEN the user is added to the team, if the email address is valid;
     3.  THEN there should have the table column headers displaied as `Team Name` and `Actions`;
     4.  THEN there should have the team been highlighted when client click on a specific team;
     5.  WHEN client click on the trash bin icon to delete the team,
@@ -235,15 +235,13 @@ under path `/sso-requests/app`
         AND within the modal, client should be able to open correct hyper link page after click on the link,
         AND client should be able to select either `Admin` or `Member` from the `Role` drop-down box,
         WHEN client click on the `Confirm` button,
-        THEN the new member will be invited to the team, if the email address is valid;
+        THEN the new member will be added to the team, if the email address is valid;
     3.  THEN there should have the table column headers displaied as `Status`, `Email`, `Role`, and `Actions`;
     4.  THEN corresponding members from the team should be listed in the member table;
     5.  WHEN client click on the trash bin icon to delete a member,
         THEN the `Delete Team Member` modal will show up to let client confirm deletion,
         WHEN client click on `Delete` button to confirm deletion,
         THEN the member will be deleted;
-    6.  WHEN client click on the arrow icon to resend invitation,
-        THEN the invitation will be send to the member again;
 
 - ### Integrations tab
 
