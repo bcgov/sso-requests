@@ -147,6 +147,21 @@ spec:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
                   key: bceid-web-service-url-prod
+            - name: MS_GRAPH_API_AUTHORITY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: ms-graph-api-authority
+            - name: MS_GRAPH_API_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: ms-graph-api-client-id
+            - name: MS_GRAPH_API_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: ms-graph-api-client-secret
             {{- range $key, $val := .Values.api.extraEnvs }}
             - name: {{  $key | quote | upper }}
               value: {{ $val | quote }}
