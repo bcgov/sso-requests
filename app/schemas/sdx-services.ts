@@ -5,6 +5,7 @@ export default function getSdxServicesSchema() {
     type: 'object',
     headerText: 'Secure Data Exchange (SDX) Services',
     stepText: 'SDX Services',
+    customValidation: ['sdxServices'],
     properties: {
       sdxServices: {
         type: 'object',

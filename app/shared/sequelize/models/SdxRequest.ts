@@ -17,11 +17,15 @@ const init = (sequelize: any, DataTypes: any) => {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
+      submission_id: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
       requester: {
         type: DataTypes.STRING,
         allowNull: true,
       },
-      scopes: {
+      access_request: {
         type: DataTypes.JSONB,
         allowNull: false,
       },

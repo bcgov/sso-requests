@@ -136,6 +136,12 @@ const trimFormData = (formData: any, { dropEmptyRedirectUris = false } = {}) => 
   };
 };
 
+const preserveCrossStageFields = (nextFormData: any, previousFormData: any) => ({
+  ...nextFormData,
+  // Keep SDX selections when the active schema/stage does not emit this field.
+  sdxServices: nextFormData?.sdxServices ?? previousFormData?.sdxServices,
+});
+
 interface Props {
   currentUser: LoggedInUser | null;
   request?: Integration | undefined;
@@ -218,7 +224,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       user: currentUser,
       githubApproved: formData.githubApproved,
     });
-    const processed = { ...newData, devIdps };
+    const processed = preserveCrossStageFields({ ...newData, devIdps }, formData);
 
     const togglingTeamToTrue = !formData.usesTeam && newData.usesTeam === true;
 

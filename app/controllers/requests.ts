@@ -1,6 +1,5 @@
 import { Op, Model } from 'sequelize';
-import { kebabCase } from 'lodash';
-import { assign, isEmpty, isString } from 'lodash';
+import { isEmpty, isString, kebabCase } from 'lodash';
 import {
   validateRequest,
   getDifferences,
@@ -18,9 +17,8 @@ import {
 } from '@app/utils/helpers';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@app/shared/interfaces';
-import { ACTION_TYPES, EMAILS, REQUEST_TYPES } from '@app/shared/enums';
-import { sendTemplate, sendTemplates } from '@app/shared/templates';
-import { EVENTS } from '@app/shared/enums';
+import { ACTION_TYPES, EMAILS, REQUEST_TYPES, EVENTS } from '@app/shared/enums';
+import { sendTemplate } from '@app/shared/templates';
 import { getAllowedTeams, getTeamById } from '@app/queries/team';
 import {
   getMyOrTeamRequest,
@@ -35,7 +33,6 @@ import {
 } from '@app/queries/request';
 import { fetchClient } from '@app/keycloak/client';
 import { getUserTeamRole } from '@app/queries/literals';
-import { canDeleteIntegration } from '@app/helpers/permissions';
 import {
   usesBceid,
   usesGithub,
@@ -48,6 +45,7 @@ import {
   checkNotSocial,
   checkNotOTP,
   usesOTP,
+  usesSdxServices,
 } from '@app/helpers/integration';
 import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@app/keycloak/users';
 import { getRolesWithEnvironments } from '@app/queries/roles';
@@ -89,12 +87,13 @@ import {
 import { bcscClientScopeMappers, bcscIdpMappers } from '@app/utils/constants';
 import createHttpError from 'http-errors';
 import { isSocialApprover, validateIDPs } from '@app/utils/helpers';
-import { getIdpApprovalStatus } from '@app/helpers/permissions';
+import { getIdpApprovalStatus, canDeleteIntegration } from '@app/helpers/permissions';
 import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import { Event } from '@app/interfaces/Event';
 import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
+import { createSdxRequest } from './sdx-services';
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
@@ -534,7 +533,7 @@ export const updateRequest = async (
 
     const allowedData = sanitizeRequest(session, rest, isMerged);
 
-    assign(current, allowedData);
+    Object.assign(current, allowedData);
 
     const mergedData = getCurrentValue();
 
@@ -543,7 +542,7 @@ export const updateRequest = async (
       originalData,
       updatedData: current,
     });
-    assign(current, updatedAttributes);
+    Object.assign(current, updatedAttributes);
 
     const validIDPSelection = validateIDPs({
       currentIdps: originalData.devIdps,
@@ -682,9 +681,12 @@ export const updateRequest = async (
       }
 
       await createEvent(eventData);
-      const a = await processIntegrationRequest(updated, false, existingClientId, addingProd);
 
-      updated = await getAllowedRequest(session, data?.id!);
+      await processIntegrationRequest(updated, false, existingClientId, addingProd);
+
+      if (usesSdxServices(updated)) {
+        await createSdxRequest(session, updated.id, updated.requester, updated.sdxServices);
+      }
     }
 
     return updated.get({ plain: true });

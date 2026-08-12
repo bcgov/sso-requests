@@ -318,6 +318,9 @@ const getUISchema = ({
     sdxServices: {
       'ui:FieldTemplate': FieldSdxServices,
       'ui:label': false,
+      'ui:options': {
+        errorLocation: 'top',
+      },
     },
     devValidRedirectUris: {
       items: {

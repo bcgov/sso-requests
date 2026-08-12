@@ -169,6 +169,7 @@ export interface SDXResourceServer {
   organization?: string;
   description?: string;
   services: SDXService[];
+  environment: string;
 }
 
 export interface SDXAccessRequest {

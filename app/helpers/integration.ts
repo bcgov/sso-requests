@@ -104,3 +104,11 @@ export const usesOTPProd = (integration: Integration) => {
 
   return usesOTP(integration) && environments.includes('prod');
 };
+
+export const usesSdxServices = (integration: Integration) => {
+  if (!integration) return false;
+
+  const { sdxEnabled = false } = integration;
+
+  return sdxEnabled;
+};

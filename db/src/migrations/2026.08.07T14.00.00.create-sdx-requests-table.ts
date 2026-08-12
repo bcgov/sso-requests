@@ -9,6 +9,10 @@ export const up = async ({ context: sequelize }) => {
       primaryKey: true,
       autoIncrement: true,
     },
+    submission_id: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     request_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -33,7 +37,7 @@ export const up = async ({ context: sequelize }) => {
       allowNull: false,
       defaultValue: DataTypes.NOW,
     },
-    scopes: {
+    access_request: {
       type: DataTypes.JSONB,
       allowNull: false,
     },

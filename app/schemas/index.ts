@@ -54,7 +54,7 @@ export const getSchemas = ({
     if (!isApplied) schemas.push(termsAndConditionsSchema);
   }
 
-  if (formData.sdxEnabled) {
+  if (formData.devIdps?.includes('bcservicescard') && formData.sdxEnabled) {
     schemas.push(getSdxServicesSchema());
   }
 

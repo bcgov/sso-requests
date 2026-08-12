@@ -269,11 +269,15 @@ export default function getSchema(
     };
   }
 
-  if (protocol === 'oidc') {
+  if (protocol === 'oidc' && devIdps?.includes('bcservicescard')) {
     properties.sdxEnabled = {
       type: 'boolean',
       title: 'Secure Data Exchange (SDX) Services',
-      description: 'Would you like to enable Secure Data Exchange (SDX) services for this integration?',
+      tooltip: {
+        content:
+          'Secure Data Exchange (SDX) is a service designed to facilitate secure, reliable transfer of data between government agencies and external partners',
+      },
+      description: 'Do you need access to data from other government agencies?',
       default: false,
     };
   }
