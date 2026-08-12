@@ -144,3 +144,43 @@ export interface MsGraphUserValue {
 export interface MsGraphUserResponse {
   value: MsGraphUserValue[];
 }
+
+export interface SDXServiceScope {
+  label: string;
+  description: string;
+}
+
+export interface SDXServiceVersion {
+  label: string;
+  status?: 'Current' | 'Deprecated';
+  scopes: SDXServiceScope[] | string[];
+}
+
+export interface SDXService {
+  id: string;
+  name?: string;
+  description?: string;
+  versions: SDXServiceVersion[];
+}
+
+export interface SDXResourceServer {
+  id: string;
+  name?: string;
+  organization?: string;
+  description?: string;
+  services: SDXService[];
+}
+
+export interface SDXAccessRequest {
+  integrationId: number;
+  requester: string;
+  clientId: string;
+  privacyZone: string;
+  policyVersion: string;
+  resourceServers: SDXResourceServer[];
+}
+
+export interface SDXAllowedAccessForClient {
+  clientId: string;
+  resourceServers: SDXResourceServer[];
+}

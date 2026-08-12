@@ -415,6 +415,11 @@ const init = (sequelize: any, DataTypes: any) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
+      sdxEnabled: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
     },
     {
       underscored: true,

@@ -30,13 +30,14 @@ import { Team, LoggedInUser } from 'interfaces/team';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 import { createRequest, isRequestBcscExcluded, updateRequest } from 'services/request';
 import { SurveyContext } from '@app/utils/context';
-import { defaultStandardRealmSettings, docusaurusURL } from '@app/utils/constants';
-import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
-import { fetchAttributes, fetchPrivacyZones } from '@app/services/bc-services-card';
 import {
+  defaultStandardRealmSettings,
+  docusaurusURL,
   bcscPrivacyZones as defaultBcscPrivacyZones,
   bcscAttributes as defaultBcscAttributes,
 } from '@app/utils/constants';
+import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
+import { fetchAttributes, fetchPrivacyZones } from '@app/services/bc-services-card';
 import validator from '@rjsf/validator-ajv8';
 import { validateIDPs } from '@app/utils/helpers';
 import { hasRoleAssignableIdp } from '@app/schemas/providers-gold';
@@ -44,6 +45,8 @@ import { fetchDefaultSessionSettings } from '@app/services/keycloak';
 import { GetStandardSettingsResponse } from '@app/interfaces/api';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import Link from '@app/components/Link';
+import { listSdxResourceServers, getSdxAllowedAccessForClient } from '@app/services/sdx-services';
+import { SDXResourceServer, SDXAllowedAccessForClient } from '@app/shared/interfaces';
 
 const Description = styled.p`
   margin: 0;
@@ -165,6 +168,13 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     prod: defaultStandardRealmSettings,
   });
   const [bcscExcluded, setBcscExcluded] = useState(false);
+  const [sdxResourceServers, setSdxResourceServers] = useState<SDXResourceServer[]>([]);
+  const [sdxServicesApprovedForClient, setSdxServicesApprovedForClient] = useState<SDXAllowedAccessForClient | null>(
+    null,
+  );
+  const [sdxServicesPendingForClient, setSdxServicesPendingForClient] = useState<SDXAllowedAccessForClient | null>(
+    null,
+  );
 
   const surveyContext = useContext(SurveyContext);
 
@@ -294,12 +304,27 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     setBcscExcluded(!!bcscExcluded);
   };
 
+  const loadSdxResourceServers = async () => {
+    const [data] = await listSdxResourceServers({} as any);
+    setSdxResourceServers(data || []);
+  };
+
+  const loadClientSdxServices = async () => {
+    const [approved] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'approved');
+    setSdxServicesApprovedForClient(approved || []);
+
+    const [pending] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'pending');
+    setSdxServicesPendingForClient(pending || []);
+  };
+
   useEffect(() => {
     loadTeams();
     loadBcscPrivacyZones();
     loadBcscAttributes();
     loadDefaultSessionSettings();
     isBcscExcluded();
+    loadSdxResourceServers();
+    if (!isNew) loadClientSdxServices();
   }, []);
 
   // Clear other details when other is unselected
@@ -502,7 +527,16 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         onChange={handleChange}
         onSubmit={handleFormSubmit}
         formData={formData}
-        formContext={{ teams, formData, setFormData, loadTeams, bcscPrivacyZones }}
+        formContext={{
+          teams,
+          formData,
+          setFormData,
+          loadTeams,
+          bcscPrivacyZones,
+          sdxResourceServers,
+          sdxServicesApprovedForClient,
+          sdxServicesPendingForClient,
+        }}
         templates={{ FieldTemplate, ArrayFieldTemplate }}
         liveValidate={visited[formStage] || isApplied}
         customValidate={customValidate}

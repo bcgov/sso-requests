@@ -269,6 +269,15 @@ export default function getSchema(
     };
   }
 
+  if (protocol === 'oidc') {
+    properties.sdxEnabled = {
+      type: 'boolean',
+      title: 'Secure Data Exchange (SDX) Services',
+      description: 'Would you like to enable Secure Data Exchange (SDX) services for this integration?',
+      default: false,
+    };
+  }
+
   return {
     type: 'object',
     customValidation: [

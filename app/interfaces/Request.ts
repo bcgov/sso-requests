@@ -1,3 +1,4 @@
+import { SDXService } from '@app/shared/interfaces';
 import type { Status } from './types';
 
 export type PrimaryEndUser = 'livingInBC' | 'businessInBC' | 'bcGovEmployees' | 'other';
@@ -96,6 +97,8 @@ export interface Integration {
   isAdmin?: boolean;
   confirmSocial?: boolean;
   socialApproved?: boolean;
+  sdxEnabled?: boolean;
+  sdxServices?: SDXService[];
 }
 
 export interface Option {

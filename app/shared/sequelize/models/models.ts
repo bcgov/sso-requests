@@ -10,6 +10,7 @@ import RequestQueue from './RequestQueue';
 import RequestRole from './RequestRole';
 import BcscClient from './BcscClient';
 import CustomRequest from './CustomRequest';
+import SdxRequest from './SdxRequest';
 
 const config: any = configs[`${process.env.NODE_ENV || 'development'}`];
 
@@ -27,7 +28,19 @@ if (config.databaseUrl) {
 
 console.log('sequelize initialized', !!sequelize);
 
-[Event, Request, Team, User, UserTeam, Survey, RequestQueue, RequestRole, BcscClient, CustomRequest].forEach((init) => {
+[
+  Event,
+  Request,
+  Team,
+  User,
+  UserTeam,
+  Survey,
+  RequestQueue,
+  RequestRole,
+  BcscClient,
+  CustomRequest,
+  SdxRequest,
+].forEach((init) => {
   const model = init(sequelize, DataTypes);
   models[model.name] = model;
   modelNames.push(model.name);

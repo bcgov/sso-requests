@@ -20,6 +20,7 @@ import { Environment } from '@app/interfaces/types';
 import { Team, LoggedInUser } from '@app/interfaces/team';
 import { GetStandardSettingsResponse } from '@app/interfaces/api';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
+import FieldSdxServices from '@app/form-components/FieldSdxServices';
 
 interface Props {
   integration: Integration;
@@ -314,6 +315,10 @@ const getUISchema = ({
       'ui:widget': includeComment ? 'textarea' : 'hidden',
       'ui:label': includeComment,
     },
+    sdxServices: {
+      'ui:FieldTemplate': FieldSdxServices,
+      'ui:label': false,
+    },
     devValidRedirectUris: {
       items: {
         'ui:options': {
@@ -334,6 +339,9 @@ const getUISchema = ({
           label: false,
         },
       },
+    },
+    sdxEnabled: {
+      'ui:widget': SwitchWidget,
     },
     ...bcServicesCardFields,
     ...tokenFields,
