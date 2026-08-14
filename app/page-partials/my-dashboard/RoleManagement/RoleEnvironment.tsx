@@ -1,7 +1,7 @@
 import { MouseEvent, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faExclamationTriangle, faMinusCircle, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faExclamationTriangle, faMinusCircle, faEye, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import Select from 'react-select';
 import { throttle, get, reduce } from 'lodash';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
@@ -19,18 +19,27 @@ import {
   getCompositeClientRoles,
   setCompositeClientRoles,
   manageUserRole,
+  previewRoleSync,
+  runRoleSync,
+  RoleSyncPreview,
+  RoleSyncResultRow,
 } from 'services/keycloak';
 import { canCreateOrDeleteRoles } from 'helpers/permissions';
 import { idpMap } from 'helpers/meta';
 import { getRequest } from 'services/request';
 import { checkIfUserIsServiceAccount, filterServiceAccountUsers } from 'helpers/users';
 import { KeycloakUser } from 'interfaces/team';
-import { dateTimeStringForFileName, generateXlsx } from '@app/utils/helpers';
+import { dateTimeStringForFileName, generateXlsx, generateCsv } from '@app/utils/helpers';
 import _ from 'lodash';
 import TableNew from '@app/components/TableNew';
 import { Col, Row } from 'react-bootstrap';
 
-const COMPOSITE_ROLE_STRING_LENGTH = 17;
+export const ActionButtonContainer = styled.div`
+  display: flex;
+  justify-content: end;
+  padding-right: 15px;
+  column-gap: 0.5em;
+`;
 
 const Label = styled.label`
   font-weight: bold;
@@ -57,6 +66,12 @@ const RightFloatUsersActionsButtons = styled.span`
 
 const TopMargin = styled.div`
   height: var(--field-top-spacing);
+`;
+
+const HelpText = styled.div`
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
 `;
 
 function UsersListActionsHeader() {
@@ -149,6 +164,18 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const [serviceAccountIntMap, setServiceAccountIntMap] = useState<SvcAcctUserIntegrationMapType[]>([]);
   const [compositeRoleError, setCompositeRoleError] = useState(false);
 
+  // Roles (idir -> MFA) syncing
+  const syncModalRef = useRef<ModalRef>(emptyRef);
+  const [syncTargetRole, setSyncTargetRole] = useState<string | null>(null);
+  const [syncPhase, setSyncPhase] = useState<'preview' | 'result'>('preview');
+  const [syncPreviewLoading, setSyncPreviewLoading] = useState(false);
+  const [syncRunning, setSyncRunning] = useState(false);
+  const [syncPreview, setSyncPreview] = useState<RoleSyncPreview[] | null>(null);
+  const [syncResults, setSyncResults] = useState<RoleSyncResultRow[] | null>(null);
+
+  const envIdps = (integration as any)['devIdps'] || [];
+  const canSyncRoles = !viewOnly && canCreateOrDeleteRole && envIdps.includes('idir') && envIdps.includes('azureidir');
+
   const populateTabs = () => {
     let tabs: string[] = [];
     if (integration.authType === 'service-account') {
@@ -224,6 +251,21 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     setSaving(false);
     setSavingMessage('');
   }, [selectedRole]);
+
+  const syncPreviewHasUsersToSync = useMemo(() => {
+    if (!syncPreview) return true;
+    return syncPreview.some((p) => p.toAttempt > 0);
+  }, [syncPreview]);
+
+  useEffect(() => {
+    syncModalRef.current.updateConfig({
+      cancelButtonText: syncPhase === 'result' ? 'Close' : 'Cancel',
+      confirmButtonText: syncPhase === 'result' ? 'Download Sync Details' : 'Run Sync',
+      confirmButtonVariant: syncPhase === 'result' ? 'secondary' : 'primary',
+      showCancelButton: true,
+      showConfirmButton: syncPhase === 'result' ? !!(syncResults && syncResults.length > 0) : syncPreviewHasUsersToSync,
+    });
+  }, [syncPhase, syncResults, syncPreviewHasUsersToSync]);
 
   const roleOptions = useMemo(() => {
     return optionizeAll(roles);
@@ -407,15 +449,84 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     confirmModalRef.current.open(roleName);
   };
 
+  const fetchSyncPreview = async (roleName: string | null) => {
+    setSyncPreviewLoading(true);
+    const [data, err] = await previewRoleSync({
+      environment,
+      integrationId: integration.id as number,
+      roleName: roleName || undefined,
+    });
+    setSyncPreviewLoading(false);
+
+    if (err || !data) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to preview role sync.',
+      });
+      syncModalRef.current.close();
+      return;
+    }
+
+    setSyncPreview(data);
+  };
+
+  // roleName === null means "Sync All Roles"
+  const openSyncModal = (roleName: string | null) => {
+    setSyncTargetRole(roleName);
+    setSyncPhase('preview');
+    setSyncPreview(null);
+    setSyncResults(null);
+    syncModalRef.current.open();
+    fetchSyncPreview(roleName);
+  };
+
+  const handleSyncConfirm = async () => {
+    if (syncPhase === 'result') {
+      downloadSyncCsv();
+      return false;
+    }
+
+    setSyncRunning(true);
+    const [data, err] = await runRoleSync({
+      environment,
+      integrationId: integration.id as number,
+      roleName: syncTargetRole || undefined,
+    });
+    setSyncRunning(false);
+
+    if (err || !data) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to sync roles. Please try again.',
+      });
+      return false;
+    }
+
+    setSyncResults(data);
+    setSyncPhase('result');
+
+    if (selectedRole && (!syncTargetRole || syncTargetRole === selectedRole)) {
+      fetchUsers(true, selectedRole);
+    }
+
+    return false;
+  };
+
+  const downloadSyncCsv = () => {
+    if (!syncResults || syncResults.length === 0) return;
+    const fileNameSuffix = syncTargetRole ? `-${syncTargetRole}` : '';
+    generateCsv(
+      syncResults,
+      `${integration.projectName}-${environment}-${dateTimeStringForFileName()}-role-sync${fileNameSuffix}`,
+    );
+  };
+
   const handleRightPanelTabSelect = (key: any) => {
     setRightPanelTab(key);
   };
 
   const activateRow = (row: any) => {
-    if (row.role.endsWith(' (Composite role)')) {
-      const roleLength = row.role.length;
-      setSelectedRole(row.role.substr(0, roleLength - COMPOSITE_ROLE_STRING_LENGTH));
-    } else setSelectedRole(row.role);
+    setSelectedRole(row.role);
   };
 
   let rightPanel = null;
@@ -612,15 +723,31 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       dataTestId="roles-table"
       columns={[
         {
-          accessorKey: 'role',
+          accessorKey: 'label',
           header: 'Role Name',
         },
         {
           accessorKey: 'actions',
           header: '',
           cell: (props) => {
+            const rawRoleName = props.row.original.role;
+
             return viewOnly ? null : (
-              <AlignRight>
+              <ActionButtonContainer>
+                {canSyncRoles && (
+                  <ActionButton
+                    icon={faSyncAlt}
+                    role="button"
+                    aria-label="Sync to MFA"
+                    onClick={(event: MouseEvent) => {
+                      event.stopPropagation();
+                      openSyncModal(rawRoleName);
+                    }}
+                    title="Sync to MFA"
+                    size="lg"
+                    data-testid="sync-to-mfa"
+                  />
+                )}
                 <ActionButton
                   disabled={!canCreateOrDeleteRole}
                   icon={faTrash}
@@ -629,21 +756,22 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
                   onClick={(event: MouseEvent) => {
                     if (canCreateOrDeleteRole) {
                       event.stopPropagation();
-                      handleDelete(props.row.original.role);
+                      handleDelete(rawRoleName);
                     }
                   }}
                   title="Delete"
                   size="lg"
-                  style={{ marginRight: '1rem' }}
+                  data-testid="delete-role"
                 />
-              </AlignRight>
+              </ActionButtonContainer>
             );
           },
         },
       ]}
       data={roles.map((role: string, index: number) => {
         return {
-          role: updateRoleName(role, index),
+          role,
+          label: updateRoleName(role, index),
         };
       })}
       noDataFoundMessage={<span>No roles found.</span>}
@@ -662,7 +790,22 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   return (
     <>
       <Row>
-        <Col>{leftPanel}</Col>
+        <Col>
+          {canSyncRoles && (
+            <div style={{ marginBottom: '0.5rem' }}>
+              <HelpText>Sync IDIR role assignments to IDIR - MFA users for all roles.</HelpText>
+              <button
+                type="button"
+                className="primary short"
+                data-testid="sync-all-roles-btn"
+                onClick={() => openSyncModal(null)}
+              >
+                Sync All Roles
+              </button>
+            </div>
+          )}
+          {leftPanel}
+        </Col>
         <Col>
           {selectedRole && (
             <Tabs onChange={handleRightPanelTabSelect} activeKey={rightPanelTab} tabBarGutter={30} items={tabItems} />
@@ -758,6 +901,55 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         cancelButtonVariant="secondary"
       >
         <div>Are you sure you want to remove this service account from this role?</div>
+      </GenericModal>
+      <GenericModal
+        id="sync-roles-to-mfa"
+        ref={syncModalRef}
+        title={
+          syncTargetRole
+            ? `Sync IDIR role assignments to IDIR - MFA users for "${syncTargetRole}"`
+            : 'Sync All Roles to MFA'
+        }
+        icon={faExclamationTriangle}
+        closable={!syncRunning}
+        onConfirm={handleSyncConfirm}
+        confirmButtonText="Run Sync"
+        confirmButtonVariant="primary"
+        cancelButtonVariant="secondary"
+        buttonAlign="none"
+      >
+        {syncPhase === 'preview' ? (
+          syncPreviewLoading || !syncPreview ? (
+            <LoaderContainer />
+          ) : !syncPreviewHasUsersToSync ? (
+            <p>No users to sync</p>
+          ) : (
+            <div>
+              <p>
+                Copy client role assignments from each user&apos;s <strong>idir</strong> identity to their{' '}
+                <strong>azureidir (MFA)</strong> identity.
+              </p>
+              <ul style={{ maxHeight: '400px', overflowY: 'scroll' }}>
+                {syncPreview
+                  .filter((p) => p.toAttempt > 0)
+                  .map((p) => (
+                    <li key={p.role}>
+                      <strong>{p.role}</strong>: {p.toAttempt} user{p.toAttempt === 1 ? '' : 's'} to sync
+                    </li>
+                  ))}
+              </ul>
+              {syncRunning && <LoaderContainer />}
+            </div>
+          )
+        ) : (
+          <div>
+            {(syncResults || []).some((r) => r.status === 'ERROR') ? (
+              <p>Errors encountered during sync. Please see sync details for more information.</p>
+            ) : (
+              <p>Sync complete.</p>
+            )}
+          </div>
+        )}
       </GenericModal>
       <UserDetailModal modalRef={infoModalRef} />
     </>

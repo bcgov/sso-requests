@@ -302,6 +302,65 @@ export const deleteRole = async ({
   }
 };
 
+export type RoleSyncStatus = 'SYNCED' | 'ALREADY_SYNCED' | 'NOT_FOUND_IN_MFA' | 'ERROR';
+
+export interface RoleSyncResultRow {
+  idirUsername: string;
+  guid: string;
+  role: string;
+  status: RoleSyncStatus;
+  detail?: string;
+}
+
+export interface RoleSyncPreview {
+  role: string;
+  total: number;
+  alreadySynced: number;
+  toAttempt: number;
+}
+
+/** Preview counts for syncing role(s) from idir to azureidir. Omit `roleName` to preview all roles. */
+export const previewRoleSync = async ({
+  environment,
+  integrationId,
+  roleName,
+}: {
+  environment: string;
+  integrationId: number;
+  roleName?: string;
+}): Promise<[RoleSyncPreview[] | null, any]> => {
+  try {
+    const result = await instance
+      .post('keycloak/role-sync', { environment, integrationId, roleName, dryRun: true })
+      .then((res) => res.data.data);
+    return [result, null];
+  } catch (err: any) {
+    console.error(err);
+    return [null, err];
+  }
+};
+
+/** Run the sync from idir to azureidir. Omit `roleName` to sync all roles ("Sync All Roles"). */
+export const runRoleSync = async ({
+  environment,
+  integrationId,
+  roleName,
+}: {
+  environment: string;
+  integrationId: number;
+  roleName?: string;
+}): Promise<[RoleSyncResultRow[] | null, any]> => {
+  try {
+    const result = await instance
+      .post('keycloak/role-sync', { environment, integrationId, roleName, dryRun: false })
+      .then((res) => res.data.data);
+    return [result, null];
+  } catch (err: any) {
+    console.error(err);
+    return [null, err];
+  }
+};
+
 export const fetchDefaultSessionSettings = async (): Promise<[null | GetStandardSettingsResponse, null | Error]> => {
   try {
     const result = await instance.get(`keycloak/standard-settings`).then((res) => res.data);
