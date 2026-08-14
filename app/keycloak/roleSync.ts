@@ -161,6 +161,7 @@ const syncRoleForUsers = async (
 
           return { ...base, status: 'SYNCED' };
         } catch (err: any) {
+          console.error('error syncing role:', err);
           return { ...base, status: 'ERROR' };
         }
       }),

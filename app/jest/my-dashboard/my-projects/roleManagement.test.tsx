@@ -329,7 +329,7 @@ describe('role management tab', () => {
   it('Should not show the MFA sync entry points when idir and azureidir are not both enabled', async () => {
     render(<RoleEnvironmentComponent />);
     await waitFor(() => {
-      expect(screen.getByRole('cell', { name: 'role-1' }));
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
     });
 
     expect(screen.queryByTestId('sync-all-roles-btn')).not.toBeInTheDocument();
@@ -352,7 +352,7 @@ describe('role management tab', () => {
 
     render(<RoleEnvironmentWithMfaComponent />);
     await waitFor(() => {
-      expect(screen.getByRole('cell', { name: 'role-1' }));
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
     });
 
     const syncButton = await screen.findAllByTestId('sync-to-mfa');
@@ -369,7 +369,7 @@ describe('role management tab', () => {
       expect(runRoleSync).toHaveBeenCalledWith(expect.objectContaining({ environment: 'dev', roleName: 'role-1' }));
     });
     expect(await screen.findByText('Sync complete.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Download Sync Details' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Download Sync Details' })).toBeInTheDocument();
   });
 
   it('Should show a "Sync All Roles" button that previews/runs a sync across every role', async () => {
@@ -383,7 +383,7 @@ describe('role management tab', () => {
 
     render(<RoleEnvironmentWithMfaComponent />);
     await waitFor(() => {
-      expect(screen.getByRole('cell', { name: 'role-1' }));
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByTestId('sync-all-roles-btn'));
@@ -403,14 +403,16 @@ describe('role management tab', () => {
 
     render(<RoleEnvironmentWithMfaComponent />);
     await waitFor(() => {
-      expect(screen.getByRole('cell', { name: 'role-1' }));
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
     });
 
     const syncButton = await screen.findAllByTestId('sync-to-mfa');
     fireEvent.click(syncButton[0]);
 
     expect(await screen.findByText('No users to sync')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Run Sync' })).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: 'Run Sync' })).not.toBeInTheDocument();
+    });
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
   });
 });
