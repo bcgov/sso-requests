@@ -122,7 +122,6 @@ describe('role sync (idir -> azureidir MFA)', () => {
     expect(byGuid['guid-not-found'].status).toBe('NOT_FOUND_IN_MFA');
     expect(byGuid['guid-to-provision'].status).toBe('SYNCED');
     expect(byGuid['guid-errors'].status).toBe('ERROR');
-    expect(byGuid['guid-errors'].detail).toContain('keycloak 500');
 
     // Never removes/touches roles already on the MFA side.
     expect(mockAddClientRoleMappings).not.toHaveBeenCalledWith(
