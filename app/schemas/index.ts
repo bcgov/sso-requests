@@ -51,11 +51,12 @@ export const getSchemas = ({
       getProvidersGoldSchema(formData, session, bcscPrivacyZones, bcscAttributes),
       ...environmentSchemas,
     );
-    if (!isApplied) schemas.push(termsAndConditionsSchema);
-  }
 
-  if (formData.devIdps?.includes('bcservicescard') && formData.sdxEnabled) {
-    schemas.push(getSdxServicesSchema());
+    if (formData.devIdps?.includes('bcservicescard') && formData.sdxEnabled) {
+      schemas.push(getSdxServicesSchema());
+    }
+
+    if (!isApplied) schemas.push(termsAndConditionsSchema);
   }
 
   schemas.push(getReviewSubmitSchema());

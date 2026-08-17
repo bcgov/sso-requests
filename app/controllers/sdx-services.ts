@@ -9,6 +9,74 @@ import { createClientScope, getClientScopes } from '@app/keycloak/clientScopes';
 import ClientScopeRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientScopeRepresentation';
 import { createSdxAccessRequest } from '@app/queries/sdx-services';
 
+const getSdxEnvironments = () => {
+  return process.env.NEXT_PUBLIC_APP_ENV === 'production'
+    ? { production: 'bc', 'non-production': 'bct' }
+    : { production: 'apstest', 'non-production': 'apsdev' };
+};
+
+const getToken = async () => {
+  return await fetch(process.env.SDX_TOKEN_URL || '', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: process.env.SDX_CLIENT_ID || '',
+      client_secret: process.env.SDX_CLIENT_SECRET || '',
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => data.access_token)
+    .catch((error) => {
+      console.error('Error fetching SDX token:', error);
+      throw new Error('Failed to fetch SDX token');
+    });
+};
+
+// export const getSdxServicesForClient = async (
+//   session: Session,
+//   requestId: number,
+//   status: string,
+// ): Promise<{ clientId: string; resourceServers: SDXResourceServer[] }> => {
+//   const current = await getAllowedRequest(session, requestId);
+//   if (!current) throw new Error('Request not found');
+
+//   try {
+//     const response = await fetch(`${process.env.SDX_API || ''}/integrations/${current?.clientId}/allowed-services`, {
+//       headers: {
+//         Authorization: `Bearer ${await getToken()}`,
+//       },
+//     });
+//     return response.json();
+//   } catch (err) {
+//     console.error('Error fetching SDX services:', err);
+//     throw new Error('Failed to fetch SDX services');
+//   }
+// };
+
+// export const listSdxResourceServers = async (session: Session): Promise<SDXResourceServer[]> => {
+//   try {
+//     let envs = process.env.NEXT_PUBLIC_APP_ENV === 'production' ? ['bct', 'bc'] : ['apsdev', 'apstest'];
+
+//     let resourceServers: SDXResourceServer[] = [];
+
+//     for (const env of envs) {
+//       const response = await fetch(`${process.env.SDX_API || ''}/resource-servers?environment=${env}`, {
+//         headers: {
+//           Authorization: `Bearer ${await getToken()}`,
+//         },
+//       });
+//       resourceServers.push(...(await response.json()));
+//     }
+//     return resourceServers;
+//   } catch (err) {
+//     console.error('Error fetching SDX resource servers:', err);
+//     throw new Error('Failed to fetch SDX resource servers');
+//   }
+// };
+
 export const getSdxServicesForClient = async (
   session: Session,
   requestId: number,
@@ -23,7 +91,7 @@ export const getSdxServicesForClient = async (
       resourceServers: [
         {
           id: 'claims',
-          environment: 'non-production',
+          environment: 'apsdev',
           services: [
             {
               name: 'phn-lookup',
@@ -45,7 +113,7 @@ export const getSdxServicesForClient = async (
       resourceServers: [
         {
           id: 'claims',
-          environment: 'non-production',
+          environment: 'apsdev',
           services: [
             {
               name: 'phn-lookup',
@@ -73,7 +141,7 @@ export const listSdxResourceServers = (session: Session): SDXResourceServer[] =>
       name: 'Claims',
       organization: 'Ministry of Health',
       description: 'This resource server provides access to health-related claims.',
-      environment: 'non-production',
+      environment: 'apsdev',
       services: [
         {
           name: 'phn-lookup',
@@ -106,7 +174,7 @@ export const listSdxResourceServers = (session: Session): SDXResourceServer[] =>
       name: 'Data Usage',
       organization: 'Ministry of Health',
       description: 'This resource server provides access to data usage metrics.',
-      environment: 'non-production',
+      environment: 'apsdev',
       services: [
         {
           name: 'data-usage-api',
@@ -135,7 +203,7 @@ export const listSdxResourceServers = (session: Session): SDXResourceServer[] =>
       name: 'Student Records',
       organization: 'Ministry of Education',
       description: 'This resource server provides access to student records.',
-      environment: 'non-production',
+      environment: 'apsdev',
       services: [
         {
           name: 'student-records-api',
@@ -164,7 +232,7 @@ export const listSdxResourceServers = (session: Session): SDXResourceServer[] =>
       name: 'Claims',
       organization: 'Ministry of Health',
       description: 'This resource server provides access to health-related claims.',
-      environment: 'production',
+      environment: 'apstest',
       services: [
         {
           name: 'phn-lookup',
@@ -189,7 +257,7 @@ export const listSdxResourceServers = (session: Session): SDXResourceServer[] =>
       name: 'Data Usage',
       organization: 'Ministry of Health',
       description: 'This resource server provides access to data usage metrics.',
-      environment: 'production',
+      environment: 'apstest',
       services: [
         {
           name: 'data-usage-api',
@@ -214,7 +282,7 @@ export const listSdxResourceServers = (session: Session): SDXResourceServer[] =>
       name: 'Student Records',
       organization: 'Ministry of Education',
       description: 'This resource server provides access to student records.',
-      environment: 'production',
+      environment: 'apstest',
       services: [
         {
           name: 'student-records-api',
@@ -301,13 +369,9 @@ export const createSdxRequest = async (session: Session, requestId: number, sdxR
 
   try {
     const resourceServers = sdxRequestData.resourceServers || [];
-
     await initializeScopes(resourceServers);
-
     const existingSdxAccess = await getSdxServicesForClient(session, requestId, 'approved');
-
     const removedScopesByEnv = getRemovedScopes(existingSdxAccess.resourceServers, resourceServers);
-
     for (const [environment, scopes] of Object.entries(removedScopesByEnv)) {
       await removeSdxAccessByScopes(existingSdxAccess.clientId, environment, scopes);
     }

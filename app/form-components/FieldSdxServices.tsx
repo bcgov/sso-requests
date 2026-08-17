@@ -304,13 +304,13 @@ type ScopeReference = {
   label: string;
 };
 
-type ClientScopeState = {
-  approvedScopeIds: Set<string>;
-  pendingScopeIds: Set<string>;
-};
+export type EnvironmentKey = 'non-production' | 'production';
+export type SelectedScopesByTab = Record<EnvironmentKey, Set<string>>;
 
-type EnvironmentKey = 'non-production' | 'production';
-type SelectedScopesByTab = Record<EnvironmentKey, Set<string>>;
+type ClientScopeState = {
+  approvedScopeIds: SelectedScopesByTab;
+  pendingScopeIds: SelectedScopesByTab;
+};
 
 /** All versions of a service, grouped under a single card. */
 type ServiceGroup = {
@@ -329,20 +329,29 @@ function asArray<T>(value: T[] | undefined | null): T[] {
   return Array.isArray(value) ? value : [];
 }
 
-/** Normalizes arbitrary environment labels into one of the supported tab keys. */
-function normalizeEnvironment(environment: string | undefined | null): EnvironmentKey {
-  return String(environment || '')
+/** Raw SDX environment values for each tab, per app deployment (sandbox vs prod). */
+const SANDBOX_ENVIRONMENT_VALUES: Record<EnvironmentKey, string> = {
+  'non-production': 'apsdev',
+  production: 'apstest',
+};
+
+const PROD_ENVIRONMENT_VALUES: Record<EnvironmentKey, string> = {
+  'non-production': 'bct',
+  production: 'bc',
+};
+
+const ENVIRONMENT_VALUES =
+  process.env.NEXT_PUBLIC_APP_ENV === 'production' ? PROD_ENVIRONMENT_VALUES : SANDBOX_ENVIRONMENT_VALUES;
+
+/** Normalizes raw SDX environment values into one of the supported tab keys. */
+export function normalizeEnvironment(environment: string | undefined | null): EnvironmentKey {
+  const normalized = String(environment || '')
     .trim()
-    .toLowerCase()
-    .includes('prod') &&
-    !String(environment || '')
-      .toLowerCase()
-      .includes('non')
-    ? 'production'
-    : 'non-production';
+    .toLowerCase();
+  return normalized === ENVIRONMENT_VALUES.production ? 'production' : 'non-production';
 }
 
-function getResourceServersForEnvironment(
+export function getResourceServersForEnvironment(
   sdxServices: SDXResourceServer[],
   environment: EnvironmentKey,
 ): SDXResourceServer[] {
@@ -355,7 +364,7 @@ function getResourceServersForEnvironment(
 const SCOPE_ID_SEPARATOR = '$$';
 
 /** Creates a stable synthetic id for an individual scope. */
-function getScopeId(resourceServerKey: string, serviceKey: string, versionKey: string, scopeKey: string) {
+export function getScopeId(resourceServerKey: string, serviceKey: string, versionKey: string, scopeKey: string) {
   return [resourceServerKey, serviceKey, versionKey, scopeKey].join(SCOPE_ID_SEPARATOR);
 }
 
@@ -451,27 +460,35 @@ function getScopeReferences(data: SDXResourceServer[] = []) {
  * Computes which scopes should be preselected and/or locked based on approved
  * and pending access returned for the client.
  */
-function getClientScopeState(
+export function getClientScopeState(
   approved: SDXAllowedAccessForClient | null,
   pending: SDXAllowedAccessForClient | null,
   sdxServices: SDXResourceServer[] = [],
 ): ClientScopeState {
-  const approvedScopeIds = new Set<string>();
-  const pendingScopeIds = new Set<string>();
+  const approvedScopeIds: SelectedScopesByTab = { 'non-production': new Set<string>(), production: new Set<string>() };
+  const pendingScopeIds: SelectedScopesByTab = { 'non-production': new Set<string>(), production: new Set<string>() };
 
   if (!Array.isArray(sdxServices)) return { approvedScopeIds, pendingScopeIds };
 
-  const collectKeys = (allowed: SDXAllowedAccessForClient | null) => {
-    const matcherKeys = new Set<string>();
-    const scopeLabels = new Set<string>();
+  // Matcher keys are grouped by environment so allowed access in one environment never leaks into the other tab.
+  const collectKeysByEnvironment = (allowed: SDXAllowedAccessForClient | null) => {
+    const matcherKeys: Record<EnvironmentKey, Set<string>> = {
+      'non-production': new Set<string>(),
+      production: new Set<string>(),
+    };
+    const scopeLabels: Record<EnvironmentKey, Set<string>> = {
+      'non-production': new Set<string>(),
+      production: new Set<string>(),
+    };
 
     asArray(allowed?.resourceServers).forEach((resourceServer) => {
+      const environment = normalizeEnvironment(resourceServer?.environment);
       asArray(resourceServer?.services).forEach((service) => {
         const serviceKey = getServiceKey(service);
         getServiceScopes(service).forEach((scope) => {
           const scopeLabel = getScopeLabel(scope);
-          scopeLabels.add(scopeLabel.toLowerCase());
-          matcherKeys.add(getScopeMatcherKey(serviceKey, service.version, scopeLabel));
+          scopeLabels[environment].add(scopeLabel.toLowerCase());
+          matcherKeys[environment].add(getScopeMatcherKey(serviceKey, service.version, scopeLabel));
         });
       });
     });
@@ -479,11 +496,13 @@ function getClientScopeState(
     return { matcherKeys, scopeLabels };
   };
 
-  const approvedKeys = collectKeys(approved);
-  const pendingKeys = collectKeys(pending);
+  const approvedKeys = collectKeysByEnvironment(approved);
+  const pendingKeys = collectKeysByEnvironment(pending);
 
   asArray(sdxServices).forEach((resourceServer) => {
     const resourceServerKey = getResourceServerKey(resourceServer);
+    const environment = normalizeEnvironment(resourceServer?.environment);
+
     asArray(resourceServer?.services).forEach((service) => {
       const serviceKey = getServiceKey(service);
       getServiceScopes(service).forEach((scope) => {
@@ -491,10 +510,16 @@ function getClientScopeState(
         const scopeId = getScopeId(resourceServerKey, serviceKey, service.version, scopeLabel);
         const matcherKey = getScopeMatcherKey(serviceKey, service.version, scopeLabel);
 
-        if (pendingKeys.matcherKeys.has(matcherKey) || pendingKeys.scopeLabels.has(scopeLabel.toLowerCase()))
-          pendingScopeIds.add(scopeId);
-        if (approvedKeys.matcherKeys.has(matcherKey) || approvedKeys.scopeLabels.has(scopeLabel.toLowerCase()))
-          approvedScopeIds.add(scopeId);
+        if (
+          pendingKeys.matcherKeys[environment].has(matcherKey) ||
+          pendingKeys.scopeLabels[environment].has(scopeLabel.toLowerCase())
+        )
+          pendingScopeIds[environment].add(scopeId);
+        if (
+          approvedKeys.matcherKeys[environment].has(matcherKey) ||
+          approvedKeys.scopeLabels[environment].has(scopeLabel.toLowerCase())
+        )
+          approvedScopeIds[environment].add(scopeId);
       });
     });
   });
@@ -553,7 +578,7 @@ function getSelectedResourceServers(
 }
 
 /** Combines selected scope state from both tabs into a flat resource-server list payload. */
-function buildSdxRequestPayloadFromSelectedScopes(
+export function buildSdxRequestPayloadFromSelectedScopes(
   selectedScopesByTab: SelectedScopesByTab,
   sdxServices: SDXResourceServer[],
 ): SDXAccessRequest['resourceServers'] {
@@ -589,28 +614,31 @@ function getSelectedScopeIdsFromResourceServers(resourceServers: SDXResourceServ
   return scopeIds;
 }
 
-/** Creates a tab-state object with required scopes preloaded in both tabs. */
-function createTabSelection(requiredScopeIds: Set<string>, seed?: Partial<SelectedScopesByTab>): SelectedScopesByTab {
+/** Creates a tab-state object with each tab's required scopes preloaded. */
+function createTabSelection(
+  requiredScopeIds: SelectedScopesByTab,
+  seed?: Partial<SelectedScopesByTab>,
+): SelectedScopesByTab {
   return {
     'non-production': new Set<string>([
-      ...Array.from(requiredScopeIds),
+      ...Array.from(requiredScopeIds['non-production'] ?? new Set<string>()),
       ...Array.from(seed?.['non-production'] ?? new Set<string>()),
     ]),
     production: new Set<string>([
-      ...Array.from(requiredScopeIds),
+      ...Array.from(requiredScopeIds.production ?? new Set<string>()),
       ...Array.from(seed?.production ?? new Set<string>()),
     ]),
   };
 }
 
-function restoreSelectedScopesByTab(
+export function restoreSelectedScopesByTab(
   serialized: unknown,
-  requiredScopeIds: Set<string>,
-  defaultScopeIds: Set<string>,
+  requiredScopeIds: SelectedScopesByTab,
+  defaultScopeIds: SelectedScopesByTab,
 ): SelectedScopesByTab {
   const fallback = createTabSelection(requiredScopeIds, {
-    'non-production': new Set<string>(defaultScopeIds),
-    production: new Set<string>(defaultScopeIds),
+    'non-production': new Set<string>(defaultScopeIds['non-production']),
+    production: new Set<string>(defaultScopeIds.production),
   });
 
   if (!serialized || typeof serialized !== 'object') return fallback;
@@ -799,7 +827,7 @@ function VersionScopesRow({
           return (
             <ScopeChipButton
               key={scopeId}
-              id={`scope-${scopeId}`}
+              id={`scope-${resourceServer.environment}-${scopeId}`}
               scope={typeof scope === 'string' ? { label: scope, description: scope } : scope}
               disabled={isPending}
               selected={isSelected}
@@ -934,7 +962,7 @@ function OrganizationApiScopeSelector({
 const tabItems = (
   sdxServices: SDXResourceServer[],
   scopeReferences: Record<string, ScopeReference>,
-  pendingScopeIds: Set<string>,
+  pendingScopeIds: SelectedScopesByTab,
   selectedScopesByTab: SelectedScopesByTab,
   onToggleScope: (tabKey: EnvironmentKey, scopeId: string) => void,
   onToggleVersion: (tabKey: EnvironmentKey, scopeIds: string[]) => void,
@@ -947,14 +975,14 @@ const tabItems = (
       <TabWrapper>
         <SelectedScopesPanel
           scopeReferences={scopeReferences}
-          pendingScopeIds={pendingScopeIds}
+          pendingScopeIds={pendingScopeIds['non-production']}
           selectedScopes={selectedScopesByTab['non-production'] ?? new Set<string>()}
           onRemoveScope={(scopeId) => onToggleScope('non-production', scopeId)}
           onRemoveAllScopes={() => onClearTabScopes('non-production')}
         />
         <OrganizationApiScopeSelector
           data={getResourceServersForEnvironment(sdxServices, 'non-production')}
-          pendingScopeIds={pendingScopeIds}
+          pendingScopeIds={pendingScopeIds['non-production']}
           selectedScopes={selectedScopesByTab['non-production']}
           onToggleScope={(scopeId) => onToggleScope('non-production', scopeId)}
           onToggleVersion={(scopeIds) => onToggleVersion('non-production', scopeIds)}
@@ -969,14 +997,14 @@ const tabItems = (
       <TabWrapper>
         <SelectedScopesPanel
           scopeReferences={scopeReferences}
-          pendingScopeIds={pendingScopeIds}
+          pendingScopeIds={pendingScopeIds.production}
           selectedScopes={selectedScopesByTab.production ?? new Set<string>()}
           onRemoveScope={(scopeId) => onToggleScope('production', scopeId)}
           onRemoveAllScopes={() => onClearTabScopes('production')}
         />
         <OrganizationApiScopeSelector
           data={getResourceServersForEnvironment(sdxServices, 'production')}
-          pendingScopeIds={pendingScopeIds}
+          pendingScopeIds={pendingScopeIds.production}
           selectedScopes={selectedScopesByTab.production}
           onToggleScope={(scopeId) => onToggleScope('production', scopeId)}
           onToggleVersion={(scopeIds) => onToggleVersion('production', scopeIds)}
@@ -1009,11 +1037,26 @@ export default function FieldSdxServices(props: Readonly<FieldTemplateProps>) {
       ),
     [normalizedApprovedClientSdxServices, normalizedPendingClientSdxServices, normalizedSdxServices],
   );
-  const defaultSelectedScopeIds = useMemo(
-    () => new Set<string>([...Array.from(approvedScopeIds), ...Array.from(pendingScopeIds)]),
+  const defaultSelectedScopeIds = useMemo<SelectedScopesByTab>(
+    () => ({
+      'non-production': new Set<string>([
+        ...Array.from(approvedScopeIds['non-production']),
+        ...Array.from(pendingScopeIds['non-production']),
+      ]),
+      production: new Set<string>([
+        ...Array.from(approvedScopeIds.production),
+        ...Array.from(pendingScopeIds.production),
+      ]),
+    }),
     [approvedScopeIds, pendingScopeIds],
   );
-  const requiredSelectedScopeIds = useMemo(() => new Set<string>(pendingScopeIds), [pendingScopeIds]);
+  const requiredSelectedScopeIds = useMemo<SelectedScopesByTab>(
+    () => ({
+      'non-production': new Set<string>(pendingScopeIds['non-production']),
+      production: new Set<string>(pendingScopeIds.production),
+    }),
+    [pendingScopeIds],
+  );
   const persistedSelectedScopesByTab = useMemo(
     () => restoreSelectedScopesByTab(formData?.sdxServices, requiredSelectedScopeIds, defaultSelectedScopeIds),
     [formData?.sdxServices, requiredSelectedScopeIds, defaultSelectedScopeIds],
@@ -1030,19 +1073,19 @@ export default function FieldSdxServices(props: Readonly<FieldTemplateProps>) {
       'non-production': new Set<string>([
         ...Array.from(previous['non-production'] ?? new Set<string>()),
         ...Array.from(persistedSelectedScopesByTab['non-production']),
-        ...Array.from(requiredSelectedScopeIds),
+        ...Array.from(requiredSelectedScopeIds['non-production']),
       ]),
       production: new Set<string>([
         ...Array.from(previous.production ?? new Set<string>()),
         ...Array.from(persistedSelectedScopesByTab.production),
-        ...Array.from(requiredSelectedScopeIds),
+        ...Array.from(requiredSelectedScopeIds.production),
       ]),
     }));
   }, [persistedSelectedScopesByTab, requiredSelectedScopeIds]);
 
   const onToggleScope = (tabKey: EnvironmentKey, scopeId: string) => {
     setSelectedScopesByTab((previous) => {
-      if (pendingScopeIds.has(scopeId)) return previous;
+      if (pendingScopeIds[tabKey].has(scopeId)) return previous;
       const currentSet = previous[tabKey] ?? new Set<string>();
       const nextSet = new Set(currentSet);
 
@@ -1060,7 +1103,7 @@ export default function FieldSdxServices(props: Readonly<FieldTemplateProps>) {
     setSelectedScopesByTab((previous) => {
       const currentSet = previous[tabKey] ?? new Set<string>();
       const nextSet = new Set(currentSet);
-      const toggleableScopeIds = scopeIds.filter((scopeId) => !pendingScopeIds.has(scopeId));
+      const toggleableScopeIds = scopeIds.filter((scopeId) => !pendingScopeIds[tabKey].has(scopeId));
       const shouldSelectAll = toggleableScopeIds.some((scopeId) => !nextSet.has(scopeId));
 
       toggleableScopeIds.forEach((scopeId) => {
@@ -1078,7 +1121,7 @@ export default function FieldSdxServices(props: Readonly<FieldTemplateProps>) {
   const onClearTabScopes = (tabKey: EnvironmentKey) => {
     setSelectedScopesByTab((previous) => ({
       ...previous,
-      [tabKey]: new Set<string>(pendingScopeIds),
+      [tabKey]: new Set<string>(pendingScopeIds[tabKey]),
     }));
   };
 

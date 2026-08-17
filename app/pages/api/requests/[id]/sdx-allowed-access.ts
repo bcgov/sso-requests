@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const userSession = await authenticate(req.headers);
       if (!userSession) return res.status(401).json({ success: false, message: 'not authorized' });
       const { session } = await processUserSession(userSession as Session);
-      const { id, status } = req.query || {};
+      const { id, status, environment } = req.query || {};
       if (!id) return res.status(400).json({ success: false, message: 'Integration ID is required' });
       const result = await getSdxServicesForClient(session as Session, Number(id), (status as string) || 'approved');
       return res.status(200).json(result);
