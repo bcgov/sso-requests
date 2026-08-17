@@ -150,17 +150,12 @@ export interface SDXServiceScope {
   description: string;
 }
 
-export interface SDXServiceVersion {
-  label: string;
-  status?: 'Current' | 'Deprecated';
-  scopes: SDXServiceScope[] | string[];
-}
-
 export interface SDXService {
-  id: string;
-  name?: string;
-  description?: string;
-  versions: SDXServiceVersion[];
+  name: string;
+  summary?: string;
+  version: string;
+  scopes: SDXServiceScope[] | string[];
+  title?: string;
 }
 
 export interface SDXResourceServer {

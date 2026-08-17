@@ -685,7 +685,7 @@ export const updateRequest = async (
       await processIntegrationRequest(updated, false, existingClientId, addingProd);
 
       if (usesSdxServices(updated)) {
-        await createSdxRequest(session, updated.id, updated.requester, updated.sdxServices);
+        await createSdxRequest(session, updated.id, updated.sdxServices);
       }
     }
 

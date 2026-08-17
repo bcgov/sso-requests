@@ -18,7 +18,6 @@ import {
   SDXResourceServer,
   SDXService,
   SDXServiceScope,
-  SDXServiceVersion,
 } from '@app/shared/interfaces';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
@@ -111,15 +110,6 @@ const VersionMeta = styled.div`
 const VersionLabel = styled.span`
   font-size: 1rem;
   font-weight: 700;
-`;
-
-const VersionStatus = styled.span<{ deprecated?: boolean }>`
-  font-size: 0.625rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 0.125rem 0.375rem;
-  background: ${(props) => (props.deprecated ? '#f2f2f2' : TABLE_ACTIVE_BLUE)};
-  color: ${(props) => (props.deprecated ? SECONDARY_FONT_COLOR : SECONDARY_BLUE)};
 `;
 
 const LinkButton = styled.button`
@@ -322,6 +312,13 @@ type ClientScopeState = {
 type EnvironmentKey = 'non-production' | 'production';
 type SelectedScopesByTab = Record<EnvironmentKey, Set<string>>;
 
+/** All versions of a service, grouped under a single card. */
+type ServiceGroup = {
+  key: string;
+  title: string;
+  services: SDXService[];
+};
+
 type SdxServicesPayload = {
   integrationId: number | undefined;
   resourceServers: SDXResourceServer[];
@@ -354,9 +351,18 @@ function getResourceServersForEnvironment(
   );
 }
 
+/** Separator that cannot occur in scope labels, so scope ids stay parseable. */
+const SCOPE_ID_SEPARATOR = '$$';
+
 /** Creates a stable synthetic id for an individual scope. */
 function getScopeId(resourceServerKey: string, serviceKey: string, versionKey: string, scopeKey: string) {
-  return `${resourceServerKey}.${serviceKey}.${versionKey}.${scopeKey}`;
+  return [resourceServerKey, serviceKey, versionKey, scopeKey].join(SCOPE_ID_SEPARATOR);
+}
+
+/** Strips the resource server/service/version prefix back to the raw scope label. */
+function getScopeLabelFromScopeId(scopeId: string): string {
+  const segments = scopeId.split(SCOPE_ID_SEPARATOR);
+  return segments[segments.length - 1];
 }
 
 /** Builds a normalized matcher key used for approved/pending matching. */
@@ -366,7 +372,7 @@ function getScopeMatcherKey(apiKey: string, versionKey: string, scopeKey: string
 
 /** Returns a stable service key even when fields are partially populated. */
 function getServiceKey(service: SDXService): string {
-  return service.id || service.name || 'unknown-service';
+  return service.name || 'unknown-service';
 }
 
 /** Returns a stable resource server key even when fields are partially populated. */
@@ -379,23 +385,38 @@ function getScopeLabel(scope: SDXServiceScope | string): string {
   return typeof scope === 'string' ? scope : scope.label;
 }
 
-/** Normalizes version scopes into a single iterable type. */
-function getVersionScopes(version: SDXServiceVersion): Array<SDXServiceScope | string> {
-  return asArray<SDXServiceScope | string>(version?.scopes as Array<SDXServiceScope | string> | undefined | null);
+/** Normalizes service scopes into a single iterable type. */
+function getServiceScopes(service: SDXService): Array<SDXServiceScope | string> {
+  return asArray<SDXServiceScope | string>(service?.scopes as Array<SDXServiceScope | string> | undefined | null);
 }
 
 /** Gets all synthetic scope ids for a specific service version. */
-function getVersionScopeIds(resourceServer: SDXResourceServer, service: SDXService, version: SDXServiceVersion) {
+function getServiceScopeIds(resourceServer: SDXResourceServer, service: SDXService) {
   const resourceServerKey = getResourceServerKey(resourceServer);
   const serviceKey = getServiceKey(service);
-  return getVersionScopes(version).map((scope) =>
-    getScopeId(resourceServerKey, serviceKey, version.label, getScopeLabel(scope)),
+  return getServiceScopes(service).map((scope) =>
+    getScopeId(resourceServerKey, serviceKey, service.version, getScopeLabel(scope)),
   );
 }
 
-/** Gets all synthetic scope ids for a specific service. */
-function getServiceScopeIds(resourceServer: SDXResourceServer, service: SDXService) {
-  return asArray(service?.versions).flatMap((version) => getVersionScopeIds(resourceServer, service, version));
+/** Groups a resource server's services by name so a single card lists all of its versions. */
+function getServiceGroups(resourceServer: SDXResourceServer): ServiceGroup[] {
+  const groups = new Map<string, ServiceGroup>();
+
+  asArray(resourceServer?.services).forEach((service) => {
+    const key = getServiceKey(service);
+    const group = groups.get(key);
+
+    if (group) group.services.push(service);
+    else groups.set(key, { key, title: service.title || service.name, services: [service] });
+  });
+
+  return Array.from(groups.values());
+}
+
+/** Gets all synthetic scope ids across every version of a grouped service. */
+function getServiceGroupScopeIds(resourceServer: SDXResourceServer, group: ServiceGroup) {
+  return group.services.flatMap((service) => getServiceScopeIds(resourceServer, service));
 }
 
 /** Gets all synthetic scope ids for a resource server. */
@@ -412,15 +433,13 @@ function getScopeReferences(data: SDXResourceServer[] = []) {
     const resourceServerKey = getResourceServerKey(resourceServer);
     asArray(resourceServer?.services).forEach((service) => {
       const serviceKey = getServiceKey(service);
-      asArray(service?.versions).forEach((version) => {
-        getVersionScopes(version).forEach((scope) => {
-          const scopeLabel = getScopeLabel(scope);
-          const scopeId = getScopeId(resourceServerKey, serviceKey, version.label, scopeLabel);
-          references[scopeId] = {
-            id: scopeId,
-            label: scopeLabel,
-          };
-        });
+      getServiceScopes(service).forEach((scope) => {
+        const scopeLabel = getScopeLabel(scope);
+        const scopeId = getScopeId(resourceServerKey, serviceKey, service.version, scopeLabel);
+        references[scopeId] = {
+          id: scopeId,
+          label: scopeLabel,
+        };
       });
     });
   });
@@ -448,15 +467,11 @@ function getClientScopeState(
 
     asArray(allowed?.resourceServers).forEach((resourceServer) => {
       asArray(resourceServer?.services).forEach((service) => {
-        const serviceCandidates = [service.id, service.name].filter((value): value is string => !!value);
-        asArray(service?.versions).forEach((version) => {
-          getVersionScopes(version).forEach((scope) => {
-            const scopeLabel = getScopeLabel(scope);
-            scopeLabels.add(scopeLabel.toLowerCase());
-            serviceCandidates.forEach((serviceKey) => {
-              matcherKeys.add(getScopeMatcherKey(serviceKey, version.label, scopeLabel));
-            });
-          });
+        const serviceKey = getServiceKey(service);
+        getServiceScopes(service).forEach((scope) => {
+          const scopeLabel = getScopeLabel(scope);
+          scopeLabels.add(scopeLabel.toLowerCase());
+          matcherKeys.add(getScopeMatcherKey(serviceKey, service.version, scopeLabel));
         });
       });
     });
@@ -468,26 +483,18 @@ function getClientScopeState(
   const pendingKeys = collectKeys(pending);
 
   asArray(sdxServices).forEach((resourceServer) => {
+    const resourceServerKey = getResourceServerKey(resourceServer);
     asArray(resourceServer?.services).forEach((service) => {
-      const serviceCandidates = [service.id, service.name].filter((value): value is string => !!value);
-      asArray(service?.versions).forEach((version) => {
-        getVersionScopes(version).forEach((scope) => {
-          const scopeLabel = getScopeLabel(scope);
-          const resourceServerKey = getResourceServerKey(resourceServer);
-          const serviceKey = getServiceKey(service);
-          const scopeId = getScopeId(resourceServerKey, serviceKey, version.label, scopeLabel);
+      const serviceKey = getServiceKey(service);
+      getServiceScopes(service).forEach((scope) => {
+        const scopeLabel = getScopeLabel(scope);
+        const scopeId = getScopeId(resourceServerKey, serviceKey, service.version, scopeLabel);
+        const matcherKey = getScopeMatcherKey(serviceKey, service.version, scopeLabel);
 
-          const hasPendingMatcher = serviceCandidates.some((candidate) =>
-            pendingKeys.matcherKeys.has(getScopeMatcherKey(candidate, version.label, scopeLabel)),
-          );
-          const hasApprovedMatcher = serviceCandidates.some((candidate) =>
-            approvedKeys.matcherKeys.has(getScopeMatcherKey(candidate, version.label, scopeLabel)),
-          );
-
-          if (hasPendingMatcher || pendingKeys.scopeLabels.has(scopeLabel.toLowerCase())) pendingScopeIds.add(scopeId);
-          if (hasApprovedMatcher || approvedKeys.scopeLabels.has(scopeLabel.toLowerCase()))
-            approvedScopeIds.add(scopeId);
-        });
+        if (pendingKeys.matcherKeys.has(matcherKey) || pendingKeys.scopeLabels.has(scopeLabel.toLowerCase()))
+          pendingScopeIds.add(scopeId);
+        if (approvedKeys.matcherKeys.has(matcherKey) || approvedKeys.scopeLabels.has(scopeLabel.toLowerCase()))
+          approvedScopeIds.add(scopeId);
       });
     });
   });
@@ -513,31 +520,19 @@ function getSelectedResourceServers(
       .map((service) => {
         const serviceKey = getServiceKey(service);
 
-        const selectedVersions = asArray(service.versions)
-          .map((version) => {
-            const selectedScopes = getVersionScopes(version)
-              .map((scope) => getScopeLabel(scope))
-              .filter((scopeLabel) =>
-                selectedScopeIds.has(getScopeId(resourceServerKey, serviceKey, version.label, scopeLabel)),
-              );
+        const selectedScopes = getServiceScopes(service)
+          .map((scope) => getScopeId(resourceServerKey, serviceKey, service.version, getScopeLabel(scope)))
+          .filter((scopeId) => selectedScopeIds.has(scopeId))
+          .map(getScopeLabelFromScopeId);
 
-            if (selectedScopes.length === 0) return null;
-
-            return {
-              label: version.label,
-              status: version.status,
-              scopes: selectedScopes,
-            } as SDXServiceVersion;
-          })
-          .filter((version): version is SDXServiceVersion => !!version);
-
-        if (selectedVersions.length === 0) return null;
+        if (selectedScopes.length === 0) return null;
 
         return {
-          id: service.id,
           name: service.name,
-          description: service.description,
-          versions: selectedVersions,
+          title: service.title,
+          summary: service.summary,
+          version: service.version,
+          scopes: selectedScopes,
         } as SDXService;
       })
       .filter((service): service is SDXService => !!service);
@@ -584,11 +579,9 @@ function getSelectedScopeIdsFromResourceServers(resourceServers: SDXResourceServ
     const resourceServerKey = getResourceServerKey(resourceServer);
     asArray(resourceServer.services).forEach((service) => {
       const serviceKey = getServiceKey(service);
-      asArray(service.versions).forEach((version) => {
-        getVersionScopes(version).forEach((scope) => {
-          const scopeLabel = getScopeLabel(scope);
-          scopeIds.push(getScopeId(resourceServerKey, serviceKey, version.label, scopeLabel));
-        });
+      getServiceScopes(service).forEach((scope) => {
+        const scopeLabel = getScopeLabel(scope);
+        scopeIds.push(getScopeId(resourceServerKey, serviceKey, service.version, scopeLabel));
       });
     });
   });
@@ -610,13 +603,6 @@ function createTabSelection(requiredScopeIds: Set<string>, seed?: Partial<Select
   };
 }
 
-/**
- * Restores persisted selection from multiple historical payload shapes:
- * 1) current: { integrationId, resourceServers }
- * 2) older: resourceServers[]
- * 3) legacy: { non-production: string[], production: string[] }
- * 4) legacy: { non-production: SDXAccessRequest, production: SDXAccessRequest }
- */
 function restoreSelectedScopesByTab(
   serialized: unknown,
   requiredScopeIds: Set<string>,
@@ -662,10 +648,8 @@ function restoreSelectedScopesByTab(
 
       asArray(resourceServer?.services).forEach((service) => {
         const serviceKey = getServiceKey(service);
-        asArray(service?.versions).forEach((version) => {
-          getVersionScopes(version).forEach((scope) => {
-            selectedSet.add(getScopeId(resourceServerKey, serviceKey, version.label, getScopeLabel(scope)));
-          });
+        getServiceScopes(service).forEach((scope) => {
+          selectedSet.add(getScopeId(resourceServerKey, serviceKey, service.version, getScopeLabel(scope)));
         });
       });
     });
@@ -769,7 +753,6 @@ function SelectedScopesPanel({
 type VersionScopesRowProps = Readonly<{
   resourceServer: SDXResourceServer;
   service: SDXService;
-  version: SDXServiceVersion;
   pendingScopeIds: Set<string>;
   selectedScopes: Set<string>;
   onToggleScope: (scopeId: string) => void;
@@ -779,21 +762,19 @@ type VersionScopesRowProps = Readonly<{
 function VersionScopesRow({
   resourceServer,
   service,
-  version,
   pendingScopeIds,
   selectedScopes,
   onToggleScope,
   onToggleVersion,
 }: VersionScopesRowProps) {
-  const versionScopeIds = getVersionScopeIds(resourceServer, service, version);
+  const versionScopeIds = getServiceScopeIds(resourceServer, service);
   const toggleableVersionScopeIds = versionScopeIds.filter((scopeId) => !pendingScopeIds.has(scopeId));
   const allSelected = toggleableVersionScopeIds.every((scopeId: string) => selectedScopes.has(scopeId));
 
   return (
-    <VersionRow key={version.label}>
+    <VersionRow>
       <VersionMeta>
-        <VersionLabel>{version.label}</VersionLabel>
-        <VersionStatus deprecated={version.status === 'Deprecated'}>{version.status}</VersionStatus>
+        <VersionLabel>{service.version}</VersionLabel>
         <LinkButton
           type="button"
           disabled={toggleableVersionScopeIds.length === 0}
@@ -804,12 +785,12 @@ function VersionScopesRow({
       </VersionMeta>
 
       <ScopeGrid>
-        {getVersionScopes(version).map((scope) => {
+        {getServiceScopes(service).map((scope) => {
           const scopeLabel = getScopeLabel(scope);
           const scopeId = getScopeId(
             getResourceServerKey(resourceServer),
             getServiceKey(service),
-            version.label,
+            service.version,
             scopeLabel,
           );
           const isSelected = selectedScopes.has(scopeId);
@@ -833,7 +814,7 @@ function VersionScopesRow({
 
 type ApiCardSectionProps = Readonly<{
   resourceServer: SDXResourceServer;
-  service: SDXService;
+  group: ServiceGroup;
   pendingScopeIds: Set<string>;
   selectedScopes: Set<string>;
   onToggleScope: (scopeId: string) => void;
@@ -842,31 +823,30 @@ type ApiCardSectionProps = Readonly<{
 
 function ApiCardSection({
   resourceServer,
-  service,
+  group,
   pendingScopeIds,
   selectedScopes,
   onToggleScope,
   onToggleVersion,
 }: ApiCardSectionProps) {
-  const apiScopeIds = getServiceScopeIds(resourceServer, service);
+  const apiScopeIds = getServiceGroupScopeIds(resourceServer, group);
   const selectedInApi = apiScopeIds.filter((scopeId) => selectedScopes.has(scopeId)).length;
 
   return (
-    <SDXServiceCard key={service.id}>
+    <SDXServiceCard>
       <SDXServiceHeader>
-        <SDXServiceName>{service.name || service.id}</SDXServiceName>
+        <SDXServiceName>{group.title}</SDXServiceName>
         <ApiSummary>
           {selectedInApi} of {apiScopeIds.length} scopes
         </ApiSummary>
       </SDXServiceHeader>
 
       <VersionsGrid>
-        {asArray(service?.versions).map((version) => (
+        {group.services.map((service) => (
           <VersionScopesRow
-            key={version.label}
+            key={service.version}
             resourceServer={resourceServer}
             service={service}
-            version={version}
             pendingScopeIds={pendingScopeIds}
             selectedScopes={selectedScopes}
             onToggleScope={onToggleScope}
@@ -897,18 +877,18 @@ function OrganizationBlock({
   const selectedInOrganization = organizationScopeIds.filter((scopeId) => selectedScopes.has(scopeId)).length;
 
   return (
-    <OrganizationSection key={getResourceServerKey(resourceServer)}>
+    <OrganizationSection>
       <OrganizationHeader>
         <OrganizationTitle>{resourceServer.organization || resourceServer.name || resourceServer.id}</OrganizationTitle>
         <OrganizationSummary>{selectedInOrganization} selected</OrganizationSummary>
       </OrganizationHeader>
 
       <SDXServiceGrid>
-        {asArray(resourceServer?.services).map((service) => (
+        {getServiceGroups(resourceServer).map((group) => (
           <ApiCardSection
-            key={service.id}
+            key={group.key}
             resourceServer={resourceServer}
-            service={service}
+            group={group}
             pendingScopeIds={pendingScopeIds}
             selectedScopes={selectedScopes}
             onToggleScope={onToggleScope}
@@ -1125,23 +1105,21 @@ export default function FieldSdxServices(props: Readonly<FieldTemplateProps>) {
   }, [selectedScopesByTab, normalizedSdxServices, formData?.id, setFormData, onChange]);
 
   const top = (
-    <>
-      <Tabs
-        activeKey={activeTab}
-        onChange={(key) => setActiveTab(key as EnvironmentKey)}
-        items={tabItems(
-          normalizedSdxServices,
-          scopeReferences,
-          pendingScopeIds,
-          selectedScopesByTab,
-          onToggleScope,
-          onToggleVersion,
-          onClearTabScopes,
-        )}
-        tabBarGutter={30}
-        style={{ maxWidth: '850px' }}
-      />
-    </>
+    <Tabs
+      activeKey={activeTab}
+      onChange={(key) => setActiveTab(key as EnvironmentKey)}
+      items={tabItems(
+        normalizedSdxServices,
+        scopeReferences,
+        pendingScopeIds,
+        selectedScopesByTab,
+        onToggleScope,
+        onToggleVersion,
+        onClearTabScopes,
+      )}
+      tabBarGutter={30}
+      style={{ maxWidth: '850px' }}
+    />
   );
 
   return <FieldTemplate {...props} top={top} />;
