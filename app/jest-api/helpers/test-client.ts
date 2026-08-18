@@ -17,6 +17,8 @@ const knownRoutes = [
   '/api/requests/[id]/resubmit',
   '/api/requests/[id]/metrics',
   '/api/requests/[id]/events',
+  '/api/requests/[id]/sdx-allowed-access',
+  '/api/sdx-resource-servers',
   '/api/bceid-webservice/idir/search',
   '/api/bceid-webservice/idir/import',
   '/api/requests-all',

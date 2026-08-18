@@ -35,48 +35,6 @@ const getToken = async () => {
     });
 };
 
-// export const getSdxServicesForClient = async (
-//   session: Session,
-//   requestId: number,
-//   status: string,
-// ): Promise<{ clientId: string; resourceServers: SDXResourceServer[] }> => {
-//   const current = await getAllowedRequest(session, requestId);
-//   if (!current) throw new Error('Request not found');
-
-//   try {
-//     const response = await fetch(`${process.env.SDX_API || ''}/integrations/${current?.clientId}/allowed-services`, {
-//       headers: {
-//         Authorization: `Bearer ${await getToken()}`,
-//       },
-//     });
-//     return response.json();
-//   } catch (err) {
-//     console.error('Error fetching SDX services:', err);
-//     throw new Error('Failed to fetch SDX services');
-//   }
-// };
-
-// export const listSdxResourceServers = async (session: Session): Promise<SDXResourceServer[]> => {
-//   try {
-//     let envs = process.env.NEXT_PUBLIC_APP_ENV === 'production' ? ['bct', 'bc'] : ['apsdev', 'apstest'];
-
-//     let resourceServers: SDXResourceServer[] = [];
-
-//     for (const env of envs) {
-//       const response = await fetch(`${process.env.SDX_API || ''}/resource-servers?environment=${env}`, {
-//         headers: {
-//           Authorization: `Bearer ${await getToken()}`,
-//         },
-//       });
-//       resourceServers.push(...(await response.json()));
-//     }
-//     return resourceServers;
-//   } catch (err) {
-//     console.error('Error fetching SDX resource servers:', err);
-//     throw new Error('Failed to fetch SDX resource servers');
-//   }
-// };
-
 export const getSdxServicesForClient = async (
   session: Session,
   requestId: number,
@@ -85,224 +43,50 @@ export const getSdxServicesForClient = async (
   const current = await getAllowedRequest(session, requestId);
   if (!current) throw new Error('Request not found');
 
-  if (status === 'approved') {
-    return {
-      clientId: current.clientId,
-      resourceServers: [
+  const envs = getSdxEnvironments();
+
+  const data = {
+    clientId: current.clientId,
+    resourceServers: [] as SDXResourceServer[],
+  };
+
+  try {
+    for (const env of Object.values(envs)) {
+      const response = await fetch(
+        `${process.env.SDX_API || ''}/${current?.clientId}/allowed-services?environment=${env}&status=${status}`,
         {
-          id: 'claims',
-          environment: 'apsdev',
-          services: [
-            {
-              name: 'phn-lookup',
-              scopes: ['hlth:HealthNumber.read'],
-              version: 'v2',
-            },
-            {
-              name: 'data-usage-api',
-              version: 'v1',
-              scopes: ['hlth:DataAccessRequestsCount.read'],
-            },
-          ],
+          headers: {
+            Authorization: `Bearer ${await getToken()}`,
+          },
         },
-      ],
-    };
-  } else if (status === 'pending') {
-    return {
-      clientId: current.clientId,
-      resourceServers: [
-        {
-          id: 'claims',
-          environment: 'apsdev',
-          services: [
-            {
-              name: 'phn-lookup',
-              version: 'v2',
-              scopes: ['hlth:HealthNumber.write'],
-            },
-            {
-              name: 'data-usage-api',
-              version: 'v1',
-              scopes: ['hlth:DataAccessRequestsCount.write'],
-            },
-          ],
-        },
-      ],
-    };
-  } else {
-    throw new Error('Invalid status');
+      );
+      const resourceServers = (await response.json()).resourceServers as SDXResourceServer[];
+      data.resourceServers.push(...resourceServers);
+    }
+    return data;
+  } catch (err) {
+    console.error('Error fetching SDX services:', err);
+    throw new Error('Failed to fetch SDX services');
   }
 };
 
-export const listSdxResourceServers = (session: Session): SDXResourceServer[] => {
-  return [
-    {
-      id: 'claims',
-      name: 'Claims',
-      organization: 'Ministry of Health',
-      description: 'This resource server provides access to health-related claims.',
-      environment: 'apsdev',
-      services: [
-        {
-          name: 'phn-lookup',
-          title: 'PHN Lookup API',
-          summary: 'API for looking up Personal Health Numbers (PHNs).',
-          version: 'v2',
-          scopes: [
-            {
-              label: 'hlth:HealthNumber.read',
-              description: 'Read health number',
-            },
-            {
-              label: 'hlth:HealthNumber.write',
-              description: 'Write health number',
-            },
-            {
-              label: 'hlth:PatientDemographics.read',
-              description: 'Read patient demographics',
-            },
-            {
-              label: 'hlth:PatientRelationships.read',
-              description: 'Read patient relationships',
-            },
-          ],
+export const listSdxResourceServers = async (session: Session): Promise<SDXResourceServer[]> => {
+  try {
+    let resourceServers: SDXResourceServer[] = [];
+
+    for (const env of Object.values(getSdxEnvironments())) {
+      const response = await fetch(`${process.env.SDX_API || ''}/resource-servers?environment=${env}`, {
+        headers: {
+          Authorization: `Bearer ${await getToken()}`,
         },
-      ],
-    },
-    {
-      id: 'data-usage',
-      name: 'Data Usage',
-      organization: 'Ministry of Health',
-      description: 'This resource server provides access to data usage metrics.',
-      environment: 'apsdev',
-      services: [
-        {
-          name: 'data-usage-api',
-          title: 'Data Usage API',
-          summary: 'API for accessing data usage metrics.',
-          version: 'v1',
-          scopes: [
-            {
-              label: 'hlth:DataAccessRequestsCount.read',
-              description: 'List data access requests and read their count.',
-            },
-            {
-              label: 'hlth:DataAccessRequestsCount.write',
-              description: 'Create data access requests and update their count.',
-            },
-            {
-              label: 'hlth:DataAccessRequests.read',
-              description: 'Read data access requests.',
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'student-records',
-      name: 'Student Records',
-      organization: 'Ministry of Education',
-      description: 'This resource server provides access to student records.',
-      environment: 'apsdev',
-      services: [
-        {
-          name: 'student-records-api',
-          title: 'Student Records API',
-          summary: 'API for accessing student records.',
-          version: 'v1',
-          scopes: [
-            {
-              label: 'edu:StudentRecords.read',
-              description: 'Read student records.',
-            },
-            {
-              label: 'edu:StudentRecords.write',
-              description: 'Write student records.',
-            },
-            {
-              label: 'edu:StudentRecords.delete',
-              description: 'Delete student records.',
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'claims',
-      name: 'Claims',
-      organization: 'Ministry of Health',
-      description: 'This resource server provides access to health-related claims.',
-      environment: 'apstest',
-      services: [
-        {
-          name: 'phn-lookup',
-          title: 'PHN Lookup API',
-          summary: 'API for looking up Personal Health Numbers (PHNs).',
-          version: 'v2',
-          scopes: [
-            {
-              label: 'hlth:HealthNumber.read',
-              description: 'Read health number',
-            },
-            {
-              label: 'hlth:HealthNumber.write',
-              description: 'Write health number',
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'data-usage',
-      name: 'Data Usage',
-      organization: 'Ministry of Health',
-      description: 'This resource server provides access to data usage metrics.',
-      environment: 'apstest',
-      services: [
-        {
-          name: 'data-usage-api',
-          title: 'Data Usage API',
-          summary: 'API for accessing data usage metrics.',
-          version: 'v1',
-          scopes: [
-            {
-              label: 'hlth:DataAccessRequestsCount.read',
-              description: 'List data access requests and read their count.',
-            },
-            {
-              label: 'hlth:DataAccessRequestsCount.write',
-              description: 'Create data access requests and update their count.',
-            },
-          ],
-        },
-      ],
-    },
-    {
-      id: 'student-records',
-      name: 'Student Records',
-      organization: 'Ministry of Education',
-      description: 'This resource server provides access to student records.',
-      environment: 'apstest',
-      services: [
-        {
-          name: 'student-records-api',
-          title: 'Student Records API',
-          summary: 'API for accessing student records.',
-          version: 'v1',
-          scopes: [
-            {
-              label: 'edu:StudentRecords.read',
-              description: 'Read student records.',
-            },
-            {
-              label: 'edu:StudentRecords.write',
-              description: 'Write student records.',
-            },
-          ],
-        },
-      ],
-    },
-  ];
+      });
+      resourceServers.push(...(await response.json()));
+    }
+    return resourceServers;
+  } catch (err) {
+    console.error('Error fetching SDX resource servers:', err);
+    throw new Error('Failed to fetch SDX resource servers');
+  }
 };
 
 const collectScopesByEnvironment = (resourceServers: SDXResourceServer[] = []) => {
@@ -376,7 +160,28 @@ export const createSdxRequest = async (session: Session, requestId: number, sdxR
       await removeSdxAccessByScopes(existingSdxAccess.clientId, environment, scopes);
     }
 
-    await createSdxAccessRequest(transaction, session?.user?.displayName || '', requestId, sdxRequestData);
+    const response = await fetch(`${process.env.SDX_API || ''}/access-requests`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${await getToken()}`,
+      },
+      body: JSON.stringify(sdxRequestData),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to create SDX request: ${errorText}`);
+    }
+
+    const responseData = await response.json();
+
+    await createSdxAccessRequest(
+      responseData.submissionId || '',
+      session?.user?.displayName || '',
+      requestId,
+      sdxRequestData,
+    );
 
     await transaction.commit();
   } catch (error) {
