@@ -1,6 +1,6 @@
 import type { SDXAccessRequest, Session } from '@app/shared/interfaces';
 import { sequelize } from '@app/shared/sequelize/models/models';
-import { SDXResourceServer, SDXServiceScope } from '@app/shared/interfaces';
+import { SDXResourceServer } from '@app/shared/interfaces';
 import { getAllowedRequest, getIntegrationById } from '@app/queries/request';
 import { EVENTS } from '@app/shared/enums';
 import { createEvent } from './requests';

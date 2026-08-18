@@ -98,10 +98,7 @@ export interface Integration {
   confirmSocial?: boolean;
   socialApproved?: boolean;
   sdxEnabled?: boolean;
-  sdxServices?: {
-    'non-production'?: SDXAccessRequest;
-    production?: SDXAccessRequest;
-  };
+  sdxServices?: SDXAccessRequest;
 }
 
 export interface Option {

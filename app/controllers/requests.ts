@@ -1,5 +1,5 @@
 import { Op, Model } from 'sequelize';
-import { isEmpty, isString, kebabCase } from 'lodash';
+import { assign, isEmpty, isString, kebabCase } from 'lodash';
 import {
   validateRequest,
   getDifferences,
@@ -533,7 +533,7 @@ export const updateRequest = async (
 
     const allowedData = sanitizeRequest(session, rest, isMerged);
 
-    Object.assign(current, allowedData);
+    assign(current, allowedData);
 
     const mergedData = getCurrentValue();
 
@@ -542,7 +542,7 @@ export const updateRequest = async (
       originalData,
       updatedData: current,
     });
-    Object.assign(current, updatedAttributes);
+    assign(current, updatedAttributes);
 
     const validIDPSelection = validateIDPs({
       currentIdps: originalData.devIdps,
@@ -683,6 +683,8 @@ export const updateRequest = async (
       await createEvent(eventData);
 
       await processIntegrationRequest(updated, false, existingClientId, addingProd);
+
+      updated = await getAllowedRequest(session, data?.id!);
 
       if (usesSdxServices(updated)) {
         await createSdxRequest(session, updated.id, updated.sdxServices);
