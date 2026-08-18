@@ -253,14 +253,14 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   }, [selectedRole]);
 
   const syncPreviewHasUsersToSync = useMemo(() => {
-    if (!syncPreview) return true;
+    if (!syncPreview) return false;
     return syncPreview.some((p) => p.toAttempt > 0);
   }, [syncPreview]);
 
   useEffect(() => {
     syncModalRef.current.updateConfig({
       cancelButtonText: syncPhase === 'result' ? 'Close' : 'Cancel',
-      confirmButtonText: syncPhase === 'result' ? 'Download Sync Details' : 'Run Sync',
+      confirmButtonText: syncPhase === 'result' ? 'Download Replication Details' : 'Run Replication',
       confirmButtonVariant: syncPhase === 'result' ? 'secondary' : 'primary',
       showCancelButton: true,
       showConfirmButton: syncPhase === 'result' ? !!(syncResults && syncResults.length > 0) : syncPreviewHasUsersToSync,
@@ -461,7 +461,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     if (err || !data) {
       alert.show({
         variant: 'danger',
-        content: 'Failed to preview role sync.',
+        content: 'Failed to preview role replication.',
       });
       syncModalRef.current.close();
       return;
@@ -470,7 +470,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     setSyncPreview(data);
   };
 
-  // roleName === null means "Sync All Roles"
+  // roleName === null means "Replicate All Roles"
   const openSyncModal = (roleName: string | null) => {
     setSyncTargetRole(roleName);
     setSyncPhase('preview');
@@ -497,7 +497,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     if (err || !data) {
       alert.show({
         variant: 'danger',
-        content: 'Failed to sync roles. Please try again.',
+        content: 'Failed to replicate roles. Please try again.',
       });
       return false;
     }
@@ -517,7 +517,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     const fileNameSuffix = syncTargetRole ? `-${syncTargetRole}` : '';
     generateCsv(
       syncResults,
-      `${integration.projectName}-${environment}-${dateTimeStringForFileName()}-role-sync${fileNameSuffix}`,
+      `${integration.projectName}-${environment}-${dateTimeStringForFileName()}-role-replication${fileNameSuffix}`,
     );
   };
 
@@ -738,12 +738,12 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
                   <ActionButton
                     icon={faSyncAlt}
                     role="button"
-                    aria-label="Sync to MFA"
+                    aria-label="Replicate to IDIR - MFA"
                     onClick={(event: MouseEvent) => {
                       event.stopPropagation();
                       openSyncModal(rawRoleName);
                     }}
-                    title="Sync to MFA"
+                    title="Replicate to IDIR - MFA"
                     size="lg"
                     data-testid="sync-to-mfa"
                   />
@@ -793,14 +793,14 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         <Col>
           {canSyncRoles && (
             <div style={{ marginBottom: '0.5rem' }}>
-              <HelpText>Sync IDIR role assignments to IDIR - MFA users for all roles.</HelpText>
+              <HelpText>Replicate IDIR role assignments to IDIR - MFA users for all roles.</HelpText>
               <button
                 type="button"
                 className="primary short"
                 data-testid="sync-all-roles-btn"
                 onClick={() => openSyncModal(null)}
               >
-                Sync All Roles
+                Replicate All Roles
               </button>
             </div>
           )}
@@ -907,46 +907,60 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         ref={syncModalRef}
         title={
           syncTargetRole
-            ? `Sync IDIR role assignments to IDIR - MFA users for "${syncTargetRole}"`
-            : 'Sync All Roles to MFA'
+            ? `Replicate IDIR role assignments to IDIR - MFA users for "${syncTargetRole}"`
+            : 'Replicate All Roles to IDIR - MFA'
         }
         icon={faExclamationTriangle}
         closable={!syncRunning}
         onConfirm={handleSyncConfirm}
-        confirmButtonText="Run Sync"
+        confirmButtonText="Run Replication"
         confirmButtonVariant="primary"
         cancelButtonVariant="secondary"
         buttonAlign="none"
       >
         {syncPhase === 'preview' ? (
-          syncPreviewLoading || !syncPreview ? (
-            <LoaderContainer />
+          syncPreviewLoading || !syncPreview || syncRunning ? (
+            <>
+              {syncPreviewLoading && <p>Searching roles to replicate...</p>}
+              <LoaderContainer />
+            </>
           ) : !syncPreviewHasUsersToSync ? (
-            <p>No users to sync</p>
+            <p>No users to replicate</p>
           ) : (
             <div>
               <p>
-                Copy client role assignments from each user&apos;s <strong>idir</strong> identity to their{' '}
-                <strong>azureidir (MFA)</strong> identity.
+                Replicate client role assignments from each user&apos;s <strong>IDIR</strong> identity to their{' '}
+                <strong>IDIR - MFA</strong> identity.
               </p>
-              <ul style={{ maxHeight: '400px', overflowY: 'scroll' }}>
-                {syncPreview
-                  .filter((p) => p.toAttempt > 0)
-                  .map((p) => (
-                    <li key={p.role}>
-                      <strong>{p.role}</strong>: {p.toAttempt} user{p.toAttempt === 1 ? '' : 's'} to sync
-                    </li>
-                  ))}
-              </ul>
-              {syncRunning && <LoaderContainer />}
+              <div style={{ maxHeight: '400px', overflowY: 'scroll', padding: '0.5em' }}>
+                <TableNew
+                  dataTestId="idir-role-replication-table"
+                  readOnly
+                  variant="mini"
+                  columns={[
+                    {
+                      accessorKey: 'role',
+                      header: 'Role Name',
+                    },
+                    {
+                      accessorKey: 'toAttempt',
+                      header: 'Users to assign',
+                    },
+                  ]}
+                  data={syncPreview}
+                  enableGlobalSearch={true}
+                  noDataFoundMessage={<span>No roles found</span>}
+                  enablePagination={false}
+                ></TableNew>
+              </div>
             </div>
           )
         ) : (
           <div>
             {(syncResults || []).some((r) => r.status === 'ERROR') ? (
-              <p>Errors encountered during sync. Please see sync details for more information.</p>
+              <p>Errors encountered during replication. Please see replication details for more information.</p>
             ) : (
-              <p>Sync complete.</p>
+              <p>Replication complete.</p>
             )}
           </div>
         )}

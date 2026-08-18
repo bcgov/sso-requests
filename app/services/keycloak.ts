@@ -340,7 +340,7 @@ export const previewRoleSync = async ({
   }
 };
 
-/** Run the sync from idir to azureidir. Omit `roleName` to sync all roles ("Sync All Roles"). */
+/** Run the sync from idir to azureidir. Omit `roleName` to replicate all roles ("Replicate All Roles"). */
 export const runRoleSync = async ({
   environment,
   integrationId,

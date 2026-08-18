@@ -206,7 +206,7 @@ export const previewRoleSync = async (
 
 /**
  * Sync client role(s) from `idir` users to their `azureidir` equivalents. If `roleName` is
- * omitted, syncs every client role in the environment ("Sync All Roles") in one pass.
+ * omitted, syncs every client role in the environment ("Replicate All Roles") in one pass.
  */
 export const syncRolesToMfa = async (
   integration: Integration,

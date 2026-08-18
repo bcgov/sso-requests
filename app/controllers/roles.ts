@@ -176,8 +176,8 @@ export const previewRoleMfaSync = async (
 };
 
 /**
- * Runs the "Sync Roles" (idir -> MFA) operation. If `roleName` is omitted, syncs every client role
- * in the environment ("Sync All Roles"). Requires the manage-roles permission since it creates
+ * Runs the "Replicate Roles" (idir -> MFA) operation. If `roleName` is omitted, syncs every client role
+ * in the environment ("Replicate All Roles"). Requires the manage-roles permission since it creates
  * Keycloak users and grants client role mappings.
  */
 export const syncRoleMfa = async (
