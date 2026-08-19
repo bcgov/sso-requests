@@ -32,7 +32,7 @@ interface Props {
   label: string;
 }
 
-export default function ({ exempted, title, label }: Props) {
+export default function BceidBanner({ exempted, title, label }: Props) {
   return (
     <RestrictedAlert variant="warning">
       <FontAwesomeIcon icon={faTriangleExclamation} />
