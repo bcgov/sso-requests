@@ -49,13 +49,6 @@ variable "subnet_b" {
   default     = "App_Dev_azb_net"
 }
 
-variable "gh_access_token" {
-  type        = string
-  description = "access token for github workflows"
-  default     = ""
-  sensitive   = true
-}
-
 variable "gh_owner" {
   type        = string
   description = "organization owning the github repository to create keycloak client pull requests"
@@ -90,13 +83,6 @@ variable "gh_apply_workflow_v2_id" {
   type        = string
   description = "workflow id or filename to trigger when Terraform Batch"
   default     = "terraform-v2-batch.yml"
-}
-
-variable "gh_secret" {
-  type        = string
-  description = "secret for comms with gh actions"
-  default     = "secret"
-  sensitive   = true
 }
 
 variable "app_url" {

@@ -31,5 +31,6 @@ LICENSE
 **/__tests__
 **/cypress
 **/jest
+**/jest-api
 **/dist
 **/terraform.tfstate*

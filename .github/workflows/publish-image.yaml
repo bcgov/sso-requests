@@ -323,6 +323,13 @@ jobs:
           --set envVars.bceidServiceBasicAuth="${{ secrets.BCEID_SERVICE_BASIC_AUTH }}" \
           --set envVars.bceidServiceId="${{ secrets.BCEID_SERVICE_ID }}" \
           --set envVars.bceidWebServiceUrl="${{ secrets.BCEID_WEB_SERVICE_URL }}" \
+          --set envVars.bceidRequesterUserGuid="${{ secrets.BCEID_REQUESTER_USER_GUID }}" \
+          --set envVars.bceidServiceIdDev="${{ secrets.BCEID_SERVICE_ID_DEV }}" \
+          --set envVars.bceidWebServiceUrlDev="${{ vars.BCEID_WEB_SERVICE_URL_DEV }}" \
+          --set envVars.bceidServiceIdTest="${{ secrets.BCEID_SERVICE_ID_TEST }}" \
+          --set envVars.bceidWebServiceUrlTest="${{ vars.BCEID_WEB_SERVICE_URL_TEST }}" \
+          --set envVars.bceidServiceIdProd="${{ secrets.BCEID_SERVICE_ID_PROD }}" \
+          --set envVars.bceidWebServiceUrlProd="${{ vars.BCEID_WEB_SERVICE_URL_PROD }}" \
           --set envVars.msGraphApiAuthority="${{ secrets.MS_GRAPH_API_AUTHORITY }}" \
           --set envVars.msGraphApiClientId="${{ secrets.MS_GRAPH_API_CLIENT_ID }}" \
           --set envVars.msGraphApiClientSecret="${{ secrets.MS_GRAPH_API_CLIENT_SECRET }}" \
