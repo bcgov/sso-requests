@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+      - k6-test
     paths:
       - 'api/**'
   pull_request:
@@ -30,6 +31,39 @@ jobs:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: ${{ runner.os }}-yarn-
+
+      - name: Debug apt
+        run: |
+          echo "=== OS ==="
+          cat /etc/os-release
+
+          echo "=== Architecture ==="
+          dpkg --print-architecture
+          dpkg --print-foreign-architectures || true
+
+          echo "=== APT sources ==="
+          grep -RniE 'azure\.archive|archive\.ubuntu|security\.ubuntu|mirrors' \
+            /etc/apt/sources.list \
+            /etc/apt/sources.list.d \
+            /etc/apt/apt-mirrors.txt \
+            2>/dev/null || true
+
+          echo "=== apt-mirrors.txt ==="
+          cat /etc/apt/apt-mirrors.txt 2>/dev/null || true
+
+          echo "=== Network ==="
+          getent hosts azure.archive.ubuntu.com
+          getent hosts archive.ubuntu.com
+
+          echo "=== Mirror connectivity ==="
+          curl -I --connect-timeout 5 --max-time 10 \
+            http://azure.archive.ubuntu.com/ubuntu/dists/noble/InRelease || true
+
+          curl -I --connect-timeout 5 --max-time 10 \
+            https://archive.ubuntu.com/ubuntu/dists/noble/InRelease || true
+
+          echo "=== APT config ==="
+          apt-config dump | grep -iE 'mirror|timeout|acquire' || true
 
       - name: Install asdf requirements
         run: |
