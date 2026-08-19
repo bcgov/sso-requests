@@ -1,8 +1,11 @@
 import clsx from 'clsx';
 import InfoOverlay from 'components/InfoOverlay';
 import styled from 'styled-components';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { SECONDARY_BLUE } from 'styles/theme';
 import { RJSFSchema, WidgetProps } from '@rjsf/utils/lib/types';
+import React from 'react';
 
 const AlphaTag = styled.span`
   background: ${SECONDARY_BLUE};
@@ -10,6 +13,16 @@ const AlphaTag = styled.span`
   padding: 0.1em 0.3em;
   text-transform: capitalize;
   color: white;
+`;
+
+const RestrictedBadge = styled.span`
+  background: #fef1d8;
+  border: 1px solid #f8bb47;
+  border-radius: 0.2em;
+  padding: 0.1em 0.5em;
+  color: #6d4f00;
+  font-weight: 700;
+  font-size: 0.78125rem;
 `;
 
 const WarningText = styled.p`
@@ -34,7 +47,13 @@ function TooltipIDPCheckboxesWidget(props: WidgetProps) {
   const { id, disabled, options, value, autofocus = false, readonly, onChange, schema } = props;
   const { enumOptions, idpsDisabled = [], enumHidden, inline = false } = options;
   const { tooltips, warningMessage } = schema as RJSFSchema & {
-    tooltips: { content: string; hide?: number; alpha?: boolean }[];
+    tooltips: {
+      content?: string;
+      hide?: number;
+      alpha?: boolean;
+      restricted?: boolean;
+      restrictionBanner?: React.ReactNode;
+    }[];
     warningMessage: string;
   };
 
@@ -74,7 +93,8 @@ function TooltipIDPCheckboxesWidget(props: WidgetProps) {
             <span>{option.label}</span>
             &nbsp;
             {tooltips[index]?.alpha && <AlphaTag>alpha</AlphaTag>}
-            {tooltips[index] && <InfoOverlay {...tooltips[index]} />}
+            {tooltips[index]?.restricted && <RestrictedBadge>Restricted</RestrictedBadge>}
+            {tooltips[index]?.content && <InfoOverlay {...tooltips[index]} />}
             &nbsp;
             {itemDisabled && getReasonForDisabled(option.value) !== '' && (
               <span style={{ color: 'red' }}>{getReasonForDisabled(option.value)}</span>
@@ -89,16 +109,23 @@ function TooltipIDPCheckboxesWidget(props: WidgetProps) {
           'd-none': isHidden,
         });
 
+        let banner: React.ReactNode = null;
+        if (tooltips[index]?.restricted && checked && tooltips[index]?.restrictionBanner) {
+          banner = tooltips[index]?.restrictionBanner;
+        }
+
         if (inline) {
           return (
             <label key={option.value} className={classes}>
               {checkbox}
+              {banner}
             </label>
           );
         } else {
           return (
             <div key={option.value} className={classes}>
               <label>{checkbox}</label>
+              {banner}
             </div>
           );
         }

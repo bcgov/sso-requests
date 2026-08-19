@@ -3,9 +3,10 @@ import { Schema } from './index';
 import { docusaurusURL } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { usesBcServicesCard, usesOTP, usesSocial } from '@app/helpers/integration';
-import { getDiscontinuedIdps } from '@app/utils/helpers';
+import { allBceidEnvsApproved, getDiscontinuedIdps } from '@app/utils/helpers';
 import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 import { LoggedInUser } from '@app/interfaces/team';
+import BceidBanner from '@app/form-components/widgets/BceidBanner';
 
 const include_digital_credential = process.env.NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL;
 const include_bc_services_card = process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD;
@@ -180,6 +181,17 @@ export default function getSchema(
           return {
             content: `This is a <strong>low assurance</strong> identity solution. This level of assurance may be appropriate for public transactions or for transactions where no specific link to a real-world person is necessary (i.e., a pseudonym is sufficient) but the ability to contact the individual or the ability for the individual to resume a transaction is a requirement (e.g., participating in an on-line learning course, signing up for an e-mail newsletter, or paying a bill or parking ticket where no specific identity is required, only an authorized payment). For more information please refer to this <a href="https://www2.gov.bc.ca/assets/gov/government/services-for-government-and-broader-public-sector/information-technology-services/standards-files/identity_assurance_standard.pdf" target="_blank">document</a>.`,
             hide: 3000,
+          };
+        }
+        if (idp === 'bceidbasic' || idp === 'bceidboth') {
+          const label = idp === 'bceidbasic' ? 'Basic BCeID' : 'Basic or Business BCeID';
+          const title =
+            idp === 'bceidbasic'
+              ? 'Basic BCeID is not accepting new integrations'
+              : 'This option includes Basic BCeID, which is not accepting new integrations';
+          return {
+            restricted: true,
+            restrictionBanner: <BceidBanner title={title} label={label} exempted={allBceidEnvsApproved(integration)} />,
           };
         }
         return null;

@@ -756,3 +756,6 @@ export const containsPrefix = (csvString: string | string[], prefix: string) => 
 
   return values.some((value) => prefix.startsWith(value));
 };
+
+export const allBceidEnvsApproved = (integration: Integration) =>
+  Boolean(integration.devBceidApproved && integration.testBceidApproved && integration.bceidApproved);
