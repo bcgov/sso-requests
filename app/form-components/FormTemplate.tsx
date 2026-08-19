@@ -175,12 +175,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   });
   const [bcscExcluded, setBcscExcluded] = useState(false);
   const [sdxResourceServers, setSdxResourceServers] = useState<SDXResourceServer[]>([]);
-  const [sdxServicesApprovedForClient, setSdxServicesApprovedForClient] = useState<SDXAllowedAccessForClient | null>(
-    null,
-  );
-  const [sdxServicesPendingForClient, setSdxServicesPendingForClient] = useState<SDXAllowedAccessForClient | null>(
-    null,
-  );
+  const [sdxServicesApprovedForClient, setSdxServicesApprovedForClient] = useState<SDXAllowedAccessForClient | []>([]);
+  const [sdxServicesPendingForClient, setSdxServicesPendingForClient] = useState<SDXAllowedAccessForClient | []>([]);
 
   const surveyContext = useContext(SurveyContext);
 
@@ -317,11 +313,13 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   };
 
   const loadClientSdxServices = async () => {
-    const [approved] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'approved');
-    setSdxServicesApprovedForClient(approved || []);
+    if (!isNew) {
+      const [approved] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'approved');
+      setSdxServicesApprovedForClient(approved || []);
 
-    const [pending] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'pending');
-    setSdxServicesPendingForClient(pending || []);
+      const [pending] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'pending');
+      setSdxServicesPendingForClient(pending || []);
+    }
   };
 
   useEffect(() => {

@@ -169,7 +169,7 @@ export interface SDXResourceServer {
 
 export interface SDXAccessRequest {
   integrationId: number;
-  requester: string;
+  requester?: { displayName: string; email: string };
   clientId: string;
   privacyZone: string;
   policyVersion: string;

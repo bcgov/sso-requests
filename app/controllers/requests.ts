@@ -601,9 +601,15 @@ export const updateRequest = async (
           );
       }
 
+      // keycloak related operations
       // when it is submitted for the first time.
       if (!isMerged && !current.clientId) {
         current.clientId = `${kebabCase(current.projectName)}-${id}`;
+      }
+
+      // SDX related operations
+      if (usesSdxServices(current)) {
+        await createSdxRequest(session, current);
       }
 
       // If custom client id is provided, check if that client id is already used
@@ -642,6 +648,7 @@ export const updateRequest = async (
     }
 
     current.lastChanges = changes || null;
+
     let updated = await current.save();
 
     if (!updated) {
@@ -685,10 +692,6 @@ export const updateRequest = async (
       await processIntegrationRequest(updated, false, existingClientId, addingProd);
 
       updated = await getAllowedRequest(session, data?.id!);
-
-      if (usesSdxServices(updated)) {
-        await createSdxRequest(session, updated.id, updated.sdxServices);
-      }
     }
 
     return updated.get({ plain: true });

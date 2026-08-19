@@ -1,5 +1,4 @@
 import type { SDXAccessRequest, Session } from '@app/shared/interfaces';
-import { sequelize } from '@app/shared/sequelize/models/models';
 import { SDXResourceServer } from '@app/shared/interfaces';
 import { getAllowedRequest, getIntegrationById } from '@app/queries/request';
 import { EVENTS } from '@app/shared/enums';
@@ -8,12 +7,20 @@ import { getAdminClient } from '@app/keycloak/adminClient';
 import { createClientScope, getClientScopes } from '@app/keycloak/clientScopes';
 import ClientScopeRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientScopeRepresentation';
 import { createSdxAccessRequest } from '@app/queries/sdx-services';
+import { Integration } from '@app/interfaces/Request';
+import { getUserById } from '@app/queries/user';
+import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
 
 const getSdxEnvironments = () => {
   return process.env.NEXT_PUBLIC_APP_ENV === 'production'
     ? { production: 'bc', 'non-production': 'bct' }
     : { production: 'apstest', 'non-production': 'apsdev' };
 };
+
+const isProductionSdxEnvironment = (environment: string) => environment === getSdxEnvironments().production;
+
+const getScopeLabel = (scope: SDXResourceServer['services'][number]['scopes'][number]) =>
+  typeof scope === 'string' ? scope : scope.label;
 
 const getToken = async () => {
   return await fetch(process.env.SDX_TOKEN_URL || '', {
@@ -53,7 +60,7 @@ export const getSdxServicesForClient = async (
   try {
     for (const env of Object.values(envs)) {
       const response = await fetch(
-        `${process.env.SDX_API || ''}/${current?.clientId}/allowed-services?environment=${env}&status=${status}`,
+        `${process.env.SDX_API || ''}/integrations/${current?.id}/allowed-services?environment=${env}&status=${status}`,
         {
           headers: {
             Authorization: `Bearer ${await getToken()}`,
@@ -96,7 +103,7 @@ const collectScopesByEnvironment = (resourceServers: SDXResourceServer[] = []) =
     for (const service of rs.services || []) {
       for (const scope of service.scopes || []) {
         if (!byEnvironment[rs.environment]) byEnvironment[rs.environment] = new Set();
-        byEnvironment[rs.environment].add(`${service.name}$$${service.version}$$${scope}`);
+        byEnvironment[rs.environment].add(`${service.name}$$${service.version}$$${getScopeLabel(scope)}`);
       }
     }
   }
@@ -148,19 +155,44 @@ const removeSdxAccessByScopes = async (clientId: string, environment: string, sc
   }
 };
 
-export const createSdxRequest = async (session: Session, requestId: number, sdxRequestData: SDXAccessRequest) => {
-  const transaction = await sequelize.transaction();
+const removeSdxAccessFromKeycloak = async (clientId: string, environment: string, scopes: string[]) => {
+  const keycloakEnvironments = isProductionSdxEnvironment(environment) ? ['prod'] : ['dev', 'test'];
+  await Promise.all(
+    keycloakEnvironments.map((keycloakEnvironment) => removeSdxAccessByScopes(clientId, keycloakEnvironment, scopes)),
+  );
+};
 
+export const createSdxRequest = async (session: Session, request: Integration) => {
   try {
-    const resourceServers = sdxRequestData.resourceServers || [];
+    if (!request.sdxServices) throw new Error('SDX services cannot be empty');
+    const resourceServers = request.sdxServices.resourceServers || [];
+    if (resourceServers.length === 0) throw new Error('SDX resource servers cannot be empty');
     await initializeScopes(resourceServers);
-    const existingSdxAccess = await getSdxServicesForClient(session, requestId, 'approved');
-    const removedScopesByEnv = getRemovedScopes(existingSdxAccess.resourceServers, resourceServers);
-    for (const [environment, scopes] of Object.entries(removedScopesByEnv)) {
-      await removeSdxAccessByScopes(existingSdxAccess.clientId, environment, scopes);
+
+    // If the request is already applied, we need to check for removed scopes and remove them from Keycloak
+    if (request.status === 'applied') {
+      const existingSdxAccess = await getSdxServicesForClient(session, request.id!, 'approved');
+      const removedScopesByEnv = getRemovedScopes(existingSdxAccess.resourceServers, resourceServers);
+      for (const [environment, scopes] of Object.entries(removedScopesByEnv)) {
+        await removeSdxAccessFromKeycloak(existingSdxAccess.clientId, environment, scopes);
+      }
     }
 
-    const response = await fetch(`${process.env.SDX_API || ''}/access-requests`, {
+    const user = await getUserById(session.user?.id || 0, { raw: true });
+
+    const privacyZoneUri = await getPrivacyZoneURI('prod', request.bcscPrivacyZone || '');
+    const sdxRequestData = {
+      ...request.sdxServices,
+      requester: {
+        displayName: user?.displayName || '',
+        email: user?.idirEmail || '',
+      },
+      clientId: request.clientId || '',
+      policyVersion: 'SDX.R1.00',
+      privacyZone: privacyZoneUri,
+    };
+
+    const response = await fetch(`${process.env.SDX_API || ''}/integrations/${request.id!}/access-requests`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -176,16 +208,8 @@ export const createSdxRequest = async (session: Session, requestId: number, sdxR
 
     const responseData = await response.json();
 
-    await createSdxAccessRequest(
-      responseData.submissionId || '',
-      session?.user?.displayName || '',
-      requestId,
-      sdxRequestData,
-    );
-
-    await transaction.commit();
+    await createSdxAccessRequest(responseData.submissionId || '', user?.displayName || '', request.id!, sdxRequestData);
   } catch (error) {
-    await transaction.rollback();
     throw error;
   }
 
@@ -193,8 +217,8 @@ export const createSdxRequest = async (session: Session, requestId: number, sdxR
     success: true,
     message: 'SDX request created successfully',
     data: {
-      requestId,
-      ...sdxRequestData,
+      requestId: request.id!,
+      ...request.sdxServices,
     },
   };
 };
@@ -209,16 +233,18 @@ const initializeScopes = async (resourceServers: SDXResourceServer[]) => {
           if (!sdxScopes[rs.environment]) {
             sdxScopes[rs.environment] = new Set();
           }
-          sdxScopes[rs.environment].add(scope as string);
+          sdxScopes[rs.environment].add(getScopeLabel(scope));
         }
       }
     }
   }
 
   for (const [environment, scopes] of Object.entries(sdxScopes)) {
-    environment === 'production'
-      ? await keycloakSyncScopes('prod', 'standard', Array.from(scopes))
-      : ['dev', 'test'].forEach((env) => keycloakSyncScopes(env, 'standard', Array.from(scopes)));
+    if (isProductionSdxEnvironment(environment)) {
+      await keycloakSyncScopes('prod', 'standard', Array.from(scopes));
+    } else {
+      await Promise.all(['dev', 'test'].map((env) => keycloakSyncScopes(env, 'standard', Array.from(scopes))));
+    }
   }
 };
 
@@ -229,7 +255,7 @@ const keycloakSyncScopes = async (environment: string, realmName: string, scopes
   for (const scope of scopes) {
     if (!existingScopeNames.has(scope)) {
       await createClientScope({
-        protocol: 'openid-connect',
+        protocol: 'oidc',
         environment,
         realmName,
         scopeName: scope,
@@ -239,14 +265,6 @@ const keycloakSyncScopes = async (environment: string, realmName: string, scopes
 };
 
 export const processSdxRequestApprovals = async (requestId: number, data: SDXAccessRequest) => {
-  const eventData = {
-    eventCode: EVENTS.SDX_ACCESS_REQUEST_UPDATE,
-    requestId,
-    details: data,
-  };
-
-  await createEvent(eventData);
-
   const integrationData = await getIntegrationById(requestId, [
     'id',
     'environments',
@@ -267,15 +285,24 @@ export const processSdxRequestApprovals = async (requestId: number, data: SDXAcc
     throw new Error(`Integration with ID ${requestId} is not in applied state`);
   }
 
+  await createEvent({
+    eventCode: EVENTS.SDX_ACCESS_REQUEST_UPDATE,
+    requestId,
+    details: data,
+  });
+
   if (data.resourceServers && data.resourceServers.length > 0) {
     for (const rs of data.resourceServers) {
       for (const service of rs.services) {
         if (service.scopes && service.scopes.length > 0) {
-          rs.environment === 'production'
-            ? await manageKeycloakScopes(integrationData.clientId, 'prod', Array.from(service.scopes as string[]))
-            : ['dev', 'test'].forEach((env) =>
-                manageKeycloakScopes(integrationData.clientId, env, Array.from(service.scopes as string[])),
-              );
+          const scopes = service.scopes.map(getScopeLabel);
+          if (isProductionSdxEnvironment(rs.environment)) {
+            await manageKeycloakScopes(integrationData.clientId, 'prod', scopes);
+          } else {
+            await Promise.all(
+              ['dev', 'test'].map((env) => manageKeycloakScopes(integrationData.clientId, env, scopes)),
+            );
+          }
         }
       }
     }

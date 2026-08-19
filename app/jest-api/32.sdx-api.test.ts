@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import { models } from '@app/shared/sequelize/models/models';
 import { getConfiguration } from '@app/utils/authenticate';
 import { getAdminClient } from '@app/keycloak/adminClient';
+import { getUserById } from '@app/queries/user';
+import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
 import { createSdxRequest, getRemovedScopes } from '@app/controllers/sdx-services';
 import { SDXResourceServer, Session } from '@app/shared/interfaces';
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/fixtures';
@@ -18,6 +20,7 @@ import {
 } from './helpers/modules/sdx';
 import { cleanUpDatabaseTables } from './helpers/utils';
 import { clearMockAuth, createMockAuth } from './mocks/authenticate';
+import { Integration } from '@app/interfaces/Request';
 
 jest.mock('@app/keycloak/adminClient', () => {
   return {
@@ -32,6 +35,14 @@ jest.mock('@app/keycloak/integration', () => {
     keycloakClient: jest.fn(() => Promise.resolve(true)),
   };
 });
+
+jest.mock('@app/queries/user', () => ({
+  getUserById: jest.fn(),
+}));
+
+jest.mock('@app/utils/bcsc-client', () => ({
+  getPrivacyZoneURI: jest.fn(),
+}));
 
 const SDX_API = 'https://sdx.example.com/api';
 const SDX_TOKEN_URL = 'https://sdx.example.com/token';
@@ -164,11 +175,6 @@ const setUpKeycloak = ({
 
 const adminClientEnvironments = () => (getAdminClient as jest.Mock).mock.calls.map(([args]) => args.environment).sort();
 
-// The controller fires the dev/test keycloak updates without awaiting them.
-const flushPendingKeycloakCalls = async () => {
-  for (let i = 0; i < 5; i++) await new Promise((resolve) => setImmediate(resolve));
-};
-
 const adminSession = {
   idir_userid: TEAM_ADMIN_IDIR_USERID_01,
   email: TEAM_ADMIN_IDIR_EMAIL_01,
@@ -189,14 +195,34 @@ const jwks = {
 const signToken = ({ keyid = signingKeyId as string, tokenIssuer = issuer, key = signingKeys.privateKey } = {}) =>
   jwt.sign({ sub: 'sdx-system' }, key, { algorithm: 'RS256', keyid, issuer: tokenIssuer, expiresIn: '5m' });
 
-const buildSdxIntegration = async (projectName: string, attributes: Record<string, any> = {}) => {
+const buildSdxIntegration = async (
+  projectName: string,
+  attributes: Record<string, any> = {},
+): Promise<Omit<Integration, 'sdxServices'> & { id: number; sdxServices?: any }> => {
   const integration = await buildIntegration({ projectName, prodEnv: true, submitted: true });
-  await models.request.update(
-    { sdxEnabled: true, clientId: 'test-client', status: 'applied', ...attributes },
-    { where: { id: integration.body.id } },
-  );
-  return integration.body;
+  const id = integration.body.id!;
+  const sdxAttributes = { sdxEnabled: true, clientId: 'test-client', status: 'applied', ...attributes };
+  await models.request.update(sdxAttributes, { where: { id } });
+  return { ...integration.body, ...sdxAttributes, id } as Omit<Integration, 'sdxServices'> & {
+    id: number;
+    sdxServices?: any;
+  };
 };
+
+const withSdxServices = (
+  integration: Omit<Integration, 'sdxServices'> & { id: number },
+  resourceServers: SDXResourceServer[],
+) =>
+  ({
+    ...integration,
+    sdxServices: {
+      integrationId: integration.id,
+      clientId: '',
+      privacyZone: '',
+      policyVersion: '',
+      resourceServers,
+    },
+  } as Integration);
 
 describe('SDX APIs', () => {
   beforeAll(async () => {
@@ -210,6 +236,12 @@ describe('SDX APIs', () => {
     jest.clearAllMocks();
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
     (getConfiguration as jest.Mock).mockResolvedValue({ jwks, issuer });
+    (getUserById as jest.Mock).mockResolvedValue({
+      id: 1,
+      displayName: 'Test User',
+      idirEmail: TEAM_ADMIN_IDIR_EMAIL_01,
+    });
+    (getPrivacyZoneURI as jest.Mock).mockResolvedValue('urn:ca:bc:gov:health:prod');
     setUpSdxApi();
     setUpKeycloak();
   });
@@ -332,14 +364,16 @@ describe('SDX APIs', () => {
       const integration = await buildSdxIntegration('sdx-allowed-access-status');
 
       await getSdxAllowedAccess(integration.id);
-      expect(sdxApiCalls('/allowed-services').every((url) => url.includes('status=approved'))).toBe(true);
+      expect(
+        sdxApiCalls(`/integrations/${integration.id}/allowed-services`).every((url) => url.includes('status=approved')),
+      ).toBe(true);
 
       fetchMock.mockClear();
 
       await getSdxAllowedAccess(integration.id, 'pending');
-      expect(sdxApiCalls('/allowed-services')).toEqual([
-        `${SDX_API}/test-client/allowed-services?environment=${PRODUCTION_ENV}&status=pending`,
-        `${SDX_API}/test-client/allowed-services?environment=${NON_PRODUCTION_ENV}&status=pending`,
+      expect(sdxApiCalls(`/integrations/${integration.id}/allowed-services`)).toEqual([
+        `${SDX_API}/integrations/${integration.id}/allowed-services?environment=${PRODUCTION_ENV}&status=pending`,
+        `${SDX_API}/integrations/${integration.id}/allowed-services?environment=${NON_PRODUCTION_ENV}&status=pending`,
       ]);
     });
 
@@ -393,18 +427,25 @@ describe('SDX APIs', () => {
       const resourceServers = [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])];
       setUpSdxApi({ accessRequestBody: { submissionId: 'submission-123' } });
 
-      const result = await createSdxRequest(adminSession, integration.id, {
-        integrationId: integration.id,
-        resourceServers,
-      } as any);
+      const result = await createSdxRequest(adminSession, withSdxServices(integration, resourceServers));
 
       expect(result.success).toBe(true);
 
       const stored: any = await models.SdxRequest.findOne({ where: { request_id: integration.id } });
       expect(stored).not.toBeNull();
       expect(stored.submission_id).toBe('submission-123');
-      expect(stored.requester).toBe('Test User');
       expect(stored.access_request.resourceServers[0].services[0].scopes).toEqual(['patient.read']);
+      expect(stored.access_request).toEqual(
+        expect.objectContaining({
+          clientId: 'test-client',
+          policyVersion: 'SDX.R1.00',
+          privacyZone: 'urn:ca:bc:gov:health:prod',
+          requester: expect.objectContaining({
+            displayName: 'Test User',
+            email: TEAM_ADMIN_IDIR_EMAIL_01,
+          }),
+        }),
+      );
     });
 
     it('Posts the access request payload to the SDX API', async () => {
@@ -415,12 +456,21 @@ describe('SDX APIs', () => {
         resourceServers: [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])],
       };
 
-      await createSdxRequest(adminSession, integration.id, sdxRequestData as any);
+      await createSdxRequest(adminSession, withSdxServices(integration, sdxRequestData.resourceServers));
 
       const [, options] = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/access-requests'))!;
       expect(options.method).toBe('POST');
       expect(options.headers.Authorization).toBe('Bearer sdx-access-token');
-      expect(JSON.parse(options.body)).toEqual(sdxRequestData);
+      expect(JSON.parse(options.body)).toEqual({
+        ...sdxRequestData,
+        requester: {
+          displayName: 'Test User',
+          email: TEAM_ADMIN_IDIR_EMAIL_01,
+        },
+        policyVersion: 'SDX.R1.00',
+        privacyZone: 'urn:ca:bc:gov:health:prod',
+      });
+      expect(getPrivacyZoneURI).toHaveBeenCalledWith('prod', '');
     });
 
     it('Removes the previously approved scopes that are no longer requested', async () => {
@@ -434,17 +484,18 @@ describe('SDX APIs', () => {
       });
       setUpKeycloak({ existingDefaultClientScopes: ['patient.read', 'patient.write'] });
 
-      await createSdxRequest(adminSession, integration.id, {
-        integrationId: integration.id,
-        resourceServers: [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])],
-      } as any);
+      await createSdxRequest(
+        adminSession,
+        withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])]),
+      );
 
-      expect(keycloak.delDefaultClientScope).toHaveBeenCalledTimes(1);
+      expect(keycloak.delDefaultClientScope).toHaveBeenCalledTimes(2);
       expect(keycloak.delDefaultClientScope).toHaveBeenCalledWith({
         id: 'kc-client-uuid',
         realm: 'standard',
         clientScopeId: 'patient.write',
       });
+      expect(adminClientEnvironments()).toEqual(expect.arrayContaining(['dev', 'test']));
     });
 
     it('Does not remove scopes that are still requested', async () => {
@@ -456,10 +507,10 @@ describe('SDX APIs', () => {
       });
       setUpKeycloak({ existingDefaultClientScopes: ['patient.read'] });
 
-      await createSdxRequest(adminSession, integration.id, {
-        integrationId: integration.id,
-        resourceServers: [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read', 'patient.write'])],
-      } as any);
+      await createSdxRequest(
+        adminSession,
+        withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read', 'patient.write'])]),
+      );
 
       expect(keycloak.delDefaultClientScope).not.toHaveBeenCalled();
     });
@@ -468,19 +519,16 @@ describe('SDX APIs', () => {
       const integration = await buildSdxIntegration('sdx-create-request-scopes');
       setUpKeycloak({ existingClientScopes: ['patient.read'] });
 
-      await createSdxRequest(adminSession, integration.id, {
-        integrationId: integration.id,
-        resourceServers: [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read', 'patient.write'])],
-      } as any);
-      await flushPendingKeycloakCalls();
-
+      await createSdxRequest(
+        adminSession,
+        withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read', 'patient.write'])]),
+      );
       const createdScopes = keycloak.clientScopesCreate.mock.calls.map(([args]) => args.name);
       expect(createdScopes).toEqual(['patient.write', 'patient.write']);
       expect(createdScopes).not.toContain('patient.read');
       expect(adminClientEnvironments()).toEqual(expect.arrayContaining(['dev', 'test']));
-      // createClientScope only maps 'oidc' to openid-connect, so the openid-connect input falls through to saml.
       expect(keycloak.clientScopesCreate).toHaveBeenCalledWith(
-        expect.objectContaining({ realm: 'standard', name: 'patient.write', protocol: 'saml' }),
+        expect.objectContaining({ realm: 'standard', name: 'patient.write', protocol: 'openid-connect' }),
       );
     });
 
@@ -489,32 +537,64 @@ describe('SDX APIs', () => {
       setUpSdxApi({ accessRequestOk: false, accessRequestBody: { message: 'invalid payload' } });
 
       await expect(
-        createSdxRequest(adminSession, integration.id, {
-          integrationId: integration.id,
-          resourceServers: [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])],
-        } as any),
+        createSdxRequest(
+          adminSession,
+          withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])]),
+        ),
       ).rejects.toThrow('Failed to create SDX request');
 
       const stored = await models.SdxRequest.findOne({ where: { request_id: integration.id } });
       expect(stored).toBeNull();
     });
 
-    it('Fails when the integration cannot be accessed', async () => {
-      await expect(
-        createSdxRequest(adminSession, 999999, {
-          integrationId: 999999,
-          resourceServers: [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])],
-        } as any),
-      ).rejects.toThrow('Request not found');
-    });
-
-    it('Handles an access request without any resource server', async () => {
+    it('Rejects an access request without resource servers', async () => {
       const integration = await buildSdxIntegration('sdx-create-request-empty');
 
-      const result = await createSdxRequest(adminSession, integration.id, { integrationId: integration.id } as any);
+      await expect(createSdxRequest(adminSession, withSdxServices(integration, []))).rejects.toThrow(
+        'SDX resource servers cannot be empty',
+      );
 
-      expect(result.success).toBe(true);
       expect(getAdminClient).not.toHaveBeenCalled();
+    });
+
+    it('Rejects an access request without SDX services', async () => {
+      const integration = await buildSdxIntegration('sdx-create-request-missing-services');
+
+      await expect(createSdxRequest(adminSession, integration)).rejects.toThrow('SDX services cannot be empty');
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(getAdminClient).not.toHaveBeenCalled();
+    });
+
+    it('Initializes object-form scopes by label', async () => {
+      const integration = await buildSdxIntegration('sdx-create-request-object-scopes');
+
+      await createSdxRequest(
+        adminSession,
+        withSdxServices(integration, [
+          selectedResourceServer(NON_PRODUCTION_ENV, [] as string[], {
+            services: [{ name: 'patient-api', version: 'v1', scopes: [scope('patient.read')] }],
+          }),
+        ]),
+      );
+
+      expect(keycloak.clientScopesCreate).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'patient.read', protocol: 'openid-connect' }),
+      );
+    });
+
+    it('Initializes raw SDX production scopes in the production Keycloak environment', async () => {
+      const integration = await buildSdxIntegration('sdx-create-request-production-scopes');
+
+      await createSdxRequest(
+        adminSession,
+        withSdxServices(integration, [selectedResourceServer(PRODUCTION_ENV, ['payment.read'])]),
+      );
+
+      expect(adminClientEnvironments()).toEqual(expect.arrayContaining(['prod']));
+      expect(keycloak.clientScopesCreate).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'payment.read', protocol: 'openid-connect' }),
+      );
     });
   });
 
@@ -646,8 +726,6 @@ describe('SDX APIs', () => {
       const payload = approvalPayload(NON_PRODUCTION_ENV, ['patient.read', 'patient.write']);
 
       const result = await putSdxAllowedAccess(integration.id, payload, signToken());
-      await flushPendingKeycloakCalls();
-
       expect(result.status).toBe(200);
       expect(result.body.success).toBe(true);
 
@@ -669,8 +747,6 @@ describe('SDX APIs', () => {
       const integration = await buildSdxIntegration('sdx-approval-order');
 
       await putSdxAllowedAccess(integration.id, approvalPayload(NON_PRODUCTION_ENV, ['patient.read']), signToken());
-      await flushPendingKeycloakCalls();
-
       const event: any = await models.event.findOne({
         where: { requestId: integration.id, eventCode: 'sdx-access-request-update' },
       });
@@ -687,11 +763,10 @@ describe('SDX APIs', () => {
       );
     });
 
-    it('Grants production scopes in the production environment only', async () => {
+    it('Grants SDX production scopes in the production environment only', async () => {
       const integration = await buildSdxIntegration('sdx-approval-production');
 
-      await putSdxAllowedAccess(integration.id, approvalPayload('production', ['payment.read']), signToken());
-      await flushPendingKeycloakCalls();
+      await putSdxAllowedAccess(integration.id, approvalPayload(PRODUCTION_ENV, ['payment.read']), signToken());
 
       expect(adminClientEnvironments()).toEqual(['prod']);
       expect(keycloak.addDefaultClientScope).toHaveBeenCalledWith({
@@ -705,8 +780,6 @@ describe('SDX APIs', () => {
       const integration = await buildSdxIntegration('sdx-approval-non-production');
 
       await putSdxAllowedAccess(integration.id, approvalPayload(NON_PRODUCTION_ENV, ['patient.read']), signToken());
-      await flushPendingKeycloakCalls();
-
       expect(adminClientEnvironments()).toEqual(['dev', 'test']);
     });
 
@@ -715,8 +788,6 @@ describe('SDX APIs', () => {
       setUpKeycloak({ existingDefaultClientScopes: ['patient.read'] });
 
       await putSdxAllowedAccess(integration.id, approvalPayload(NON_PRODUCTION_ENV, ['patient.read']), signToken());
-      await flushPendingKeycloakCalls();
-
       expect(keycloak.addDefaultClientScope).not.toHaveBeenCalled();
     });
 
@@ -743,6 +814,9 @@ describe('SDX APIs', () => {
       expect(result.status).toBe(422);
       expect(result.body.message).toBe(`SDX is not enabled for integration with ID ${integration.id}`);
       expect(getAdminClient).not.toHaveBeenCalled();
+      expect(
+        await models.event.findOne({ where: { requestId: integration.id, eventCode: 'sdx-access-request-update' } }),
+      ).toBeNull();
     });
 
     it('Fails when the integration is not applied yet', async () => {
@@ -757,6 +831,9 @@ describe('SDX APIs', () => {
       expect(result.status).toBe(422);
       expect(result.body.message).toBe(`Integration with ID ${integration.id} is not in applied state`);
       expect(getAdminClient).not.toHaveBeenCalled();
+      expect(
+        await models.event.findOne({ where: { requestId: integration.id, eventCode: 'sdx-access-request-update' } }),
+      ).toBeNull();
     });
 
     it('Fails when the keycloak client cannot be found', async () => {
@@ -765,7 +842,7 @@ describe('SDX APIs', () => {
 
       const result = await putSdxAllowedAccess(
         integration.id,
-        approvalPayload('production', ['payment.read']),
+        approvalPayload(PRODUCTION_ENV, ['payment.read']),
         signToken(),
       );
 

@@ -41,7 +41,7 @@ export const putSdxAllowedAccess = async (
 
   if (bearerToken !== undefined) client.set('Authorization', `Bearer ${bearerToken}`);
 
-  return await client.send(data as object);
+  return await client.type('json').send(data as object);
 };
 
 export const putSdxAllowedAccessWithRawAuthorization = async (
@@ -53,6 +53,7 @@ export const putSdxAllowedAccessWithRawAuthorization = async (
     .put(`${API_BASE_PATH}/requests/${integrationId}/sdx-allowed-access`)
     .set('Accept', 'application/json')
     .set('Authorization', authorization)
+    .type('json')
     .send(data as object);
 };
 
