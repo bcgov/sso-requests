@@ -1,8 +1,6 @@
 import clsx from 'clsx';
 import InfoOverlay from 'components/InfoOverlay';
 import styled from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { SECONDARY_BLUE } from 'styles/theme';
 import { RJSFSchema, WidgetProps } from '@rjsf/utils/lib/types';
 import React from 'react';
