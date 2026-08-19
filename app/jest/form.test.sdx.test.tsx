@@ -227,6 +227,10 @@ jest.mock('services/sdx-services', () => {
   };
 });
 
+beforeAll(() => {
+  process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES = 'true';
+});
+
 describe('SDX Services Form', () => {
   const defaultRender = {
     id: 0,

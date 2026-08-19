@@ -224,6 +224,10 @@ const withSdxServices = (
     },
   } as Integration);
 
+beforeAll(() => {
+  process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES = 'true';
+});
+
 describe('SDX APIs', () => {
   beforeAll(async () => {
     process.env.NEXT_PUBLIC_APP_ENV = 'test';
