@@ -195,7 +195,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         if (isNew || isApplied) return;
         if (request) {
           setSaving(true);
-          console.log(data?.sdxServices);
           const [, err] = await updateRequest({ ...data, id: request.id });
           if (!err) setSaveMessage(`Last saved at ${new Date().toLocaleString()}`);
           setSaving(false);
