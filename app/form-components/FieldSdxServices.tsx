@@ -3,15 +3,7 @@ import FieldTemplate from './FieldTemplate';
 import { FieldTemplateProps } from '@rjsf/utils/lib/types';
 import styled from 'styled-components';
 import { useEffect, useMemo, useState } from 'react';
-import {
-  DEFAULT_FONT_FAMILY,
-  FORM_TOP_SPACING,
-  LINK_COLOR,
-  MAIN_NAV_APP_BAR_COLOR,
-  SECONDARY_BLUE,
-  SECONDARY_FONT_COLOR,
-  TABLE_ACTIVE_BLUE,
-} from 'styles/theme';
+import { FORM_TOP_SPACING } from 'styles/theme';
 import {
   SDXAllowedAccessForClient,
   SDXAccessRequest,
@@ -19,290 +11,12 @@ import {
   SDXService,
   SDXServiceScope,
 } from '@app/shared/interfaces';
+import SDXServicesSelector, { ScopeReference } from '@app/components/SDXServicesSelector';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-top: ${FORM_TOP_SPACING};
   ${(props) => (props.short ? 'max-width: 800px;' : '')}
 `;
-
-const OrganizationSection = styled.section`
-  margin-bottom: 2.25rem;
-`;
-
-const OrganizationHeader = styled.div`
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #d8d8d8;
-  margin-bottom: 1rem;
-`;
-
-const OrganizationTitle = styled.h3`
-  margin: 0;
-  font-size: 1.375rem;
-`;
-
-const OrganizationSummary = styled.span`
-  margin-left: auto;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: ${SECONDARY_BLUE};
-`;
-
-const SDXServiceGrid = styled.div`
-  display: grid;
-  gap: 1rem;
-`;
-
-const SDXServiceCard = styled.div`
-  border: 1px solid #d8d8d8;
-  border-left: 3px solid ${SECONDARY_BLUE};
-  padding: 1rem 1.125rem;
-  background: #fff;
-`;
-
-const SDXServiceHeader = styled.div`
-  display: flex;
-  align-items: baseline;
-  gap: 0.625rem;
-  margin-bottom: 0.875rem;
-`;
-
-const SDXServiceName = styled.h4`
-  margin: 0;
-  font-size: 1.125rem;
-`;
-
-const ApiSummary = styled.span`
-  margin-left: auto;
-  font-size: 0.8125rem;
-  color: ${SECONDARY_FONT_COLOR};
-  font-weight: 600;
-`;
-
-const VersionsGrid = styled.div`
-  display: grid;
-  gap: 0.125rem;
-`;
-
-const VersionRow = styled.div`
-  display: grid;
-  grid-template-columns: 132px 1fr;
-  gap: 1rem;
-  align-items: start;
-  padding: 0.6875rem 0;
-  border-top: 1px solid #e6e6e6;
-
-  @media (max-width: 767px) {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-  }
-`;
-
-const VersionMeta = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-  align-items: flex-start;
-`;
-
-const VersionLabel = styled.span`
-  font-size: 1rem;
-  font-weight: 700;
-`;
-
-const LinkButton = styled.button`
-  border: 0;
-  padding: 0;
-  background: transparent;
-  color: ${LINK_COLOR};
-  font-size: 0.8125rem;
-  font-family: ${DEFAULT_FONT_FAMILY};
-  font-weight: 400;
-  text-decoration: underline;
-
-  &:hover {
-    color: ${MAIN_NAV_APP_BAR_COLOR};
-  }
-
-  &:focus {
-    outline: 4px solid #3b99fc;
-    outline-offset: 1px;
-  }
-`;
-
-const ScopeGrid = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.125rem 0.625rem;
-  padding-top: 0.0625rem;
-`;
-
-const ScopeCheckboxWrapper = styled.div`
-  &.checkbox {
-    margin: 0;
-    display: inline-flex;
-  }
-
-  label {
-    margin: 0;
-    cursor: pointer;
-    font-family: ${DEFAULT_FONT_FAMILY};
-    font-weight: 400;
-  }
-
-  label > span {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.0625rem 0;
-  }
-`;
-
-const ScopeLabelText = styled.span`
-  font-size: 1rem;
-  line-height: 1.3;
-  border-radius: 2px;
-`;
-
-const ScopeCheckbox = styled.input`
-  width: 1rem;
-  height: 1rem;
-  margin: 0.125rem 0 0;
-  flex: 0 0 auto;
-  accent-color: ${SECONDARY_BLUE};
-`;
-
-const SelectedScopesSection = styled.section`
-  border: 1px solid #d8d8d8;
-  background: #f8f9fa;
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-`;
-
-const SelectedScopesHeader = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
-`;
-
-const SelectedScopesTitle = styled.h5`
-  margin: 0;
-  font-size: 1rem;
-  color: ${SECONDARY_BLUE};
-`;
-
-const SelectedScopesCount = styled.span`
-  font-size: 0.8125rem;
-  color: ${SECONDARY_FONT_COLOR};
-`;
-
-const SelectedScopesHeaderActions = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const ClearAllButton = styled.button`
-  border: 1px solid ${SECONDARY_BLUE};
-  background: #fff;
-  color: ${SECONDARY_BLUE};
-  font-size: 0.75rem;
-  font-family: ${DEFAULT_FONT_FAMILY};
-  font-weight: 700;
-  padding: 0.25rem 0.5rem;
-
-  &:hover:not(:disabled) {
-    background: ${TABLE_ACTIVE_BLUE};
-  }
-
-  &:focus {
-    outline: 4px solid #3b99fc;
-    outline-offset: 1px;
-  }
-
-  &:disabled {
-    border-color: #d8d8d8;
-    color: ${SECONDARY_FONT_COLOR};
-    cursor: not-allowed;
-  }
-`;
-
-const SelectedScopesList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-`;
-
-const SelectedScopeTag = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #fff;
-  border: 1px solid #c4d6ea;
-  color: #313132;
-  padding: 0.2rem 0.35rem 0.2rem 0.5rem;
-`;
-
-const SelectedScopeLabel = styled.span`
-  font-size: 0.8125rem;
-`;
-
-const RemoveScopeButton = styled.button`
-  border: 0;
-  background: transparent;
-  color: ${MAIN_NAV_APP_BAR_COLOR};
-  font-size: 0.8125rem;
-  padding: 0;
-  min-width: 0.875rem;
-  border-left: 1px solid #c4d6ea;
-  border-radius: 0;
-  padding-left: 0.3rem;
-  font-family: ${DEFAULT_FONT_FAMILY};
-  font-weight: 700;
-
-  &:hover {
-    color: ${LINK_COLOR};
-    text-decoration: underline;
-  }
-
-  &:focus {
-    outline: 4px solid #3b99fc;
-    outline-offset: 1px;
-  }
-
-  &:disabled {
-    color: ${SECONDARY_FONT_COLOR};
-    border-left-color: #d8d8d8;
-    opacity: 0.6;
-    cursor: not-allowed;
-    text-decoration: none;
-  }
-
-  &:disabled:hover {
-    color: ${SECONDARY_FONT_COLOR};
-    text-decoration: none;
-  }
-
-  &:disabled:focus {
-    outline: none;
-  }
-`;
-
-const EmptyScopesText = styled.p`
-  margin: 0;
-  color: ${SECONDARY_FONT_COLOR};
-  font-size: 0.8125rem;
-`;
-
-type ScopeReference = {
-  id: string;
-  label: string;
-};
 
 export type EnvironmentKey = 'non-production' | 'production';
 export type SelectedScopesByTab = Record<EnvironmentKey, Set<string>>;
@@ -360,7 +74,7 @@ export function getResourceServersForEnvironment(
 }
 
 /** Separator that cannot occur in scope labels, so scope ids stay parseable. */
-const SCOPE_ID_SEPARATOR = '$$';
+const SCOPE_ID_SEPARATOR = '###';
 
 /** Creates a stable synthetic id for an individual scope. */
 export function getScopeId(resourceServerKey: string, serviceKey: string, versionKey: string, scopeKey: string) {
@@ -374,8 +88,13 @@ function getScopeLabelFromScopeId(scopeId: string): string {
 }
 
 /** Builds a normalized matcher key used for approved/pending matching. */
-function getScopeMatcherKey(apiKey: string, versionKey: string, scopeKey: string) {
-  return `${apiKey}::${versionKey}::${scopeKey}`.toLowerCase();
+function getScopeMatcherKey(resourceServerKey: string, apiKey: string, versionKey: string, scopeKey: string) {
+  return [resourceServerKey, apiKey, versionKey, scopeKey].join(SCOPE_ID_SEPARATOR).toLowerCase();
+}
+
+/** Looser matcher key, ignoring version, still scoped to the same resource server and service. */
+function getServiceScopeKey(resourceServerKey: string, apiKey: string, scopeKey: string) {
+  return [resourceServerKey, apiKey, scopeKey].join(SCOPE_ID_SEPARATOR).toLowerCase();
 }
 
 /** Returns a stable service key even when fields are partially populated. */
@@ -469,30 +188,32 @@ export function getClientScopeState(
 
   if (!Array.isArray(sdxServices)) return { approvedScopeIds, pendingScopeIds };
 
-  // Matcher keys are grouped by environment so allowed access in one environment never leaks into the other tab.
+  // Matcher keys are grouped by environment and resource server so allowed access never leaks
+  // into a different organization, service or tab that happens to share a scope label.
   const collectKeysByEnvironment = (allowed: SDXAllowedAccessForClient | null) => {
     const matcherKeys: Record<EnvironmentKey, Set<string>> = {
       'non-production': new Set<string>(),
       production: new Set<string>(),
     };
-    const scopeLabels: Record<EnvironmentKey, Set<string>> = {
+    const serviceScopeKeys: Record<EnvironmentKey, Set<string>> = {
       'non-production': new Set<string>(),
       production: new Set<string>(),
     };
 
     asArray(allowed?.resourceServers).forEach((resourceServer) => {
       const environment = normalizeEnvironment(resourceServer?.environment);
+      const resourceServerKey = getResourceServerKey(resourceServer);
       asArray(resourceServer?.services).forEach((service) => {
         const serviceKey = getServiceKey(service);
         getServiceScopes(service).forEach((scope) => {
           const scopeLabel = getScopeLabel(scope);
-          scopeLabels[environment].add(scopeLabel.toLowerCase());
-          matcherKeys[environment].add(getScopeMatcherKey(serviceKey, service.version, scopeLabel));
+          serviceScopeKeys[environment].add(getServiceScopeKey(resourceServerKey, serviceKey, scopeLabel));
+          matcherKeys[environment].add(getScopeMatcherKey(resourceServerKey, serviceKey, service.version, scopeLabel));
         });
       });
     });
 
-    return { matcherKeys, scopeLabels };
+    return { matcherKeys, serviceScopeKeys };
   };
 
   const approvedKeys = collectKeysByEnvironment(approved);
@@ -507,16 +228,17 @@ export function getClientScopeState(
       getServiceScopes(service).forEach((scope) => {
         const scopeLabel = getScopeLabel(scope);
         const scopeId = getScopeId(resourceServerKey, serviceKey, service.version, scopeLabel);
-        const matcherKey = getScopeMatcherKey(serviceKey, service.version, scopeLabel);
+        const matcherKey = getScopeMatcherKey(resourceServerKey, serviceKey, service.version, scopeLabel);
+        const serviceScopeKey = getServiceScopeKey(resourceServerKey, serviceKey, scopeLabel);
 
         if (
           pendingKeys.matcherKeys[environment].has(matcherKey) ||
-          pendingKeys.scopeLabels[environment].has(scopeLabel.toLowerCase())
+          pendingKeys.serviceScopeKeys[environment].has(serviceScopeKey)
         )
           pendingScopeIds[environment].add(scopeId);
         if (
           approvedKeys.matcherKeys[environment].has(matcherKey) ||
-          approvedKeys.scopeLabels[environment].has(scopeLabel.toLowerCase())
+          approvedKeys.serviceScopeKeys[environment].has(serviceScopeKey)
         )
           approvedScopeIds[environment].add(scopeId);
       });
@@ -699,263 +421,6 @@ export function restoreSelectedScopesByTab(
   });
 }
 
-type ScopeChipButtonProps = Readonly<{
-  id: string;
-  scope: SDXServiceScope;
-  disabled?: boolean;
-  selected: boolean;
-  onClick: () => void;
-}>;
-
-function ScopeChipButton({ id, scope, disabled = false, selected, onClick }: ScopeChipButtonProps) {
-  return (
-    <ScopeCheckboxWrapper className="checkbox">
-      <label htmlFor={id} title={scope.description}>
-        <span>
-          <ScopeCheckbox id={id} type="checkbox" checked={selected} disabled={disabled} onChange={onClick} />
-          <ScopeLabelText>{scope.label}</ScopeLabelText>
-        </span>
-      </label>
-    </ScopeCheckboxWrapper>
-  );
-}
-
-type SelectedScopesPanelProps = Readonly<{
-  scopeReferences: Record<string, ScopeReference>;
-  pendingScopeIds: Set<string>;
-  selectedScopes: Set<string>;
-  onRemoveScope: (scopeId: string) => void;
-  onRemoveAllScopes: () => void;
-}>;
-
-function SelectedScopesPanel({
-  scopeReferences,
-  pendingScopeIds,
-  selectedScopes,
-  onRemoveScope,
-  onRemoveAllScopes,
-}: SelectedScopesPanelProps) {
-  const selectedScopeEntries = Array.from(selectedScopes)
-    .map((scopeId) => scopeReferences[scopeId])
-    .filter((entry): entry is ScopeReference => !!entry)
-    .sort((a, b) => a.label.localeCompare(b.label));
-
-  return (
-    <SelectedScopesSection>
-      <SelectedScopesHeader>
-        <SelectedScopesTitle>Selected Scopes</SelectedScopesTitle>
-        <SelectedScopesHeaderActions>
-          <SelectedScopesCount>{selectedScopeEntries.length} selected</SelectedScopesCount>
-          <ClearAllButton type="button" disabled={selectedScopeEntries.length === 0} onClick={onRemoveAllScopes}>
-            Remove all scopes
-          </ClearAllButton>
-        </SelectedScopesHeaderActions>
-      </SelectedScopesHeader>
-
-      {selectedScopeEntries.length === 0 && <EmptyScopesText>No scopes selected yet.</EmptyScopesText>}
-
-      {selectedScopeEntries.length > 0 && (
-        <SelectedScopesList>
-          {selectedScopeEntries.map((scopeEntry) => (
-            <SelectedScopeTag key={scopeEntry.id}>
-              <SelectedScopeLabel>{scopeEntry.label}</SelectedScopeLabel>
-              <RemoveScopeButton
-                type="button"
-                aria-label={`Remove ${scopeEntry.label}`}
-                disabled={pendingScopeIds.has(scopeEntry.id)}
-                onClick={() => onRemoveScope(scopeEntry.id)}
-              >
-                x
-              </RemoveScopeButton>
-            </SelectedScopeTag>
-          ))}
-        </SelectedScopesList>
-      )}
-    </SelectedScopesSection>
-  );
-}
-
-type VersionScopesRowProps = Readonly<{
-  resourceServer: SDXResourceServer;
-  service: SDXService;
-  pendingScopeIds: Set<string>;
-  selectedScopes: Set<string>;
-  onToggleScope: (scopeId: string) => void;
-  onToggleVersion: (scopeIds: string[]) => void;
-}>;
-
-function VersionScopesRow({
-  resourceServer,
-  service,
-  pendingScopeIds,
-  selectedScopes,
-  onToggleScope,
-  onToggleVersion,
-}: VersionScopesRowProps) {
-  const versionScopeIds = getServiceScopeIds(resourceServer, service);
-  const toggleableVersionScopeIds = versionScopeIds.filter((scopeId) => !pendingScopeIds.has(scopeId));
-  const allSelected = toggleableVersionScopeIds.every((scopeId: string) => selectedScopes.has(scopeId));
-
-  return (
-    <VersionRow>
-      <VersionMeta>
-        <VersionLabel>{service.version}</VersionLabel>
-        <LinkButton
-          type="button"
-          disabled={toggleableVersionScopeIds.length === 0}
-          onClick={() => onToggleVersion(versionScopeIds)}
-        >
-          {allSelected ? 'Clear all scopes' : 'Select all scopes'}
-        </LinkButton>
-      </VersionMeta>
-
-      <ScopeGrid>
-        {getServiceScopes(service).map((scope) => {
-          const scopeLabel = getScopeLabel(scope);
-          const scopeId = getScopeId(
-            getResourceServerKey(resourceServer),
-            getServiceKey(service),
-            service.version,
-            scopeLabel,
-          );
-          const isSelected = selectedScopes.has(scopeId);
-          const isPending = pendingScopeIds.has(scopeId);
-
-          return (
-            <ScopeChipButton
-              key={scopeId}
-              id={`scope-${resourceServer.environment}-${scopeId}`}
-              scope={typeof scope === 'string' ? { label: scope, description: scope } : scope}
-              disabled={isPending}
-              selected={isSelected}
-              onClick={() => onToggleScope(scopeId)}
-            />
-          );
-        })}
-      </ScopeGrid>
-    </VersionRow>
-  );
-}
-
-type ApiCardSectionProps = Readonly<{
-  resourceServer: SDXResourceServer;
-  group: ServiceGroup;
-  pendingScopeIds: Set<string>;
-  selectedScopes: Set<string>;
-  onToggleScope: (scopeId: string) => void;
-  onToggleVersion: (scopeIds: string[]) => void;
-}>;
-
-function ApiCardSection({
-  resourceServer,
-  group,
-  pendingScopeIds,
-  selectedScopes,
-  onToggleScope,
-  onToggleVersion,
-}: ApiCardSectionProps) {
-  const apiScopeIds = getServiceGroupScopeIds(resourceServer, group);
-  const selectedInApi = apiScopeIds.filter((scopeId) => selectedScopes.has(scopeId)).length;
-
-  return (
-    <SDXServiceCard>
-      <SDXServiceHeader>
-        <SDXServiceName>{group.title}</SDXServiceName>
-        <ApiSummary>
-          {selectedInApi} of {apiScopeIds.length} scopes
-        </ApiSummary>
-      </SDXServiceHeader>
-
-      <VersionsGrid>
-        {group.services.map((service) => (
-          <VersionScopesRow
-            key={service.version}
-            resourceServer={resourceServer}
-            service={service}
-            pendingScopeIds={pendingScopeIds}
-            selectedScopes={selectedScopes}
-            onToggleScope={onToggleScope}
-            onToggleVersion={onToggleVersion}
-          />
-        ))}
-      </VersionsGrid>
-    </SDXServiceCard>
-  );
-}
-
-type OrganizationBlockProps = Readonly<{
-  resourceServer: SDXResourceServer;
-  pendingScopeIds: Set<string>;
-  selectedScopes: Set<string>;
-  onToggleScope: (scopeId: string) => void;
-  onToggleVersion: (scopeIds: string[]) => void;
-}>;
-
-function OrganizationBlock({
-  resourceServer,
-  pendingScopeIds,
-  selectedScopes,
-  onToggleScope,
-  onToggleVersion,
-}: OrganizationBlockProps) {
-  const organizationScopeIds = getResourceServerScopeIds(resourceServer);
-  const selectedInOrganization = organizationScopeIds.filter((scopeId) => selectedScopes.has(scopeId)).length;
-
-  return (
-    <OrganizationSection>
-      <OrganizationHeader>
-        <OrganizationTitle>{resourceServer.organization || resourceServer.name || resourceServer.id}</OrganizationTitle>
-        <OrganizationSummary>{selectedInOrganization} selected</OrganizationSummary>
-      </OrganizationHeader>
-
-      <SDXServiceGrid>
-        {getServiceGroups(resourceServer).map((group) => (
-          <ApiCardSection
-            key={group.key}
-            resourceServer={resourceServer}
-            group={group}
-            pendingScopeIds={pendingScopeIds}
-            selectedScopes={selectedScopes}
-            onToggleScope={onToggleScope}
-            onToggleVersion={onToggleVersion}
-          />
-        ))}
-      </SDXServiceGrid>
-    </OrganizationSection>
-  );
-}
-
-type OrganizationApiScopeSelectorProps = Readonly<{
-  data: SDXResourceServer[];
-  pendingScopeIds: Set<string>;
-  selectedScopes: Set<string>;
-  onToggleScope: (scopeId: string) => void;
-  onToggleVersion: (scopeIds: string[]) => void;
-}>;
-
-function OrganizationApiScopeSelector({
-  data,
-  pendingScopeIds,
-  selectedScopes,
-  onToggleScope,
-  onToggleVersion,
-}: OrganizationApiScopeSelectorProps) {
-  return (
-    <>
-      {asArray(data).map((resourceServer) => (
-        <OrganizationBlock
-          key={getResourceServerKey(resourceServer)}
-          resourceServer={resourceServer}
-          pendingScopeIds={pendingScopeIds}
-          selectedScopes={selectedScopes}
-          onToggleScope={onToggleScope}
-          onToggleVersion={onToggleVersion}
-        />
-      ))}
-    </>
-  );
-}
-
 const tabItems = (
   sdxServices: SDXResourceServer[],
   scopeReferences: Record<string, ScopeReference>,
@@ -970,19 +435,14 @@ const tabItems = (
     label: `Non-Production (${selectedScopesByTab['non-production']?.size ?? 0})`,
     children: (
       <TabWrapper>
-        <SelectedScopesPanel
+        <SDXServicesSelector
           scopeReferences={scopeReferences}
           pendingScopeIds={pendingScopeIds['non-production']}
           selectedScopes={selectedScopesByTab['non-production'] ?? new Set<string>()}
-          onRemoveScope={(scopeId) => onToggleScope('non-production', scopeId)}
-          onRemoveAllScopes={() => onClearTabScopes('non-production')}
-        />
-        <OrganizationApiScopeSelector
           data={getResourceServersForEnvironment(sdxServices, 'non-production')}
-          pendingScopeIds={pendingScopeIds['non-production']}
-          selectedScopes={selectedScopesByTab['non-production']}
           onToggleScope={(scopeId) => onToggleScope('non-production', scopeId)}
           onToggleVersion={(scopeIds) => onToggleVersion('non-production', scopeIds)}
+          onRemoveAllScopes={() => onClearTabScopes('non-production')}
         />
       </TabWrapper>
     ),
@@ -992,19 +452,14 @@ const tabItems = (
     label: `Production (${selectedScopesByTab.production?.size ?? 0})`,
     children: (
       <TabWrapper>
-        <SelectedScopesPanel
+        <SDXServicesSelector
           scopeReferences={scopeReferences}
           pendingScopeIds={pendingScopeIds.production}
           selectedScopes={selectedScopesByTab.production ?? new Set<string>()}
-          onRemoveScope={(scopeId) => onToggleScope('production', scopeId)}
-          onRemoveAllScopes={() => onClearTabScopes('production')}
-        />
-        <OrganizationApiScopeSelector
           data={getResourceServersForEnvironment(sdxServices, 'production')}
-          pendingScopeIds={pendingScopeIds.production}
-          selectedScopes={selectedScopesByTab.production}
           onToggleScope={(scopeId) => onToggleScope('production', scopeId)}
           onToggleVersion={(scopeIds) => onToggleVersion('production', scopeIds)}
+          onRemoveAllScopes={() => onClearTabScopes('production')}
         />
       </TabWrapper>
     ),

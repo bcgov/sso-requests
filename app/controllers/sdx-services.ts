@@ -171,10 +171,14 @@ export const createSdxRequest = async (session: Session, request: Integration) =
 
     // If the request is already applied, we need to check for removed scopes and remove them from Keycloak
     if (request.status === 'applied') {
-      const existingSdxAccess = await getSdxServicesForClient(session, request.id!, 'approved');
-      const removedScopesByEnv = getRemovedScopes(existingSdxAccess.resourceServers, resourceServers);
-      for (const [environment, scopes] of Object.entries(removedScopesByEnv)) {
-        await removeSdxAccessFromKeycloak(existingSdxAccess.clientId, environment, scopes);
+      const subSystem = await getSdxSubsystemStatus(request.id!);
+
+      if (subSystem?.status !== 'registered') {
+        const existingSdxAccess = await getSdxServicesForClient(session, request.id!, 'approved');
+        const removedScopesByEnv = getRemovedScopes(existingSdxAccess.resourceServers, resourceServers);
+        for (const [environment, scopes] of Object.entries(removedScopesByEnv)) {
+          await removeSdxAccessFromKeycloak(existingSdxAccess.clientId, environment, scopes);
+        }
       }
     }
 
@@ -326,5 +330,26 @@ export const manageKeycloakScopes = async (clientId: string, environment: string
 
   for (const scope of scopesToAdd) {
     await kcAdminClient.clients.addDefaultClientScope({ id: client.id!, realm: 'standard', clientScopeId: scope });
+  }
+};
+
+export const getSdxSubsystemStatus = async (requestId: number) => {
+  try {
+    const response = await fetch(`${process.env.SDX_API || ''}/integrations/${requestId}`, {
+      headers: {
+        Authorization: `Bearer ${await getToken()}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Failed to fetch SDX status: ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching SDX status:', error);
+    throw new Error('Failed to fetch SDX status');
   }
 };

@@ -20,3 +20,12 @@ export const getSdxAllowedAccessForClient = async (session: Session, requestId: 
     return [null, err];
   }
 };
+
+export const getSdxSubsytemStatus = async (requestId: number) => {
+  try {
+    const result = await instance.get(`/requests/${requestId}/sdx-status`).then((res) => res.data);
+    return [result, null];
+  } catch (err) {
+    return [null, err];
+  }
+};

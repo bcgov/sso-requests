@@ -98,6 +98,7 @@ type SdxFetchOptions = {
   accessRequestOk?: boolean;
   accessRequestBody?: any;
   failOn?: (url: string) => boolean;
+  subsystemStatus?: string;
 };
 
 const fetchMock = jest.fn();
@@ -123,6 +124,10 @@ const setUpSdxApi = (options: SdxFetchOptions = {}) => {
 
     if (parsed.pathname.endsWith('/access-requests')) {
       return jsonResponse(options.accessRequestBody ?? { submissionId: 'sdx-submission-1' }, options.accessRequestOk);
+    }
+
+    if (parsed.pathname.match(/\/integrations\/\d+$/)) {
+      return jsonResponse({ status: options.subsystemStatus ?? 'registered' });
     }
 
     throw new Error(`Unexpected SDX call: ${url}`);
@@ -480,6 +485,7 @@ describe('SDX APIs', () => {
     it('Removes the previously approved scopes that are no longer requested', async () => {
       const integration = await buildSdxIntegration('sdx-create-request-removal');
       setUpSdxApi({
+        subsystemStatus: 'not-registered',
         allowedServices: {
           [`${NON_PRODUCTION_ENV}:approved`]: [
             selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read', 'patient.write']),
@@ -505,6 +511,7 @@ describe('SDX APIs', () => {
     it('Does not remove scopes that are still requested', async () => {
       const integration = await buildSdxIntegration('sdx-create-request-no-removal');
       setUpSdxApi({
+        subsystemStatus: 'not-registered',
         allowedServices: {
           [`${NON_PRODUCTION_ENV}:approved`]: [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])],
         },

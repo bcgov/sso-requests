@@ -45,7 +45,7 @@ import { fetchDefaultSessionSettings } from '@app/services/keycloak';
 import { GetStandardSettingsResponse } from '@app/interfaces/api';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import Link from '@app/components/Link';
-import { listSdxResourceServers, getSdxAllowedAccessForClient } from '@app/services/sdx-services';
+import { listSdxResourceServers, getSdxAllowedAccessForClient, getSdxSubsytemStatus } from '@app/services/sdx-services';
 import { SDXResourceServer, SDXAllowedAccessForClient } from '@app/shared/interfaces';
 
 const Description = styled.p`
@@ -253,6 +253,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     const newlyAddedBceidWarning = bceidWarningIdps.some((idp) => devIdps.includes(idp) && !currentIdps.includes(idp));
     if (newlyAddedBceidWarning) setOpenBceidWarningModal(true);
 
+    // If the form is applied and SDX is being enabled, load the SDX services for the client.
+    if (isApplied && !formData?.sdxEnabled && newData?.sdxEnabled) {
+      loadClientSdxServices();
+    }
+
     throttleUpdate(processed);
   };
 
@@ -312,11 +317,15 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   };
 
   const loadClientSdxServices = async () => {
-    const [approved] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'approved');
-    setSdxServicesApprovedForClient(approved || []);
+    const [data] = await getSdxSubsytemStatus(request?.id!);
 
-    const [pending] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'pending');
-    setSdxServicesPendingForClient(pending || []);
+    if (data?.status === 'registered') {
+      const [approved] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'approved');
+      setSdxServicesApprovedForClient(approved || []);
+
+      const [pending] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'pending');
+      setSdxServicesPendingForClient(pending || []);
+    }
   };
 
   useEffect(() => {

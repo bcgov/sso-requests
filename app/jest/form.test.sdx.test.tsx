@@ -10,10 +10,10 @@ import {
   SelectedScopesByTab,
 } from 'form-components/FieldSdxServices';
 import { updateRequest } from 'services/request';
+import { getSdxAllowedAccessForClient, getSdxSubsytemStatus } from 'services/sdx-services';
 import { Integration } from 'interfaces/Request';
 import { SDXResourceServer } from '@app/shared/interfaces';
 import { setUpRouter } from './utils/setup';
-import { debug } from 'jest-preview';
 
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
@@ -150,6 +150,35 @@ const sharedLabelAllowedAccess = (scopes: string[]) => ({
   ],
 });
 
+// Two distinct organizations/services in the same environment that happen to reuse a scope label.
+const duplicateLabelResourceServers = [
+  {
+    id: 'org-a-rs',
+    name: 'Org A Resource Server',
+    organization: 'Org A',
+    environment: 'apsdev',
+    services: [{ name: 'org-a-api', title: 'Org A API', version: 'v1', scopes: [sdxScope('read')] }],
+  },
+  {
+    id: 'org-b-rs',
+    name: 'Org B Resource Server',
+    organization: 'Org B',
+    environment: 'apsdev',
+    services: [{ name: 'org-b-api', title: 'Org B API', version: 'v1', scopes: [sdxScope('read')] }],
+  },
+];
+
+const duplicateLabelApprovedAccess = {
+  clientId: 'sdx-client',
+  resourceServers: [
+    {
+      id: 'org-a-rs',
+      environment: 'apsdev',
+      services: [{ name: 'org-a-api', version: 'v1', scopes: [sdxScope('read')] }],
+    },
+  ],
+};
+
 // Partially populated resource servers that the widget still has to render.
 const incompleteSdxResourceServers = [
   {
@@ -218,6 +247,7 @@ const sampleSdxPendingAccess = {
 let mockSdxResourceServersResponse: any = sampleSdxResourceServers;
 let mockSdxApprovedAccessResponse: any = emptySdxAllowedAccess;
 let mockSdxPendingAccessResponse: any = emptySdxAllowedAccess;
+let mockSdxSubsytemStatusResponse: any = { status: 'registered' };
 
 jest.mock('services/sdx-services', () => {
   return {
@@ -225,6 +255,7 @@ jest.mock('services/sdx-services', () => {
     getSdxAllowedAccessForClient: jest.fn((session: any, requestId: number, status: string) =>
       Promise.resolve([status === 'approved' ? mockSdxApprovedAccessResponse : mockSdxPendingAccessResponse, null]),
     ),
+    getSdxSubsytemStatus: jest.fn(() => Promise.resolve([mockSdxSubsytemStatusResponse, null])),
   };
 });
 
@@ -280,10 +311,6 @@ describe('SDX Services Form', () => {
     fireEvent.click(screen.getByRole('tab', { name: PROD_TAB }));
   };
 
-  const openNonProductionTab = () => {
-    fireEvent.click(screen.getByRole('tab', { name: NON_PROD_TAB }));
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
     setUpRouter('/', sandbox);
@@ -308,6 +335,29 @@ describe('SDX Services Form', () => {
     const sdxEnabledCheckbox = screen.getByLabelText('Secure Data Exchange (SDX) Services') as HTMLInputElement;
     expect(sdxEnabledCheckbox.checked).toBe(true);
     await waitFor(() => expect(screen.getByTestId('stage-sdx-services')).toBeVisible());
+  });
+
+  it('Loads the client SDX access when SDX is enabled on an already applied integration', async () => {
+    setUpRender({ ...defaultRender, status: 'applied' }, userSession);
+    await act(async () => {});
+
+    fireEvent.click(sandbox.basicInfoBox);
+    // Not yet loaded, since SDX starts disabled on the applied integration.
+    expect(getSdxAllowedAccessForClient).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByLabelText('Secure Data Exchange (SDX) Services'));
+
+    await waitFor(() => {
+      expect(getSdxAllowedAccessForClient).toHaveBeenCalledWith(expect.anything(), 0, 'approved');
+      expect(getSdxAllowedAccessForClient).toHaveBeenCalledWith(expect.anything(), 0, 'pending');
+    });
+
+    fireEvent.click(screen.getByTestId('stage-sdx-services'));
+    await screen.findByRole('tab', { name: NON_PROD_TAB });
+
+    // The fetched approved/pending access is reflected as soon as the stage is opened.
+    expect(scopeCheckbox('patient.read')).toBeChecked();
+    expect(scopeCheckbox('patient.v2.read')).toBeChecked();
   });
 
   it('Displays both non-production and production environment tabs', async () => {
@@ -502,6 +552,24 @@ describe('SDX Services Form', () => {
     expect(screen.getByRole('tab', { name: 'Production (0)' })).toBeInTheDocument();
   });
 
+  it('Does not apply the access of one organization/service to another that shares the same scope label', async () => {
+    mockSdxResourceServersResponse = duplicateLabelResourceServers;
+    mockSdxApprovedAccessResponse = duplicateLabelApprovedAccess;
+    mockSdxPendingAccessResponse = emptySdxAllowedAccess;
+    await renderSdxForm({ status: 'applied' });
+
+    const panel = activePanel();
+    const orgAReadCheckbox = within(within(panel).getByText('Org A').closest('section') as HTMLElement).getByLabelText(
+      'read',
+    );
+    const orgBReadCheckbox = within(within(panel).getByText('Org B').closest('section') as HTMLElement).getByLabelText(
+      'read',
+    );
+
+    expect(orgAReadCheckbox).toBeChecked();
+    expect(orgBReadCheckbox).not.toBeChecked();
+  });
+
   it('Keeps the selection of each environment independent', async () => {
     await renderSdxForm({ status: 'applied' });
 
@@ -654,6 +722,16 @@ describe('SDX Services Form', () => {
     fireEvent.click(screen.getByLabelText('Secure Data Exchange (SDX) Services'));
 
     await waitFor(() => expect(screen.queryByTestId('stage-sdx-services')).toBeNull());
+  });
+
+  it('Does not load approved/pending access when the SDX subsystem is not registered', async () => {
+    mockSdxSubsytemStatusResponse = { status: 'not-registered' };
+    setUpRender({ ...defaultRender, sdxEnabled: true, status: 'applied' }, userSession);
+    await act(async () => {});
+
+    expect(getSdxSubsytemStatus).toHaveBeenCalledWith(0);
+    expect(getSdxAllowedAccessForClient).not.toHaveBeenCalledWith(expect.anything(), 0, 'approved');
+    expect(getSdxAllowedAccessForClient).not.toHaveBeenCalledWith(expect.anything(), 0, 'pending');
   });
 });
 

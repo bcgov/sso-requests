@@ -19,6 +19,7 @@ const knownRoutes = [
   '/api/requests/[id]/events',
   '/api/requests/[id]/sdx-allowed-access',
   '/api/sdx-resource-servers',
+  'api/requests/[id]/sdx-status',
   '/api/bceid-webservice/idir/search',
   '/api/bceid-webservice/idir/import',
   '/api/requests-all',
