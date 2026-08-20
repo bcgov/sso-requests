@@ -167,7 +167,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [bcscPrivacyZones, setBcscPrivacyZones] = useState<BcscPrivacyZone[]>(defaultBcscPrivacyZones());
   const [bcscAttributes, setBcscAttributes] = useState<BcscAttribute[]>(defaultBcscAttributes());
   const [openSubmissionModal, setOpenSubmissionModal] = useState(false);
-  const [openBceidWarningModal, setOpenBceidWarningModal] = useState(false);
   const [defaultSessionSettings, setDefaultSessionSettings] = useState<GetStandardSettingsResponse>({
     dev: defaultStandardRealmSettings,
     test: defaultStandardRealmSettings,
@@ -584,24 +583,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         }
         title="Submitting Request"
         onConfirm={handleSubmit}
-      />
-      <CenteredModal
-        id="bceid-warning-modal"
-        openModal={openBceidWarningModal}
-        handleClose={() => setOpenBceidWarningModal(false)}
-        title="BCeID Application Notice"
-        showCancel={false}
-        confirmText="I Understand"
-        onConfirm={() => setOpenBceidWarningModal(false)}
-        content={
-          <p>
-            <strong>
-              <em>Basic BCeID</em> and <em>Basic or Business BCeID</em> are no longer accepting new applications from
-              general clients.
-            </strong>{' '}
-            Only choose these options if you have received a special exemption.
-          </p>
-        }
       />
     </>
   );

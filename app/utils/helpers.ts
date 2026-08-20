@@ -711,6 +711,30 @@ export const generateXlsx = (data: any[], workBookName: string, workSheetName: s
   XLSX.writeFile(workBook, `${workBookName}.xlsx`);
 };
 
+/** Client-side CSV download from a flat array of objects, e.g. role-sync results. */
+export const generateCsv = (data: Record<string, any>[], fileName: string) => {
+  if (data.length === 0) return;
+
+  const columns = Object.keys(data[0]);
+  const escapeCell = (value: any) => {
+    const str = value === null || value === undefined ? '' : String(value);
+    return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+  };
+
+  const rows = [columns.join(','), ...data.map((row) => columns.map((col) => escapeCell(row[col])).join(','))];
+  const csvContent = rows.join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${fileName}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 /*
 Convert numeric seconds to readable time, with the largest whole number unit possible (up to days). e.g.
 300 => 5 minutes,
@@ -758,3 +782,6 @@ export const containsPrefix = (csvString: string | string[], prefix: string) => 
 
   return values.some((value) => prefix.startsWith(value));
 };
+
+export const allBceidEnvsApproved = (integration: Integration) =>
+  Boolean(integration.devBceidApproved && integration.testBceidApproved && integration.bceidApproved);

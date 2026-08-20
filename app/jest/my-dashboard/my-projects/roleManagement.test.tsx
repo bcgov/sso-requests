@@ -1,7 +1,14 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import RoleManagement from 'page-partials/my-dashboard/RoleManagement';
 import { sampleRequest } from '../../samples/integrations';
-import { listRoleUsers, getCompositeClientRoles, manageUserRole, bulkCreateRole } from 'services/keycloak';
+import {
+  listRoleUsers,
+  getCompositeClientRoles,
+  manageUserRole,
+  bulkCreateRole,
+  previewRoleSync,
+  runRoleSync,
+} from 'services/keycloak';
 import CreateRoleContent from 'page-partials/my-dashboard/RoleManagement/CreateRoleContent';
 import RoleEnvironment from 'page-partials/my-dashboard/RoleManagement/RoleEnvironment';
 
@@ -11,6 +18,10 @@ const mockResult = () => {
 
 function RoleEnvironmentComponent() {
   return <RoleEnvironment environment={'dev'} integration={mockResult()} />;
+}
+
+function RoleEnvironmentWithMfaComponent() {
+  return <RoleEnvironment environment={'dev'} integration={{ ...mockResult(), devIdps: ['idir', 'azureidir'] }} />;
 }
 
 const testUsers = [
@@ -58,6 +69,8 @@ jest.mock('services/keycloak', () => ({
   deleteRole: jest.fn(() => Promise.resolve([[''], null])),
   manageUserRole: jest.fn(() => Promise.resolve([[''], null])),
   bulkCreateRole: jest.fn(() => Promise.resolve([{}, null])),
+  previewRoleSync: jest.fn(() => Promise.resolve([[], null])),
+  runRoleSync: jest.fn(() => Promise.resolve([[], null])),
 }));
 
 describe('role management tab', () => {
@@ -147,8 +160,8 @@ describe('role management tab', () => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
     });
 
-    const roleDeleteButton = screen.getAllByRole('button', { name: 'delete' });
-    fireEvent.click(roleDeleteButton[0]);
+    const deleteButton = await screen.findAllByTestId('delete-role');
+    fireEvent.click(deleteButton[0]);
     await waitFor(async () => {
       expect(await screen.findByTitle('Delete Role')).toBeInTheDocument();
     });
@@ -311,5 +324,99 @@ describe('role management tab', () => {
     expect(getCompositeClientRoles).toHaveBeenCalled();
     expect(screen.getByText('compositeRole1')).toBeTruthy();
     expect(screen.getByText('compositeRole2')).toBeTruthy();
+  });
+
+  it('Should not show the MFA sync entry points when idir and azureidir are not both enabled', async () => {
+    render(<RoleEnvironmentComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    });
+
+    expect(screen.queryByTestId('sync-all-roles-btn')).not.toBeInTheDocument();
+
+    expect(screen.queryByTestId('sync-to-mfa')).not.toBeInTheDocument();
+  });
+
+  it('Should preview and run a role sync to MFA when idir and azureidir are both enabled', async () => {
+    (previewRoleSync as jest.Mock).mockResolvedValueOnce([
+      [{ role: 'role-1', total: 5, alreadySynced: 2, toAttempt: 3 }],
+      null,
+    ]);
+    (runRoleSync as jest.Mock).mockResolvedValueOnce([
+      [
+        { idirUsername: 'user1', guid: 'guid1', role: 'role-1', status: 'SYNCED' },
+        { idirUsername: 'user2', guid: 'guid2', role: 'role-1', status: 'ALREADY_SYNCED' },
+      ],
+      null,
+    ]);
+
+    render(<RoleEnvironmentWithMfaComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    });
+
+    const syncButton = await screen.findAllByTestId('sync-to-mfa');
+    fireEvent.click(syncButton[0]);
+
+    expect(
+      await screen.findByTitle('Replicate IDIR role assignments to IDIR - MFA users for "role-1"'),
+    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(previewRoleSync).toHaveBeenCalledWith(expect.objectContaining({ environment: 'dev', roleName: 'role-1' }));
+    });
+    const replicationTable = await screen.findByTestId('idir-role-replication-table');
+    expect(within(replicationTable).getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    expect(within(replicationTable).getByRole('cell', { name: '3' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Run Replication' }));
+    await waitFor(() => {
+      expect(runRoleSync).toHaveBeenCalledWith(expect.objectContaining({ environment: 'dev', roleName: 'role-1' }));
+    });
+    expect(await screen.findByText('Replication complete.')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Download Replication Details' })).toBeInTheDocument();
+  });
+
+  it('Should show a "Replicate All Roles" button that previews/runs a replication across every role', async () => {
+    (previewRoleSync as jest.Mock).mockResolvedValueOnce([
+      [
+        { role: 'role-1', total: 2, alreadySynced: 0, toAttempt: 2 },
+        { role: 'role-2', total: 1, alreadySynced: 1, toAttempt: 0 },
+      ],
+      null,
+    ]);
+
+    render(<RoleEnvironmentWithMfaComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId('sync-all-roles-btn'));
+    expect(await screen.findByTitle('Replicate All Roles to IDIR - MFA')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(previewRoleSync).toHaveBeenCalledWith(
+        expect.objectContaining({ environment: 'dev', roleName: undefined }),
+      );
+    });
+  });
+
+  it('Should show "No users to replicate" and hide the Run Replication button when there is nothing to replicate', async () => {
+    (previewRoleSync as jest.Mock).mockResolvedValueOnce([
+      [{ role: 'role-1', total: 2, alreadySynced: 2, toAttempt: 0 }],
+      null,
+    ]);
+
+    render(<RoleEnvironmentWithMfaComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    });
+
+    const syncButton = await screen.findAllByTestId('sync-to-mfa');
+    fireEvent.click(syncButton[0]);
+
+    expect(await screen.findByText('No users to replicate')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: 'Run Replication' })).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
   });
 });
