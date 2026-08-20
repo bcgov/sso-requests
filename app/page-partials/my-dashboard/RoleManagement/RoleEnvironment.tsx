@@ -265,7 +265,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       showCancelButton: true,
       showConfirmButton: syncPhase === 'result' ? !!(syncResults && syncResults.length > 0) : syncPreviewHasUsersToSync,
     });
-  }, [syncPhase, syncResults, syncPreviewHasUsersToSync]);
+  }, [syncPhase, syncResults, syncPreviewHasUsersToSync, syncPreview]);
 
   const roleOptions = useMemo(() => {
     return optionizeAll(roles);
