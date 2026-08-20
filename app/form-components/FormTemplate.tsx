@@ -248,10 +248,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
     setFormData(processed);
 
-    const bceidWarningIdps = ['bceidbasic', 'bceidboth'];
-    const newlyAddedBceidWarning = bceidWarningIdps.some((idp) => devIdps.includes(idp) && !currentIdps.includes(idp));
-    if (newlyAddedBceidWarning) setOpenBceidWarningModal(true);
-
     // If the form is applied and SDX is being enabled, load the SDX services for the client.
     if (isApplied && !formData?.sdxEnabled && newData?.sdxEnabled) {
       loadClientSdxServices();
