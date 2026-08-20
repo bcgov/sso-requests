@@ -312,13 +312,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   };
 
   const loadClientSdxServices = async () => {
-    if (!isNew) {
-      const [approved] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'approved');
-      setSdxServicesApprovedForClient(approved || []);
+    const [approved] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'approved');
+    setSdxServicesApprovedForClient(approved || []);
 
-      const [pending] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'pending');
-      setSdxServicesPendingForClient(pending || []);
-    }
+    const [pending] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'pending');
+    setSdxServicesPendingForClient(pending || []);
   };
 
   useEffect(() => {
@@ -328,7 +326,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     loadDefaultSessionSettings();
     isBcscExcluded();
     loadSdxResourceServers();
-    if (!isNew) loadClientSdxServices();
+    if (formData?.sdxEnabled && formData?.status === 'applied') loadClientSdxServices();
   }, []);
 
   // Clear other details when other is unselected

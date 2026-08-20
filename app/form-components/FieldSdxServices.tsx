@@ -320,7 +320,6 @@ type ServiceGroup = {
 };
 
 type SdxServicesPayload = {
-  integrationId: number | undefined;
   resourceServers: SDXResourceServer[];
 };
 
@@ -554,8 +553,6 @@ function getSelectedResourceServers(
 
         return {
           name: service.name,
-          title: service.title,
-          summary: service.summary,
           version: service.version,
           scopes: selectedScopes,
         } as SDXService;
@@ -1132,7 +1129,6 @@ export default function FieldSdxServices(props: Readonly<FieldTemplateProps>) {
     );
 
     const sdxServicesPayload: SdxServicesPayload = {
-      integrationId: formData?.id,
       resourceServers: selectedResourceServers,
     };
     if (typeof setFormData === 'function') {

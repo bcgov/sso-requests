@@ -13,6 +13,7 @@ import { updateRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
 import { SDXResourceServer } from '@app/shared/interfaces';
 import { setUpRouter } from './utils/setup';
+import { debug } from 'jest-preview';
 
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
@@ -279,6 +280,10 @@ describe('SDX Services Form', () => {
     fireEvent.click(screen.getByRole('tab', { name: PROD_TAB }));
   };
 
+  const openNonProductionTab = () => {
+    fireEvent.click(screen.getByRole('tab', { name: NON_PROD_TAB }));
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     setUpRouter('/', sandbox);
@@ -306,7 +311,7 @@ describe('SDX Services Form', () => {
   });
 
   it('Displays both non-production and production environment tabs', async () => {
-    await renderSdxForm();
+    await renderSdxForm({ status: 'applied' });
 
     expect(screen.getByRole('tab', { name: NON_PROD_TAB })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: PROD_TAB })).toBeInTheDocument();
@@ -339,7 +344,7 @@ describe('SDX Services Form', () => {
   });
 
   it('Pre-checks approved scopes and keeps them editable', async () => {
-    await renderSdxForm();
+    await renderSdxForm({ status: 'applied' });
 
     expect(scopeCheckbox('patient.read')).toBeChecked();
     expect(scopeCheckbox('patient.read')).not.toBeDisabled();
@@ -348,7 +353,7 @@ describe('SDX Services Form', () => {
   });
 
   it('Pre-checks pending scopes and disables them', async () => {
-    await renderSdxForm();
+    await renderSdxForm({ status: 'applied' });
 
     expect(scopeCheckbox('patient.v2.read')).toBeChecked();
     expect(scopeCheckbox('patient.v2.read')).toBeDisabled();
@@ -379,27 +384,28 @@ describe('SDX Services Form', () => {
 
     await waitFor(() => {
       const scopes = lastSavedSdxServices().resourceServers[0].services.flatMap((service: any) => service.scopes);
-      expect(scopes).toEqual(expect.arrayContaining(['patient.read', 'patient.write', 'patient.v2.read']));
+      expect(scopes).toEqual(expect.arrayContaining(['patient.write']));
     });
 
     fireEvent.click(scopeCheckbox('patient.read'));
-    expect(scopeCheckbox('patient.read')).not.toBeChecked();
+    expect(scopeCheckbox('patient.read')).toBeChecked();
 
     await waitFor(() => {
       const scopes = lastSavedSdxServices().resourceServers[0].services.flatMap((service: any) => service.scopes);
-      expect(scopes).not.toContain('patient.read');
+      expect(scopes).toEqual(expect.arrayContaining(['patient.read', 'patient.write']));
     });
   });
 
   it('Saves the selected scopes of both environments in the same payload', async () => {
     await renderSdxForm();
 
+    fireEvent.click(scopeCheckbox('patient.read'));
+
     openProductionTab();
     fireEvent.click(scopeCheckbox('payment.read'));
 
     await waitFor(() => {
-      const { integrationId, resourceServers } = lastSavedSdxServices();
-      expect(integrationId).toBe(0);
+      const { resourceServers } = lastSavedSdxServices();
       expect(resourceServers.map((resourceServer: any) => resourceServer.environment).sort()).toEqual([
         'apsdev',
         'apstest',
@@ -408,15 +414,13 @@ describe('SDX Services Form', () => {
 
     const { resourceServers } = lastSavedSdxServices();
     const nonProduction = resourceServers.find((resourceServer: any) => resourceServer.environment === 'apsdev');
+    expect(nonProduction.services[0].scopes).toEqual(['patient.read']);
     const production = resourceServers.find((resourceServer: any) => resourceServer.environment === 'apstest');
-    expect(nonProduction.services.flatMap((service: any) => service.scopes)).toEqual(
-      expect.arrayContaining(['patient.read', 'patient.v2.read']),
-    );
     expect(production.services[0].scopes).toEqual(['payment.read']);
   });
 
   it('Lists all checked scopes, including pending ones, in the selected scopes section', async () => {
-    await renderSdxForm();
+    await renderSdxForm({ status: 'applied' });
 
     let section = selectedScopesSection();
     expect(within(section).getByText('2 selected')).toBeInTheDocument();
@@ -434,7 +438,7 @@ describe('SDX Services Form', () => {
   });
 
   it('Unchecks a scope when it is removed from the selected scopes section', async () => {
-    await renderSdxForm();
+    await renderSdxForm({ status: 'applied' });
 
     fireEvent.click(within(selectedScopesSection()).getByRole('button', { name: 'Remove patient.read' }));
 
@@ -444,7 +448,7 @@ describe('SDX Services Form', () => {
   });
 
   it('Removes all scopes except the pending ones when clearing the selection', async () => {
-    await renderSdxForm();
+    await renderSdxForm({ status: 'applied' });
 
     fireEvent.click(scopeCheckbox('patient.write'));
     expect(within(selectedScopesSection()).getByText('3 selected')).toBeInTheDocument();
@@ -481,7 +485,7 @@ describe('SDX Services Form', () => {
     mockSdxResourceServersResponse = sharedLabelResourceServers;
     mockSdxApprovedAccessResponse = sharedLabelAllowedAccess(['shared.read']);
     mockSdxPendingAccessResponse = sharedLabelAllowedAccess(['shared.write']);
-    await renderSdxForm();
+    await renderSdxForm({ status: 'applied' });
 
     expect(panelCheckbox('shared.read')).toBeChecked();
     expect(panelCheckbox('shared.read')).not.toBeDisabled();
@@ -499,7 +503,7 @@ describe('SDX Services Form', () => {
   });
 
   it('Keeps the selection of each environment independent', async () => {
-    await renderSdxForm();
+    await renderSdxForm({ status: 'applied' });
 
     openProductionTab();
     fireEvent.click(scopeCheckbox('payment.read'));
@@ -518,7 +522,7 @@ describe('SDX Services Form', () => {
   });
 
   it('Restores the scopes saved on the integration into the matching environment tab', async () => {
-    await renderSdxForm({ sdxServices: savedSdxServices });
+    await renderSdxForm({ sdxServices: savedSdxServices, status: 'applied' });
 
     expect(scopeCheckbox('patient.write')).toBeChecked();
     expect(scopeCheckbox('patient.read')).not.toBeChecked();
@@ -533,7 +537,7 @@ describe('SDX Services Form', () => {
   });
 
   it('Keeps the selection when navigating to another stage and back', async () => {
-    await renderSdxForm();
+    await renderSdxForm({ status: 'applied' });
 
     fireEvent.click(scopeCheckbox('patient.write'));
     openProductionTab();
@@ -553,7 +557,7 @@ describe('SDX Services Form', () => {
   });
 
   it('Selects and clears every scope of a single service version', async () => {
-    await renderSdxForm();
+    await renderSdxForm({ status: 'applied' });
 
     const toggleV1 = () => within(versionRow('v1')).getByRole('button');
 
@@ -572,13 +576,13 @@ describe('SDX Services Form', () => {
   });
 
   it('Disables the version toggle when every scope of the version is pending', async () => {
-    await renderSdxForm();
+    await renderSdxForm({ status: 'applied' });
 
     expect(within(versionRow('v2')).getByRole('button')).toBeDisabled();
   });
 
   it('Updates the organization and service counters when scopes are toggled', async () => {
-    await renderSdxForm();
+    await renderSdxForm({ status: 'applied' });
 
     expect(within(organizationHeader('Ministry of Health')).getByText('2 selected')).toBeInTheDocument();
     expect(within(activePanel()).getByText('2 of 3 scopes')).toBeInTheDocument();
@@ -636,7 +640,7 @@ describe('SDX Services Form', () => {
         expect.objectContaining({ id: 'health-rs', organization: 'Ministry of Health', environment: 'apsdev' }),
       );
       expect(resourceServer.services).toEqual(
-        expect.arrayContaining([expect.objectContaining({ name: 'patient-api', title: 'Patient API', version: 'v1' })]),
+        expect.arrayContaining([expect.objectContaining({ name: 'patient-api', version: 'v1' })]),
       );
     });
 
@@ -857,9 +861,7 @@ describe('SDX Services Selection Helpers', () => {
           organization: 'Ministry of Health',
           description: undefined,
           environment: 'apsdev',
-          services: [
-            { name: 'patient-api', title: 'Patient API', summary: undefined, version: 'v1', scopes: ['read'] },
-          ],
+          services: [{ name: 'patient-api', version: 'v1', scopes: ['read'] }],
         },
       ]);
     });
