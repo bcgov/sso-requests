@@ -26,13 +26,6 @@ type ClientScopeState = {
   pendingScopeIds: SelectedScopesByTab;
 };
 
-/** All versions of a service, grouped under a single card. */
-type ServiceGroup = {
-  key: string;
-  title: string;
-  services: SDXService[];
-};
-
 type SdxServicesPayload = {
   resourceServers: SDXResourceServer[];
 };
@@ -115,40 +108,6 @@ function getScopeLabel(scope: SDXServiceScope | string): string {
 /** Normalizes service scopes into a single iterable type. */
 function getServiceScopes(service: SDXService): Array<SDXServiceScope | string> {
   return asArray<SDXServiceScope | string>(service?.scopes as Array<SDXServiceScope | string> | undefined | null);
-}
-
-/** Gets all synthetic scope ids for a specific service version. */
-function getServiceScopeIds(resourceServer: SDXResourceServer, service: SDXService) {
-  const resourceServerKey = getResourceServerKey(resourceServer);
-  const serviceKey = getServiceKey(service);
-  return getServiceScopes(service).map((scope) =>
-    getScopeId(resourceServerKey, serviceKey, service.version, getScopeLabel(scope)),
-  );
-}
-
-/** Groups a resource server's services by name so a single card lists all of its versions. */
-function getServiceGroups(resourceServer: SDXResourceServer): ServiceGroup[] {
-  const groups = new Map<string, ServiceGroup>();
-
-  asArray(resourceServer?.services).forEach((service) => {
-    const key = getServiceKey(service);
-    const group = groups.get(key);
-
-    if (group) group.services.push(service);
-    else groups.set(key, { key, title: service.title || service.name, services: [service] });
-  });
-
-  return Array.from(groups.values());
-}
-
-/** Gets all synthetic scope ids across every version of a grouped service. */
-function getServiceGroupScopeIds(resourceServer: SDXResourceServer, group: ServiceGroup) {
-  return group.services.flatMap((service) => getServiceScopeIds(resourceServer, service));
-}
-
-/** Gets all synthetic scope ids for a resource server. */
-function getResourceServerScopeIds(resourceServer: SDXResourceServer) {
-  return asArray(resourceServer?.services).flatMap((service) => getServiceScopeIds(resourceServer, service));
 }
 
 /** Builds a lookup map used by the selected-scope panel for quick label resolution. */
