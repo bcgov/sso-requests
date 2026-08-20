@@ -69,6 +69,29 @@ export const searchIdirUsers = async ({ field, search }: { field: string; search
   }
 };
 
+/**
+ * Verify that the given IDIR GUID resolves to a real, existing Azure IDIR account (matched against
+ * `onPremisesExtensionAttributes.extensionAttribute12`). Returns the matched user's profile info,
+ * or `null` if there is no match - callers should treat that as a normal "not found" case, not throw.
+ */
+export const verifyAzureIdirAccountByGuid = async (guid: string) => {
+  try {
+    // OData string literals delimit with single quotes; escape any embedded single quote by
+    // doubling it (the OData standard) so the GUID cannot break out of the filter expression.
+    const escapedGuid = guid.replace(/'/g, "''");
+    const url = `${MS_GRAPH_URL}/v1.0/users?$filter=onPremisesExtensionAttributes/extensionAttribute12 eq '${escapedGuid}'&$count=true&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName`;
+    const response = (await callAzureGraphApi(url)) as MsGraphUserResponse;
+    const match = response?.value?.find(
+      (user) => user.onPremisesExtensionAttributes?.extensionAttribute12?.toLowerCase() === guid.toLowerCase(),
+    );
+    if (!match) return null;
+    return formatUser(match);
+  } catch (err) {
+    console.error('Failed to verify Azure IDIR account with the MS Graph API:', err);
+    return null;
+  }
+};
+
 /** Import a user into the keycloak instances for all envs. */
 export const importIdirUser = async ({ guid, userId }: { guid: string; userId: string }) => {
   if (!guid || !userId) {

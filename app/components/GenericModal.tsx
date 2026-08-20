@@ -201,6 +201,7 @@ const GenericModal = (
               onClick={handleConfirm}
               className={config.confirmButtonVariant}
               type="button"
+              disabled={loading}
               data-testid={`modal-confirm-btn-${kebabCase(title)}`}
             >
               {loading ? (
