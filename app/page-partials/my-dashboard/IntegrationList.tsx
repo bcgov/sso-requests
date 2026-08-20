@@ -78,7 +78,8 @@ const NewEntityButton = ({
                   )
                 </PNoMargin>
                 <PNoMargin>
-                  <FontAwesomeIcon icon={faCheck} /> Identity Provider (IDIR, Azure, BCeID or Basic)
+                  <FontAwesomeIcon icon={faCheck} /> Identity Provider (IDIR, BCeID, BCSC, Digital Credential, or
+                  Github)
                 </PNoMargin>
                 <PNoMargin>
                   <FontAwesomeIcon icon={faCheck} /> Environments (Development, Test, Production)
