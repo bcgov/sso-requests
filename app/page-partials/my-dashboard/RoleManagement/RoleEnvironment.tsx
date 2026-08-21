@@ -258,14 +258,17 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   }, [syncPreview]);
 
   useEffect(() => {
+    const hasUsersToSync = syncPreview?.some((p) => p.toAttempt > 0);
+    const hasResultsDownload = !!(syncResults && syncResults.length > 0);
+
     syncModalRef.current.updateConfig({
       cancelButtonText: syncPhase === 'result' ? 'Close' : 'Cancel',
       confirmButtonText: syncPhase === 'result' ? 'Download Replication Details' : 'Run Replication',
       confirmButtonVariant: syncPhase === 'result' ? 'secondary' : 'primary',
       showCancelButton: true,
-      showConfirmButton: syncPhase === 'result' ? !!(syncResults && syncResults.length > 0) : syncPreviewHasUsersToSync,
+      showConfirmButton: syncPhase === 'result' ? hasResultsDownload : hasUsersToSync,
     });
-  }, [syncPhase, syncResults, syncPreviewHasUsersToSync]);
+  }, [syncPhase, syncResults, syncPreview]);
 
   const roleOptions = useMemo(() => {
     return optionizeAll(roles);

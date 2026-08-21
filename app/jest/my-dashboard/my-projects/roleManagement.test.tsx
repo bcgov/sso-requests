@@ -419,4 +419,31 @@ describe('role management tab', () => {
     });
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
   });
+
+  it('Should keep the Run Replication button hidden if reopened twice in a row with nothing to replicate', async () => {
+    (previewRoleSync as jest.Mock).mockResolvedValue([
+      [{ role: 'role-1', total: 2, alreadySynced: 2, toAttempt: 0 }],
+      null,
+    ]);
+
+    render(<RoleEnvironmentWithMfaComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    });
+
+    // Open, verify hidden, close.
+    fireEvent.click((await screen.findAllByTestId('sync-to-mfa'))[0]);
+    expect(await screen.findByText('No users to replicate')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: 'Run Replication' })).not.toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    // Reopen with the same "nothing to replicate" result - button must still stay hidden.
+    fireEvent.click((await screen.findAllByTestId('sync-to-mfa'))[0]);
+    expect(await screen.findByText('No users to replicate')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: 'Run Replication' })).not.toBeInTheDocument();
+    });
+  });
 });
