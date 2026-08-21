@@ -258,7 +258,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   }, [syncPreview]);
 
   useEffect(() => {
-    const hasUsersToSync = syncPreview ? syncPreview.some((p) => p.toAttempt > 0) : false;
+    const hasUsersToSync = syncPreview?.some((p) => p.toAttempt > 0);
     const hasResultsDownload = !!(syncResults && syncResults.length > 0);
 
     syncModalRef.current.updateConfig({
