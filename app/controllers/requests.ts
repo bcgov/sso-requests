@@ -608,7 +608,7 @@ export const updateRequest = async (
       }
 
       // SDX related operations
-      if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true' && usesSdxServices(current)) {
+      if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true' && usesSdxServices(current) && current?.sdxServices) {
         await createSdxRequest(session, current);
       }
 

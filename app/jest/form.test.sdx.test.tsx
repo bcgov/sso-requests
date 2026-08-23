@@ -589,6 +589,30 @@ describe('SDX Services Form', () => {
     expect(scopeCheckbox('patient.v2.read')).toBeChecked();
   });
 
+  it('Shows selected SDX organizations, services, versions and scopes on review', async () => {
+    await renderSdxForm();
+
+    fireEvent.click(scopeCheckbox('patient.write'));
+    openProductionTab();
+    fireEvent.click(scopeCheckbox('payment.read'));
+
+    fireEvent.click(screen.getByTestId('stage-review-submit'));
+
+    const nonProductionPreview = screen.getByTestId('sdx-services-non-production');
+    expect(within(nonProductionPreview).getByText('Ministry of Health')).toBeInTheDocument();
+    expect(within(nonProductionPreview).getByText('patient-api')).toBeInTheDocument();
+    expect(within(nonProductionPreview).getByText('v1')).toBeInTheDocument();
+    expect(within(nonProductionPreview).getByText('patient.write')).toBeInTheDocument();
+    expect(within(nonProductionPreview).queryByText('payment.read')).toBeNull();
+
+    const productionPreview = screen.getByTestId('sdx-services-production');
+    expect(within(productionPreview).getByText('Ministry of Finance')).toBeInTheDocument();
+    expect(within(productionPreview).getByText('payment-api')).toBeInTheDocument();
+    expect(within(productionPreview).getByText('v1')).toBeInTheDocument();
+    expect(within(productionPreview).getByText('payment.read')).toBeInTheDocument();
+    expect(within(productionPreview).queryByText('patient.write')).toBeNull();
+  });
+
   it('Restores the scopes saved on the integration into the matching environment tab', async () => {
     await renderSdxForm({ sdxServices: savedSdxServices, status: 'applied' });
 

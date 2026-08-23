@@ -46,7 +46,7 @@ import { GetStandardSettingsResponse } from '@app/interfaces/api';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import Link from '@app/components/Link';
 import { listSdxResourceServers, getSdxAllowedAccessForClient, getSdxSubsytemStatus } from '@app/services/sdx-services';
-import { SDXResourceServer, SDXAllowedAccessForClient } from '@app/shared/interfaces';
+import { SDXResourceServer, SDXAllowedAccessForClient, SDXService } from '@app/shared/interfaces';
 
 const Description = styled.p`
   margin: 0;
@@ -250,7 +250,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
     // If the form is applied and SDX is being enabled, load the SDX services for the client.
     if (isApplied && !formData?.sdxEnabled && newData?.sdxEnabled) {
-      loadClientSdxServices();
+      loadSdxResources(true);
     }
 
     throttleUpdate(processed);
@@ -306,20 +306,52 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     setBcscExcluded(!!bcscExcluded);
   };
 
-  const loadSdxResourceServers = async () => {
-    const [data] = await listSdxResourceServers({} as any);
-    setSdxResourceServers(data || []);
-  };
+  const loadSdxResources = async (loadClientAccess = formData?.sdxEnabled && formData?.status === 'applied') => {
+    const [resourceServers] = await listSdxResourceServers({} as any);
+    setSdxResourceServers(resourceServers || []);
 
-  const loadClientSdxServices = async () => {
-    const [data] = await getSdxSubsytemStatus(request?.id!);
+    if (loadClientAccess) {
+      const [data] = await getSdxSubsytemStatus(request?.id!);
 
-    if (data?.status === 'registered') {
-      const [approved] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'approved');
-      setSdxServicesApprovedForClient(approved || []);
+      if (data?.status === 'registered') {
+        const [approved] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'approved');
+        setSdxServicesApprovedForClient(approved || []);
 
-      const [pending] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'pending');
-      setSdxServicesPendingForClient(pending || []);
+        const [pending] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'pending');
+        setSdxServicesPendingForClient(pending || []);
+
+        const currApprovedAndPending = [approved, pending].map((access) => ({
+          ...access,
+          resourceServers: access.resourceServers.map((resourceServer: SDXResourceServer) => {
+            const catalogResourceServer = resourceServers.find(
+              (server: SDXResourceServer) => server.id === resourceServer.id,
+            );
+            return {
+              ...resourceServer,
+              services: resourceServer.services.map((service) => {
+                const catalogService = catalogResourceServer?.services.find(
+                  (candidate: SDXService) =>
+                    candidate.name === service.name && (!service.version || candidate.version === service.version),
+                );
+                return {
+                  ...service,
+                  version: service.version || catalogService?.version || '',
+                };
+              }),
+              name: catalogResourceServer?.name || resourceServer.name,
+            };
+          }),
+        }));
+
+        if (!formData?.sdxServices) {
+          setFormData((previousFormData) => ({
+            ...previousFormData,
+            sdxServices: {
+              resourceServers: [...currApprovedAndPending.flatMap((rs) => rs.resourceServers)],
+            } as any,
+          }));
+        }
+      }
     }
   };
 
@@ -329,8 +361,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     loadBcscAttributes();
     loadDefaultSessionSettings();
     isBcscExcluded();
-    loadSdxResourceServers();
-    if (formData?.sdxEnabled && formData?.status === 'applied') loadClientSdxServices();
+    loadSdxResources();
   }, []);
 
   // Clear other details when other is unselected

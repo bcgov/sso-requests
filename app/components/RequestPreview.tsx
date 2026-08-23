@@ -4,7 +4,6 @@ import { authTypeDisplay } from 'metadata/display';
 import { Team } from 'interfaces/team';
 import { idpMap } from 'helpers/meta';
 import { usesBcServicesCard } from '@app/helpers/integration';
-import { SDXResourceServer, SDXServiceScope } from '@app/shared/interfaces';
 import SdxAccessPreview from './SDXAccessPreview';
 
 const Table = styled.table`

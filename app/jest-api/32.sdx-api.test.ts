@@ -5,7 +5,7 @@ import { getConfiguration } from '@app/utils/authenticate';
 import { getAdminClient } from '@app/keycloak/adminClient';
 import { getUserById } from '@app/queries/user';
 import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
-import { createSdxRequest, getRemovedScopes } from '@app/controllers/sdx-services';
+import { createSdxRequest, getRemovedScopes, processSdxWorkflowUpdates } from '@app/controllers/sdx-services';
 import { SDXResourceServer, Session } from '@app/shared/interfaces';
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/fixtures';
 import { buildIntegration } from './helpers/modules/common';
@@ -485,7 +485,7 @@ describe('SDX APIs', () => {
     it('Removes the previously approved scopes that are no longer requested', async () => {
       const integration = await buildSdxIntegration('sdx-create-request-removal');
       setUpSdxApi({
-        subsystemStatus: 'not-registered',
+        subsystemStatus: 'registered',
         allowedServices: {
           [`${NON_PRODUCTION_ENV}:approved`]: [
             selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read', 'patient.write']),
@@ -511,7 +511,7 @@ describe('SDX APIs', () => {
     it('Does not remove scopes that are still requested', async () => {
       const integration = await buildSdxIntegration('sdx-create-request-no-removal');
       setUpSdxApi({
-        subsystemStatus: 'not-registered',
+        subsystemStatus: 'registered',
         allowedServices: {
           [`${NON_PRODUCTION_ENV}:approved`]: [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])],
         },
@@ -575,6 +575,21 @@ describe('SDX APIs', () => {
 
       expect(fetchMock).not.toHaveBeenCalled();
       expect(getAdminClient).not.toHaveBeenCalled();
+    });
+
+    it('Skips malformed resource servers without services while creating a request', async () => {
+      const integration = await buildSdxIntegration('sdx-create-request-malformed-services');
+      const resourceServers = [
+        { id: 'broken-rs', environment: NON_PRODUCTION_ENV, services: undefined } as any,
+        selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read']),
+      ];
+
+      await expect(createSdxRequest(adminSession, withSdxServices(integration, resourceServers))).resolves.toEqual(
+        expect.objectContaining({ success: true }),
+      );
+      expect(keycloak.clientScopesCreate).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'patient.read', protocol: 'openid-connect' }),
+      );
     });
 
     it('Initializes object-form scopes by label', async () => {
@@ -654,9 +669,25 @@ describe('SDX APIs', () => {
       expect(getRemovedScopes([], existing)).toEqual({});
       expect(getRemovedScopes(undefined, undefined)).toEqual({});
     });
+
+    it('Ignores malformed resource servers and services when comparing scopes', () => {
+      const malformed = [
+        { id: 'broken-rs', environment: NON_PRODUCTION_ENV, services: undefined } as any,
+        {
+          id: 'health-rs',
+          environment: NON_PRODUCTION_ENV,
+          services: [{ name: 'patient-api', version: 'v1', scopes: ['patient.read'] }],
+        },
+      ] as SDXResourceServer[];
+
+      expect(getRemovedScopes(existing, malformed)).toEqual({
+        [NON_PRODUCTION_ENV]: ['patient.write', 'patient.v2.read'],
+        [PRODUCTION_ENV]: ['payment.read'],
+      });
+    });
   });
 
-  describe('Processing SDX access request approvals', () => {
+  describe('Processing SDX workflow updates', () => {
     const approvalPayload = (environment: string, scopes: string[]) => ({
       integrationId: 1,
       resourceServers: [selectedResourceServer(environment, scopes)],
@@ -779,7 +810,7 @@ describe('SDX APIs', () => {
 
       await putSdxAllowedAccess(integration.id, approvalPayload(PRODUCTION_ENV, ['payment.read']), signToken());
 
-      expect(adminClientEnvironments()).toEqual(['prod']);
+      expect(adminClientEnvironments()).toEqual(['prod', 'prod']);
       expect(keycloak.addDefaultClientScope).toHaveBeenCalledWith({
         id: 'kc-client-uuid',
         realm: 'standard',
@@ -791,7 +822,7 @@ describe('SDX APIs', () => {
       const integration = await buildSdxIntegration('sdx-approval-non-production');
 
       await putSdxAllowedAccess(integration.id, approvalPayload(NON_PRODUCTION_ENV, ['patient.read']), signToken());
-      expect(adminClientEnvironments()).toEqual(['dev', 'test']);
+      expect(adminClientEnvironments()).toEqual(['dev', 'dev', 'test', 'test']);
     });
 
     it('Does not grant a scope that is already assigned to the client', async () => {
@@ -868,6 +899,26 @@ describe('SDX APIs', () => {
 
       expect(result.status).toBe(200);
       expect(getAdminClient).not.toHaveBeenCalled();
+    });
+
+    it('Skips malformed resource servers without services while processing approvals', async () => {
+      const integration = await buildSdxIntegration('sdx-approval-malformed-resource-server');
+
+      await expect(
+        processSdxWorkflowUpdates(integration.id, {
+          integrationId: integration.id,
+          resourceServers: [
+            { id: 'broken-rs', environment: NON_PRODUCTION_ENV, services: undefined } as any,
+            selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read']),
+          ],
+        } as any),
+      ).resolves.toBeUndefined();
+
+      expect(keycloak.addDefaultClientScope).toHaveBeenCalledWith({
+        id: 'kc-client-uuid',
+        realm: 'standard',
+        clientScopeId: 'patient.read',
+      });
     });
   });
 });

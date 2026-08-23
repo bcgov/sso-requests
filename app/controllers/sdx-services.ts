@@ -77,7 +77,7 @@ export const getSdxServicesForClient = async (
   }
 };
 
-export const listSdxResourceServers = async (session: Session): Promise<SDXResourceServer[]> => {
+export const listSdxResourceServers = async (): Promise<SDXResourceServer[]> => {
   try {
     let resourceServers: SDXResourceServer[] = [];
 
@@ -103,7 +103,7 @@ const collectScopesByEnvironment = (resourceServers: SDXResourceServer[] = []) =
     for (const service of rs.services || []) {
       for (const scope of service.scopes || []) {
         if (!byEnvironment[rs.environment]) byEnvironment[rs.environment] = new Set();
-        byEnvironment[rs.environment].add(`${service.name}$$${service.version}$$${getScopeLabel(scope)}`);
+        byEnvironment[rs.environment].add(`${rs.id}###${service.name}###${service.version}###${getScopeLabel(scope)}`);
       }
     }
   }
@@ -128,7 +128,7 @@ export const getRemovedScopes = (
     const retained = newByEnvironment[environment] || new Set<string>();
     const removedScopes = Array.from(scopes).filter((scope) => !retained.has(scope));
     if (removedScopes.length > 0) {
-      removedByEnv[environment] = removedScopes.map((scope) => scope.split('$$')[2]); // Extract the scope part from the composite key
+      removedByEnv[environment] = removedScopes.map((scope) => scope.split('###')[3]); // Extract the scope part from the composite key
     }
   }
 
@@ -140,7 +140,10 @@ const removeSdxAccessByScopes = async (clientId: string, environment: string, sc
   const result = await kcAdminClient.clients.find({ realm: 'standard', clientId });
 
   if (!result || result.length === 0) {
-    throw new Error(`Client with ID ${clientId} not found`);
+    console.info(
+      `Client with ID ${clientId} not found in Keycloak for environment ${environment} - skipping scope removal`,
+    );
+    return;
   }
 
   const client = result[0];
@@ -168,19 +171,6 @@ export const createSdxRequest = async (session: Session, request: Integration) =
     const resourceServers = request.sdxServices.resourceServers || [];
     if (resourceServers.length === 0) throw new Error('SDX resource servers cannot be empty');
     await initializeScopes(resourceServers);
-
-    // If the request is already applied, we need to check for removed scopes and remove them from Keycloak
-    if (request.status === 'applied') {
-      const subSystem = await getSdxSubsystemStatus(request.id!);
-
-      if (subSystem?.status !== 'registered') {
-        const existingSdxAccess = await getSdxServicesForClient(session, request.id!, 'approved');
-        const removedScopesByEnv = getRemovedScopes(existingSdxAccess.resourceServers, resourceServers);
-        for (const [environment, scopes] of Object.entries(removedScopesByEnv)) {
-          await removeSdxAccessFromKeycloak(existingSdxAccess.clientId, environment, scopes);
-        }
-      }
-    }
 
     const user = await getUserById(session.user?.id || 0, { raw: true });
 
@@ -213,6 +203,19 @@ export const createSdxRequest = async (session: Session, request: Integration) =
     const responseData = await response.json();
 
     await createSdxAccessRequest(responseData.submissionId || '', user?.displayName || '', request.id!, sdxRequestData);
+
+    // If the request is already applied, we need to check for removed scopes and remove them from Keycloak
+    if (request.status === 'applied') {
+      const subSystem = await getSdxSubsystemStatus(request.id!);
+
+      if (subSystem?.status === 'registered') {
+        const existingSdxAccess = await getSdxServicesForClient(session, request.id!, 'approved');
+        const removedScopesByEnv = getRemovedScopes(existingSdxAccess.resourceServers, resourceServers);
+        for (const [sdxEnvironment, scopes] of Object.entries(removedScopesByEnv)) {
+          await removeSdxAccessFromKeycloak(existingSdxAccess.clientId, sdxEnvironment, scopes);
+        }
+      }
+    }
   } catch (error) {
     throw error;
   }
@@ -230,8 +233,8 @@ export const createSdxRequest = async (session: Session, request: Integration) =
 const initializeScopes = async (resourceServers: SDXResourceServer[]) => {
   const sdxScopes: { [environment: string]: Set<string> } = {};
 
-  for (const rs of resourceServers) {
-    for (const service of rs.services) {
+  for (const rs of resourceServers || []) {
+    for (const service of rs.services || []) {
       if (service.scopes && service.scopes.length > 0) {
         for (const scope of service.scopes) {
           if (!sdxScopes[rs.environment]) {
@@ -255,20 +258,30 @@ const initializeScopes = async (resourceServers: SDXResourceServer[]) => {
 const keycloakSyncScopes = async (environment: string, realmName: string, scopes: string[]) => {
   const existingScopes = await getClientScopes({ environment, realmName });
   const existingScopeNames = new Set(existingScopes.map((scope) => scope.name));
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+  const kongClient = await kcAdminClient.clients.find({ realm: realmName, clientId: 'sdx-rg-pzgw' });
 
-  for (const scope of scopes) {
-    if (!existingScopeNames.has(scope)) {
-      await createClientScope({
-        protocol: 'oidc',
-        environment,
-        realmName,
-        scopeName: scope,
+  for (const scopeName of scopes) {
+    if (!existingScopeNames.has(scopeName)) {
+      const scope = await kcAdminClient.clientScopes.create({
+        realm: realmName,
+        name: scopeName,
+        protocol: 'openid-connect',
       });
+
+      if (kongClient && kongClient.length > 0) {
+        console.log(`Adding scope ${scopeName} to client ${kongClient[0].clientId} in realm ${realmName}`);
+        await kcAdminClient.clients.addOptionalClientScope({
+          id: kongClient[0].id!,
+          realm: realmName,
+          clientScopeId: scope.id!,
+        });
+      }
     }
   }
 };
 
-export const processSdxRequestApprovals = async (requestId: number, data: SDXAccessRequest) => {
+export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAccessRequest) => {
   const integrationData = await getIntegrationById(requestId, [
     'id',
     'environments',
@@ -297,7 +310,7 @@ export const processSdxRequestApprovals = async (requestId: number, data: SDXAcc
 
   if (data.resourceServers && data.resourceServers.length > 0) {
     for (const rs of data.resourceServers) {
-      for (const service of rs.services) {
+      for (const service of rs.services || []) {
         if (service.scopes && service.scopes.length > 0) {
           const scopes = service.scopes.map(getScopeLabel);
           if (isProductionSdxEnvironment(rs.environment)) {
@@ -314,6 +327,9 @@ export const processSdxRequestApprovals = async (requestId: number, data: SDXAcc
 };
 
 export const manageKeycloakScopes = async (clientId: string, environment: string, scopes: string[]) => {
+  const allScopes = (await listSdxResourceServers()).flatMap((rs) =>
+    (rs.services || []).flatMap((service) => (service.scopes || []).map((scope) => getScopeLabel(scope))),
+  );
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const result = await kcAdminClient.clients.find({ realm: 'standard', clientId });
 
@@ -323,10 +339,22 @@ export const manageKeycloakScopes = async (clientId: string, environment: string
 
   const client = result[0];
 
-  const existingScopes = await kcAdminClient.clients.listDefaultClientScopes({ id: client.id!, realm: 'standard' });
-  const existingScopeNames = new Set(existingScopes.map((scope: ClientScopeRepresentation) => scope.name));
+  const allAssignedScopes = await kcAdminClient.clients.listDefaultClientScopes({
+    realm: 'standard',
+    id: client.id!,
+  });
 
-  const scopesToAdd = scopes.filter((scope) => !existingScopeNames.has(scope));
+  const allAssignedScopesNames = new Set(allAssignedScopes.map((scope: ClientScopeRepresentation) => scope.name));
+
+  const sdxAssignedScopes = allScopes.filter((scope) => allAssignedScopesNames.has(scope));
+
+  await removeSdxAccessByScopes(
+    clientId,
+    environment,
+    sdxAssignedScopes.filter((scope) => !scopes.includes(scope)),
+  );
+
+  const scopesToAdd = scopes.filter((scope) => !allAssignedScopesNames.has(scope));
 
   for (const scope of scopesToAdd) {
     await kcAdminClient.clients.addDefaultClientScope({ id: client.id!, realm: 'standard', clientScopeId: scope });

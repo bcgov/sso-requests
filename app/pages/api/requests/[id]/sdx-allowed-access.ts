@@ -3,7 +3,7 @@ import { authenticate, getConfiguration } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
 import { handleError } from '@app/utils/helpers';
 import { processUserSession } from '@app/controllers/user';
-import { getSdxServicesForClient, processSdxRequestApprovals } from '@app/controllers/sdx-services';
+import { getSdxServicesForClient, processSdxWorkflowUpdates } from '@app/controllers/sdx-services';
 import jws from 'jws';
 import jwkToPem from 'jwk-to-pem';
 import jwt, { JwtPayload } from 'jsonwebtoken';
@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { id } = req.query || {};
       if (!id) return res.status(400).json({ success: false, message: 'Integration ID is required' });
 
-      await processSdxRequestApprovals(Number(id), req.body);
+      await processSdxWorkflowUpdates(Number(id), req.body);
       return res.status(200).json({ success: true });
     } else {
       res.setHeader('Allow', ['GET', 'PUT']);
