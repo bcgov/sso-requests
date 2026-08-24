@@ -181,6 +181,16 @@ spec:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
                   key: rc_webhook_url
+            - name: SDX_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: sdx-client-id
+            - name: SDX_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: sdx-client-secret
             {{- range $key, $val := .Values.env }}
             - name: {{  $key | quote | upper }}
               value: {{ $val | quote }}
