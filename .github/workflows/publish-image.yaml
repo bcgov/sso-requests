@@ -254,6 +254,7 @@ jobs:
             NEXT_PUBLIC_INCLUDE_OTP=${{ env.NEXT_PUBLIC_INCLUDE_OTP }}
             NEXT_PUBLIC_APP_ENV=${{ env.NEXT_PUBLIC_APP_ENV }}
             NEXT_PUBLIC_SSO_IDP_HINT=${{ env.NEXT_PUBLIC_SSO_IDP_HINT }}
+            NEXT_PUBLIC_INCLUDE_SDX_SERVICES=${{ env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES }}
           context: .
           push: true
           tags: ${{ env.GITHUB_REGISTRY }}/bcgov/sso-requests:${{ needs.set-tag.outputs.tag }}
@@ -354,8 +355,9 @@ jobs:
           --set api.route.apiVanityCertificate="${{ secrets.API_CERTIFICATE }}" \
           --set api.route.apiVanityCaCertificate="${{ secrets.API_CA_CERTIFICATE }}" \
           --set api.route.apiVanityKey="${{ secrets.API_KEY }}" \
-          --set envVars.sdxClientId.value="${{ env.SDX_CLIENT_ID }}" \
-          --set envVars.sdxClientSecret.value="${{ env.SDX_CLIENT_SECRET }}" \
+          --set backup-storage.env.WEBHOOK_URL.value="${{ secrets.RC_SSO_OPS_WEBHOOK }}" \
+          --set envVars.sdxClientId="${{ env.SDX_CLIENT_ID }}" \
+          --set envVars.sdxClientSecret="${{ env.SDX_CLIENT_SECRET }}" \
           --timeout 15m
         working-directory: ./helm
 
