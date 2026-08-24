@@ -1,4 +1,5 @@
 import { SDXServiceScope, SDXResourceServer } from '@app/shared/interfaces';
+import { SDX_ENVIRONMENTS } from '@app/utils/constants';
 import styled from 'styled-components';
 
 const SdxTable = styled.table`
@@ -48,7 +49,10 @@ const Scope = styled.span`
 
 const getScopeLabel = (scope: SDXServiceScope | string) => (typeof scope === 'string' ? scope : scope.label);
 
-const isProductionSdxEnvironment = (environment: string) => ['apstest', 'bc'].includes(environment.toLowerCase());
+const isProductionSdxEnvironment = (environment: string) =>
+  [SDX_ENVIRONMENTS['production']['production'], SDX_ENVIRONMENTS['sandbox']['production']].includes(
+    environment.toLowerCase(),
+  );
 
 interface SdxServicesTableProps {
   environment: 'non-production' | 'production';

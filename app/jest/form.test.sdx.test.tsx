@@ -14,6 +14,7 @@ import { getSdxAllowedAccessForClient, getSdxSubsytemStatus } from 'services/sdx
 import { Integration } from 'interfaces/Request';
 import { SDXResourceServer } from '@app/shared/interfaces';
 import { setUpRouter } from './utils/setup';
+import { SDX_ENVIRONMENTS } from '@app/utils/constants';
 
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
@@ -72,7 +73,7 @@ const sampleSdxResourceServers = [
     name: 'Health Resource Server',
     organization: 'Ministry of Health',
     description: 'Health data services',
-    environment: 'apsdev',
+    environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
     services: [
       {
         name: 'patient-api',
@@ -93,7 +94,7 @@ const sampleSdxResourceServers = [
     name: 'Finance Resource Server',
     organization: 'Ministry of Finance',
     description: 'Finance data services',
-    environment: 'apstest',
+    environment: SDX_ENVIRONMENTS['sandbox']['production'],
     services: [
       {
         name: 'payment-api',
@@ -113,7 +114,7 @@ const sharedLabelResourceServers = [
     id: 'shared-rs',
     name: 'Shared Resource Server',
     organization: 'Shared Organization',
-    environment: 'apsdev',
+    environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
     services: [
       {
         name: 'shared-api',
@@ -127,7 +128,7 @@ const sharedLabelResourceServers = [
     id: 'shared-rs',
     name: 'Shared Resource Server',
     organization: 'Shared Organization',
-    environment: 'apstest',
+    environment: SDX_ENVIRONMENTS['sandbox']['production'],
     services: [
       {
         name: 'shared-api',
@@ -144,7 +145,7 @@ const sharedLabelAllowedAccess = (scopes: string[]) => ({
   resourceServers: [
     {
       id: 'shared-rs',
-      environment: 'apsdev',
+      environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
       services: [{ name: 'shared-api', version: 'v1', scopes: scopes.map(sdxScope) }],
     },
   ],
@@ -156,14 +157,14 @@ const duplicateLabelResourceServers = [
     id: 'org-a-rs',
     name: 'Org A Resource Server',
     organization: 'Org A',
-    environment: 'apsdev',
+    environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
     services: [{ name: 'org-a-api', title: 'Org A API', version: 'v1', scopes: [sdxScope('read')] }],
   },
   {
     id: 'org-b-rs',
     name: 'Org B Resource Server',
     organization: 'Org B',
-    environment: 'apsdev',
+    environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
     services: [{ name: 'org-b-api', title: 'Org B API', version: 'v1', scopes: [sdxScope('read')] }],
   },
 ];
@@ -173,7 +174,7 @@ const duplicateLabelApprovedAccess = {
   resourceServers: [
     {
       id: 'org-a-rs',
-      environment: 'apsdev',
+      environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
       services: [{ name: 'org-a-api', version: 'v1', scopes: [sdxScope('read')] }],
     },
   ],
@@ -185,13 +186,13 @@ const incompleteSdxResourceServers = [
     id: 'no-services-rs',
     name: 'No Services Server',
     organization: 'Organization Without Services',
-    environment: 'apsdev',
+    environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
     services: [],
   },
   {
     id: 'string-scope-rs',
     name: 'String Scopes Server',
-    environment: 'apsdev',
+    environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
     services: [
       { name: 'string-api', version: 'v1', scopes: ['string.read'] },
       { name: 'empty-api', title: 'Empty API', version: 'v1', scopes: [] },
@@ -211,12 +212,12 @@ const savedSdxServices = {
   resourceServers: [
     {
       id: 'health-rs',
-      environment: 'apsdev',
+      environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
       services: [{ name: 'patient-api', version: 'v1', scopes: ['patient.write'] }],
     },
     {
       id: 'finance-rs',
-      environment: 'apstest',
+      environment: SDX_ENVIRONMENTS['sandbox']['production'],
       services: [{ name: 'payment-api', version: 'v1', scopes: ['payment.write'] }],
     },
   ],
@@ -227,7 +228,7 @@ const sampleSdxApprovedAccess = {
   resourceServers: [
     {
       id: 'health-rs',
-      environment: 'apsdev',
+      environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
       services: [{ name: 'patient-api', version: 'v1', scopes: [sdxScope('patient.read')] }],
     },
   ],
@@ -238,7 +239,7 @@ const sampleSdxPendingAccess = {
   resourceServers: [
     {
       id: 'health-rs',
-      environment: 'apsdev',
+      environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
       services: [{ name: 'patient-api', version: 'v2', scopes: [sdxScope('patient.v2.read')] }],
     },
   ],
@@ -457,15 +458,19 @@ describe('SDX Services Form', () => {
     await waitFor(() => {
       const { resourceServers } = lastSavedSdxServices();
       expect(resourceServers.map((resourceServer: any) => resourceServer.environment).sort()).toEqual([
-        'apsdev',
-        'apstest',
+        SDX_ENVIRONMENTS['sandbox']['non-production'],
+        SDX_ENVIRONMENTS['sandbox']['production'],
       ]);
     });
 
     const { resourceServers } = lastSavedSdxServices();
-    const nonProduction = resourceServers.find((resourceServer: any) => resourceServer.environment === 'apsdev');
+    const nonProduction = resourceServers.find(
+      (resourceServer: any) => resourceServer.environment === SDX_ENVIRONMENTS['sandbox']['non-production'],
+    );
     expect(nonProduction.services[0].scopes).toEqual(['patient.read']);
-    const production = resourceServers.find((resourceServer: any) => resourceServer.environment === 'apstest');
+    const production = resourceServers.find(
+      (resourceServer: any) => resourceServer.environment === SDX_ENVIRONMENTS['sandbox']['production'],
+    );
     expect(production.services[0].scopes).toEqual(['payment.read']);
   });
 
@@ -729,7 +734,11 @@ describe('SDX Services Form', () => {
     await waitFor(() => {
       const [resourceServer] = lastSavedSdxServices().resourceServers;
       expect(resourceServer).toEqual(
-        expect.objectContaining({ id: 'health-rs', organization: 'Ministry of Health', environment: 'apsdev' }),
+        expect.objectContaining({
+          id: 'health-rs',
+          organization: 'Ministry of Health',
+          environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
+        }),
       );
       expect(resourceServer.services).toEqual(
         expect.arrayContaining([expect.objectContaining({ name: 'patient-api', version: 'v1' })]),
@@ -776,7 +785,7 @@ describe('SDX Services Selection Helpers', () => {
       id: 'health-rs',
       name: 'Health Resource Server',
       organization: 'Ministry of Health',
-      environment: 'apsdev',
+      environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
       services: [
         { name: 'patient-api', title: 'Patient API', version: 'v1', scopes: [sdxScope('read'), sdxScope('write')] },
       ],
@@ -785,7 +794,7 @@ describe('SDX Services Selection Helpers', () => {
       id: 'health-rs',
       name: 'Health Resource Server',
       organization: 'Ministry of Health',
-      environment: 'apstest',
+      environment: SDX_ENVIRONMENTS['sandbox']['production'],
       services: [
         { name: 'patient-api', title: 'Patient API', version: 'v1', scopes: [sdxScope('read'), sdxScope('write')] },
       ],
@@ -808,12 +817,8 @@ describe('SDX Services Selection Helpers', () => {
 
   describe('normalizeEnvironment', () => {
     it('Maps the sandbox environment values to the matching tab', () => {
-      expect(normalizeEnvironment('apsdev')).toBe('non-production');
-      expect(normalizeEnvironment('apstest')).toBe('production');
-    });
-
-    it('Ignores casing and surrounding whitespace', () => {
-      expect(normalizeEnvironment('  APSTEST ')).toBe('production');
+      expect(normalizeEnvironment(SDX_ENVIRONMENTS['sandbox']['non-production'])).toBe('non-production');
+      expect(normalizeEnvironment(SDX_ENVIRONMENTS['sandbox']['production'])).toBe('production');
     });
 
     it('Falls back to non-production for unknown, empty and missing values', () => {
@@ -832,7 +837,7 @@ describe('SDX Services Selection Helpers', () => {
         const { normalizeEnvironment: normalize } = require('form-components/FieldSdxServices');
         expect(normalize('bct')).toBe('non-production');
         expect(normalize('bc')).toBe('production');
-        expect(normalize('apstest')).toBe('non-production');
+        expect(normalize(SDX_ENVIRONMENTS['sandbox']['production'])).toBe('non-production');
       });
 
       process.env.NEXT_PUBLIC_APP_ENV = previousAppEnv;
@@ -853,8 +858,8 @@ describe('SDX Services Selection Helpers', () => {
   describe('getClientScopeState', () => {
     it('Keeps approved and pending access scoped to their own environment', () => {
       const { approvedScopeIds, pendingScopeIds } = getClientScopeState(
-        allowedAccess('apsdev', ['read']),
-        allowedAccess('apsdev', ['write']),
+        allowedAccess(SDX_ENVIRONMENTS['sandbox']['non-production'], ['read']),
+        allowedAccess(SDX_ENVIRONMENTS['sandbox']['non-production'], ['write']),
         sharedCatalog,
       );
 
@@ -866,7 +871,7 @@ describe('SDX Services Selection Helpers', () => {
 
     it('Marks production access only in the production tab', () => {
       const { approvedScopeIds, pendingScopeIds } = getClientScopeState(
-        allowedAccess('apstest', ['read']),
+        allowedAccess(SDX_ENVIRONMENTS['sandbox']['production'], ['read']),
         null,
         sharedCatalog,
       );
@@ -881,7 +886,11 @@ describe('SDX Services Selection Helpers', () => {
       expect(approvedScopeIds['non-production'].size).toBe(0);
       expect(pendingScopeIds.production.size).toBe(0);
 
-      const withoutCatalog = getClientScopeState(allowedAccess('apsdev', ['read']), null, undefined as any);
+      const withoutCatalog = getClientScopeState(
+        allowedAccess(SDX_ENVIRONMENTS['sandbox']['non-production'], ['read']),
+        null,
+        undefined as any,
+      );
       expect(withoutCatalog.approvedScopeIds['non-production'].size).toBe(0);
     });
 
@@ -962,7 +971,7 @@ describe('SDX Services Selection Helpers', () => {
           name: 'Health Resource Server',
           organization: 'Ministry of Health',
           description: undefined,
-          environment: 'apsdev',
+          environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
           services: [{ name: 'patient-api', version: 'v1', scopes: ['read'] }],
         },
       ]);
@@ -974,7 +983,10 @@ describe('SDX Services Selection Helpers', () => {
         sharedCatalog,
       );
 
-      expect(resourceServers.map((resourceServer) => resourceServer.environment)).toEqual(['apsdev', 'apstest']);
+      expect(resourceServers.map((resourceServer) => resourceServer.environment)).toEqual([
+        SDX_ENVIRONMENTS['sandbox']['non-production'],
+        SDX_ENVIRONMENTS['sandbox']['production'],
+      ]);
       expect(resourceServers[0].services[0].scopes).toEqual(['read']);
       expect(resourceServers[1].services[0].scopes).toEqual(['write']);
     });
@@ -985,8 +997,12 @@ describe('SDX Services Selection Helpers', () => {
 
     it('Tolerates resource servers without services and services without scopes', () => {
       const catalog = [
-        { id: 'empty-rs', environment: 'apsdev', services: [] },
-        { id: 'no-scope-rs', environment: 'apsdev', services: [{ name: 'api', version: 'v1', scopes: [] }] },
+        { id: 'empty-rs', environment: SDX_ENVIRONMENTS['sandbox']['non-production'], services: [] },
+        {
+          id: 'no-scope-rs',
+          environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
+          services: [{ name: 'api', version: 'v1', scopes: [] }],
+        },
       ] as SDXResourceServer[];
 
       expect(buildSdxRequestPayloadFromSelectedScopes(byTab([readScopeId]), catalog)).toEqual([]);

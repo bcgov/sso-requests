@@ -12,6 +12,7 @@ import {
   SDXServiceScope,
 } from '@app/shared/interfaces';
 import SDXServicesSelector, { ScopeReference } from '@app/components/SDXServicesSelector';
+import { SDX_ENVIRONMENTS } from '@app/utils/constants';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-top: ${FORM_TOP_SPACING};
@@ -35,19 +36,8 @@ function asArray<T>(value: T[] | undefined | null): T[] {
   return Array.isArray(value) ? value : [];
 }
 
-/** Raw SDX environment values for each tab, per app deployment (sandbox vs prod). */
-const SANDBOX_ENVIRONMENT_VALUES: Record<EnvironmentKey, string> = {
-  'non-production': 'apsdev',
-  production: 'apstest',
-};
-
-const PROD_ENVIRONMENT_VALUES: Record<EnvironmentKey, string> = {
-  'non-production': 'bct',
-  production: 'bc',
-};
-
 const ENVIRONMENT_VALUES =
-  process.env.NEXT_PUBLIC_APP_ENV === 'production' ? PROD_ENVIRONMENT_VALUES : SANDBOX_ENVIRONMENT_VALUES;
+  process.env.NEXT_PUBLIC_APP_ENV === 'production' ? SDX_ENVIRONMENTS['production'] : SDX_ENVIRONMENTS['sandbox'];
 
 /** Normalizes raw SDX environment values into one of the supported tab keys. */
 export function normalizeEnvironment(environment: string | undefined | null): EnvironmentKey {

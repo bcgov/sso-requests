@@ -8,7 +8,7 @@ import jws from 'jws';
 import jwkToPem from 'jwk-to-pem';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
-const audience = process.env.NEXT_PUBLIC_SSO_CLIENT_ID || '';
+const audience = process.env.SDX_TO_CSS_SVC_ACCOUNT || '';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
