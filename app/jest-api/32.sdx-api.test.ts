@@ -317,14 +317,17 @@ describe('SDX APIs', () => {
     it('Uses the production environment values when the app runs in production', async () => {
       process.env.NEXT_PUBLIC_APP_ENV = 'production';
 
-      await getSdxResourceServers();
+      try {
+        await getSdxResourceServers();
 
-      expect(sdxApiCalls('/resource-servers')).toEqual([
-        `${SDX_API}/resource-servers?environment=bc`,
-        `${SDX_API}/resource-servers?environment=bct`,
-      ]);
-
-      process.env.NEXT_PUBLIC_APP_ENV = 'test';
+        expect(sdxApiCalls('/resource-servers')).toEqual([
+          `${SDX_API}/resource-servers?environment=bc`,
+          `${SDX_API}/resource-servers?environment=bct`,
+        ]);
+      } finally {
+        // Always restore, otherwise a failed assertion above would leak into every later test.
+        process.env.NEXT_PUBLIC_APP_ENV = 'test';
+      }
     });
 
     it('Rejects unauthenticated requests', async () => {

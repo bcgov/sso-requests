@@ -4,7 +4,7 @@ import { getAllowedRequest, getIntegrationById } from '@app/queries/request';
 import { EVENTS } from '@app/shared/enums';
 import { createEvent } from './requests';
 import { getAdminClient } from '@app/keycloak/adminClient';
-import { createClientScope, getClientScopes } from '@app/keycloak/clientScopes';
+import { getClientScopes } from '@app/keycloak/clientScopes';
 import ClientScopeRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientScopeRepresentation';
 import { createSdxAccessRequest } from '@app/queries/sdx-services';
 import { Integration } from '@app/interfaces/Request';
