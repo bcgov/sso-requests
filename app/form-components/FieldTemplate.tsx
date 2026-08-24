@@ -35,6 +35,7 @@ export default function FieldTemplate(
 
   return (
     <>
+      {(props as any).uiSchema?.['ui:options']?.errorLocation === 'top' && errors}
       {top}
       <div className={classes}>
         <>
@@ -48,7 +49,7 @@ export default function FieldTemplate(
           )}
           <div data-testid={`${id}_description`}>{descriptionToUse}</div>
           {children}
-          {errors}
+          {(props as any).uiSchema?.['ui:options']?.errorLocation !== 'top' && errors}
           {help}
         </>
       </div>

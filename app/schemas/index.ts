@@ -3,6 +3,7 @@ import getRequesterInfoSchema from '@app/schemas/requester-info';
 import termsAndConditionsSchema from '@app/schemas/terms-and-conditions';
 import getProvidersGoldSchema from '@app/schemas/providers-gold';
 import getEnvironmentGoldSchemas from '@app/schemas/environment-gold';
+import getSdxServicesSchema from '@app/schemas/sdx-services';
 import getReviewSubmitSchema from '@app/schemas/review-submit';
 import { LoggedInUser, Team } from '@app/interfaces/team';
 import { Integration } from '@app/interfaces/Request';
@@ -50,6 +51,11 @@ export const getSchemas = ({
       getProvidersGoldSchema(formData, session, bcscPrivacyZones, bcscAttributes),
       ...environmentSchemas,
     );
+
+    if (formData.devIdps?.includes('bcservicescard') && formData.sdxEnabled) {
+      schemas.push(getSdxServicesSchema());
+    }
+
     if (!isApplied) schemas.push(termsAndConditionsSchema);
   }
 

@@ -21,6 +21,7 @@ export const EVENTS = {
   LOGS_DOWNLOADED_FAILURE: 'logs-download-failure',
   TRANSFER_OF_OWNERSHIP_FAILURE: 'transfer-of-ownership-failure',
   TEAM_ADMIN_REMOVAL: 'team-admin-removal',
+  SDX_ACCESS_REQUEST_UPDATE: 'sdx-access-request-update',
 };
 
 export const EMAILS = {

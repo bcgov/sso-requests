@@ -575,6 +575,8 @@ export const sanitizeRequest = (session: Session, data: Integration, isMerged: b
 
   if (data?.usesTeam === true) data.projectLead = false;
 
+  if (!data?.sdxEnabled) delete data.sdxServices;
+
   return data;
 };
 
