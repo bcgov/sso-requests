@@ -2,6 +2,7 @@ import 'dotenv/config';
 
 import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
+import path from 'node:path';
 
 import { ClientSecretCredential } from '@azure/identity';
 
@@ -10,7 +11,14 @@ import { writeMarkdownReport } from './report.js';
 
 import type { ResourceActivity, ValidationContext, ValidationResult, ValidatorConfig } from './types.js';
 
-const configPath = process.argv[2] ?? 'config.json';
+const configRoot = process.cwd();
+const requestedConfigPath = process.argv[2] ?? 'config.json';
+const configPath = path.resolve(configRoot, requestedConfigPath);
+const relativeConfigPath = path.relative(configRoot, configPath);
+
+if (relativeConfigPath.startsWith(`..${path.sep}`) || path.isAbsolute(relativeConfigPath)) {
+  throw new Error('Config path must remain within the current working directory.');
+}
 
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8')) as ValidatorConfig;
 

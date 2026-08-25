@@ -4,6 +4,7 @@ import type { ResourceActivity, ValidationContext, ValidationResult } from './ty
 
 function escapeMarkdown(value: unknown): string {
   return String(value ?? '')
+    .replace(/\\/g, '\\\\')
     .replace(/\|/g, '\\|')
     .replace(/\r?\n/g, ' ');
 }
