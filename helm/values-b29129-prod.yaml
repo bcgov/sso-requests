@@ -37,6 +37,7 @@ env:
   SDX_API: https://sdx-provisioner-api-gov-bc-ca.api.gov.bc.ca/v1
   SDX_POLICY_VERSION: SDX.R1.00
   SDX_TO_CSS_SVC_ACCOUNT: sdx-css-tkn-exch-svc-acct
+  SDX_TOKEN_EXCH_CLIENT_ID: sdx-rg-pzgw
 
 envVars: {}
 

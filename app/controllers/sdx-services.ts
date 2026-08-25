@@ -265,7 +265,10 @@ const keycloakSyncScopes = async (environment: string, realmName: string, scopes
   const existingScopes = await getClientScopes({ environment, realmName });
   const existingScopeNames = new Set(existingScopes.map((scope) => scope.name));
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-  const kongClient = await kcAdminClient.clients.find({ realm: realmName, clientId: 'sdx-rg-pzgw' });
+  const kongClient = await kcAdminClient.clients.find({
+    realm: realmName,
+    clientId: process.env.SDX_TOKEN_EXCH_CLIENT_ID || 'sdx-rg-pzgw',
+  });
 
   for (const scopeName of scopes) {
     let scopeId = null;
