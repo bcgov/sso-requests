@@ -7,22 +7,22 @@ import { Integration } from '@app/interfaces/Request';
 
 const MAX_CLIENT_ROLE_COUNT = 5000;
 // Small parallel batches so we don't hammer Keycloak/MS Graph at once.
-const SYNC_BATCH_SIZE = 8;
+const REPLICATION_BATCH_SIZE = 8;
 
-export type RoleSyncStatus = 'SYNCED' | 'ALREADY_SYNCED' | 'NOT_FOUND_IN_MFA' | 'ERROR';
+export type RoleReplicationStatus = 'REPLICATED' | 'ALREADY_REPLICATED' | 'NOT_FOUND_IN_MFA' | 'ERROR';
 
-export interface RoleSyncResultRow {
+export interface RoleReplicationResultRow {
   idirUsername: string;
   guid: string;
   role: string;
-  status: RoleSyncStatus;
+  status: RoleReplicationStatus;
   detail?: string;
 }
 
-export interface RoleSyncPreview {
+export interface RoleReplicationPreview {
   role: string;
   total: number;
-  alreadySynced: number;
+  alreadyReplicated: number;
   toAttempt: number;
 }
 
@@ -91,25 +91,25 @@ const getIdirUserIdentity = (user: any) => {
 };
 
 /**
- * Sync (or preview syncing) a single client role from `idir` users to their `azureidir`
+ * Replicate (or preview replicating) a single client role from `idir` users to their `azureidir`
  * equivalents, for the given list of idir users. Additive-only: never removes/touches roles that
  * only exist on the MFA side. Continues past per-user failures (recorded as `ERROR`) rather than
  * aborting the whole batch.
  */
-const syncRoleForUsers = async (
+const replicateRoleForUsers = async (
   environment: string,
   kcAdminClient: any,
   client: any,
   roleName: string,
   idirUsers: any[],
   dryRun: boolean,
-): Promise<RoleSyncResultRow[]> => {
-  const results: RoleSyncResultRow[] = [];
-  const batches = chunk(idirUsers, SYNC_BATCH_SIZE);
+): Promise<RoleReplicationResultRow[]> => {
+  const results: RoleReplicationResultRow[] = [];
+  const batches = chunk(idirUsers, REPLICATION_BATCH_SIZE);
 
   for (const batch of batches) {
     const batchResults = await Promise.all(
-      batch.map(async (user): Promise<RoleSyncResultRow> => {
+      batch.map(async (user): Promise<RoleReplicationResultRow> => {
         const { guid, idirUsername } = getIdirUserIdentity(user);
         const base = { idirUsername, guid, role: roleName };
 
@@ -142,11 +142,11 @@ const syncRoleForUsers = async (
           });
 
           if (existingRoles.some((role) => role.name === roleName)) {
-            return { ...base, status: 'ALREADY_SYNCED' };
+            return { ...base, status: 'ALREADY_REPLICATED' };
           }
 
           if (dryRun) {
-            return { ...base, status: 'SYNCED', detail: 'will be attempted' };
+            return { ...base, status: 'REPLICATED', detail: 'will be attempted' };
           }
 
           const role = await kcAdminClient.clients.findRole({ realm: 'standard', id: client.id, roleName });
@@ -159,9 +159,9 @@ const syncRoleForUsers = async (
             roles: [{ id: role.id, name: role.name }],
           });
 
-          return { ...base, status: 'SYNCED' };
+          return { ...base, status: 'REPLICATED' };
         } catch (err: any) {
-          console.error('error syncing role:', err);
+          console.error('error replicating role:', err);
           return { ...base, status: 'ERROR' };
         }
       }),
@@ -179,47 +179,47 @@ const resolveRoleNames = async (kcAdminClient: any, client: any, roleName?: stri
 
 /**
  * Compute counts (without mutating anything) for the confirmation-modal preview: how many idir
- * users hold each role, how many are already synced to azureidir, and how many would be attempted.
- * If `roleName` is omitted, previews every client role in the environment.
+ * users hold each role, how many are already replicated to azureidir, and how many would be
+ * attempted. If `roleName` is omitted, previews every client role in the environment.
  */
-export const previewRoleSync = async (
+export const previewRoleReplication = async (
   integration: Integration,
   { environment, roleName }: { environment: string; roleName?: string },
-): Promise<RoleSyncPreview[]> => {
+): Promise<RoleReplicationPreview[]> => {
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const client = await getClient(kcAdminClient, integration.clientId);
   const roleNames = await resolveRoleNames(kcAdminClient, client, roleName);
 
-  const previews: RoleSyncPreview[] = [];
+  const previews: RoleReplicationPreview[] = [];
   for (const rName of roleNames) {
     const idirUsers = await listIdirUsersForRole(kcAdminClient, client, rName);
-    const rows = await syncRoleForUsers(environment, kcAdminClient, client, rName, idirUsers, true);
+    const rows = await replicateRoleForUsers(environment, kcAdminClient, client, rName, idirUsers, true);
     previews.push({
       role: rName,
       total: rows.length,
-      alreadySynced: rows.filter((row) => row.status === 'ALREADY_SYNCED').length,
-      toAttempt: rows.filter((row) => row.status !== 'ALREADY_SYNCED').length,
+      alreadyReplicated: rows.filter((row) => row.status === 'ALREADY_REPLICATED').length,
+      toAttempt: rows.filter((row) => row.status !== 'ALREADY_REPLICATED').length,
     });
   }
   return previews;
 };
 
 /**
- * Sync client role(s) from `idir` users to their `azureidir` equivalents. If `roleName` is
- * omitted, syncs every client role in the environment ("Replicate All Roles") in one pass.
+ * Replicate client role(s) from `idir` users to their `azureidir` equivalents. If `roleName` is
+ * omitted, replicates every client role in the environment ("Replicate All Roles") in one pass.
  */
-export const syncRolesToMfa = async (
+export const replicateRolesToMfa = async (
   integration: Integration,
   { environment, roleName }: { environment: string; roleName?: string },
-): Promise<RoleSyncResultRow[]> => {
+): Promise<RoleReplicationResultRow[]> => {
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const client = await getClient(kcAdminClient, integration.clientId);
   const roleNames = await resolveRoleNames(kcAdminClient, client, roleName);
 
-  const allResults: RoleSyncResultRow[] = [];
+  const allResults: RoleReplicationResultRow[] = [];
   for (const rName of roleNames) {
     const idirUsers = await listIdirUsersForRole(kcAdminClient, client, rName);
-    const rows = await syncRoleForUsers(environment, kcAdminClient, client, rName, idirUsers, false);
+    const rows = await replicateRoleForUsers(environment, kcAdminClient, client, rName, idirUsers, false);
     allResults.push(...rows);
   }
   return allResults;

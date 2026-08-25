@@ -3,7 +3,7 @@ import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
 import { handleError } from '@app/utils/helpers';
 import { processUserSession } from '@app/controllers/user';
-import { previewRoleMfaSync, syncRoleMfa } from '@app/controllers/roles';
+import { previewRoleMfaReplication, replicateRoleMfa } from '@app/controllers/roles';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -14,8 +14,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method === 'POST') {
       const { environment, integrationId, roleName, dryRun } = req.body;
       const result = dryRun
-        ? await previewRoleMfaSync(session?.user?.id!, { environment, integrationId, roleName })
-        : await syncRoleMfa(session?.user?.id!, { environment, integrationId, roleName });
+        ? await previewRoleMfaReplication(session?.user?.id!, { environment, integrationId, roleName })
+        : await replicateRoleMfa(session?.user?.id!, { environment, integrationId, roleName });
       return res.status(200).json({ data: result });
     } else {
       res.setHeader('Allow', ['POST']);

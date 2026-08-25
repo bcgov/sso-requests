@@ -302,25 +302,25 @@ export const deleteRole = async ({
   }
 };
 
-export type RoleSyncStatus = 'SYNCED' | 'ALREADY_SYNCED' | 'NOT_FOUND_IN_MFA' | 'ERROR';
+export type RoleReplicationStatus = 'REPLICATED' | 'ALREADY_REPLICATED' | 'NOT_FOUND_IN_MFA' | 'ERROR';
 
-export interface RoleSyncResultRow {
+export interface RoleReplicationResultRow {
   idirUsername: string;
   guid: string;
   role: string;
-  status: RoleSyncStatus;
+  status: RoleReplicationStatus;
   detail?: string;
 }
 
-export interface RoleSyncPreview {
+export interface RoleReplicationPreview {
   role: string;
   total: number;
-  alreadySynced: number;
+  alreadyReplicated: number;
   toAttempt: number;
 }
 
-/** Preview counts for syncing role(s) from idir to azureidir. Omit `roleName` to preview all roles. */
-export const previewRoleSync = async ({
+/** Preview counts for replicating role(s) from idir to azureidir. Omit `roleName` to preview all roles. */
+export const previewRoleReplication = async ({
   environment,
   integrationId,
   roleName,
@@ -328,10 +328,10 @@ export const previewRoleSync = async ({
   environment: string;
   integrationId: number;
   roleName?: string;
-}): Promise<[RoleSyncPreview[] | null, any]> => {
+}): Promise<[RoleReplicationPreview[] | null, any]> => {
   try {
     const result = await instance
-      .post('keycloak/role-sync', { environment, integrationId, roleName, dryRun: true })
+      .post('keycloak/role-replicate', { environment, integrationId, roleName, dryRun: true })
       .then((res) => res.data.data);
     return [result, null];
   } catch (err: any) {
@@ -340,8 +340,8 @@ export const previewRoleSync = async ({
   }
 };
 
-/** Run the sync from idir to azureidir. Omit `roleName` to replicate all roles ("Replicate All Roles"). */
-export const runRoleSync = async ({
+/** Run the replication from idir to azureidir. Omit `roleName` to replicate all roles ("Replicate All Roles"). */
+export const runRoleReplication = async ({
   environment,
   integrationId,
   roleName,
@@ -349,10 +349,10 @@ export const runRoleSync = async ({
   environment: string;
   integrationId: number;
   roleName?: string;
-}): Promise<[RoleSyncResultRow[] | null, any]> => {
+}): Promise<[RoleReplicationResultRow[] | null, any]> => {
   try {
     const result = await instance
-      .post('keycloak/role-sync', { environment, integrationId, roleName, dryRun: false })
+      .post('keycloak/role-replicate', { environment, integrationId, roleName, dryRun: false })
       .then((res) => res.data.data);
     return [result, null];
   } catch (err: any) {

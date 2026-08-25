@@ -16,7 +16,7 @@ import createHttpError from 'http-errors';
 import { Session } from '@app/shared/interfaces';
 import { Integration } from '@app/interfaces/Request';
 import { appPermissions, hasAppPermission } from '@app/utils/authorize';
-import { previewRoleSync, syncRolesToMfa } from '@app/keycloak/roleSync';
+import { previewRoleReplication, replicateRolesToMfa } from '@app/keycloak/roleReplication';
 
 const validateIntegration = async (sessionUserId: number, integrationId: number) => {
   return await findAllowedIntegrationInfo(sessionUserId, integrationId);
@@ -147,45 +147,45 @@ export const listCompositeRoles = async (session: Session, role: any) => {
 };
 
 /**
- * Both idir and azureidir must be enabled for the environment for a "Sync Roles" (idir -> MFA)
+ * Both idir and azureidir must be enabled for the environment for a "Replicate Roles" (idir -> MFA)
  * request to make sense - enforced here as defense in depth beyond the frontend's own IDP gating.
  */
-const assertRoleSyncSupported = (integration: Integration, environment: string) => {
+const assertRoleReplicationSupported = (integration: Integration, environment: string) => {
   const idps = (integration['devIdps'] || []) as string[];
   if (!idps.includes('idir') || !idps.includes('azureidir')) {
     throw new createHttpError.BadRequest(
-      `role sync requires both idir and azureidir to be enabled for the ${environment} environment`,
+      `role replication requires both idir and azureidir to be enabled for the ${environment} environment`,
     );
   }
 };
 
 /**
- * Preview counts for the "Sync Roles" (idir -> MFA) confirmation modal - how many idir users hold
- * the role(s), how many are already synced, and how many would be attempted. Does not mutate
+ * Preview counts for the "Replicate Roles" (idir -> MFA) confirmation modal - how many idir users hold
+ * the role(s), how many are already replicated, and how many would be attempted. Does not mutate
  * anything, but since it previews a role-management action, it requires the same manage-roles
- * permission as the mutating sync endpoint.
+ * permission as the mutating replicate endpoint.
  */
-export const previewRoleMfaSync = async (
+export const previewRoleMfaReplication = async (
   sessionUserId: number,
   { environment, integrationId, roleName }: { environment: string; integrationId: number; roleName?: string },
 ) => {
   const integration = await validateIntegration(sessionUserId, integrationId);
-  if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden('not allowed to sync roles');
-  assertRoleSyncSupported(integration, environment);
-  return await previewRoleSync(integration, { environment, roleName });
+  if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden('not allowed to replicate roles');
+  assertRoleReplicationSupported(integration, environment);
+  return await previewRoleReplication(integration, { environment, roleName });
 };
 
 /**
- * Runs the "Replicate Roles" (idir -> MFA) operation. If `roleName` is omitted, syncs every client role
+ * Runs the "Replicate Roles" (idir -> MFA) operation. If `roleName` is omitted, replicates every client role
  * in the environment ("Replicate All Roles"). Requires the manage-roles permission since it creates
  * Keycloak users and grants client role mappings.
  */
-export const syncRoleMfa = async (
+export const replicateRoleMfa = async (
   sessionUserId: number,
   { environment, integrationId, roleName }: { environment: string; integrationId: number; roleName?: string },
 ) => {
   const integration = await validateIntegration(sessionUserId, integrationId);
-  if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden('not allowed to sync roles');
-  assertRoleSyncSupported(integration, environment);
-  return await syncRolesToMfa(integration, { environment, roleName });
+  if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden('not allowed to replicate roles');
+  assertRoleReplicationSupported(integration, environment);
+  return await replicateRolesToMfa(integration, { environment, roleName });
 };

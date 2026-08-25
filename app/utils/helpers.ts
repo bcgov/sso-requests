@@ -711,7 +711,7 @@ export const generateXlsx = (data: any[], workBookName: string, workSheetName: s
   XLSX.writeFile(workBook, `${workBookName}.xlsx`);
 };
 
-/** Client-side CSV download from a flat array of objects, e.g. role-sync results. */
+/** Client-side CSV download from a flat array of objects, e.g. role-replication results. */
 export const generateCsv = (data: Record<string, any>[], fileName: string) => {
   if (data.length === 0) return;
 
