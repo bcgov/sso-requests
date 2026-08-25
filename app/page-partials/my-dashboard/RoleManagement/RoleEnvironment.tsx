@@ -264,7 +264,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
 
     replicationModalRef.current.updateConfig({
       cancelButtonText: replicationPhase === 'result' ? 'Close' : 'Cancel',
-      confirmButtonText: replicationPhase === 'result' ? 'Download Replication Details' : 'Run Replication',
+      confirmButtonText: replicationPhase === 'result' ? 'Download' : 'Run Replication',
       confirmButtonVariant: 'primary',
       showCancelButton: true,
       showConfirmButton: replicationPhase === 'result' ? hasResultsDownload : hasUsersToAttempt,

@@ -379,7 +379,7 @@ describe('role management tab', () => {
       );
     });
     expect(await screen.findByText('Replication complete.')).toBeInTheDocument();
-    expect(await screen.findByRole('button', { name: 'Download Replication Details' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Download' })).toBeInTheDocument();
   });
 
   it('Should show a "Replicate All Roles" button that previews/runs a replication across every role', async () => {
