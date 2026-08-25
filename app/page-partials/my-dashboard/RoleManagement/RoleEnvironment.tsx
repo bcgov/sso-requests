@@ -19,10 +19,10 @@ import {
   getCompositeClientRoles,
   setCompositeClientRoles,
   manageUserRole,
-  previewRoleSync,
-  runRoleSync,
-  RoleSyncPreview,
-  RoleSyncResultRow,
+  previewRoleReplication,
+  runRoleReplication,
+  RoleReplicationPreview,
+  RoleReplicationResultRow,
 } from 'services/keycloak';
 import { canCreateOrDeleteRoles } from 'helpers/permissions';
 import { idpMap } from 'helpers/meta';
@@ -164,17 +164,18 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const [serviceAccountIntMap, setServiceAccountIntMap] = useState<SvcAcctUserIntegrationMapType[]>([]);
   const [compositeRoleError, setCompositeRoleError] = useState(false);
 
-  // Roles (idir -> MFA) syncing
-  const syncModalRef = useRef<ModalRef>(emptyRef);
-  const [syncTargetRole, setSyncTargetRole] = useState<string | null>(null);
-  const [syncPhase, setSyncPhase] = useState<'preview' | 'result'>('preview');
-  const [syncPreviewLoading, setSyncPreviewLoading] = useState(false);
-  const [syncRunning, setSyncRunning] = useState(false);
-  const [syncPreview, setSyncPreview] = useState<RoleSyncPreview[] | null>(null);
-  const [syncResults, setSyncResults] = useState<RoleSyncResultRow[] | null>(null);
+  // Roles (idir -> MFA) replication
+  const replicationModalRef = useRef<ModalRef>(emptyRef);
+  const [replicationTargetRole, setReplicationTargetRole] = useState<string | null>(null);
+  const [replicationPhase, setReplicationPhase] = useState<'preview' | 'result'>('preview');
+  const [replicationPreviewLoading, setReplicationPreviewLoading] = useState(false);
+  const [replicationRunning, setReplicationRunning] = useState(false);
+  const [replicationPreview, setReplicationPreview] = useState<RoleReplicationPreview[] | null>(null);
+  const [replicationResults, setReplicationResults] = useState<RoleReplicationResultRow[] | null>(null);
 
   const envIdps = (integration as any)['devIdps'] || [];
-  const canSyncRoles = !viewOnly && canCreateOrDeleteRole && envIdps.includes('idir') && envIdps.includes('azureidir');
+  const canReplicateRoles =
+    !viewOnly && canCreateOrDeleteRole && envIdps.includes('idir') && envIdps.includes('azureidir');
 
   const populateTabs = () => {
     let tabs: string[] = [];
@@ -252,23 +253,23 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     setSavingMessage('');
   }, [selectedRole]);
 
-  const syncPreviewHasUsersToSync = useMemo(() => {
-    if (!syncPreview) return false;
-    return syncPreview.some((p) => p.toAttempt > 0);
-  }, [syncPreview]);
+  const replicationPreviewHasUsersToAttempt = useMemo(() => {
+    if (!replicationPreview) return false;
+    return replicationPreview.some((p) => p.toAttempt > 0);
+  }, [replicationPreview]);
 
   useEffect(() => {
-    const hasUsersToSync = syncPreview?.some((p) => p.toAttempt > 0);
-    const hasResultsDownload = !!(syncResults && syncResults.length > 0);
+    const hasUsersToAttempt = replicationPreview?.some((p) => p.toAttempt > 0);
+    const hasResultsDownload = !!(replicationResults && replicationResults.length > 0);
 
-    syncModalRef.current.updateConfig({
-      cancelButtonText: syncPhase === 'result' ? 'Close' : 'Cancel',
-      confirmButtonText: syncPhase === 'result' ? 'Download Replication Details' : 'Run Replication',
-      confirmButtonVariant: syncPhase === 'result' ? 'secondary' : 'primary',
+    replicationModalRef.current.updateConfig({
+      cancelButtonText: replicationPhase === 'result' ? 'Close' : 'Cancel',
+      confirmButtonText: replicationPhase === 'result' ? 'Download' : 'Run Replication',
+      confirmButtonVariant: 'primary',
       showCancelButton: true,
-      showConfirmButton: syncPhase === 'result' ? hasResultsDownload : hasUsersToSync,
+      showConfirmButton: replicationPhase === 'result' ? hasResultsDownload : hasUsersToAttempt,
     });
-  }, [syncPhase, syncResults, syncPreview]);
+  }, [replicationPhase, replicationResults, replicationPreview]);
 
   const roleOptions = useMemo(() => {
     return optionizeAll(roles);
@@ -452,50 +453,50 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     confirmModalRef.current.open(roleName);
   };
 
-  const fetchSyncPreview = async (roleName: string | null) => {
-    setSyncPreviewLoading(true);
-    const [data, err] = await previewRoleSync({
+  const fetchReplicationPreview = async (roleName: string | null) => {
+    setReplicationPreviewLoading(true);
+    const [data, err] = await previewRoleReplication({
       environment,
       integrationId: integration.id as number,
       roleName: roleName || undefined,
     });
-    setSyncPreviewLoading(false);
+    setReplicationPreviewLoading(false);
 
     if (err || !data) {
       alert.show({
         variant: 'danger',
         content: 'Failed to preview role replication.',
       });
-      syncModalRef.current.close();
+      replicationModalRef.current.close();
       return;
     }
 
-    setSyncPreview(data);
+    setReplicationPreview(data);
   };
 
   // roleName === null means "Replicate All Roles"
-  const openSyncModal = (roleName: string | null) => {
-    setSyncTargetRole(roleName);
-    setSyncPhase('preview');
-    setSyncPreview(null);
-    setSyncResults(null);
-    syncModalRef.current.open();
-    fetchSyncPreview(roleName);
+  const openReplicationModal = (roleName: string | null) => {
+    setReplicationTargetRole(roleName);
+    setReplicationPhase('preview');
+    setReplicationPreview(null);
+    setReplicationResults(null);
+    replicationModalRef.current.open();
+    fetchReplicationPreview(roleName);
   };
 
-  const handleSyncConfirm = async () => {
-    if (syncPhase === 'result') {
-      downloadSyncCsv();
+  const handleReplicationConfirm = async () => {
+    if (replicationPhase === 'result') {
+      downloadReplicationCsv();
       return false;
     }
 
-    setSyncRunning(true);
-    const [data, err] = await runRoleSync({
+    setReplicationRunning(true);
+    const [data, err] = await runRoleReplication({
       environment,
       integrationId: integration.id as number,
-      roleName: syncTargetRole || undefined,
+      roleName: replicationTargetRole || undefined,
     });
-    setSyncRunning(false);
+    setReplicationRunning(false);
 
     if (err || !data) {
       alert.show({
@@ -505,21 +506,21 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       return false;
     }
 
-    setSyncResults(data);
-    setSyncPhase('result');
+    setReplicationResults(data);
+    setReplicationPhase('result');
 
-    if (selectedRole && (!syncTargetRole || syncTargetRole === selectedRole)) {
+    if (selectedRole && (!replicationTargetRole || replicationTargetRole === selectedRole)) {
       fetchUsers(true, selectedRole);
     }
 
     return false;
   };
 
-  const downloadSyncCsv = () => {
-    if (!syncResults || syncResults.length === 0) return;
-    const fileNameSuffix = syncTargetRole ? `-${syncTargetRole}` : '';
+  const downloadReplicationCsv = () => {
+    if (!replicationResults || replicationResults.length === 0) return;
+    const fileNameSuffix = replicationTargetRole ? `-${replicationTargetRole}` : '';
     generateCsv(
-      syncResults,
+      replicationResults,
       `${integration.projectName}-${environment}-${dateTimeStringForFileName()}-role-replication${fileNameSuffix}`,
     );
   };
@@ -737,18 +738,18 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
 
             return viewOnly ? null : (
               <ActionButtonContainer>
-                {canSyncRoles && (
+                {canReplicateRoles && (
                   <ActionButton
                     icon={faSyncAlt}
                     role="button"
                     aria-label="Replicate to IDIR - MFA"
                     onClick={(event: MouseEvent) => {
                       event.stopPropagation();
-                      openSyncModal(rawRoleName);
+                      openReplicationModal(rawRoleName);
                     }}
                     title="Replicate to IDIR - MFA"
                     size="lg"
-                    data-testid="sync-to-mfa"
+                    data-testid="replicate-to-mfa"
                   />
                 )}
                 <ActionButton
@@ -794,14 +795,14 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     <>
       <Row>
         <Col>
-          {canSyncRoles && (
+          {canReplicateRoles && (
             <div style={{ marginBottom: '0.5rem' }}>
               <HelpText>Replicate IDIR role assignments to IDIR - MFA users for all roles.</HelpText>
               <button
                 type="button"
                 className="primary short"
-                data-testid="sync-all-roles-btn"
-                onClick={() => openSyncModal(null)}
+                data-testid="replicate-all-roles-btn"
+                onClick={() => openReplicationModal(null)}
               >
                 Replicate All Roles
               </button>
@@ -906,28 +907,29 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         <div>Are you sure you want to remove this service account from this role?</div>
       </GenericModal>
       <GenericModal
-        id="sync-roles-to-mfa"
-        ref={syncModalRef}
+        id="replicate-roles-to-mfa"
+        ref={replicationModalRef}
         title={
-          syncTargetRole
-            ? `Replicate IDIR role assignments to IDIR - MFA users for "${syncTargetRole}"`
+          replicationTargetRole
+            ? `Replicate IDIR role assignments to IDIR - MFA users for "${replicationTargetRole}"`
             : 'Replicate All Roles to IDIR - MFA'
         }
         icon={faExclamationTriangle}
-        closable={!syncRunning}
-        onConfirm={handleSyncConfirm}
+        closable={!replicationRunning}
+        onConfirm={handleReplicationConfirm}
         confirmButtonText="Run Replication"
         confirmButtonVariant="primary"
         cancelButtonVariant="secondary"
         buttonAlign="none"
+        size="lg"
       >
-        {syncPhase === 'preview' ? (
-          syncPreviewLoading || !syncPreview || syncRunning ? (
+        {replicationPhase === 'preview' ? (
+          replicationPreviewLoading || !replicationPreview || replicationRunning ? (
             <>
-              {syncPreviewLoading && <p>Searching roles to replicate...</p>}
+              {replicationPreviewLoading && <p>Searching roles to replicate...</p>}
               <LoaderContainer />
             </>
-          ) : !syncPreviewHasUsersToSync ? (
+          ) : !replicationPreviewHasUsersToAttempt ? (
             <p>No users to replicate</p>
           ) : (
             <div>
@@ -950,7 +952,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
                       header: 'Users to assign',
                     },
                   ]}
-                  data={syncPreview}
+                  data={replicationPreview}
                   enableGlobalSearch={true}
                   noDataFoundMessage={<span>No roles found</span>}
                   enablePagination={false}
@@ -960,7 +962,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
           )
         ) : (
           <div>
-            {(syncResults || []).some((r) => r.status === 'ERROR') ? (
+            {(replicationResults || []).some((r) => r.status === 'ERROR') ? (
               <p>Errors encountered during replication. Please see replication details for more information.</p>
             ) : (
               <p>Replication complete.</p>

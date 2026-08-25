@@ -1,18 +1,18 @@
-import { previewRoleSync, syncRolesToMfa } from '@app/keycloak/roleSync';
+import { previewRoleReplication, replicateRolesToMfa } from '@app/keycloak/roleReplication';
 
 const CLIENT_ID = 'client-1';
 
 // Users assigned to the "editor" role on the idir realm.
 const idirUsers = [
   {
-    id: 'kc-idir-already-synced',
-    username: 'guid-already-synced@idir',
-    attributes: { idir_user_guid: ['guid-already-synced'], idir_username: ['already.synced'] },
+    id: 'kc-idir-already-replicated',
+    username: 'guid-already-replicated@idir',
+    attributes: { idir_user_guid: ['guid-already-replicated'], idir_username: ['already.replicated'] },
   },
   {
-    id: 'kc-idir-to-sync',
-    username: 'guid-to-sync@idir',
-    attributes: { idir_user_guid: ['guid-to-sync'], idir_username: ['to.sync'] },
+    id: 'kc-idir-to-replicate',
+    username: 'guid-to-replicate@idir',
+    attributes: { idir_user_guid: ['guid-to-replicate'], idir_username: ['to.replicate'] },
   },
   {
     id: 'kc-idir-not-found',
@@ -35,15 +35,18 @@ const roleRepresentation = { id: 'role-editor-id', name: 'editor' };
 
 // Existing azureidir users, keyed by username.
 const existingMfaUsersByUsername: Record<string, any> = {
-  'guid-already-synced@azureidir': { id: 'kc-mfa-already-synced', username: 'guid-already-synced@azureidir' },
-  'guid-to-sync@azureidir': { id: 'kc-mfa-to-sync', username: 'guid-to-sync@azureidir' },
+  'guid-already-replicated@azureidir': {
+    id: 'kc-mfa-already-replicated',
+    username: 'guid-already-replicated@azureidir',
+  },
+  'guid-to-replicate@azureidir': { id: 'kc-mfa-to-replicate', username: 'guid-to-replicate@azureidir' },
   'guid-errors@azureidir': { id: 'kc-mfa-errors', username: 'guid-errors@azureidir' },
 };
 
 // Roles already assigned on the MFA side, keyed by keycloak user id.
 const existingMfaRoleMappingsByUserId: Record<string, any[]> = {
-  'kc-mfa-already-synced': [roleRepresentation],
-  'kc-mfa-to-sync': [],
+  'kc-mfa-already-replicated': [roleRepresentation],
+  'kc-mfa-to-replicate': [],
   'kc-mfa-errors': [],
 };
 
@@ -99,39 +102,39 @@ jest.mock('@app/keycloak/adminClient', () => ({
 
 const integration = { clientId: CLIENT_ID } as any;
 
-describe('role sync (idir -> azureidir MFA)', () => {
+describe('role replication (idir -> azureidir MFA)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('previews counts without mutating anything', async () => {
-    const preview = await previewRoleSync(integration, { environment: 'dev', roleName: 'editor' });
+    const preview = await previewRoleReplication(integration, { environment: 'dev', roleName: 'editor' });
 
-    expect(preview).toEqual([{ role: 'editor', total: 5, alreadySynced: 1, toAttempt: 4 }]);
+    expect(preview).toEqual([{ role: 'editor', total: 5, alreadyReplicated: 1, toAttempt: 4 }]);
     expect(mockAddClientRoleMappings).not.toHaveBeenCalled();
     expect(mockCreateAzureIdirUser).not.toHaveBeenCalled();
   });
 
-  it('is additive-only: SYNCED, ALREADY_SYNCED, NOT_FOUND_IN_MFA, ERROR, and continues past failures', async () => {
-    const results = await syncRolesToMfa(integration, { environment: 'dev', roleName: 'editor' });
+  it('is additive-only: REPLICATED, ALREADY_REPLICATED, NOT_FOUND_IN_MFA, ERROR, and continues past failures', async () => {
+    const results = await replicateRolesToMfa(integration, { environment: 'dev', roleName: 'editor' });
 
     const byGuid = Object.fromEntries(results.map((row) => [row.guid, row]));
 
-    expect(byGuid['guid-already-synced'].status).toBe('ALREADY_SYNCED');
-    expect(byGuid['guid-to-sync'].status).toBe('SYNCED');
+    expect(byGuid['guid-already-replicated'].status).toBe('ALREADY_REPLICATED');
+    expect(byGuid['guid-to-replicate'].status).toBe('REPLICATED');
     expect(byGuid['guid-not-found'].status).toBe('NOT_FOUND_IN_MFA');
-    expect(byGuid['guid-to-provision'].status).toBe('SYNCED');
+    expect(byGuid['guid-to-provision'].status).toBe('REPLICATED');
     expect(byGuid['guid-errors'].status).toBe('ERROR');
 
     // Never removes/touches roles already on the MFA side.
     expect(mockAddClientRoleMappings).not.toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'kc-mfa-already-synced' }),
+      expect.objectContaining({ id: 'kc-mfa-already-replicated' }),
     );
     // Provisions the missing azureidir user before assigning the role.
     expect(mockCreateAzureIdirUser).toHaveBeenCalledWith(expect.objectContaining({ guid: 'guid-to-provision' }));
     // Assigns the role to both the pre-existing and newly-provisioned MFA users.
     expect(mockAddClientRoleMappings).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'kc-mfa-to-sync', roles: [{ id: 'role-editor-id', name: 'editor' }] }),
+      expect.objectContaining({ id: 'kc-mfa-to-replicate', roles: [{ id: 'role-editor-id', name: 'editor' }] }),
     );
     expect(mockAddClientRoleMappings).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'kc-mfa-provisioned', roles: [{ id: 'role-editor-id', name: 'editor' }] }),
