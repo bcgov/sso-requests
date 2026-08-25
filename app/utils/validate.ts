@@ -167,6 +167,14 @@ export const customValidate = (formData: any, errors: any, uiSchema: any, fields
         errors['bcscAttributes']?.addError('Please select at least one attribute');
       }
     },
+    sdxServices: () => {
+      if (
+        formData['sdxEnabled'] &&
+        (!formData['sdxServices'] || (formData['sdxServices'] && formData['sdxServices'].resourceServers?.length === 0))
+      ) {
+        errors['sdxServices']?.addError('Please select at least one scope');
+      }
+    },
   };
 
   ['dev', 'test', 'prod'].map((env) => {
@@ -181,18 +189,6 @@ export const customValidate = (formData: any, errors: any, uiSchema: any, fields
       }
     };
   });
-
-  fieldMap['sdxServices'] = () => {
-    if (
-      formData['sdxEnabled'] &&
-      (!formData['sdxServices'] ||
-        (formData['sdxServices'] &&
-          formData['sdxServices'].resourceServers &&
-          formData['sdxServices'].resourceServers.length === 0))
-    ) {
-      errors['sdxServices']?.addError('Please select at least one scope');
-    }
-  };
 
   if (!fields) fields = Object.keys(fieldMap);
   for (let x = 0; x < fields.length; x++) {

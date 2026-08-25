@@ -155,6 +155,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [formData, setFormData] = useState({
     ...(request || {}),
     isAdmin: currentUser?.isAdmin || false,
+    sdxServices: request?.sdxServices ?? null,
   } as Integration);
   const [formStage, setFormStage] = useState(stage);
   const [loading, setLoading] = useState(false);
