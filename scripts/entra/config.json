@@ -1,0 +1,34 @@
+{
+  "testPrefix": "entra-validator",
+  "redirectUris": {
+    "web": ["https://localhost/entra-validator/callback"],
+    "spa": ["http://localhost:3000"]
+  },
+  "signInAudience": "AzureADMyOrg",
+  "optionalClaims": {
+    "idToken": [
+      {
+        "name": "email",
+        "essential": false
+      }
+    ],
+    "accessToken": [],
+    "saml2Token": []
+  },
+  "secretLifetimeMinutes": 15,
+  "tests": [
+    "createApplication",
+    "createServicePrincipal",
+    "configureWeb",
+    "configureSpa",
+    "redirectUris",
+    "signInAudience",
+    "optionalClaims",
+    "addPassword",
+    "removePassword",
+    "deleteServicePrincipal",
+    "deleteApplication",
+    "restoreApplication",
+    "permanentDeleteApplication"
+  ]
+}
