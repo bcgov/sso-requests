@@ -11,6 +11,9 @@ import { Integration } from '@app/interfaces/Request';
 import { getUserById } from '@app/queries/user';
 import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
 import { SDX_ENVIRONMENTS } from '@app/utils/constants';
+import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
+
+const tokenExchangerClientId = process.env.SDX_TOKEN_EXCH_CLIENT_ID || 'sdx-rg-pzgw';
 
 const getSdxEnvironments = () => {
   return process.env.NEXT_PUBLIC_APP_ENV === 'production'
@@ -267,7 +270,7 @@ const keycloakSyncScopes = async (environment: string, realmName: string, scopes
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const kongClient = await kcAdminClient.clients.find({
     realm: realmName,
-    clientId: process.env.SDX_TOKEN_EXCH_CLIENT_ID || 'sdx-rg-pzgw',
+    clientId: tokenExchangerClientId,
   });
 
   for (const scopeName of scopes) {
@@ -356,7 +359,7 @@ export const manageKeycloakScopes = async (clientId: string, environment: string
     return;
   }
 
-  const client = result[0];
+  const client: ClientRepresentation = result[0];
 
   const allAssignedScopes = await kcAdminClient.clients.listDefaultClientScopes({
     realm: 'standard',
@@ -383,11 +386,49 @@ export const manageKeycloakScopes = async (clientId: string, environment: string
   const scopesToAdd = scopes.filter((scope) => !allAssignedScopesNames.has(scope));
 
   for (const scope of scopesToAdd) {
-    await kcAdminClient.clients.addDefaultClientScope({
+    await kcAdminClient.clients.addOptionalClientScope({
       id: client.id!,
       realm: 'standard',
       clientScopeId: allKeycloakScopes.find((s) => s.name === scope)?.id!,
     });
+  }
+
+  const kongClient = await kcAdminClient.clients.find({
+    realm: 'standard',
+    clientId: tokenExchangerClientId,
+  });
+
+  if (kongClient && kongClient.length > 0) {
+    const clientScope = allKeycloakScopes.find((s) => s.name === client.clientId);
+    if (clientScope) {
+      const mapperExists = await kcAdminClient.clientScopes.findProtocolMapperByName({
+        realm: 'standard',
+        name: 'sdx_rg_pzgw_aud',
+        id: clientScope.id!,
+      });
+
+      if (!mapperExists) {
+        await kcAdminClient.clientScopes.addProtocolMapper(
+          {
+            realm: 'standard',
+            id: clientScope.id!,
+          },
+          {
+            name: 'sdx_rg_pzgw_aud',
+            protocol: 'openid-connect',
+            protocolMapper: 'oidc-audience-mapper',
+            config: {
+              'included.client.audience': tokenExchangerClientId,
+              'id.token.claim': 'false',
+              'lightweight.claim': 'false',
+              'access.token.claim': 'true',
+              'introspection.token.claim': 'true',
+              'userinfo.token.claim': 'false',
+            },
+          },
+        );
+      }
+    }
   }
 };
 
