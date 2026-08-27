@@ -468,7 +468,7 @@ export const KEYCLOAK_TEAMS_CHANNEL_URL =
 
 export const SDX_ENVIRONMENTS = {
   sandbox: {
-    production: 'apstest',
+    production: 'apstst',
     'non-production': 'apsdev',
   },
   production: {

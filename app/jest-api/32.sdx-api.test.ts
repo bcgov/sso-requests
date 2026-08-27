@@ -151,12 +151,15 @@ const keycloak = {
   clientScopesFind: jest.fn(),
   clientScopesCreate: jest.fn(),
   clientScopesFindOneByName: jest.fn(),
+  findProtocolMapperByName: jest.fn(),
+  addProtocolMapper: jest.fn(),
   addOptionalClientScope: jest.fn(),
 };
 
 const setUpKeycloak = ({
   existingClientScopes = [] as string[],
   existingDefaultClientScopes = [] as string[],
+  existingAudienceMapper = false,
   clients = [{ id: 'kc-client-uuid', clientId: 'test-client' }],
   kongClients = [{ id: 'kong-client-uuid', clientId: 'sdx-rg-pzgw' }],
 } = {}) => {
@@ -171,6 +174,8 @@ const setUpKeycloak = ({
   keycloak.clientScopesFind.mockResolvedValue(existingClientScopes.map((name) => ({ name, id: name })));
   keycloak.clientScopesCreate.mockImplementation(async ({ name }: { name: string }) => ({ id: name, name }));
   keycloak.clientScopesFindOneByName.mockResolvedValue({ id: 'scope-id' });
+  keycloak.findProtocolMapperByName.mockResolvedValue(existingAudienceMapper ? { name: 'sdx_rg_pzgw_aud' } : null);
+  keycloak.addProtocolMapper.mockResolvedValue(undefined);
   keycloak.addOptionalClientScope.mockResolvedValue(undefined);
 
   (getAdminClient as jest.Mock).mockImplementation(async ({ environment }: { environment: string }) => ({
@@ -187,6 +192,8 @@ const setUpKeycloak = ({
         find: keycloak.clientScopesFind,
         create: keycloak.clientScopesCreate,
         findOneByName: keycloak.clientScopesFindOneByName,
+        findProtocolMapperByName: keycloak.findProtocolMapperByName,
+        addProtocolMapper: keycloak.addProtocolMapper,
       },
     },
   }));
@@ -941,7 +948,7 @@ describe('SDX APIs', () => {
       expect(event).not.toBeNull();
       expect(event.details.resourceServers[0].services[0].scopes).toEqual(['patient.read', 'patient.write']);
 
-      expect(keycloak.addDefaultClientScope.mock.calls.map(([args]) => args.clientScopeId).sort()).toEqual([
+      expect(keycloak.addOptionalClientScope.mock.calls.map(([args]) => args.clientScopeId).sort()).toEqual([
         'patient.read',
         'patient.read',
         'patient.write',
@@ -956,16 +963,16 @@ describe('SDX APIs', () => {
       const event: any = await models.event.findOne({
         where: { requestId: integration.id, eventCode: 'sdx-access-request-update' },
       });
-      const firstKeycloakCallAt = (keycloak.addDefaultClientScope.mock.invocationCallOrder[0] ?? 0) > 0;
+      const firstKeycloakCallAt = (keycloak.addOptionalClientScope.mock.invocationCallOrder[0] ?? 0) > 0;
 
       expect(event).not.toBeNull();
       expect(firstKeycloakCallAt).toBe(true);
       // Scopes are only added after the client has been looked up.
       expect(keycloak.clientsFind.mock.invocationCallOrder[0]).toBeLessThan(
-        keycloak.addDefaultClientScope.mock.invocationCallOrder[0],
+        keycloak.addOptionalClientScope.mock.invocationCallOrder[0],
       );
       expect(keycloak.listDefaultClientScopes.mock.invocationCallOrder[0]).toBeLessThan(
-        keycloak.addDefaultClientScope.mock.invocationCallOrder[0],
+        keycloak.addOptionalClientScope.mock.invocationCallOrder[0],
       );
     });
 
@@ -976,11 +983,54 @@ describe('SDX APIs', () => {
       await putSdxAllowedAccess(integration.id, approvalPayload(PRODUCTION_ENV, ['payment.read']), signToken());
 
       expect(adminClientEnvironments()).toEqual(['prod']);
-      expect(keycloak.addDefaultClientScope).toHaveBeenCalledWith({
+      expect(keycloak.addOptionalClientScope).toHaveBeenCalledWith({
         id: 'kc-client-uuid',
         realm: 'standard',
         clientScopeId: 'payment.read',
       });
+    });
+
+    it('Adds the SDX client as an audience mapper to the existing client scope', async () => {
+      setUpKeycloak({ existingClientScopes: ['test-client', 'payment.read'] });
+      const integration = await buildSdxIntegration('sdx-approval-audience-mapper');
+
+      await putSdxAllowedAccess(integration.id, approvalPayload(PRODUCTION_ENV, ['payment.read']), signToken());
+
+      expect(keycloak.findProtocolMapperByName).toHaveBeenCalledWith({
+        realm: 'standard',
+        name: 'sdx_rg_pzgw_aud',
+        id: 'test-client',
+      });
+      expect(keycloak.addProtocolMapper).toHaveBeenCalledWith(
+        { realm: 'standard', id: 'test-client' },
+        {
+          name: 'sdx_rg_pzgw_aud',
+          protocol: 'openid-connect',
+          protocolMapper: 'oidc-audience-mapper',
+          config: {
+            'included.client.audience': 'sdx-rg-pzgw',
+            'id.token.claim': 'false',
+            'lightweight.claim': 'false',
+            'access.token.claim': 'true',
+            'introspection.token.claim': 'true',
+            'userinfo.token.claim': 'false',
+          },
+        },
+      );
+    });
+
+    it('Does not add the SDX audience mapper when it already exists', async () => {
+      setUpKeycloak({ existingClientScopes: ['test-client', 'payment.read'], existingAudienceMapper: true });
+      const integration = await buildSdxIntegration('sdx-approval-existing-audience-mapper');
+
+      await putSdxAllowedAccess(integration.id, approvalPayload(PRODUCTION_ENV, ['payment.read']), signToken());
+
+      expect(keycloak.findProtocolMapperByName).toHaveBeenCalledWith({
+        realm: 'standard',
+        name: 'sdx_rg_pzgw_aud',
+        id: 'test-client',
+      });
+      expect(keycloak.addProtocolMapper).not.toHaveBeenCalled();
     });
 
     it('Grants non-production scopes in the dev and test environments', async () => {
@@ -1079,7 +1129,7 @@ describe('SDX APIs', () => {
         } as any),
       ).resolves.toBeUndefined();
 
-      expect(keycloak.addDefaultClientScope).toHaveBeenCalledWith({
+      expect(keycloak.addOptionalClientScope).toHaveBeenCalledWith({
         id: 'kc-client-uuid',
         realm: 'standard',
         clientScopeId: 'patient.read',
