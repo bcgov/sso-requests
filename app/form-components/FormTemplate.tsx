@@ -30,13 +30,14 @@ import { Team, LoggedInUser } from 'interfaces/team';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 import { createRequest, isRequestBcscExcluded, updateRequest } from 'services/request';
 import { SurveyContext } from '@app/utils/context';
-import { defaultStandardRealmSettings, docusaurusURL } from '@app/utils/constants';
-import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
-import { fetchAttributes, fetchPrivacyZones } from '@app/services/bc-services-card';
 import {
+  defaultStandardRealmSettings,
+  docusaurusURL,
   bcscPrivacyZones as defaultBcscPrivacyZones,
   bcscAttributes as defaultBcscAttributes,
 } from '@app/utils/constants';
+import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
+import { fetchAttributes, fetchPrivacyZones } from '@app/services/bc-services-card';
 import validator from '@rjsf/validator-ajv8';
 import { validateIDPs } from '@app/utils/helpers';
 import { hasRoleAssignableIdp } from '@app/schemas/providers-gold';
@@ -44,6 +45,8 @@ import { fetchDefaultSessionSettings } from '@app/services/keycloak';
 import { GetStandardSettingsResponse } from '@app/interfaces/api';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import Link from '@app/components/Link';
+import { listSdxResourceServers, getSdxAllowedAccessForClient, getSdxSubsytemStatus } from '@app/services/sdx-services';
+import { SDXResourceServer, SDXAllowedAccessForClient, SDXService } from '@app/shared/interfaces';
 
 const Description = styled.p`
   margin: 0;
@@ -133,6 +136,12 @@ const trimFormData = (formData: any, { dropEmptyRedirectUris = false } = {}) => 
   };
 };
 
+const preserveCrossStageFields = (nextFormData: any, previousFormData: any) => ({
+  ...nextFormData,
+  // Keep SDX selections when the active schema/stage does not emit this field.
+  sdxServices: nextFormData?.sdxServices ?? previousFormData?.sdxServices,
+});
+
 interface Props {
   currentUser: LoggedInUser | null;
   request?: Integration | undefined;
@@ -146,6 +155,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [formData, setFormData] = useState({
     ...(request || {}),
     isAdmin: currentUser?.isAdmin || false,
+    sdxServices: request?.sdxServices ?? null,
   } as Integration);
   const [formStage, setFormStage] = useState(stage);
   const [loading, setLoading] = useState(false);
@@ -158,13 +168,15 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [bcscPrivacyZones, setBcscPrivacyZones] = useState<BcscPrivacyZone[]>(defaultBcscPrivacyZones());
   const [bcscAttributes, setBcscAttributes] = useState<BcscAttribute[]>(defaultBcscAttributes());
   const [openSubmissionModal, setOpenSubmissionModal] = useState(false);
-  const [openBceidWarningModal, setOpenBceidWarningModal] = useState(false);
   const [defaultSessionSettings, setDefaultSessionSettings] = useState<GetStandardSettingsResponse>({
     dev: defaultStandardRealmSettings,
     test: defaultStandardRealmSettings,
     prod: defaultStandardRealmSettings,
   });
   const [bcscExcluded, setBcscExcluded] = useState(false);
+  const [sdxResourceServers, setSdxResourceServers] = useState<SDXResourceServer[]>([]);
+  const [sdxServicesApprovedForClient, setSdxServicesApprovedForClient] = useState<SDXAllowedAccessForClient | []>([]);
+  const [sdxServicesPendingForClient, setSdxServicesPendingForClient] = useState<SDXAllowedAccessForClient | []>([]);
 
   const surveyContext = useContext(SurveyContext);
 
@@ -208,7 +220,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       user: currentUser,
       githubApproved: formData.githubApproved,
     });
-    const processed = { ...newData, devIdps };
+    const processed = preserveCrossStageFields({ ...newData, devIdps }, formData);
 
     const togglingTeamToTrue = !formData.usesTeam && newData.usesTeam === true;
 
@@ -237,9 +249,10 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
     setFormData(processed);
 
-    const bceidWarningIdps = ['bceidbasic', 'bceidboth'];
-    const newlyAddedBceidWarning = bceidWarningIdps.some((idp) => devIdps.includes(idp) && !currentIdps.includes(idp));
-    if (newlyAddedBceidWarning) setOpenBceidWarningModal(true);
+    // If the form is applied and SDX is being enabled, load the SDX services for the client.
+    if (isApplied && !formData?.sdxEnabled && newData?.sdxEnabled) {
+      loadSdxResources(true);
+    }
 
     throttleUpdate(processed);
   };
@@ -294,12 +307,62 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     setBcscExcluded(!!bcscExcluded);
   };
 
+  const loadSdxResources = async (loadClientAccess = formData?.sdxEnabled && formData?.status === 'applied') => {
+    const [resourceServers] = await listSdxResourceServers({} as any);
+    setSdxResourceServers(resourceServers || []);
+
+    if (loadClientAccess) {
+      const [data] = await getSdxSubsytemStatus(request?.id!);
+
+      if (data?.status === 'registered') {
+        const [approved] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'approved');
+        setSdxServicesApprovedForClient(approved || []);
+
+        const [pending] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'pending');
+        setSdxServicesPendingForClient(pending || []);
+
+        const currApprovedAndPending = [approved, pending].map((access) => ({
+          ...access,
+          resourceServers: access.resourceServers.map((resourceServer: SDXResourceServer) => {
+            const catalogResourceServer = resourceServers.find(
+              (server: SDXResourceServer) => server.id === resourceServer.id,
+            );
+            return {
+              ...resourceServer,
+              services: resourceServer.services.map((service) => {
+                const catalogService = catalogResourceServer?.services.find(
+                  (candidate: SDXService) =>
+                    candidate.name === service.name && (!service.version || candidate.version === service.version),
+                );
+                return {
+                  ...service,
+                  version: service.version || catalogService?.version || '',
+                };
+              }),
+              name: catalogResourceServer?.name || resourceServer.name,
+            };
+          }),
+        }));
+
+        if (!formData?.sdxServices) {
+          setFormData((previousFormData) => ({
+            ...previousFormData,
+            sdxServices: {
+              resourceServers: [...currApprovedAndPending.flatMap((rs) => rs.resourceServers)],
+            } as any,
+          }));
+        }
+      }
+    }
+  };
+
   useEffect(() => {
     loadTeams();
     loadBcscPrivacyZones();
     loadBcscAttributes();
     loadDefaultSessionSettings();
     isBcscExcluded();
+    loadSdxResources();
   }, []);
 
   // Clear other details when other is unselected
@@ -502,7 +565,16 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         onChange={handleChange}
         onSubmit={handleFormSubmit}
         formData={formData}
-        formContext={{ teams, formData, setFormData, loadTeams, bcscPrivacyZones }}
+        formContext={{
+          teams,
+          formData,
+          setFormData,
+          loadTeams,
+          bcscPrivacyZones,
+          sdxResourceServers,
+          sdxServicesApprovedForClient,
+          sdxServicesPendingForClient,
+        }}
         templates={{ FieldTemplate, ArrayFieldTemplate }}
         liveValidate={visited[formStage] || isApplied}
         customValidate={customValidate}
@@ -539,24 +611,6 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         }
         title="Submitting Request"
         onConfirm={handleSubmit}
-      />
-      <CenteredModal
-        id="bceid-warning-modal"
-        openModal={openBceidWarningModal}
-        handleClose={() => setOpenBceidWarningModal(false)}
-        title="BCeID Application Notice"
-        showCancel={false}
-        confirmText="I Understand"
-        onConfirm={() => setOpenBceidWarningModal(false)}
-        content={
-          <p>
-            <strong>
-              <em>Basic BCeID</em> and <em>Basic or Business BCeID</em> are no longer accepting new applications from
-              general clients.
-            </strong>{' '}
-            Only choose these options if you have received a special exemption.
-          </p>
-        }
       />
     </>
   );

@@ -755,7 +755,7 @@ describe('Basic Info - Identity Providers', () => {
     expect(digitalCredentialCheckbox?.checked).toBeFalsy();
   });
 
-  it('should open BCeID warning modal when Basic BCeID or BCeID both are selected', async () => {
+  it('should show BCeID restriction banner when Basic BCeID or BCeID both are selected', async () => {
     const { getByText } = setUpRender({
       id: 0,
       serviceType: 'gold',
@@ -771,28 +771,43 @@ describe('Basic Info - Identity Providers', () => {
     ) as HTMLInputElement;
 
     fireEvent.click(basicBceidCheckbox);
-    await waitFor(() => expect(screen.getByText('BCeID Application Notice')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Basic BCeID is not accepting new integrations')).toBeInTheDocument());
 
-    // clear message
-    fireEvent.click(getByText('I Understand'));
-    await waitFor(() => expect(screen.queryByText('BCeID Application Notice')).not.toBeInTheDocument());
+    // clear the banner by unselecting
+    fireEvent.click(basicBceidCheckbox);
+    await waitFor(() =>
+      expect(screen.queryByText('Basic BCeID is not accepting new integrations')).not.toBeInTheDocument(),
+    );
 
-    // Check fires on bceid both
+    // Check banner shows on bceid both
     const bceidBothCheckbox = getByText('Basic or Business BCeID')?.parentElement?.querySelector(
       "input[type='checkbox']",
     ) as HTMLInputElement;
     fireEvent.click(bceidBothCheckbox);
-    await waitFor(() => expect(screen.getByText('BCeID Application Notice')).toBeInTheDocument());
+    await waitFor(() =>
+      expect(
+        screen.getByText('This option includes Basic BCeID, which is not accepting new integrations'),
+      ).toBeInTheDocument(),
+    );
 
-    fireEvent.click(getByText('I Understand'));
-    await waitFor(() => expect(screen.queryByText('BCeID Application Notice')).not.toBeInTheDocument());
+    fireEvent.click(bceidBothCheckbox);
+    await waitFor(() =>
+      expect(
+        screen.queryByText('This option includes Basic BCeID, which is not accepting new integrations'),
+      ).not.toBeInTheDocument(),
+    );
 
     // Check bceid business does not show it
     const bceidBusinessCheckbox = getByText('Business BCeID')?.parentElement?.querySelector(
       "input[type='checkbox']",
     ) as HTMLInputElement;
     fireEvent.click(bceidBusinessCheckbox);
-    await waitFor(() => expect(screen.queryByText('BCeID Application Notice')).not.toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByText('Basic BCeID is not accepting new integrations')).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByText('This option includes Basic BCeID, which is not accepting new integrations'),
+    ).not.toBeInTheDocument();
   });
 });
 

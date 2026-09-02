@@ -1,7 +1,6 @@
-import { AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import createHttpError from 'http-errors';
 
-import axios from 'axios';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import jws from 'jws';
 import jwkToPem from 'jwk-to-pem';
@@ -13,7 +12,7 @@ const audience = process.env.NEXT_PUBLIC_SSO_CLIENT_ID || '';
 
 let _ssoConfig: { jwks: any; issuer: string } = { jwks: null, issuer: '' };
 
-const getConfiguration = async () => {
+export const getConfiguration = async () => {
   const { issuer, jwks_uri } = await axios.get(ssoConfigurationEndpoint as string).then(
     (res: AxiosResponse) => res.data,
     () => null,

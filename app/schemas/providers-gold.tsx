@@ -3,15 +3,17 @@ import { Schema } from './index';
 import { docusaurusURL } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { usesBcServicesCard, usesOTP, usesSocial } from '@app/helpers/integration';
-import { getDiscontinuedIdps } from '@app/utils/helpers';
+import { allBceidEnvsApproved, getDiscontinuedIdps } from '@app/utils/helpers';
 import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 import { LoggedInUser } from '@app/interfaces/team';
+import BceidBanner from '@app/form-components/widgets/BceidBanner';
 
 const include_digital_credential = process.env.NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL;
 const include_bc_services_card = process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD;
 const allow_bc_services_card_prod = process.env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD;
 const include_social = process.env.NEXT_PUBLIC_INCLUDE_SOCIAL;
 const include_otp = process.env.NEXT_PUBLIC_INCLUDE_OTP;
+const include_sdx_services = process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES;
 
 export const NON_ROLE_ASSIGNABLE_IDPS = ['digitalcredential', 'bcservicescard', 'otp'];
 
@@ -32,6 +34,7 @@ export default function getSchema(
   let include_bcsc = include_bc_services_card === 'true' || process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD === 'true';
   const includeSocial = include_social === 'true' || process.env.NEXT_PUBLIC_INCLUDE_SOCIAL === 'true';
   const includeOTP = include_otp === 'true' || process.env.NEXT_PUBLIC_INCLUDE_OTP === 'true';
+  const includeSdx = include_sdx_services === 'true' || process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true';
 
   if (integration.environments?.includes('prod') && !allow_bcsc_prod) {
     include_bcsc = false;
@@ -182,6 +185,17 @@ export default function getSchema(
             hide: 3000,
           };
         }
+        if (idp === 'bceidbasic' || idp === 'bceidboth') {
+          const label = idp === 'bceidbasic' ? 'Basic BCeID' : 'Basic or Business BCeID';
+          const title =
+            idp === 'bceidbasic'
+              ? 'Basic BCeID is not accepting new integrations'
+              : 'This option includes Basic BCeID, which is not accepting new integrations';
+          return {
+            restricted: true,
+            restrictionBanner: <BceidBanner title={title} label={label} exempted={allBceidEnvsApproved(integration)} />,
+          };
+        }
         return null;
       }),
       uniqueItems: true,
@@ -266,6 +280,19 @@ export default function getSchema(
         content: `The client id should be a string without any spaces`,
       },
       maxLength: 250,
+    };
+  }
+
+  if (includeSdx && protocol === 'oidc' && devIdps?.includes('bcservicescard')) {
+    properties.sdxEnabled = {
+      type: 'boolean',
+      title: 'Secure Data Exchange (SDX) Services',
+      tooltip: {
+        content:
+          'Secure Data Exchange (SDX) is a service designed to facilitate secure, reliable transfer of data between government agencies and external partners',
+      },
+      description: 'Do you need access to data from other government agencies?',
+      default: false,
     };
   }
 
