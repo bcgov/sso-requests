@@ -14,6 +14,12 @@ interface ProtocolMapperConfig {
   [key: string]: any;
 }
 
+export const getClientScopes = async (data: { environment: string; realmName: string }) => {
+  const { environment, realmName } = data;
+  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+  return kcAdminClient.clientScopes.find({ realm: realmName });
+};
+
 export const getClientScope = async (data: { environment: string; scopeName: string; realmName: string }) => {
   const { environment, realmName, scopeName } = data;
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });

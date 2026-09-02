@@ -4,10 +4,11 @@ import { authTypeDisplay } from 'metadata/display';
 import { Team } from 'interfaces/team';
 import { idpMap } from 'helpers/meta';
 import { usesBcServicesCard } from '@app/helpers/integration';
+import SdxAccessPreview from './SDXAccessPreview';
 
 const Table = styled.table`
   font-size: unset;
-  & tr {
+  & > tbody > tr {
     display: flex;
     margin-bottom: 5px;
     & > td {
@@ -191,6 +192,12 @@ function RequestPreview({ children, request, teams = [] }: Readonly<Props>) {
           )}
           {request.environments?.includes('prod') && (
             <FormattedList list={request.prodValidRedirectUris} title="Prod Redirect URIs:" testid="prod-uri" />
+          )}
+          {request.sdxEnabled && request.sdxServices?.resourceServers && (
+            <>
+              <SdxAccessPreview environment="non-production" resourceServers={request.sdxServices.resourceServers} />
+              <SdxAccessPreview environment="production" resourceServers={request.sdxServices.resourceServers} />
+            </>
           )}
           {children}
         </tbody>

@@ -1,7 +1,14 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import RoleManagement from 'page-partials/my-dashboard/RoleManagement';
 import { sampleRequest } from '../../samples/integrations';
-import { listRoleUsers, getCompositeClientRoles, manageUserRole, bulkCreateRole } from 'services/keycloak';
+import {
+  listRoleUsers,
+  getCompositeClientRoles,
+  manageUserRole,
+  bulkCreateRole,
+  previewRoleReplication,
+  runRoleReplication,
+} from 'services/keycloak';
 import CreateRoleContent from 'page-partials/my-dashboard/RoleManagement/CreateRoleContent';
 import RoleEnvironment from 'page-partials/my-dashboard/RoleManagement/RoleEnvironment';
 
@@ -11,6 +18,10 @@ const mockResult = () => {
 
 function RoleEnvironmentComponent() {
   return <RoleEnvironment environment={'dev'} integration={mockResult()} />;
+}
+
+function RoleEnvironmentWithMfaComponent() {
+  return <RoleEnvironment environment={'dev'} integration={{ ...mockResult(), devIdps: ['idir', 'azureidir'] }} />;
 }
 
 const testUsers = [
@@ -58,6 +69,8 @@ jest.mock('services/keycloak', () => ({
   deleteRole: jest.fn(() => Promise.resolve([[''], null])),
   manageUserRole: jest.fn(() => Promise.resolve([[''], null])),
   bulkCreateRole: jest.fn(() => Promise.resolve([{}, null])),
+  previewRoleReplication: jest.fn(() => Promise.resolve([[], null])),
+  runRoleReplication: jest.fn(() => Promise.resolve([[], null])),
 }));
 
 describe('role management tab', () => {
@@ -147,8 +160,8 @@ describe('role management tab', () => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
     });
 
-    const roleDeleteButton = screen.getAllByRole('button', { name: 'delete' });
-    fireEvent.click(roleDeleteButton[0]);
+    const deleteButton = await screen.findAllByTestId('delete-role');
+    fireEvent.click(deleteButton[0]);
     await waitFor(async () => {
       expect(await screen.findByTitle('Delete Role')).toBeInTheDocument();
     });
@@ -311,5 +324,132 @@ describe('role management tab', () => {
     expect(getCompositeClientRoles).toHaveBeenCalled();
     expect(screen.getByText('compositeRole1')).toBeTruthy();
     expect(screen.getByText('compositeRole2')).toBeTruthy();
+  });
+
+  it('Should not show the MFA replication entry points when idir and azureidir are not both enabled', async () => {
+    render(<RoleEnvironmentComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    });
+
+    expect(screen.queryByTestId('replicate-all-roles-btn')).not.toBeInTheDocument();
+
+    expect(screen.queryByTestId('replicate-to-mfa')).not.toBeInTheDocument();
+  });
+
+  it('Should preview and run a role replication to MFA when idir and azureidir are both enabled', async () => {
+    (previewRoleReplication as jest.Mock).mockResolvedValueOnce([
+      [{ role: 'role-1', total: 5, alreadyReplicated: 2, toAttempt: 3 }],
+      null,
+    ]);
+    (runRoleReplication as jest.Mock).mockResolvedValueOnce([
+      [
+        { idirUsername: 'user1', guid: 'guid1', role: 'role-1', status: 'REPLICATED' },
+        { idirUsername: 'user2', guid: 'guid2', role: 'role-1', status: 'ALREADY_REPLICATED' },
+      ],
+      null,
+    ]);
+
+    render(<RoleEnvironmentWithMfaComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    });
+
+    const replicateButton = await screen.findAllByTestId('replicate-to-mfa');
+    fireEvent.click(replicateButton[0]);
+
+    const replicationModalTitle = await screen.findByTitle(
+      'Replicate IDIR role assignments to IDIR - MFA users for "role-1"',
+    );
+    expect(replicationModalTitle).toBeInTheDocument();
+    expect(replicationModalTitle.closest('.modal-dialog')).toHaveClass('modal-lg');
+    await waitFor(() => {
+      expect(previewRoleReplication).toHaveBeenCalledWith(
+        expect.objectContaining({ environment: 'dev', roleName: 'role-1' }),
+      );
+    });
+    const replicationTable = await screen.findByTestId('idir-role-replication-table');
+    expect(within(replicationTable).getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    expect(within(replicationTable).getByRole('cell', { name: '3' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Run Replication' }));
+    await waitFor(() => {
+      expect(runRoleReplication).toHaveBeenCalledWith(
+        expect.objectContaining({ environment: 'dev', roleName: 'role-1' }),
+      );
+    });
+    expect(await screen.findByText('Replication complete.')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Download' })).toBeInTheDocument();
+  });
+
+  it('Should show a "Replicate All Roles" button that previews/runs a replication across every role', async () => {
+    (previewRoleReplication as jest.Mock).mockResolvedValueOnce([
+      [
+        { role: 'role-1', total: 2, alreadyReplicated: 0, toAttempt: 2 },
+        { role: 'role-2', total: 1, alreadyReplicated: 1, toAttempt: 0 },
+      ],
+      null,
+    ]);
+
+    render(<RoleEnvironmentWithMfaComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId('replicate-all-roles-btn'));
+    expect(await screen.findByTitle('Replicate All Roles to IDIR - MFA')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(previewRoleReplication).toHaveBeenCalledWith(
+        expect.objectContaining({ environment: 'dev', roleName: undefined }),
+      );
+    });
+  });
+
+  it('Should show "No users to replicate" and hide the Run Replication button when there is nothing to replicate', async () => {
+    (previewRoleReplication as jest.Mock).mockResolvedValueOnce([
+      [{ role: 'role-1', total: 2, alreadyReplicated: 2, toAttempt: 0 }],
+      null,
+    ]);
+
+    render(<RoleEnvironmentWithMfaComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    });
+
+    const replicateButton = await screen.findAllByTestId('replicate-to-mfa');
+    fireEvent.click(replicateButton[0]);
+
+    expect(await screen.findByText('No users to replicate')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: 'Run Replication' })).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+  });
+
+  it('Should keep the Run Replication button hidden if reopened twice in a row with nothing to replicate', async () => {
+    (previewRoleReplication as jest.Mock).mockResolvedValue([
+      [{ role: 'role-1', total: 2, alreadyReplicated: 2, toAttempt: 0 }],
+      null,
+    ]);
+
+    render(<RoleEnvironmentWithMfaComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    });
+
+    // Open, verify hidden, close.
+    fireEvent.click((await screen.findAllByTestId('replicate-to-mfa'))[0]);
+    expect(await screen.findByText('No users to replicate')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: 'Run Replication' })).not.toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    // Reopen with the same "nothing to replicate" result - button must still stay hidden.
+    fireEvent.click((await screen.findAllByTestId('replicate-to-mfa'))[0]);
+    expect(await screen.findByText('No users to replicate')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: 'Run Replication' })).not.toBeInTheDocument();
+    });
   });
 });

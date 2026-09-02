@@ -1,6 +1,5 @@
 import { Op, Model } from 'sequelize';
-import { kebabCase } from 'lodash';
-import { assign, isEmpty, isString } from 'lodash';
+import { assign, isEmpty, isString, kebabCase } from 'lodash';
 import {
   validateRequest,
   getDifferences,
@@ -18,9 +17,8 @@ import {
 } from '@app/utils/helpers';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@app/shared/interfaces';
-import { ACTION_TYPES, EMAILS, REQUEST_TYPES } from '@app/shared/enums';
-import { sendTemplate, sendTemplates } from '@app/shared/templates';
-import { EVENTS } from '@app/shared/enums';
+import { ACTION_TYPES, EMAILS, REQUEST_TYPES, EVENTS } from '@app/shared/enums';
+import { sendTemplate } from '@app/shared/templates';
 import { getAllowedTeams, getTeamById } from '@app/queries/team';
 import {
   getMyOrTeamRequest,
@@ -35,7 +33,6 @@ import {
 } from '@app/queries/request';
 import { fetchClient } from '@app/keycloak/client';
 import { getUserTeamRole } from '@app/queries/literals';
-import { canDeleteIntegration } from '@app/helpers/permissions';
 import {
   usesBceid,
   usesGithub,
@@ -48,6 +45,7 @@ import {
   checkNotSocial,
   checkNotOTP,
   usesOTP,
+  usesSdxServices,
 } from '@app/helpers/integration';
 import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@app/keycloak/users';
 import { getRolesWithEnvironments } from '@app/queries/roles';
@@ -89,12 +87,13 @@ import {
 import { bcscClientScopeMappers, bcscIdpMappers } from '@app/utils/constants';
 import createHttpError from 'http-errors';
 import { isSocialApprover, validateIDPs } from '@app/utils/helpers';
-import { getIdpApprovalStatus } from '@app/helpers/permissions';
+import { getIdpApprovalStatus, canDeleteIntegration } from '@app/helpers/permissions';
 import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import { Event } from '@app/interfaces/Event';
 import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
+import { createSdxRequest } from './sdx-services';
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
@@ -602,9 +601,15 @@ export const updateRequest = async (
           );
       }
 
+      // keycloak related operations
       // when it is submitted for the first time.
       if (!isMerged && !current.clientId) {
         current.clientId = `${kebabCase(current.projectName)}-${id}`;
+      }
+
+      // SDX related operations
+      if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true' && usesSdxServices(current) && current?.sdxServices) {
+        await createSdxRequest(session, current);
       }
 
       // If custom client id is provided, check if that client id is already used
@@ -643,6 +648,7 @@ export const updateRequest = async (
     }
 
     current.lastChanges = changes || null;
+
     let updated = await current.save();
 
     if (!updated) {
@@ -682,7 +688,8 @@ export const updateRequest = async (
       }
 
       await createEvent(eventData);
-      const a = await processIntegrationRequest(updated, false, existingClientId, addingProd);
+
+      await processIntegrationRequest(updated, false, existingClientId, addingProd);
 
       updated = await getAllowedRequest(session, data?.id!);
     }

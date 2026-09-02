@@ -302,6 +302,65 @@ export const deleteRole = async ({
   }
 };
 
+export type RoleReplicationStatus = 'REPLICATED' | 'ALREADY_REPLICATED' | 'NOT_FOUND_IN_MFA' | 'ERROR';
+
+export interface RoleReplicationResultRow {
+  idirUsername: string;
+  guid: string;
+  role: string;
+  status: RoleReplicationStatus;
+  detail?: string;
+}
+
+export interface RoleReplicationPreview {
+  role: string;
+  total: number;
+  alreadyReplicated: number;
+  toAttempt: number;
+}
+
+/** Preview counts for replicating role(s) from idir to azureidir. Omit `roleName` to preview all roles. */
+export const previewRoleReplication = async ({
+  environment,
+  integrationId,
+  roleName,
+}: {
+  environment: string;
+  integrationId: number;
+  roleName?: string;
+}): Promise<[RoleReplicationPreview[] | null, any]> => {
+  try {
+    const result = await instance
+      .post('keycloak/role-replicate', { environment, integrationId, roleName, dryRun: true })
+      .then((res) => res.data.data);
+    return [result, null];
+  } catch (err: any) {
+    console.error(err);
+    return [null, err];
+  }
+};
+
+/** Run the replication from idir to azureidir. Omit `roleName` to replicate all roles ("Replicate All Roles"). */
+export const runRoleReplication = async ({
+  environment,
+  integrationId,
+  roleName,
+}: {
+  environment: string;
+  integrationId: number;
+  roleName?: string;
+}): Promise<[RoleReplicationResultRow[] | null, any]> => {
+  try {
+    const result = await instance
+      .post('keycloak/role-replicate', { environment, integrationId, roleName, dryRun: false })
+      .then((res) => res.data.data);
+    return [result, null];
+  } catch (err: any) {
+    console.error(err);
+    return [null, err];
+  }
+};
+
 export const fetchDefaultSessionSettings = async (): Promise<[null | GetStandardSettingsResponse, null | Error]> => {
   try {
     const result = await instance.get(`keycloak/standard-settings`).then((res) => res.data);

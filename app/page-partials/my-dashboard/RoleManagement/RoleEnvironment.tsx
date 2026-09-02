@@ -1,7 +1,7 @@
 import { MouseEvent, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faExclamationTriangle, faMinusCircle, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faExclamationTriangle, faMinusCircle, faEye, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import Select from 'react-select';
 import { throttle, get, reduce } from 'lodash';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
@@ -19,18 +19,27 @@ import {
   getCompositeClientRoles,
   setCompositeClientRoles,
   manageUserRole,
+  previewRoleReplication,
+  runRoleReplication,
+  RoleReplicationPreview,
+  RoleReplicationResultRow,
 } from 'services/keycloak';
 import { canCreateOrDeleteRoles } from 'helpers/permissions';
 import { idpMap } from 'helpers/meta';
 import { getRequest } from 'services/request';
 import { checkIfUserIsServiceAccount, filterServiceAccountUsers } from 'helpers/users';
 import { KeycloakUser } from 'interfaces/team';
-import { dateTimeStringForFileName, generateXlsx } from '@app/utils/helpers';
+import { dateTimeStringForFileName, generateXlsx, generateCsv } from '@app/utils/helpers';
 import _ from 'lodash';
 import TableNew from '@app/components/TableNew';
 import { Col, Row } from 'react-bootstrap';
 
-const COMPOSITE_ROLE_STRING_LENGTH = 17;
+export const ActionButtonContainer = styled.div`
+  display: flex;
+  justify-content: end;
+  padding-right: 15px;
+  column-gap: 0.5em;
+`;
 
 const Label = styled.label`
   font-weight: bold;
@@ -57,6 +66,12 @@ const RightFloatUsersActionsButtons = styled.span`
 
 const TopMargin = styled.div`
   height: var(--field-top-spacing);
+`;
+
+const HelpText = styled.div`
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
 `;
 
 function UsersListActionsHeader() {
@@ -149,6 +164,19 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const [serviceAccountIntMap, setServiceAccountIntMap] = useState<SvcAcctUserIntegrationMapType[]>([]);
   const [compositeRoleError, setCompositeRoleError] = useState(false);
 
+  // Roles (idir -> MFA) replication
+  const replicationModalRef = useRef<ModalRef>(emptyRef);
+  const [replicationTargetRole, setReplicationTargetRole] = useState<string | null>(null);
+  const [replicationPhase, setReplicationPhase] = useState<'preview' | 'result'>('preview');
+  const [replicationPreviewLoading, setReplicationPreviewLoading] = useState(false);
+  const [replicationRunning, setReplicationRunning] = useState(false);
+  const [replicationPreview, setReplicationPreview] = useState<RoleReplicationPreview[] | null>(null);
+  const [replicationResults, setReplicationResults] = useState<RoleReplicationResultRow[] | null>(null);
+
+  const envIdps = (integration as any)['devIdps'] || [];
+  const canReplicateRoles =
+    !viewOnly && canCreateOrDeleteRole && envIdps.includes('idir') && envIdps.includes('azureidir');
+
   const populateTabs = () => {
     let tabs: string[] = [];
     if (integration.authType === 'service-account') {
@@ -224,6 +252,24 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     setSaving(false);
     setSavingMessage('');
   }, [selectedRole]);
+
+  const replicationPreviewHasUsersToAttempt = useMemo(() => {
+    if (!replicationPreview) return false;
+    return replicationPreview.some((p) => p.toAttempt > 0);
+  }, [replicationPreview]);
+
+  useEffect(() => {
+    const hasUsersToAttempt = replicationPreview?.some((p) => p.toAttempt > 0);
+    const hasResultsDownload = !!(replicationResults && replicationResults.length > 0);
+
+    replicationModalRef.current.updateConfig({
+      cancelButtonText: replicationPhase === 'result' ? 'Close' : 'Cancel',
+      confirmButtonText: replicationPhase === 'result' ? 'Download' : 'Run Replication',
+      confirmButtonVariant: 'primary',
+      showCancelButton: true,
+      showConfirmButton: replicationPhase === 'result' ? hasResultsDownload : hasUsersToAttempt,
+    });
+  }, [replicationPhase, replicationResults, replicationPreview]);
 
   const roleOptions = useMemo(() => {
     return optionizeAll(roles);
@@ -407,15 +453,84 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     confirmModalRef.current.open(roleName);
   };
 
+  const fetchReplicationPreview = async (roleName: string | null) => {
+    setReplicationPreviewLoading(true);
+    const [data, err] = await previewRoleReplication({
+      environment,
+      integrationId: integration.id as number,
+      roleName: roleName || undefined,
+    });
+    setReplicationPreviewLoading(false);
+
+    if (err || !data) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to preview role replication.',
+      });
+      replicationModalRef.current.close();
+      return;
+    }
+
+    setReplicationPreview(data);
+  };
+
+  // roleName === null means "Replicate All Roles"
+  const openReplicationModal = (roleName: string | null) => {
+    setReplicationTargetRole(roleName);
+    setReplicationPhase('preview');
+    setReplicationPreview(null);
+    setReplicationResults(null);
+    replicationModalRef.current.open();
+    fetchReplicationPreview(roleName);
+  };
+
+  const handleReplicationConfirm = async () => {
+    if (replicationPhase === 'result') {
+      downloadReplicationCsv();
+      return false;
+    }
+
+    setReplicationRunning(true);
+    const [data, err] = await runRoleReplication({
+      environment,
+      integrationId: integration.id as number,
+      roleName: replicationTargetRole || undefined,
+    });
+    setReplicationRunning(false);
+
+    if (err || !data) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to replicate roles. Please try again.',
+      });
+      return false;
+    }
+
+    setReplicationResults(data);
+    setReplicationPhase('result');
+
+    if (selectedRole && (!replicationTargetRole || replicationTargetRole === selectedRole)) {
+      fetchUsers(true, selectedRole);
+    }
+
+    return false;
+  };
+
+  const downloadReplicationCsv = () => {
+    if (!replicationResults || replicationResults.length === 0) return;
+    const fileNameSuffix = replicationTargetRole ? `-${replicationTargetRole}` : '';
+    generateCsv(
+      replicationResults,
+      `${integration.projectName}-${environment}-${dateTimeStringForFileName()}-role-replication${fileNameSuffix}`,
+    );
+  };
+
   const handleRightPanelTabSelect = (key: any) => {
     setRightPanelTab(key);
   };
 
   const activateRow = (row: any) => {
-    if (row.role.endsWith(' (Composite role)')) {
-      const roleLength = row.role.length;
-      setSelectedRole(row.role.substr(0, roleLength - COMPOSITE_ROLE_STRING_LENGTH));
-    } else setSelectedRole(row.role);
+    setSelectedRole(row.role);
   };
 
   let rightPanel = null;
@@ -612,15 +727,31 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       dataTestId="roles-table"
       columns={[
         {
-          accessorKey: 'role',
+          accessorKey: 'label',
           header: 'Role Name',
         },
         {
           accessorKey: 'actions',
           header: '',
           cell: (props) => {
+            const rawRoleName = props.row.original.role;
+
             return viewOnly ? null : (
-              <AlignRight>
+              <ActionButtonContainer>
+                {canReplicateRoles && (
+                  <ActionButton
+                    icon={faSyncAlt}
+                    role="button"
+                    aria-label="Replicate to IDIR - MFA"
+                    onClick={(event: MouseEvent) => {
+                      event.stopPropagation();
+                      openReplicationModal(rawRoleName);
+                    }}
+                    title="Replicate to IDIR - MFA"
+                    size="lg"
+                    data-testid="replicate-to-mfa"
+                  />
+                )}
                 <ActionButton
                   disabled={!canCreateOrDeleteRole}
                   icon={faTrash}
@@ -629,21 +760,22 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
                   onClick={(event: MouseEvent) => {
                     if (canCreateOrDeleteRole) {
                       event.stopPropagation();
-                      handleDelete(props.row.original.role);
+                      handleDelete(rawRoleName);
                     }
                   }}
                   title="Delete"
                   size="lg"
-                  style={{ marginRight: '1rem' }}
+                  data-testid="delete-role"
                 />
-              </AlignRight>
+              </ActionButtonContainer>
             );
           },
         },
       ]}
       data={roles.map((role: string, index: number) => {
         return {
-          role: updateRoleName(role, index),
+          role,
+          label: updateRoleName(role, index),
         };
       })}
       noDataFoundMessage={<span>No roles found.</span>}
@@ -662,7 +794,22 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   return (
     <>
       <Row>
-        <Col>{leftPanel}</Col>
+        <Col>
+          {canReplicateRoles && (
+            <div style={{ marginBottom: '0.5rem' }}>
+              <HelpText>Replicate IDIR role assignments to IDIR - MFA users for all roles.</HelpText>
+              <button
+                type="button"
+                className="primary short"
+                data-testid="replicate-all-roles-btn"
+                onClick={() => openReplicationModal(null)}
+              >
+                Replicate All Roles
+              </button>
+            </div>
+          )}
+          {leftPanel}
+        </Col>
         <Col>
           {selectedRole && (
             <Tabs onChange={handleRightPanelTabSelect} activeKey={rightPanelTab} tabBarGutter={30} items={tabItems} />
@@ -758,6 +905,70 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         cancelButtonVariant="secondary"
       >
         <div>Are you sure you want to remove this service account from this role?</div>
+      </GenericModal>
+      <GenericModal
+        id="replicate-roles-to-mfa"
+        ref={replicationModalRef}
+        title={
+          replicationTargetRole
+            ? `Replicate IDIR role assignments to IDIR - MFA users for "${replicationTargetRole}"`
+            : 'Replicate All Roles to IDIR - MFA'
+        }
+        icon={faExclamationTriangle}
+        closable={!replicationRunning}
+        onConfirm={handleReplicationConfirm}
+        confirmButtonText="Run Replication"
+        confirmButtonVariant="primary"
+        cancelButtonVariant="secondary"
+        buttonAlign="none"
+        size="lg"
+      >
+        {replicationPhase === 'preview' ? (
+          replicationPreviewLoading || !replicationPreview || replicationRunning ? (
+            <>
+              {replicationPreviewLoading && <p>Searching roles to replicate...</p>}
+              <LoaderContainer />
+            </>
+          ) : !replicationPreviewHasUsersToAttempt ? (
+            <p>No users to replicate</p>
+          ) : (
+            <div>
+              <p>
+                Replicate client role assignments from each user&apos;s <strong>IDIR</strong> identity to their{' '}
+                <strong>IDIR - MFA</strong> identity.
+              </p>
+              <div style={{ maxHeight: '400px', overflowY: 'scroll', padding: '0.5em' }}>
+                <TableNew
+                  dataTestId="idir-role-replication-table"
+                  readOnly
+                  variant="mini"
+                  columns={[
+                    {
+                      accessorKey: 'role',
+                      header: 'Role Name',
+                    },
+                    {
+                      accessorKey: 'toAttempt',
+                      header: 'Users to assign',
+                    },
+                  ]}
+                  data={replicationPreview}
+                  enableGlobalSearch={true}
+                  noDataFoundMessage={<span>No roles found</span>}
+                  enablePagination={false}
+                ></TableNew>
+              </div>
+            </div>
+          )
+        ) : (
+          <div>
+            {(replicationResults || []).some((r) => r.status === 'ERROR') ? (
+              <p>Errors encountered during replication. Please see replication details for more information.</p>
+            ) : (
+              <p>Replication complete.</p>
+            )}
+          </div>
+        )}
       </GenericModal>
       <UserDetailModal modalRef={infoModalRef} />
     </>
