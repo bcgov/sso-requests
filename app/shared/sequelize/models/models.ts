@@ -11,6 +11,7 @@ import RequestRole from './RequestRole';
 import BcscClient from './BcscClient';
 import CustomRequest from './CustomRequest';
 import SdxRequest from './SdxRequest';
+import ApiAccountGrant from './ApiAccountGrant';
 
 const config: any = configs[`${process.env.NODE_ENV || 'development'}`];
 
@@ -40,6 +41,7 @@ console.log('sequelize initialized', !!sequelize);
   BcscClient,
   CustomRequest,
   SdxRequest,
+  ApiAccountGrant,
 ].forEach((init) => {
   const model = init(sequelize, DataTypes);
   models[model.name] = model;

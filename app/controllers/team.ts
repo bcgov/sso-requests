@@ -16,6 +16,7 @@ import { processIntegrationRequest, checkIfRequestMerged, createEvent } from '@a
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
+import { createTeamWildcardGrants } from '../queries/apiAccountGrant';
 import { generateInstallation, updateClientSecret } from '../keycloak/installation';
 import createHttpError from 'http-errors';
 import { hasTeamPermission, teamPermissions } from '@app/utils/authorize';
@@ -289,6 +290,8 @@ export const requestServiceAccount = async (session: Session, userId: number, te
   serviceAccount.requester = requester;
   serviceAccount.environments = ['prod']; // service accounts are by default only created in prod
   const saved = await serviceAccount.save();
+
+  await createTeamWildcardGrants(saved.id, saved.teamId);
 
   await processIntegrationRequest(saved);
 

@@ -66,6 +66,7 @@ export const createMigrator = async () => {
       await import('./migrations/2026.07.27T10.00.00.add-custom-requests-table'),
       await import('./migrations/2026.08.07T10.00.00.add-sdx-enabled'),
       await import('./migrations/2026.08.07T14.00.00.create-sdx-requests-table'),
+      await import('./migrations/2026.09.02T10.00.00.create-api-account-grants'),
     ],
     context: sequelize,
     storage: new SequelizeStorage({

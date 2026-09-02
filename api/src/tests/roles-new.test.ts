@@ -4,11 +4,12 @@ import app from '@/tests/helpers/server';
 import { KeycloakService } from '@/services/keycloak-service';
 import { BceidWebserviceService } from '@/services/bceid-webservice';
 import { MsGraphService } from '@/services/ms-graph-idir';
-import { seedIntergrations, seedTeamAndMembers } from './helpers/seeder';
+import { seedApiAccount, seedIntergrations, seedTeamAndMembers } from './helpers/seeder';
 
 const API_BASE_PATH = '/api/v1';
 let team: any;
 let integration: any;
+let apiAccount: any;
 
 const clientRoles = [{ name: 'role1', composite: false }];
 
@@ -17,7 +18,7 @@ jest.mock('@/modules/authenticate', () => {
     authenticate: jest.fn(() => {
       return Promise.resolve({
         success: true,
-        data: { teamId: team.id as any },
+        data: { teamId: team.id as any, apiClientId: apiAccount.clientId },
         err: null,
       });
     }),
@@ -45,6 +46,8 @@ describe('roles-new endpoint', () => {
       teamId: team?.id,
       submitted: true,
     });
+
+    apiAccount = await seedApiAccount(team.id);
   });
 
   beforeEach(() => {

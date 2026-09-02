@@ -1,5 +1,7 @@
 import { inject, injectable } from 'tsyringe';
 import { IntegrationService } from '@/services/integration-service';
+import { AuthContext } from '@/modules/authorization';
+import { ACTIONS, RESOURCES } from '@/constants';
 
 @injectable()
 export class IntegrationController {
@@ -7,12 +9,15 @@ export class IntegrationController {
 
   constructor(@inject('IntegrationService') private integrationService: IntegrationService) {}
 
-  public async getIntegration(id: number, teamId: number) {
-    const int = await this.integrationService.getById(id, teamId);
+  public async getIntegration(id: number, authz: AuthContext) {
+    const int = await this.integrationService.getById(id, authz, {
+      resource: RESOURCES.INTEGRATIONS,
+      action: ACTIONS.READ,
+    });
     return Object.fromEntries(Object.entries(int).filter(([prop]) => this.attributes.includes(prop)));
   }
 
-  public async listByTeam(teamId: number) {
-    return await this.integrationService.getAllByTeam(teamId, this.attributes);
+  public async list(authz: AuthContext) {
+    return await this.integrationService.listAccessible(authz, this.attributes);
   }
 }

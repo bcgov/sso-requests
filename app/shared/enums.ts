@@ -56,3 +56,27 @@ export const ACTION_TYPES = {
   UPDATE: 'update',
   DELETE: 'delete',
 };
+
+// Permission vocabulary shared by API account grants and organization consent
+// ceilings. Kept in step with api/src/constants.ts.
+export const API_RESOURCES = {
+  ROLES: 'roles',
+  USER_ROLE_MAPPINGS: 'user-role-mappings',
+  INTEGRATIONS: 'integrations',
+  IDP_USERS: 'idp-users',
+} as const;
+
+export const API_ACTIONS = {
+  READ: 'read',
+  WRITE: 'write',
+} as const;
+
+export const ALL_RESOURCE_ACTIONS: [string, string][] = [
+  [API_RESOURCES.ROLES, API_ACTIONS.READ],
+  [API_RESOURCES.ROLES, API_ACTIONS.WRITE],
+  [API_RESOURCES.USER_ROLE_MAPPINGS, API_ACTIONS.READ],
+  [API_RESOURCES.USER_ROLE_MAPPINGS, API_ACTIONS.WRITE],
+  [API_RESOURCES.INTEGRATIONS, API_ACTIONS.READ],
+  [API_RESOURCES.INTEGRATIONS, API_ACTIONS.WRITE],
+  [API_RESOURCES.IDP_USERS, API_ACTIONS.READ],
+];

@@ -20,6 +20,8 @@ import type { UsersTeamsAttributes, UsersTeamsCreationAttributes } from '@/seque
 import sequelize from '@/sequelize/config';
 import { ApiUsageMetrics as _ApiUsageMetrics } from '@/sequelize/models/ApiUsageMetrics';
 import type { ApiUsageMetricsAttributes } from '@/sequelize/models/ApiUsageMetrics';
+import { ApiAccountGrants as _ApiAccountGrants } from '@/sequelize/models/ApiAccountGrants';
+import type { ApiAccountGrantsAttributes } from '@/sequelize/models/ApiAccountGrants';
 
 export {
   _BcscClients as BcscClients,
@@ -53,6 +55,7 @@ export type {
   UsersTeamsAttributes,
   UsersTeamsCreationAttributes,
   ApiUsageMetricsAttributes,
+  ApiAccountGrantsAttributes,
 };
 
 export function models(sequelize: Sequelize) {
@@ -66,6 +69,7 @@ export function models(sequelize: Sequelize) {
   const Users = _Users.initModel(sequelize);
   const UsersTeams = _UsersTeams.initModel(sequelize);
   const ApiUsageMetrics = _ApiUsageMetrics.initModel(sequelize);
+  const ApiAccountGrants = _ApiAccountGrants.initModel(sequelize);
 
   Teams.belongsToMany(Users, { as: 'userIdUsers', through: UsersTeams, foreignKey: 'teamId', otherKey: 'userId' });
   Users.belongsToMany(Teams, { as: 'teamIdTeams', through: UsersTeams, foreignKey: 'userId', otherKey: 'teamId' });
@@ -95,6 +99,7 @@ export function models(sequelize: Sequelize) {
     user: Users,
     usersTeam: UsersTeams,
     apiUsageMetrics: ApiUsageMetrics,
+    apiAccountGrant: ApiAccountGrants,
   };
 }
 

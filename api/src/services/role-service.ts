@@ -4,6 +4,8 @@ import createHttpError from 'http-errors';
 import { roleValidator, listOfrolesValidator } from '@/schemas/role';
 import { getAllowedRoleProps, updateRoleProps } from '@/helpers/roles';
 import { Role, RolePayload } from '@/types';
+import { AuthContext } from '@/modules/authorization';
+import { ACTIONS, RESOURCES } from '@/constants';
 import { parseErrors } from '@/utils';
 import { KeycloakServiceFactory } from './keycloak-service';
 import models from '@/sequelize/models/models';
@@ -14,24 +16,36 @@ export class RoleService {
   keycloakServiceFactory = container.resolve(KeycloakServiceFactory);
   constructor(@inject('IntegrationService') private integrationService: IntegrationService) {}
 
-  public async getAllByEnvironment(teamId: number, integrationId: number, environment: string) {
-    const int = await this.integrationService.getById(integrationId, teamId);
+  public async getAllByEnvironment(authz: AuthContext, integrationId: number, environment: string) {
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.ROLES,
+      action: ACTIONS.READ,
+      environment,
+    });
     const KeycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
     const intRoles = await KeycloakService.listClientRoles(int.clientId);
     return updateRoleProps(intRoles);
   }
 
-  public async getByName(teamId: number, integrationId: number, environment: string, roleName: string) {
-    const int = await this.integrationService.getById(integrationId, teamId);
+  public async getByName(authz: AuthContext, integrationId: number, environment: string, roleName: string) {
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.ROLES,
+      action: ACTIONS.READ,
+      environment,
+    });
     const KeycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
     const role = await KeycloakService.getClientRole(int.clientId, roleName);
     if (!role) throw new createHttpError[404](`role ${roleName} not found`);
     return getAllowedRoleProps(role as Role);
   }
 
-  public async createRole(teamId: number, integrationId: number, role: RolePayload, environment: string) {
+  public async createRole(authz: AuthContext, integrationId: number, role: RolePayload, environment: string) {
     this.validateRole(role);
-    const int = await this.integrationService.getById(integrationId, teamId);
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.ROLES,
+      action: ACTIONS.WRITE,
+      environment,
+    });
     const KeycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
     const kcRole = await KeycloakService.createClientRole(int.clientId, role);
     if (kcRole) {
@@ -44,22 +58,30 @@ export class RoleService {
     return getAllowedRoleProps(kcRole);
   }
 
-  public async deleteRole(teamId: number, integrationId: number, roleName: string, environment: string) {
-    const int = await this.integrationService.getById(integrationId, teamId);
+  public async deleteRole(authz: AuthContext, integrationId: number, roleName: string, environment: string) {
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.ROLES,
+      action: ACTIONS.WRITE,
+      environment,
+    });
     const KeycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
     await KeycloakService.deleteClientRole(int.clientId, roleName);
     await destroyRequestRole(int?.id, roleName, environment);
   }
 
   public async updateRole(
-    teamId: number,
+    authz: AuthContext,
     integrationId: number,
     roleName: string,
     environment: string,
     role: RolePayload,
   ) {
     this.validateRole(role);
-    const int = await this.integrationService.getById(integrationId, teamId);
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.ROLES,
+      action: ACTIONS.WRITE,
+      environment,
+    });
     const KeycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
     const updatedRole = await KeycloakService.updateClientRole(int.clientId, roleName, role);
     if (updatedRole) {
@@ -100,7 +122,7 @@ export class RoleService {
   }
 
   public async createCompositeRole(
-    teamId: number,
+    authz: AuthContext,
     integrationId: number,
     roleName: string,
     environment: string,
@@ -109,7 +131,11 @@ export class RoleService {
     const valid = listOfrolesValidator(compositeRoles);
     if (!valid) throw new createHttpError[400](parseErrors(listOfrolesValidator.errors));
 
-    const int = await this.integrationService.getById(integrationId, teamId);
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.ROLES,
+      action: ACTIONS.WRITE,
+      environment,
+    });
 
     const KeycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
 
@@ -131,21 +157,29 @@ export class RoleService {
     return getAllowedRoleProps(updatedRole);
   }
 
-  public async getCompositeRoles(teamId: number, integrationId: number, roleName: string, environment: string) {
-    const int = await this.integrationService.getById(integrationId, teamId);
+  public async getCompositeRoles(authz: AuthContext, integrationId: number, roleName: string, environment: string) {
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.ROLES,
+      action: ACTIONS.READ,
+      environment,
+    });
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
     const compositeRole = await keycloakService.getCompositeRoles(int.clientId, roleName);
     return updateRoleProps(compositeRole);
   }
 
   public async getCompositeRole(
-    teamId: number,
+    authz: AuthContext,
     integrationId: number,
     roleName: string,
     environment: string,
     compositeRoleName: string,
   ) {
-    const int = await this.integrationService.getById(integrationId, teamId);
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.ROLES,
+      action: ACTIONS.READ,
+      environment,
+    });
 
     if (roleName === compositeRoleName)
       throw new createHttpError[400](`role name and composite role name cannot be same`);
@@ -158,13 +192,17 @@ export class RoleService {
   }
 
   public async deleteCompositeRole(
-    teamId: number,
+    authz: AuthContext,
     integrationId: number,
     roleName: string,
     environment: string,
     compositeRoleName: string,
   ) {
-    const int = await this.integrationService.getById(integrationId, teamId);
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.ROLES,
+      action: ACTIONS.WRITE,
+      environment,
+    });
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
 
     if (roleName === compositeRoleName)

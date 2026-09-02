@@ -1,8 +1,10 @@
-// Extend the Request interface to include teamId
+// Extend the Request interface with the resolved API account authorization context.
 declare global {
   namespace Express {
     interface Request {
       teamId?: number;
+      apiClientId?: string;
+      authz?: AuthContext;
     }
   }
 }
@@ -28,7 +30,8 @@ import createHttpError from 'http-errors';
 import { isEmpty } from 'lodash';
 import { wakeUpAll } from './controllers/heartbeat-controller';
 import { logsRateLimiter } from './modules/redis';
-import { getIntegrationByIdAndTeam } from './sequelize/queries/requests';
+import { AuthContext, assertValidEnvironment, getAuthContext } from './modules/authorization';
+import { ACTIONS, RESOURCES } from './constants';
 import { ListBceidUsersFilterQuery, ListUserRoleMappingQuery } from './types';
 import { collectApiUsageMetrics } from './middleware/api-usage';
 
@@ -50,6 +53,7 @@ const userRoleMappingController = container.resolve(UserRoleMappingController);
 const tokenController = container.resolve(TokenController);
 const logsController = container.resolve(LogsController);
 const userController = container.resolve(UserController);
+const integrationService = container.resolve(IntegrationService);
 
 router.use(collectApiUsageMetrics);
 
@@ -84,9 +88,29 @@ router.use(async (req: Request, res: Response, next: NextFunction) => {
   const auth: Auth = await authenticate(req.headers);
   if (!auth.success) {
     res.status(401).json(auth);
-  } else {
-    req.teamId = auth?.data?.teamId;
+    return;
+  }
+  req.teamId = auth?.data?.teamId;
+  req.apiClientId = auth?.data?.apiClientId;
+
+  const authz = await getAuthContext(req.apiClientId);
+  if (!authz) {
+    res.status(401).json({ success: false, data: null, err: 'not authorized' });
+    return;
+  }
+  req.authz = authz;
+  next();
+});
+
+// Environment is a grant dimension, so an unrecognised value must be rejected
+// before any authorization decision is made rather than failing downstream.
+router.use((req: Request, res: Response, next: NextFunction) => {
+  const { environment } = req.params as Record<string, string>;
+  try {
+    if (environment !== undefined) assertValidEnvironment(environment);
     next();
+  } catch (err) {
+    handleError(res, err);
   }
 });
 
@@ -101,7 +125,7 @@ router.get(`/verify-token`, async (req: Request, res: Response) => {
 router.get(`/integrations`, async (req: Request, res: Response) => {
   try {
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
-    const result = await integrationController.listByTeam(req.teamId);
+    const result = await integrationController.list(req.authz);
     res.status(200).json({ data: result });
   } catch (err) {
     handleError(res, err);
@@ -112,7 +136,7 @@ router.get(`/integrations/:integrationId`, async (req: Request, res: Response) =
   try {
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
     const { integrationId } = req.params as Record<string, string>;
-    const result = await integrationController.getIntegration(Number(integrationId), req.teamId);
+    const result = await integrationController.getIntegration(Number(integrationId), req.authz);
     res.status(200).json(result);
   } catch (err) {
     handleError(res, err);
@@ -123,10 +147,12 @@ router.get(`/integrations/:integrationId/:environment/logs`, logsRateLimiter, as
   try {
     const { integrationId, environment } = req.params as Record<string, string>;
     const { start, end } = req.query || {};
-    const int = await getIntegrationByIdAndTeam(Number(integrationId), req.teamId);
-    if (!int) {
-      res.status(403).json({ message: 'forbidden' });
-    }
+    assertValidEnvironment(environment);
+    const int = await integrationService.getById(Number(integrationId), req.authz, {
+      resource: RESOURCES.INTEGRATIONS,
+      action: ACTIONS.READ,
+      environment,
+    });
     const { status, message, data } = await logsController.getLogs(
       environment,
       int.clientId,
@@ -145,7 +171,7 @@ router.get(`/integrations/:integrationId/:environment/roles`, async (req: Reques
   try {
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
     const { integrationId, environment } = req.params as Record<string, string>;
-    const result = await roleController.list(req.teamId, Number(integrationId), environment);
+    const result = await roleController.list(req.authz, Number(integrationId), environment);
     res.status(200).json({ data: result });
   } catch (err) {
     handleError(res, err);
@@ -157,7 +183,7 @@ router.get(`/integrations/:integrationId/:environment/roles/:roleName`, async (r
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
     const { integrationId, environment, roleName } = req.params as Record<string, string>;
     const decodedRoleName = decodeURIComponent(roleName);
-    const result = await roleController.get(req.teamId, Number(integrationId), environment, decodedRoleName);
+    const result = await roleController.get(req.authz, Number(integrationId), environment, decodedRoleName);
     res.status(200).json(result);
   } catch (err) {
     handleError(res, err);
@@ -168,7 +194,7 @@ router.post(`/integrations/:integrationId/:environment/roles`, async (req: Reque
   try {
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
     const { integrationId, environment } = req.params as Record<string, string>;
-    const result = await roleController.create(req.teamId, Number(integrationId), req.body, environment);
+    const result = await roleController.create(req.authz, Number(integrationId), req.body, environment);
     res.status(201).json(result);
   } catch (err) {
     handleError(res, err);
@@ -181,7 +207,7 @@ router.put(`/integrations/:integrationId/:environment/roles/:roleName`, async (r
     const { integrationId, environment, roleName } = req.params as Record<string, string>;
     const decodedRoleName = decodeURIComponent(roleName);
     const result = await roleController.update(
-      req.teamId,
+      req.authz,
       Number(integrationId),
       decodedRoleName,
       environment,
@@ -198,7 +224,7 @@ router.delete(`/integrations/:integrationId/:environment/roles/:roleName`, async
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
     const { integrationId, environment, roleName } = req.params as Record<string, string>;
     const decodedRoleName = decodeURIComponent(roleName);
-    await roleController.delete(req.teamId, Number(integrationId), decodedRoleName, environment);
+    await roleController.delete(req.authz, Number(integrationId), decodedRoleName, environment);
     res.status(204).send();
   } catch (err) {
     handleError(res, err);
@@ -212,12 +238,7 @@ router.get(
       if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment, roleName } = req.params as Record<string, string>;
       const decodedRoleName = decodeURIComponent(roleName);
-      const result = await roleController.getComposites(
-        req.teamId,
-        Number(integrationId),
-        decodedRoleName,
-        environment,
-      );
+      const result = await roleController.getComposites(req.authz, Number(integrationId), decodedRoleName, environment);
       res.status(200).json({ data: result });
     } catch (err) {
       handleError(res, err);
@@ -234,7 +255,7 @@ router.get(
       const decodedRoleName = decodeURIComponent(roleName);
       const decodedCompositeRoleName = decodeURIComponent(compositeRoleName);
       const result = await roleController.getComposite(
-        req.teamId,
+        req.authz,
         Number(integrationId),
         decodedRoleName,
         environment,
@@ -255,7 +276,7 @@ router.post(
       const { integrationId, environment, roleName } = req.params as Record<string, string>;
       const decodedRoleName = decodeURIComponent(roleName);
       const result = await roleController.createComposite(
-        req.teamId,
+        req.authz,
         Number(integrationId),
         decodedRoleName,
         environment,
@@ -277,7 +298,7 @@ router.delete(
       const decodedRoleName = decodeURIComponent(roleName);
       const decodedCompositeRoleName = decodeURIComponent(compositeRoleName);
       await roleController.deleteComposite(
-        req.teamId,
+        req.authz,
         Number(integrationId),
         decodedRoleName,
         environment,
@@ -294,7 +315,7 @@ router.get(`/integrations/:integrationId/:environment/user-role-mappings`, async
   try {
     const { integrationId, environment } = req.params as Record<string, string>;
     const result = await userRoleMappingController.list(
-      req.teamId,
+      req.authz,
       Number(integrationId),
       environment,
       req?.query as ListUserRoleMappingQuery,
@@ -309,7 +330,7 @@ router.post(`/integrations/:integrationId/:environment/user-role-mappings`, asyn
   try {
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
     const { integrationId, environment } = req.params as Record<string, string>;
-    const result = await userRoleMappingController.manage(req.teamId, Number(integrationId), environment, req.body);
+    const result = await userRoleMappingController.manage(req.authz, Number(integrationId), environment, req.body);
     req.body.operation === 'add' ? res.status(201).json(result) : res.status(204).send();
   } catch (err) {
     handleError(res, err);
@@ -390,7 +411,7 @@ router.get(`/integrations/:integrationId/:environment/bceid/users`, async (req: 
   try {
     const { integrationId, environment } = req.params as Record<string, string>;
     const result = await userController.listBceidUsers(
-      req.teamId,
+      req.authz,
       Number(integrationId),
       environment,
       req.query as ListBceidUsersFilterQuery,
@@ -406,7 +427,7 @@ router.get(`/integrations/:integrationId/:environment/users/:username/roles`, as
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
     const { integrationId, environment, username } = req.params as Record<string, string>;
     const result = await userRoleMappingController.listRolesByUsername(
-      req.teamId,
+      req.authz,
       Number(integrationId),
       environment,
       username,
@@ -422,7 +443,7 @@ router.get(`/integrations/:integrationId/:environment/roles/:roleName/users`, as
     const { integrationId, environment, roleName } = req.params as Record<string, string>;
     const decodedRoleName = decodeURIComponent(roleName);
     const result = await userRoleMappingController.listUsersByRolename(
-      req.teamId,
+      req.authz,
       Number(integrationId),
       environment,
       decodedRoleName,
@@ -439,7 +460,7 @@ router.post(`/integrations/:integrationId/:environment/users/:username/roles`, a
     if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
     const { integrationId, environment, username } = req.params as Record<string, string>;
     const result = await userRoleMappingController.addRoleToUser(
-      req.teamId,
+      req.authz,
       Number(integrationId),
       environment,
       username,
@@ -458,7 +479,7 @@ router.post(
       if (!isEmpty(req.query)) throw new createHttpError.BadRequest('invalid request');
       const { integrationId, environment, username } = req.params as Record<string, string>;
       const result = await userRoleMappingController.addRoleToUserWithProvisioning(
-        req.teamId,
+        req.authz,
         Number(integrationId),
         environment,
         username,
@@ -479,7 +500,7 @@ router.delete(
       const { integrationId, environment, username, roleName } = req.params as Record<string, string>;
       const decodedRoleName = decodeURIComponent(roleName);
       const result = await userRoleMappingController.deleteRoleFromUser(
-        req.teamId,
+        req.authz,
         Number(integrationId),
         environment,
         username,

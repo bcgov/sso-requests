@@ -9,6 +9,8 @@ import createHttpError from 'http-errors';
 import { parseErrors } from '@/utils';
 import { IntegrationService } from '@/services/integration-service';
 import { KeycloakServiceFactory } from '@/services/keycloak-service';
+import { AuthContext } from '@/modules/authorization';
+import { ACTIONS, RESOURCES } from '@/constants';
 
 @injectable()
 export class UserService {
@@ -53,12 +55,16 @@ export class UserService {
     });
   }
 
-  public getBceidUsers = async (teamId: number, integrationId: number, environment: string, query: any) => {
+  public getBceidUsers = async (authz: AuthContext, integrationId: number, environment: string, query: any) => {
     const bceidUsers = [];
     const valid = findBceidUserQueryValidator(query || {});
     if (!valid) throw new createHttpError[400](parseErrors(findBceidUserQueryValidator.errors));
 
-    const int = await this.integrationService.getById(integrationId, teamId);
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.IDP_USERS,
+      action: ACTIONS.READ,
+      environment,
+    });
 
     const idp = `bceid${query.bceidType}`;
 

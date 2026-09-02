@@ -72,3 +72,62 @@ export const seedIntergrations = async (data: {
     serviceType: 'gold',
   });
 };
+
+const WILDCARD_RESOURCE_ACTIONS: [string, string][] = [
+  ['roles', 'read'],
+  ['roles', 'write'],
+  ['user-role-mappings', 'read'],
+  ['user-role-mappings', 'write'],
+  ['integrations', 'read'],
+  ['integrations', 'write'],
+  ['idp-users', 'read'],
+];
+
+// Mirrors what the portal creates for a team API account: the account row plus a
+// wildcard grant set over its own team.
+export const seedApiAccount = async (teamId: number, grants?: Partial<ApiAccountGrantSeed>[]) => {
+  const account = await models.request.create({
+    projectName: `Service Account for team #${teamId}`,
+    serviceType: 'gold',
+    usesTeam: true,
+    teamId,
+    apiServiceAccount: true,
+    authType: 'service-account',
+    status: 'applied',
+    environments: ['prod'],
+  });
+
+  account.clientId = `service-account-team-${teamId}-${account.id}`;
+  await account.save();
+
+  const rows =
+    grants ??
+    WILDCARD_RESOURCE_ACTIONS.map(([resource, action]) => ({
+      teamId,
+      integrationId: null,
+      resource,
+      action,
+      environment: null,
+    }));
+
+  await models.apiAccountGrant.bulkCreate(
+    rows.map((grant) => ({
+      apiAccountId: account.id,
+      teamId: grant.teamId ?? null,
+      integrationId: grant.integrationId ?? null,
+      resource: grant.resource,
+      action: grant.action,
+      environment: grant.environment ?? null,
+    })),
+  );
+
+  return account;
+};
+
+export interface ApiAccountGrantSeed {
+  teamId: number | null;
+  integrationId: number | null;
+  resource: string;
+  action: string;
+  environment: string | null;
+}

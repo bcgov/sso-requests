@@ -7,7 +7,7 @@ import {
   TEAM_MEMBER_IDIR_USERID_01,
   TEAM_MEMBER_IDIR_EMAIL_01,
 } from './helpers/fixtures';
-import { seedTeamAndMembers, seedIntergrations } from './helpers/seeder';
+import { seedApiAccount, seedTeamAndMembers, seedIntergrations } from './helpers/seeder';
 import supertest from 'supertest';
 import app from '@/tests/helpers/server';
 import models from '@/sequelize/models/models';
@@ -15,6 +15,7 @@ import * as authenticateModule from '@/modules/authenticate';
 
 let team;
 let integration;
+let apiAccount;
 const API_BASE_PATH = '/api/v1';
 
 describe('API Usage', () => {
@@ -47,6 +48,8 @@ describe('API Usage', () => {
       teamId: team?.id,
       submitted: true,
     });
+
+    apiAccount = await seedApiAccount(team.id);
   });
 
   it('should not save unauthenticated api usage', async () => {
@@ -58,7 +61,7 @@ describe('API Usage', () => {
     jest.spyOn(authenticateModule, 'authenticate').mockImplementationOnce(() => {
       return Promise.resolve({
         success: true,
-        data: { teamId: team.id as any },
+        data: { teamId: team.id as any, apiClientId: apiAccount.clientId },
         err: null,
       });
     });

@@ -12,20 +12,22 @@ export const getIntegrationById = async (
   });
 };
 
-export const getIntegrationByIdAndTeam = (integrationId: number, teamId: number, options = { raw: true }) => {
+// Returns the full row without applying any authorization predicate. Callers must
+// assert a grant before exposing the result; IntegrationService is the only caller.
+export const getUnscopedIntegrationById = (integrationId: number, options = { raw: true }) => {
   return models.request.findOne({
-    where: { id: integrationId, teamId, apiServiceAccount: false, archived: false },
+    where: { id: integrationId, apiServiceAccount: false, archived: false },
     ...options,
   });
 };
 
-export const getIntegrationsByTeam = async (
-  teamId: number,
+export const getIntegrationsWhere = async (
+  scope: Record<string | symbol, any>,
   serviceType?: string,
   attributes?: string[],
   options?: { raw: boolean },
 ) => {
-  const where: any = { teamId, apiServiceAccount: false, archived: false };
+  const where: any = { ...scope, apiServiceAccount: false, archived: false };
   if (serviceType) where.serviceType = serviceType;
   return models.request.findAll({
     where,

@@ -10,6 +10,8 @@ import { parseErrors } from '@/utils';
 import { KeycloakServiceFactory } from './keycloak-service';
 import { BceidWebserviceService, BCEID_SOAP_IDPS, BceidSoapIdp, BceidAccount } from '@/services/bceid-webservice';
 import { MsGraphService, AzureIdirAccount } from '@/services/ms-graph-idir';
+import { AuthContext } from '@/modules/authorization';
+import { ACTIONS, RESOURCES } from '@/constants';
 
 /** IDPs supported for the auto-provisioning ("roles-new") flow, and how each is verified. */
 const AUTO_PROVISION_IDPS = [...BCEID_SOAP_IDPS, 'azureidir'] as const;
@@ -52,8 +54,19 @@ export class UserRoleMappingService {
     return parsedUsername;
   }
 
+  private async usersByRole(int: any, environment: string, roleName: string, first?: number, max?: number) {
+    const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
+    return await keycloakService.listUsersByClientRole(int?.clientId, roleName, first, max);
+  }
+
+  private async rolesByUser(int: any, environment: string, username: string) {
+    const parsedUsername = this.parseUsername(int.clientId, username);
+    const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
+    return await keycloakService.listClientUserRoleMappings(int.clientId, parsedUsername);
+  }
+
   public async getAllByQuery(
-    teamId: number,
+    authz: AuthContext,
     integrationId: number,
     environment: string,
     query: ListUserRoleMappingQuery,
@@ -61,7 +74,11 @@ export class UserRoleMappingService {
     let users = [];
     let roles = [];
 
-    const int = await this.integrationService.getById(integrationId, teamId);
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.USER_ROLE_MAPPINGS,
+      action: ACTIONS.READ,
+      environment,
+    });
 
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
 
@@ -77,14 +94,14 @@ export class UserRoleMappingService {
     }
 
     if (query?.roleName && !query?.username) {
-      users = await this.getAllUsersByRole(teamId, integrationId, environment, query.roleName);
+      users = await this.usersByRole(int, environment, query.roleName);
       roles = users.length > 0 ? [roles.find((role) => role.name === query?.roleName)] : [];
     } else if (query?.username && !query?.roleName) {
-      roles = await this.getAllRolesByUser(teamId, integrationId, environment, query.username);
+      roles = await this.rolesByUser(int, environment, query.username);
       roles = updateRoleProps(roles as Role[]);
       users = roles.length > 0 ? await keycloakService.getUser(query.username) : [];
     } else if (query?.roleName && query?.username) {
-      roles = await this.getAllRolesByUser(teamId, integrationId, environment, query.username);
+      roles = await this.rolesByUser(int, environment, query.username);
       if (!(roles.length > 0) || !roles.find((role) => role.name === query.roleName)) {
         users = [];
         roles = [];
@@ -98,32 +115,41 @@ export class UserRoleMappingService {
   }
 
   public async getAllUsersByRole(
-    teamId: number,
+    authz: AuthContext,
     integrationId: number,
     environment: string,
     roleName: string,
     first?: number,
     max?: number,
   ) {
-    const int = await this.integrationService.getById(integrationId, teamId);
-    const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-    return await keycloakService.listUsersByClientRole(int?.clientId, roleName, first, max);
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.USER_ROLE_MAPPINGS,
+      action: ACTIONS.READ,
+      environment,
+    });
+    return await this.usersByRole(int, environment, roleName, first, max);
   }
 
-  public async getAllRolesByUser(teamId: number, integrationId: number, environment: string, username: string) {
-    const int = await this.integrationService.getById(integrationId, teamId);
-    const parsedUsername = this.parseUsername(int.clientId, username);
-    const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-    return await keycloakService.listClientUserRoleMappings(int.clientId, parsedUsername);
+  public async getAllRolesByUser(authz: AuthContext, integrationId: number, environment: string, username: string) {
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.USER_ROLE_MAPPINGS,
+      action: ACTIONS.READ,
+      environment,
+    });
+    return await this.rolesByUser(int, environment, username);
   }
 
   public async manageRoleMapping(
-    teamId: number,
+    authz: AuthContext,
     integrationId: number,
     environment: string,
     userRoleMapping: UserRoleMappingPayload,
   ) {
-    const int = await this.integrationService.getById(integrationId, teamId);
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.USER_ROLE_MAPPINGS,
+      action: ACTIONS.WRITE,
+      environment,
+    });
     let users: User[];
     let roles: Role[];
 
@@ -132,7 +158,7 @@ export class UserRoleMappingService {
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
 
     if (roleName) {
-      roles = await this.roleService.getAllByEnvironment(teamId, integrationId, environment);
+      roles = updateRoleProps(await keycloakService.listClientRoles(int.clientId));
       const roleExists = roles.find((role: RolePayload) => role.name === roleName);
       if (!roleExists) throw new createHttpError[404](`role ${roleName} not found`);
     }
@@ -146,7 +172,7 @@ export class UserRoleMappingService {
       throw new createHttpError[400](`invalid operation #${operation}. valid values are (add, del)`);
 
     if (operation === 'del') {
-      const users = await this.getAllUsersByRole(teamId, integrationId, environment, roleName);
+      const users = await this.usersByRole(int, environment, roleName);
       if (users.length === 0) throw new createHttpError[404]('no user role mappings found');
     }
     roles = (await this.manageUserRole(int, { environment, username, roleName, mode: operation })) as Role[];
@@ -157,15 +183,17 @@ export class UserRoleMappingService {
     };
   }
 
-  public async listRolesByUsername(teamId: number, integrationId: number, environment: string, username: string) {
-    const int = await this.integrationService.getById(integrationId, teamId);
-    const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-    const parsedUsername = this.parseUsername(int.clientId, username);
-    return { data: updateRoleProps(await keycloakService.listClientUserRoleMappings(int.clientId, parsedUsername)) };
+  public async listRolesByUsername(authz: AuthContext, integrationId: number, environment: string, username: string) {
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.USER_ROLE_MAPPINGS,
+      action: ACTIONS.READ,
+      environment,
+    });
+    return { data: updateRoleProps(await this.rolesByUser(int, environment, username)) };
   }
 
   public async listUsersByRolename(
-    teamId: number,
+    authz: AuthContext,
     integrationId: number,
     environment: string,
     roleName: string,
@@ -173,20 +201,17 @@ export class UserRoleMappingService {
     max: number = 50,
   ) {
     const first = page > 1 ? max * (page - 1) : 0;
-    const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-    const userList = await keycloakService.listUsersByClientRole(
-      (
-        await this.integrationService.getById(integrationId, teamId)
-      ).clientId,
-      roleName,
-      first,
-      max,
-    );
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.USER_ROLE_MAPPINGS,
+      action: ACTIONS.READ,
+      environment,
+    });
+    const userList = await this.usersByRole(int, environment, roleName, first, max);
     return { page, data: updateUserProps(userList as User[]) };
   }
 
   public async addRoleToUser(
-    teamId: number,
+    authz: AuthContext,
     integrationId: number,
     environment: string,
     username: string,
@@ -194,7 +219,11 @@ export class UserRoleMappingService {
   ) {
     const valid = listOfrolesValidator(roles);
     if (!valid) throw new createHttpError[400](parseErrors(listOfrolesValidator.errors));
-    const int = await this.integrationService.getById(integrationId, teamId);
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.USER_ROLE_MAPPINGS,
+      action: ACTIONS.WRITE,
+      environment,
+    });
     const parsedUsername = this.parseUsername(int.clientId, username);
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
     for (let role of roles) {
@@ -216,7 +245,7 @@ export class UserRoleMappingService {
    * matching the behavior of the older addRoleToUser route.
    */
   public async addRoleToUserWithProvisioning(
-    teamId: number,
+    authz: AuthContext,
     integrationId: number,
     environment: string,
     username: string,
@@ -224,7 +253,11 @@ export class UserRoleMappingService {
   ) {
     const valid = listOfrolesValidator(roles);
     if (!valid) throw new createHttpError[400](parseErrors(listOfrolesValidator.errors));
-    const int = await this.integrationService.getById(integrationId, teamId);
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.USER_ROLE_MAPPINGS,
+      action: ACTIONS.WRITE,
+      environment,
+    });
     const parsedUsername = this.parseUsername(int.clientId, username);
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
     for (let role of roles) {
@@ -310,14 +343,18 @@ export class UserRoleMappingService {
   }
 
   public async deleteRoleFromUser(
-    teamId: number,
+    authz: AuthContext,
     integrationId: number,
     environment: string,
     username: string,
     roleName: string,
   ) {
     this.roleService.validateRole({ name: roleName });
-    const int = await this.integrationService.getById(integrationId, teamId);
+    const int = await this.integrationService.getById(integrationId, authz, {
+      resource: RESOURCES.USER_ROLE_MAPPINGS,
+      action: ACTIONS.WRITE,
+      environment,
+    });
     const parsedUsername = this.parseUsername(int.clientId, username);
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
     await keycloakService.deleteClientUserRoleMapping(int.clientId, parsedUsername, roleName);

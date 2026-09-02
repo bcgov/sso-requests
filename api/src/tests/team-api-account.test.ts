@@ -9,11 +9,12 @@ import {
 import supertest from 'supertest';
 import app from '@/tests/helpers/server';
 import { KeycloakService } from '@/services/keycloak-service';
-import { seedIntergrations, seedTeamAndMembers } from './helpers/seeder';
+import { seedApiAccount, seedIntergrations, seedTeamAndMembers } from './helpers/seeder';
 
 const API_BASE_PATH = '/api/v1';
 let team;
 let integration;
+let apiAccount;
 const integrationRoles = [
   {
     name: 'role1',
@@ -77,7 +78,7 @@ jest.mock('@/modules/authenticate', () => {
     authenticate: jest.fn(() => {
       return Promise.resolve({
         success: true,
-        data: { teamId: team.id as any },
+        data: { teamId: team.id as any, apiClientId: apiAccount.clientId },
         err: null,
       });
     }),
@@ -122,6 +123,8 @@ describe('emails for teams', () => {
         teamId: team?.id,
         submitted: true,
       });
+
+      apiAccount = await seedApiAccount(team.id);
 
       integrationRoles.forEach(async (role) => {
         jest.spyOn(KeycloakService.prototype, 'createClientRole').mockImplementationOnce(() => {
