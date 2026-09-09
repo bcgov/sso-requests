@@ -16,11 +16,7 @@ const init = (sequelize: any, DataTypes: any) => {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
-      resource: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      action: {
+      level: {
         type: DataTypes.STRING,
         allowNull: false,
       },

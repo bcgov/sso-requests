@@ -6,8 +6,7 @@ export interface ApiAccountGrantsAttributes {
   apiAccountId: number;
   teamId?: number | null;
   integrationId?: number | null;
-  resource: string;
-  action: string;
+  level: string;
   environment?: string | null;
 }
 
@@ -16,8 +15,7 @@ export class ApiAccountGrants extends Model<ApiAccountGrantsAttributes> implemen
   apiAccountId!: number;
   teamId!: number | null;
   integrationId!: number | null;
-  resource!: string;
-  action!: string;
+  level!: string;
   environment!: string | null;
 
   static initModel(sequelize: Sequelize.Sequelize): typeof ApiAccountGrants {
@@ -45,11 +43,7 @@ export class ApiAccountGrants extends Model<ApiAccountGrantsAttributes> implemen
           allowNull: true,
           field: 'integration_id',
         },
-        resource: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        },
-        action: {
+        level: {
           type: DataTypes.STRING,
           allowNull: false,
         },

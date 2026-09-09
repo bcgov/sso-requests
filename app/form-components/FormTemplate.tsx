@@ -266,7 +266,13 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         content: 'Failed to load teams. Please refresh.',
       });
     } else {
-      setTeams(teams || []);
+      const currentTeam = request?.team as Team | undefined;
+      const availableTeams = teams || [];
+      setTeams(
+        currentTeam && !availableTeams.some((team) => Number(team.id) === Number(currentTeam.id))
+          ? [...availableTeams, currentTeam]
+          : availableTeams,
+      );
     }
   };
 

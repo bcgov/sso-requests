@@ -4,10 +4,10 @@ import { models } from '@app/shared/sequelize/models/models';
 import { Session, User, UserTeam } from '@app/shared/interfaces';
 import { lowcase } from '@app/helpers/string';
 import { isAdmin } from '../utils/helpers';
-import { findAllowedIntegrationInfo, getIntegrationById } from '@app/queries/request';
+import { getIntegrationById } from '@app/queries/request';
 import { listRoleUsers, listUserRoles, manageUserRole, manageUserRoles } from '@app/keycloak/users';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
-import { EMAILS, EVENTS } from '@app/shared/enums';
+import { API_ACTIONS, API_RESOURCES, EMAILS, EVENTS } from '@app/shared/enums';
 import { sendTemplate } from '@app/shared/templates';
 import { UserSurveyInformation } from '@app/shared/interfaces';
 import { createEvent } from './requests';
@@ -15,6 +15,7 @@ import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRep
 import createHttpError from 'http-errors';
 import { compact } from 'lodash';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
+import { assertAuthorizedIntegration } from '@app/queries/integrationAccess';
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
@@ -100,7 +101,11 @@ export const listUsersByRole = async (
 ) => {
   const integration = hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_ROLES)
     ? await getIntegrationById(integrationId)
-    : await findAllowedIntegrationInfo(session?.user?.id as number, integrationId);
+    : await assertAuthorizedIntegration(session.user!.id, integrationId, {
+        resource: API_RESOURCES.USER_ROLE_MAPPINGS,
+        action: API_ACTIONS.READ,
+        environment,
+      });
   if (integration.authType === 'service-account') throw new createHttpError.BadRequest('invalid auth type');
   return await listRoleUsers(integration, {
     environment,
@@ -126,7 +131,11 @@ export const updateUserRoleMapping = async (
     mode: 'add' | 'del';
   },
 ) => {
-  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  const integration = await assertAuthorizedIntegration(sessionUserId, integrationId, {
+    resource: API_RESOURCES.USER_ROLE_MAPPINGS,
+    action: API_ACTIONS.WRITE,
+    environment,
+  });
   const roles = await manageUserRole(integration, { environment, username, roleName, mode });
   return roles.map((role) => role.name);
 };
@@ -145,7 +154,11 @@ export const updateUserRoleMappings = async (
     roleNames: string[];
   },
 ) => {
-  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  const integration = await assertAuthorizedIntegration(sessionUserId, integrationId, {
+    resource: API_RESOURCES.USER_ROLE_MAPPINGS,
+    action: API_ACTIONS.WRITE,
+    environment,
+  });
   return await manageUserRoles(integration, { environment, username, roleNames });
 };
 
@@ -161,7 +174,11 @@ export const listClientRolesByUsers = async (
     username: string;
   },
 ) => {
-  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  const integration = await assertAuthorizedIntegration(sessionUserId, integrationId, {
+    resource: API_RESOURCES.USER_ROLE_MAPPINGS,
+    action: API_ACTIONS.READ,
+    environment,
+  });
   const roles = await listUserRoles(integration, {
     environment,
     username,
@@ -170,8 +187,29 @@ export const listClientRolesByUsers = async (
 };
 
 export const isAllowedToManageRoles = async (session: Session, integrationId: number) => {
-  const integration = await findAllowedIntegrationInfo(session?.user?.id as number, integrationId);
-  return canCreateOrDeleteRoles(integration);
+  try {
+    const integration = await assertAuthorizedIntegration(session.user!.id, integrationId, {
+      resource: API_RESOURCES.ROLES,
+      action: API_ACTIONS.WRITE,
+    });
+    return canCreateOrDeleteRoles(integration);
+  } catch {
+    return false;
+  }
+};
+
+export const assertCanLookupIntegrationUsers = async (
+  session: Session,
+  data: { integrationId: number; environment: string },
+) => {
+  if (hasAppPermission(session.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_ROLES_USERS)) {
+    return getIntegrationById(data.integrationId);
+  }
+  return assertAuthorizedIntegration(session.user!.id, data.integrationId, {
+    resource: API_RESOURCES.IDP_USERS,
+    action: API_ACTIONS.READ,
+    environment: data.environment,
+  });
 };
 
 /*

@@ -381,7 +381,14 @@ export const keycloakClient = async (
         );
       }
     } else if (!protocolMappersForClient.find((mapper) => mapper.name === 'team')) {
-      await createTeamMapper(kcAdminClient, client.id!, realm, String(integration.teamId));
+      // Organization-owned integrations have no team, and stringifying null
+      // would bake the literal string "null" into the claim.
+      await createTeamMapper(
+        kcAdminClient,
+        client.id!,
+        realm,
+        integration.teamId === null || integration.teamId === undefined ? '' : String(integration.teamId),
+      );
     }
     return true;
   } catch (err) {

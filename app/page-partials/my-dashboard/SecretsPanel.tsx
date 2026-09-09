@@ -8,6 +8,7 @@ import CenteredModal from 'components/CenteredModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { changeClientSecret } from 'services/keycloak';
+import { canRotateSecret, getAccessibleEnvironments } from '@app/helpers/permissions';
 
 const TopMargin = styled.div`
   height: var(--field-top-spacing);
@@ -40,7 +41,10 @@ interface Props {
 
 const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
   const [activeEnv, setActiveEnv] = useState<EnvironmentOption | null>(null);
-  const requestedEnvironments = getRequestedEnvironments(selectedRequest);
+  const editableEnvironments = getAccessibleEnvironments(selectedRequest, 'editor');
+  const requestedEnvironments = getRequestedEnvironments(selectedRequest).filter((environment) =>
+    editableEnvironments.includes(environment.name),
+  );
   const [openChangeSecretModal, setOpenChangeSecretModal] = useState(false);
 
   const openModal = (env: EnvironmentOption) => {
@@ -88,7 +92,12 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
             {!selectedRequest.publicAccess && (
               <>
                 <br />
-                <button className="primary" type="button" onClick={() => openModal(env)}>
+                <button
+                  className="primary"
+                  type="button"
+                  disabled={!canRotateSecret(selectedRequest, env.name)}
+                  onClick={() => openModal(env)}
+                >
                   {`Change your client secret`}
                 </button>
               </>

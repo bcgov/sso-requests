@@ -127,8 +127,8 @@ const logsStartDate = new Date('February 13, 2024');
 const DATE_RANGE = 2 * 24 * 60 * 60 * 1000;
 
 const LogsPanel = ({ integration, alert }: Props) => {
-  const [environment, setEnvironment] = useState('dev');
   const environments = integration?.environments || [];
+  const [environment, setEnvironment] = useState(environments[0] || 'dev');
   const [loading, setLoading] = useState(false);
   const [fromDate, setFromDate] = useState<Date | null>(subtractDaysFromDate(1));
   const [toDate, setToDate] = useState<Date | null>(new Date());

@@ -23,6 +23,18 @@ const init = (sequelize: any, DataTypes: any) => {
         type: DataTypes.STRING,
         field: 'idir_user_display_name',
       },
+      organizationId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        field: 'organization_id',
+      },
+      // Machine actors have no idir_userid, so this is what distinguishes one
+      // API account's actions from another's in the log.
+      apiClientId: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        field: 'api_client_id',
+      },
     },
     {
       underscored: true,

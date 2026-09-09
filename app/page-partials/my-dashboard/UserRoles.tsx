@@ -21,6 +21,7 @@ import { Col, Row } from 'react-bootstrap';
 import ActionButton from '@app/components/ActionButton';
 import { searchIdirUsers, importIdirUser } from 'services/bceid-webservice';
 import { importAzureIdirUser, searchAzureIdirUsers } from '@app/services/ms-graph';
+import { getAccessibleEnvironments } from '@app/helpers/permissions';
 
 const Label = styled.label`
   font-weight: bold;
@@ -175,12 +176,24 @@ interface Props {
   alert: TopAlert;
 }
 
-const fetchIdpUsers = async ({ idp, userQuery }: { idp: string; userQuery: { property: string; value: string } }) => {
+const fetchIdpUsers = async ({
+  idp,
+  userQuery,
+  integrationId,
+  environment,
+}: {
+  idp: string;
+  userQuery: { property: string; value: string };
+  integrationId: number;
+  environment: string;
+}) => {
   if (idp == 'idir') {
     if (userQuery.property === 'idir_username') userQuery.property = 'userId';
     const [data, err] = await searchIdirUsers({
       field: userQuery.property,
       search: userQuery.value,
+      integrationId,
+      environment,
     });
     if (err) return [null, err];
     return [data, null];
@@ -204,6 +217,8 @@ const fetchIdpUsers = async ({ idp, userQuery }: { idp: string; userQuery: { pro
     const [data, err] = await searchAzureIdirUsers({
       field: userQuery.property,
       search: userQuery.value,
+      integrationId,
+      environment,
     });
     if (err) return [null, err];
     return [data, null];
@@ -211,21 +226,33 @@ const fetchIdpUsers = async ({ idp, userQuery }: { idp: string; userQuery: { pro
   return [null, null];
 };
 
-const importUserToKeycloak = async (user: KeycloakUser & { source: string }) => {
+const importUserToKeycloak = async (
+  user: KeycloakUser & { source: string },
+  integrationId: number,
+  environment: string,
+) => {
   if (user.username.split('@')[1].startsWith('idir')) {
-    await importIdirUser({
-      guid: user.username.split('@')[0],
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      displayName: user.attributes['displayName'] || '',
-      idirUsername: user.attributes['idir_username'] || '',
-    });
+    await importIdirUser(
+      {
+        guid: user.username.split('@')[0],
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        displayName: user.attributes['displayName'] || '',
+        idirUsername: user.attributes['idir_username'] || '',
+      },
+      integrationId,
+      environment,
+    );
   } else if (user.username.split('@')[1].startsWith('azureidir')) {
-    await importAzureIdirUser({
-      guid: user.username.split('@')[0].toUpperCase(),
-      userId: user.attributes['idir_username'] || '',
-    });
+    await importAzureIdirUser(
+      {
+        guid: user.username.split('@')[0].toUpperCase(),
+        userId: user.attributes['idir_username'] || '',
+      },
+      integrationId,
+      environment,
+    );
   }
 };
 
@@ -251,7 +278,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [roles, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [compositeResult, setCompositeResult] = useState<boolean[]>([]);
-  const [selectedEnvironment, setSelectedEnvironment] = useState<string>('dev');
+  const assignableEnvironments = getAccessibleEnvironments(selectedRequest, 'role-manager');
+  const [selectedEnvironment, setSelectedEnvironment] = useState<string>(assignableEnvironments[0] || 'dev');
   //@ts-ignore
   const [selectedIdp, setSelectedIdp] = useState<string>(selectedRequest.devIdps[0]);
   const [selectedProperty, setSelectedProperty] = useState<string>('');
@@ -269,7 +297,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
         if (selectedUser?.source === 'idp') {
           try {
-            await importUserToKeycloak(selectedUser);
+            await importUserToKeycloak(selectedUser, selectedRequest.id as number, selectedEnvironment);
           } catch (err) {
             console.error('Failed to import user to Keycloak:', err);
             setSaving(false);
@@ -456,6 +484,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       const [idpUsers, err] = await fetchIdpUsers({
         idp: selectedIdp,
         userQuery: { property, value: searchKey },
+        integrationId: selectedRequest.id as number,
+        environment: selectedEnvironment,
       });
 
       if (!err && idpUsers && idpUsers?.length > 0) {
@@ -555,7 +585,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const propertyOptions = propertyOptionMap[selectedIdp] || [];
   const headers = propertyOptions.length > 0 ? propertyOptions.filter((option) => option.result) : [];
 
-  const environments = selectedRequest?.environments || [];
+  const environments = assignableEnvironments;
   const idps = (selectedRequest?.devIdps || []) as IDPS[];
   const searchTooltip =
     selectedProperty === 'guid' || selectedIdp?.startsWith('bceid')

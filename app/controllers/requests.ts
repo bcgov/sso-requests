@@ -17,7 +17,7 @@ import {
 } from '@app/utils/helpers';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@app/shared/interfaces';
-import { ACTION_TYPES, EMAILS, REQUEST_TYPES, EVENTS } from '@app/shared/enums';
+import { ACTION_TYPES, API_ACTIONS, API_RESOURCES, EMAILS, REQUEST_TYPES, EVENTS } from '@app/shared/enums';
 import { sendTemplate } from '@app/shared/templates';
 import { getAllowedTeams, getTeamById } from '@app/queries/team';
 import {
@@ -94,6 +94,15 @@ import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import { Event } from '@app/interfaces/Event';
 import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
 import { createSdxRequest } from './sdx-services';
+import {
+  addOrganizationAccessMetadata,
+  assertAuthorizedIntegration,
+  filterOrganizationAccessibleIntegrations,
+  getAuthorizedIntegration,
+  redactOrganizationRestrictedFields,
+} from '@app/queries/integrationAccess';
+import { getOrganizationTeamIdsForUser } from '@app/queries/organization';
+import { teamPermissions } from '@app/utils/authorize';
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
@@ -503,6 +512,37 @@ export const updateRequest = async (
     let existingClientId: string = '';
     const current = await getAllowedRequest(session, data?.id!);
     if (!current) throw new Error('Request not found');
+    const currentValue = current.get({ plain: true, clone: true });
+    const organizationOnlyAccess = currentValue.organizationAccess && !currentValue.userTeamRole;
+    if (
+      !hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST) &&
+      !bceidApprover &&
+      !githubApprover &&
+      !bcscApprover &&
+      !socialApprover &&
+      !otpApprover
+    ) {
+      const requestedEnvironments = Array.from(
+        new Set([...(currentValue.environments ?? []), ...(rest.environments ?? [])]),
+      );
+      const environmentsToAuthorize = requestedEnvironments.length > 0 ? requestedEnvironments : [undefined];
+      await Promise.all(
+        environmentsToAuthorize.map((environment) =>
+          assertAuthorizedIntegration(session.user!.id, data.id!, {
+            resource: API_RESOURCES.INTEGRATIONS,
+            action: API_ACTIONS.WRITE,
+            environment,
+            nativeTeamPermission: teamPermissions.UPDATE_REQUEST,
+          }),
+        ),
+      );
+    }
+    if (organizationOnlyAccess) {
+      rest.usesTeam = currentValue.usesTeam;
+      // teamId is validated against a string enum built from allowed teams, so keep the same string typing
+      // the client normally submits rather than the raw numeric column value.
+      rest.teamId = currentValue.teamId != null ? String(currentValue.teamId) : currentValue.teamId;
+    }
     const getCurrentValue = () => current.get({ plain: true, clone: true });
 
     if (current.status === 'applied' && !submit) {
@@ -586,6 +626,9 @@ export const updateRequest = async (
     }
 
     const allowedTeams = await getAllowedTeams(session, { raw: true });
+    if (organizationOnlyAccess && currentValue.team) {
+      allowedTeams.push(currentValue.team);
+    }
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     let finalData = getCurrentValue();
@@ -708,6 +751,7 @@ export const updateRequest = async (
       await createEvent(eventData);
     }
 
+    if ((err as any)?.statusCode === 403) throw err;
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };
@@ -717,6 +761,14 @@ export const resubmitRequest = async (session: Session, id: number) => {
   if (!isMerged) return;
 
   try {
+    if (!hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST)) {
+      await assertAuthorizedIntegration(session.user!.id, id, {
+        resource: API_RESOURCES.INTEGRATIONS,
+        action: API_ACTIONS.WRITE,
+        everyEnvironment: true,
+        nativeTeamPermission: teamPermissions.UPDATE_REQUEST,
+      });
+    }
     const current = await getAllowedRequest(session, id);
     const getCurrentValue = () => current.get({ plain: true, clone: true });
     const isAllowedStatus = ['submitted'].includes(current.status);
@@ -857,7 +909,8 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
 
 export const getRequest = async (session: Session, user: User, data: { requestId: number }) => {
   const { requestId } = data;
-  return getAllowedRequest(session, requestId);
+  const request = await getAllowedRequest(session, requestId);
+  return request ? redactOrganizationRestrictedFields(request) : request;
 };
 
 // see https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll
@@ -931,15 +984,56 @@ export const getRequests = async (session: Session, user: User, include: string 
     },
   });
 
-  return requests;
+  const nativeRequests = await addOrganizationAccessMetadata(session.user!.id, requests);
+  const organizationTeamIds = await getOrganizationTeamIdsForUser(session.user!.id);
+  if (organizationTeamIds.length === 0) return nativeRequests.map(redactOrganizationRestrictedFields);
+
+  const organizationWhere: any = {
+    teamId: { [Op.in]: organizationTeamIds },
+    usesTeam: true,
+    apiServiceAccount: false,
+  };
+  if (include === 'archived') organizationWhere.archived = true;
+  else if (include === 'active') organizationWhere.archived = false;
+
+  const organizationCandidates = await models.request.findAll({
+    where: organizationWhere,
+    include: [{ model: models.team, required: false }],
+  });
+  const organizationRequests = await filterOrganizationAccessibleIntegrations(session.user!.id, organizationCandidates);
+  const nativeIds = new Set(nativeRequests.map((request: any) => request.id));
+  return nativeRequests
+    .concat(organizationRequests.filter((request: any) => !nativeIds.has(request.id)))
+    .map(redactOrganizationRestrictedFields);
 };
 
 export const getIntegrations = async (session: Session, teamId: number, user: User, include: string = 'active') => {
-  return getIntegrationsByUserTeam(user, teamId);
+  const nativeIntegrations = await getIntegrationsByUserTeam(user, teamId);
+  if (nativeIntegrations.length > 0) {
+    const integrations = await addOrganizationAccessMetadata(user.id, nativeIntegrations);
+    return integrations.map(redactOrganizationRestrictedFields);
+  }
+
+  const candidates = await models.request.findAll({
+    where: { teamId, apiServiceAccount: false, archived: include === 'archived' },
+    attributes: {
+      include: [[sequelize.literal(getUserTeamRole(user.id)), 'userTeamRole']],
+    },
+  });
+  const integrations = await filterOrganizationAccessibleIntegrations(user.id, candidates);
+  return integrations.map(redactOrganizationRestrictedFields);
 };
 
 export const deleteRequest = async (session: Session, user: User, id: number) => {
   try {
+    if (!hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_DELETE_REQUEST)) {
+      await assertAuthorizedIntegration(session.user!.id, id, {
+        resource: API_RESOURCES.INTEGRATIONS,
+        action: API_ACTIONS.WRITE,
+        everyEnvironment: true,
+        nativeTeamPermission: teamPermissions.DELETE_REQUEST,
+      });
+    }
     const current = await getAllowedRequest(session, id);
 
     if (!current) {
@@ -1012,7 +1106,12 @@ export const updateRequestMetadata = async (session: Session, user: User, data: 
 
 export const isAllowedToDeleteIntegration = async (session: Session, integrationId: number) => {
   if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_DELETE_REQUEST)) return true;
-  const integration = await getMyOrTeamRequest(session?.user?.id as number, integrationId);
+  const integration = await getAuthorizedIntegration(session.user!.id, integrationId, {
+    resource: API_RESOURCES.INTEGRATIONS,
+    action: API_ACTIONS.WRITE,
+    everyEnvironment: true,
+    nativeTeamPermission: teamPermissions.DELETE_REQUEST,
+  });
   return canDeleteIntegration(integration);
 };
 

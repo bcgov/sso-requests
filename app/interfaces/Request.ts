@@ -1,5 +1,15 @@
 import { SDXAccessRequest } from '@app/shared/interfaces';
+import { Level } from '@app/shared/enums';
 import type { Status } from './types';
+
+export interface OrganizationAccess {
+  organizationId: number;
+  organizationRole: string;
+  maximumLevel: Level;
+  defaultLevel: Level;
+  effectiveLevel: Level;
+  environmentLevels: Record<string, Level>;
+}
 
 export type PrimaryEndUser = 'livingInBC' | 'businessInBC' | 'bcGovEmployees' | 'other';
 export interface Integration {
@@ -77,6 +87,7 @@ export interface Integration {
   createdAt?: string;
   updatedAt?: string;
   userTeamRole?: string;
+  organizationAccess?: OrganizationAccess;
   devDisplayHeaderTitle?: boolean;
   testDisplayHeaderTitle?: boolean;
   prodDisplayHeaderTitle?: boolean;

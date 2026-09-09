@@ -3,6 +3,7 @@ import { handleError } from '@app/utils/helpers';
 import { searchIdirUsers } from '@app/utils/idim-ws-idir';
 import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
+import { processUserSession, assertCanLookupIntegrationUsers } from '@app/controllers/user';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -11,7 +12,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'POST') {
       try {
-        const result = await searchIdirUsers(userSession as Session, req.body);
+        const { session } = await processUserSession(userSession as Session);
+        await assertCanLookupIntegrationUsers(session, req.body);
+        const { integrationId, environment, ...query } = req.body;
+        const result = await searchIdirUsers(session, query);
         return res.status(200).json(result);
       } catch (err) {
         handleError(res, err);

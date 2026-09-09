@@ -4,6 +4,10 @@ export interface Event {
   eventCode?: string;
   idirUserid?: string;
   idirUserDisplayName?: string;
+  organizationId?: number;
+  // Set when the actor is an API account rather than a person, which is the
+  // only thing distinguishing one machine actor from another in the log.
+  apiClientId?: string;
   details?: any;
   createdAt?: string;
   updatedAt?: string;

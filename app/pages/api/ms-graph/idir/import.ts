@@ -2,6 +2,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { handleError } from '@app/utils/helpers';
 import { authenticate } from '@app/utils/authenticate';
 import { importIdirUser } from '@app/utils/ms-graph-idir';
+import { Session } from '@app/shared/interfaces';
+import { processUserSession, assertCanLookupIntegrationUsers } from '@app/controllers/user';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -10,7 +12,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'POST') {
       try {
-        await importIdirUser(req.body);
+        const { session } = await processUserSession(userSession as Session);
+        await assertCanLookupIntegrationUsers(session, req.body);
+        const { integrationId, environment, ...user } = req.body;
+        await importIdirUser(user);
         return res.status(200).end();
       } catch (err) {
         handleError(res, err);

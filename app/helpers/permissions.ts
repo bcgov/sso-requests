@@ -5,6 +5,38 @@ import createHttpError from 'http-errors';
 import { checkBceidGroup, checkBcServicesCard, checkGithubGroup, checkOTP, checkSocial } from './integration';
 import { isEqual } from 'lodash';
 import { hasAppPermission, hasTeamPermission, teamPermissions, appPermissions } from '@app/utils/authorize';
+import { Level, LEVEL_RANK } from '@app/shared/enums';
+
+const isNativeIntegrationAccess = (integration: Integration) => !integration.usesTeam || !!integration.userTeamRole;
+
+export const getOrganizationLevel = (integration: Integration, environment?: string): Level => {
+  const access = integration.organizationAccess;
+  if (!access) return 'none';
+  if (environment) return access.environmentLevels?.[environment] ?? access.defaultLevel;
+  return access.effectiveLevel;
+};
+
+export const hasOrganizationLevel = (
+  integration: Integration,
+  required: Level,
+  environment?: string,
+  everyEnvironment = false,
+) => {
+  if (!integration.organizationAccess) return false;
+  if (everyEnvironment) {
+    const environments = integration.environments?.length ? integration.environments : [undefined];
+    return environments.every((env) => LEVEL_RANK[getOrganizationLevel(integration, env)] >= LEVEL_RANK[required]);
+  }
+  return LEVEL_RANK[getOrganizationLevel(integration, environment)] >= LEVEL_RANK[required];
+};
+
+export const getAccessibleEnvironments = (integration: Integration, required: Level = 'viewer') => {
+  const environments = integration.environments ?? [];
+  if (isNativeIntegrationAccess(integration)) return environments;
+  return environments.filter(
+    (environment) => LEVEL_RANK[getOrganizationLevel(integration, environment)] >= LEVEL_RANK[required],
+  );
+};
 
 /**
  * For an integration the user has access to, determine delete permissions.
@@ -21,7 +53,9 @@ export const canDeleteIntegration = (integration: Integration) => {
 
   if (integration.usesTeam && integration.teamId) {
     if (hasTeamPermission(integration.userTeamRole, teamPermissions.DELETE_REQUEST)) return true;
-  } else return true;
+  } else if (isNativeIntegrationAccess(integration)) return true;
+
+  if (hasOrganizationLevel(integration, 'editor', undefined, true)) return true;
 
   return false;
 };
@@ -34,7 +68,11 @@ export const canEditIntegration = (integration: Integration) => {
     !['draft', 'applied'].includes(integration.status || '')
   ) {
     return false;
-  } else return true;
+  }
+
+  if (isNativeIntegrationAccess(integration)) return true;
+  if (hasOrganizationLevel(integration, 'editor', undefined, true)) return true;
+  return false;
 };
 
 export const canDeleteTeam = (team: Team) => {
@@ -51,7 +89,7 @@ export const canEditTeam = (team: Team) => {
   return false;
 };
 
-export const canCreateOrDeleteRoles = (integration: Integration) => {
+export const canCreateOrDeleteRoles = (integration: Integration, environment?: string) => {
   if (
     !integration ||
     integration.apiServiceAccount ||
@@ -62,8 +100,20 @@ export const canCreateOrDeleteRoles = (integration: Integration) => {
   }
   if (integration.usesTeam) {
     if (hasTeamPermission(integration.userTeamRole, teamPermissions.MANAGE_ROLES)) return true;
-  } else return true;
+  } else if (isNativeIntegrationAccess(integration)) return true;
+
+  if (hasOrganizationLevel(integration, 'role-manager', environment)) return true;
   return false;
+};
+
+export const canManageRoleAssignments = (integration: Integration, environment?: string) => {
+  if (isNativeIntegrationAccess(integration)) return true;
+  return hasOrganizationLevel(integration, 'role-manager', environment);
+};
+
+export const canRotateSecret = (integration: Integration, environment?: string) => {
+  if (isNativeIntegrationAccess(integration)) return true;
+  return hasOrganizationLevel(integration, 'editor', environment);
 };
 
 export const checkRole = (roles: string[], role: string) => roles.includes(role);

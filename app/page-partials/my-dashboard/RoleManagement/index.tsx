@@ -5,7 +5,7 @@ import { Integration } from 'interfaces/Request';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { Tabs } from '@bcgov-sso/common-react-components';
 import CreateRoleContent from './CreateRoleContent';
-import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
+import { canCreateOrDeleteRoles, getAccessibleEnvironments } from '@app/helpers/permissions';
 import RoleEnvironment from './RoleEnvironment';
 import { SurveyContext } from '@app/utils/context';
 
@@ -25,7 +25,7 @@ const RoleManagement = ({ integration }: Props) => {
   const surveyContext = useContext(SurveyContext);
 
   useEffect(() => {
-    setEnvironment('dev');
+    setEnvironment(getAccessibleEnvironments(integration, 'viewer')[0] || 'dev');
     setCanCreateOrDeleteRole(canCreateOrDeleteRoles(integration));
   }, [integration.id]);
 
@@ -33,7 +33,8 @@ const RoleManagement = ({ integration }: Props) => {
     setEnvironment(key);
   };
 
-  const environments = integration?.environments || [];
+  const environments = getAccessibleEnvironments(integration, 'viewer');
+  const editableEnvironments = environments.filter((environment) => canCreateOrDeleteRoles(integration, environment));
   const tabItems = environments.map((env) => ({
     key: env,
     label: startCase(env),
@@ -96,7 +97,7 @@ const RoleManagement = ({ integration }: Props) => {
         confirmButtonVariant="primary"
         cancelButtonVariant="secondary"
       >
-        <CreateRoleContent integrationId={integration.id as number} environments={environments} />
+        <CreateRoleContent integrationId={integration.id as number} environments={editableEnvironments} />
       </GenericModal>
     </>
   );

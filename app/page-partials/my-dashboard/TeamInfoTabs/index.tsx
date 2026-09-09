@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { Tabs } from '@bcgov-sso/common-react-components';
+import TeamOrganizations from './TeamOrganizations';
 import CenteredModal, { ButtonStyle } from 'components/CenteredModal';
 import TeamMembersForm, { Errors, validateTeam } from 'form-components/team-form/TeamMembersForm';
 import { User, Team } from 'interfaces/team';
@@ -17,6 +18,7 @@ import {
   requestServiceAccount,
   getServiceAccounts,
 } from 'services/team';
+import { getTeamOrganizations } from 'services/organization';
 import { withTopAlert } from 'layout/TopAlert';
 import ReactPlaceholder from 'react-placeholder';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -225,6 +227,7 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   const [tempMembers, setTempMembers] = useState<User[]>([emptyMember]);
   const [errors, setErrors] = useState<Errors | null>();
   const [loading, setLoading] = useState(false);
+  const [teamOrganizations, setTeamOrganizations] = useState<{ id: number }[]>([]);
   const [deleteMemberId, setDeleteMemberId] = useState<number>();
   const [modalType, setModalType] = useState('allow');
   const surveyContext = useContext(SurveyContext);
@@ -271,6 +274,9 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
   useEffect(() => {
     setServiceAccountInProgress(null);
     getData(team.id);
+    getTeamOrganizations(team.id).then(([organizations]) => {
+      setTeamOrganizations(organizations || []);
+    });
   }, [team.id]);
 
   useEffect(() => {
@@ -614,6 +620,14 @@ function TeamInfoTabs({ alert, currentUser, team, loadTeams }: Props) {
       ),
     },
   ];
+
+  if (hasTeamPermission(myself?.role, teamPermissions.UPDATE_TEAM) && teamOrganizations.length > 0) {
+    tabItems.push({
+      key: 'organizations',
+      label: 'Organizations',
+      children: <TeamOrganizations teamId={team.id} />,
+    });
+  }
 
   if (hasTeamPermission(myself?.role, teamPermissions.MANAGE_TEAM_API_ACCOUNTS)) {
     tabItems.push({

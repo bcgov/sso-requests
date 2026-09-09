@@ -1,6 +1,7 @@
 import sequelize from '@/sequelize/config';
 import models from '@/sequelize/models/models';
 import { camelCase } from 'lodash';
+import { OrganizationRole } from '@/constants';
 
 export const seedTeamAndMembers = async (
   teamName: string,
@@ -73,16 +74,6 @@ export const seedIntergrations = async (data: {
   });
 };
 
-const WILDCARD_RESOURCE_ACTIONS: [string, string][] = [
-  ['roles', 'read'],
-  ['roles', 'write'],
-  ['user-role-mappings', 'read'],
-  ['user-role-mappings', 'write'],
-  ['integrations', 'read'],
-  ['integrations', 'write'],
-  ['idp-users', 'read'],
-];
-
 // Mirrors what the portal creates for a team API account: the account row plus a
 // wildcard grant set over its own team.
 export const seedApiAccount = async (teamId: number, grants?: Partial<ApiAccountGrantSeed>[]) => {
@@ -100,24 +91,17 @@ export const seedApiAccount = async (teamId: number, grants?: Partial<ApiAccount
   account.clientId = `service-account-team-${teamId}-${account.id}`;
   await account.save();
 
-  const rows =
-    grants ??
-    WILDCARD_RESOURCE_ACTIONS.map(([resource, action]) => ({
-      teamId,
-      integrationId: null,
-      resource,
-      action,
-      environment: null,
-    }));
+  const rows: Partial<ApiAccountGrantSeed>[] = grants ?? [
+    { teamId, integrationId: null, environment: null, level: 'editor' },
+  ];
 
   await models.apiAccountGrant.bulkCreate(
     rows.map((grant) => ({
       apiAccountId: account.id,
       teamId: grant.teamId ?? null,
       integrationId: grant.integrationId ?? null,
-      resource: grant.resource,
-      action: grant.action,
       environment: grant.environment ?? null,
+      level: grant.level,
     })),
   );
 
@@ -127,7 +111,64 @@ export const seedApiAccount = async (teamId: number, grants?: Partial<ApiAccount
 export interface ApiAccountGrantSeed {
   teamId: number | null;
   integrationId: number | null;
-  resource: string;
-  action: string;
   environment: string | null;
+  level: OrganizationRole;
 }
+
+export interface CeilingSeed {
+  integrationId?: number | null;
+  environment?: string | null;
+  level: OrganizationRole;
+}
+
+export const seedOrganization = async (name: string) => models.organization.create({ name });
+
+// Links a team to an organization at the given ceiling. `pending` reproduces an
+// invitation the team has not accepted, which must grant nothing.
+export const seedOrganizationTeam = async (
+  organizationId: number,
+  teamId: number,
+  ceilings: CeilingSeed[],
+  pending = false,
+) => {
+  const link = await models.organizationTeam.create({ organizationId, teamId, pending });
+
+  await models.organizationTeamCeiling.bulkCreate(
+    ceilings.map((ceiling) => ({
+      organizationTeamId: link.id,
+      integrationId: ceiling.integrationId ?? null,
+      environment: ceiling.environment ?? null,
+      level: ceiling.level,
+    })),
+  );
+
+  return link;
+};
+
+export const seedOrganizationApiAccount = async (organizationId: number, grants: ApiAccountGrantSeed[]) => {
+  const account = await models.request.create({
+    projectName: `Service Account for organization #${organizationId}`,
+    serviceType: 'gold',
+    usesTeam: false,
+    organizationId,
+    apiServiceAccount: true,
+    authType: 'service-account',
+    status: 'applied',
+    environments: ['prod'],
+  });
+
+  account.clientId = `service-account-org-${organizationId}-${account.id}`;
+  await account.save();
+
+  await models.apiAccountGrant.bulkCreate(
+    grants.map((grant) => ({
+      apiAccountId: account.id,
+      teamId: grant.teamId ?? null,
+      integrationId: grant.integrationId ?? null,
+      environment: grant.environment ?? null,
+      level: grant.level,
+    })),
+  );
+
+  return account;
+};

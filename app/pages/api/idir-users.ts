@@ -11,7 +11,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { email } = req.query;
       if (!email) {
         return res.status(400).send('Must include email query parameter');
-        return;
       }
       const result = await searchIdirEmail(email as string);
       return res.status(200).send(result);

@@ -58,6 +58,7 @@ const getUISchema = ({
   const disableBcscUpdateApproved = integration?.devIdps?.includes('bcservicescard') && bcServicesCardApproved;
   const disableOtpUpdateApproved = integration?.devIdps?.includes('otp') && otpApproved;
   const isSaml = integration?.protocol === 'saml';
+  const organizationOnlyAccess = !!integration?.organizationAccess && !integration?.userTeamRole;
 
   const envDisabled = isApplied ? environments?.concat() || [] : ['dev'];
   let idpsDisabled: { idp: string; reason: string }[] = [];
@@ -204,6 +205,7 @@ const getUISchema = ({
     teamId: {
       'ui:classNames': 'short-field-string',
       'ui:enumNames': ['Select...'].concat(teams.map((team) => team.name) ?? []),
+      'ui:readonly': organizationOnlyAccess,
     },
     additionalRoleAttribute: {
       'ui:classNames': 'short-field-string',

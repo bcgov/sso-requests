@@ -1,8 +1,9 @@
+import { assertAuthorizedIntegration } from '@app/queries/integrationAccess';
 import { getAllowedRequest } from '@app/queries/request';
 import { Session } from '@app/shared/interfaces';
 import { clientEventsAggregationQuery, queryGrafana } from '@app/utils/grafana';
 import { createEvent } from './requests';
-import { EVENTS } from '@app/shared/enums';
+import { API_ACTIONS, API_RESOURCES, EVENTS } from '@app/shared/enums';
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
@@ -90,8 +91,15 @@ export const fetchMetrics = async (
   try {
     let result = [];
     // Check user owns requested logs
-    const userRequest = await getAllowedRequest(session, id);
-    if (!userRequest) return { status: 401, message: "You are not authorized to view this integration's metrics" };
+    const generallyAllowed = await getAllowedRequest(session, id);
+    const userRequest =
+      generallyAllowed && !generallyAllowed.get?.('organizationAccess')
+        ? generallyAllowed
+        : await assertAuthorizedIntegration(session.user!.id, id, {
+            resource: API_RESOURCES.INTEGRATIONS,
+            action: API_ACTIONS.READ,
+            environment,
+          });
 
     const { clientId } = userRequest;
 

@@ -68,14 +68,14 @@ const validateJWTSignature = async (token) => {
     // jwt.verify throws error if invalid
     // If setting ignoreExpiration to true, you can control the maxAge on the backend
     const decoded = jwt.verify(token, pem, { issuer });
-    const team = typeof decoded === 'object' && 'team' in decoded ? decoded.team : null;
+    // Empty and the literal string "null" both mean "no team" (organization
+    // accounts have none); either can appear depending on how the claim was set.
+    const rawTeam = typeof decoded === 'object' && 'team' in decoded ? decoded.team : null;
+    const team = !rawTeam || rawTeam === 'null' ? null : rawTeam;
     // azp identifies the API account's Keycloak client and is what authorization
     // is resolved from; the team claim is retained for backwards compatibility
     // but is not used to make access decisions.
     const azp = typeof decoded === 'object' && 'azp' in decoded ? decoded.azp : null;
-    if (!team) {
-      throw new createHttpError.Unauthorized('could not validate token - expected claims not found');
-    }
     if (typeof azp !== 'string' || azp.trim().length === 0) {
       throw new createHttpError.Unauthorized('could not validate token - invalid azp claim');
     }

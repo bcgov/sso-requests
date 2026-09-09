@@ -62,8 +62,8 @@ const getFormattedDateString = (d: Date) => {
 
 const metricsStartDate = 'December 01, 2023';
 const MetricsPanel = ({ integration, alert }: Props) => {
-  const [environment, setEnvironment] = useState('dev');
   const environments = integration?.environments || [];
+  const [environment, setEnvironment] = useState(environments[0] || 'dev');
   const [metrics, setMetrics] = useState<EventCountMetric[]>([]);
   const [loading, setLoading] = useState(false);
   const [fromDate, setFromDate] = useState<Date>(subtractDaysFromDate(14));

@@ -155,6 +155,12 @@ const init = (sequelize: any, DataTypes: any) => {
         allowNull: true,
         field: 'team_id',
       },
+      // Set only on organization-level API accounts, which have no owning team.
+      organizationId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        field: 'organization_id',
+      },
       requester: {
         type: DataTypes.STRING,
         allowNull: true,

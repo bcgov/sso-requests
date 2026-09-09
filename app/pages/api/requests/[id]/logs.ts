@@ -3,9 +3,11 @@ import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
 import { handleError } from '@app/utils/helpers';
 import { processUserSession } from '@app/controllers/user';
-import { getAllowedRequest } from '@app/queries/request';
 import { fetchLogs } from '@app/controllers/logs';
 import { logsRateLimiter } from '@app/utils/rate-limiters';
+import { assertAuthorizedIntegration } from '@app/queries/integrationAccess';
+import { API_ACTIONS, API_RESOURCES } from '@app/shared/enums';
+import { getAllowedRequest } from '@app/queries/request';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -18,10 +20,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const { id } = req.query || {};
       const { start, end, env } = req.query || {};
-      const userRequest = await getAllowedRequest(session, Number(id));
-      if (!userRequest) {
-        return res.status(403).send('forbidden');
-      }
+      const generallyAllowed = await getAllowedRequest(session, Number(id));
+      const userRequest =
+        generallyAllowed && !generallyAllowed.get?.('organizationAccess')
+          ? generallyAllowed
+          : await assertAuthorizedIntegration(session.user!.id, Number(id), {
+              resource: API_RESOURCES.INTEGRATIONS,
+              action: API_ACTIONS.READ,
+              environment: env as string,
+            });
       const { status, message, data } = await fetchLogs(
         env as string,
         userRequest.clientId,

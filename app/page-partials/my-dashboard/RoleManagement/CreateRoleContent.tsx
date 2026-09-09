@@ -52,11 +52,6 @@ interface NewRole {
   envs: string[];
 }
 
-const emptyRole: NewRole = {
-  name: '',
-  envs: ['dev'],
-};
-
 interface Result {
   [key: string]: string[];
 }
@@ -65,7 +60,8 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
   const [submitted, setSubmitted] = useState(false);
   const [failures, setFailures] = useState<Result>({});
   const [duplicates, setDuplicates] = useState<Result>({});
-  const [roles, setRoles] = useState<NewRole[]>([emptyRole]);
+  const emptyRole = (): NewRole => ({ name: '', envs: environments.length > 0 ? [environments[0]] : [] });
+  const [roles, setRoles] = useState<NewRole[]>([emptyRole()]);
 
   useImperativeHandle(ref, () => ({
     submit: async () => {
@@ -114,7 +110,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
       return [hasError, hasDuplicate];
     },
     reset: () => {
-      setRoles([emptyRole]);
+      setRoles([emptyRole()]);
       setFailures({});
       setDuplicates({});
       setSubmitted(false);
@@ -122,7 +118,7 @@ function CreateRoleContent({ integrationId, environments = ['dev'] }: Props, ref
   }));
 
   const handleAdd = () => {
-    setRoles(roles.concat(emptyRole));
+    setRoles(roles.concat(emptyRole()));
   };
 
   const handleRemove = (index: number) => {

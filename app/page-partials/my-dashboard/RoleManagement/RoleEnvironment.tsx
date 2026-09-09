@@ -24,7 +24,7 @@ import {
   RoleReplicationPreview,
   RoleReplicationResultRow,
 } from 'services/keycloak';
-import { canCreateOrDeleteRoles } from 'helpers/permissions';
+import { canCreateOrDeleteRoles, canManageRoleAssignments } from 'helpers/permissions';
 import { idpMap } from 'helpers/meta';
 import { getRequest } from 'services/request';
 import { checkIfUserIsServiceAccount, filterServiceAccountUsers } from 'helpers/users';
@@ -176,6 +176,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const envIdps = (integration as any)['devIdps'] || [];
   const canReplicateRoles =
     !viewOnly && canCreateOrDeleteRole && envIdps.includes('idir') && envIdps.includes('azureidir');
+  const canManageAssignments = !viewOnly && canManageRoleAssignments(integration, environment);
 
   const populateTabs = () => {
     let tabs: string[] = [];
@@ -234,7 +235,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     setUsers([]);
     setRoles([]);
     setSelectedRole(null);
-    setCanCreateOrDeleteRole(canCreateOrDeleteRoles(integration));
+    setCanCreateOrDeleteRole(canCreateOrDeleteRoles(integration, environment));
   };
 
   useEffect(() => {
@@ -604,7 +605,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
                           <FontAwesomeIcon style={{ color: '#000' }} icon={faEye} size="lg" aria-label="User Detail" />
                         </span>
 
-                        {viewOnly ? null : (
+                        {!canManageAssignments ? null : (
                           <span onClick={() => removeUserModalRef.current.open(user)}>
                             &nbsp;&nbsp;
                             <FontAwesomeIcon
@@ -657,7 +658,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
               accessorKey: 'actions',
               header: () => <ServiceAccountsListActionsHeader />,
               cell: (props) => {
-                return viewOnly ? null : (
+                return !canManageAssignments ? null : (
                   <span
                     onClick={() => removeServiceAccountModalRef.current.open({ username: props.row.original.username })}
                   >

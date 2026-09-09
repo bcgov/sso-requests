@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import FormTemplate from 'form-components/FormTemplate';
 import { isRequestBcscExcluded, updateRequest } from 'services/request';
+import { getAllowedTeams } from 'services/team';
 import { Integration } from 'interfaces/Request';
 import { fetchDefaultSessionSettings } from 'services/keycloak';
 import { setUpRouter } from './utils/setup';
@@ -190,6 +191,31 @@ describe('Form Template Saving and Navigation', () => {
 
     expect((updateRequest as jest.Mock).mock.calls[1].length).toBe(1);
     expect((updateRequest as jest.Mock).mock.calls[1][0].publicAccess).toBe(false);
+  });
+
+  it('keeps the current team visible but read-only for organization-only editors', async () => {
+    (getAllowedTeams as jest.Mock).mockResolvedValueOnce([[], null]);
+    setUpRender({
+      id: 1,
+      status: 'draft',
+      usesTeam: true,
+      teamId: '42',
+      team: { id: 42, name: 'Team A' },
+      organizationAccess: {
+        organizationId: 1,
+        organizationRole: 'admin',
+        maximumLevel: 'editor',
+        defaultLevel: 'editor',
+        effectiveLevel: 'editor',
+        environmentLevels: { dev: 'editor' },
+      },
+    });
+
+    await waitFor(() => {
+      const teamSelect = document.querySelector('#root_teamId') as HTMLSelectElement;
+      expect(teamSelect).toBeDisabled();
+      expect(screen.getByText('Team A')).toBeInTheDocument();
+    });
   });
 
   it('Should advance the form when clicking next', async () => {

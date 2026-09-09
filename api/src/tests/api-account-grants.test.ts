@@ -91,14 +91,7 @@ describe('api account grants', () => {
   describe('an account scoped to a single integration and environment', () => {
     beforeAll(async () => {
       const account = await seedApiAccount(teamA.id, [
-        { teamId: null, integrationId: integrationA.id, resource: 'roles', action: 'read', environment: 'dev' },
-        {
-          teamId: null,
-          integrationId: integrationA.id,
-          resource: 'integrations',
-          action: 'read',
-          environment: null,
-        },
+        { teamId: null, integrationId: integrationA.id, environment: 'dev', level: 'viewer' },
       ]);
       apiClientId = account.clientId;
     });

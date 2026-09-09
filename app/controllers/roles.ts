@@ -1,4 +1,4 @@
-import { findAllowedIntegrationInfo, getIntegrationById } from '@app/queries/request';
+import { getIntegrationById } from '@app/queries/request';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import {
   listClientRoles,
@@ -15,18 +15,24 @@ import { destroyRequestRole, createCompositeRolesDB } from '@app/queries/roles';
 import createHttpError from 'http-errors';
 import { Session } from '@app/shared/interfaces';
 import { Integration } from '@app/interfaces/Request';
-import { appPermissions, hasAppPermission } from '@app/utils/authorize';
+import { appPermissions, hasAppPermission, teamPermissions } from '@app/utils/authorize';
 import { previewRoleReplication, replicateRolesToMfa } from '@app/keycloak/roleReplication';
+import { API_ACTIONS, API_RESOURCES } from '@app/shared/enums';
+import { assertAuthorizedIntegration } from '@app/queries/integrationAccess';
 
-const validateIntegration = async (sessionUserId: number, integrationId: number) => {
-  return await findAllowedIntegrationInfo(sessionUserId, integrationId);
-};
+const validateIntegration = async (sessionUserId: number, integrationId: number, environment?: string, write = false) =>
+  assertAuthorizedIntegration(sessionUserId, integrationId, {
+    resource: API_RESOURCES.ROLES,
+    action: write ? API_ACTIONS.WRITE : API_ACTIONS.READ,
+    environment,
+    nativeTeamPermission: write ? teamPermissions.MANAGE_ROLES : undefined,
+  });
 
 export const createClientRole = async (
   sessionUserId: number,
   role: { environment: string; integrationId: number; roleName: string },
 ) => {
-  const integration = await validateIntegration(sessionUserId, role?.integrationId);
+  const integration = await validateIntegration(sessionUserId, role?.integrationId, role?.environment, true);
   if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden('not allowed to create role');
   const dbRole = await models.requestRole.create({
     name: role?.roleName,
@@ -49,10 +55,14 @@ export const bulkCreateClientRoles = async (
     roles: NewRole[];
   },
 ) => {
-  try {
-    const integration = await validateIntegration(sessionUserId, integrationId);
-    if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden('not allowed to create role');
+  if (roles.length === 0) throw new createHttpError.BadRequest('at least one role is required');
+  const environments = Array.from(new Set(roles.flatMap((role) => role.envs)));
+  const authorizedIntegrations = await Promise.all(
+    environments.map((environment) => validateIntegration(sessionUserId, integrationId, environment, true)),
+  );
+  const integration = authorizedIntegrations[0];
 
+  try {
     if (roles.length > 20) throw new createHttpError.TooManyRequests('only 20 roles can be created at a time');
 
     const envResults = await bulkCreateRole(integration, roles);
@@ -80,7 +90,7 @@ export const bulkCreateClientRoles = async (
 };
 
 export const getClientRole = async (sessionUserId: number, role: any) => {
-  const integration = await validateIntegration(sessionUserId, role?.integrationId);
+  const integration = await validateIntegration(sessionUserId, role?.integrationId, role?.environment);
   return await findClientRole(integration, role);
 };
 
@@ -88,12 +98,12 @@ export const listRoles = async (session: Session, role: any) => {
   let integration: Integration;
   if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_ROLES))
     integration = await getIntegrationById(role?.integrationId);
-  else integration = await validateIntegration(session?.user?.id as number, role?.integrationId);
+  else integration = await validateIntegration(session?.user?.id as number, role?.integrationId, role?.environment);
   return await listClientRoles(integration, role);
 };
 
 export const deleteRoles = async (sessionUserId: number, role: any) => {
-  const integration = await validateIntegration(sessionUserId, role?.integrationId);
+  const integration = await validateIntegration(sessionUserId, role?.integrationId, role?.environment, true);
   if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden('not allowed to delete role');
 
   await deleteRole(integration, role);
@@ -121,7 +131,7 @@ export const setCompositeRoles = async (
     compositeRoleNames: string[];
   },
 ) => {
-  const integration = await validateIntegration(sessionUserId, integrationId);
+  const integration = await validateIntegration(sessionUserId, integrationId, environment, true);
   if (!canCreateOrDeleteRoles(integration))
     throw new createHttpError.Forbidden('not allowed to create composite roles');
 
@@ -139,7 +149,7 @@ export const listCompositeRoles = async (session: Session, role: any) => {
   let integration: Integration;
   if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_ROLES))
     integration = await getIntegrationById(role?.integrationId);
-  else integration = await validateIntegration(session?.user?.id as number, role?.integrationId);
+  else integration = await validateIntegration(session?.user?.id as number, role?.integrationId, role?.environment);
   return await getCompositeClientRoles(integration, {
     environment: role?.environment,
     roleName: role?.roleName,
@@ -169,7 +179,7 @@ export const previewRoleMfaReplication = async (
   sessionUserId: number,
   { environment, integrationId, roleName }: { environment: string; integrationId: number; roleName?: string },
 ) => {
-  const integration = await validateIntegration(sessionUserId, integrationId);
+  const integration = await validateIntegration(sessionUserId, integrationId, environment, true);
   if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden('not allowed to replicate roles');
   assertRoleReplicationSupported(integration, environment);
   return await previewRoleReplication(integration, { environment, roleName });
@@ -184,7 +194,7 @@ export const replicateRoleMfa = async (
   sessionUserId: number,
   { environment, integrationId, roleName }: { environment: string; integrationId: number; roleName?: string },
 ) => {
-  const integration = await validateIntegration(sessionUserId, integrationId);
+  const integration = await validateIntegration(sessionUserId, integrationId, environment, true);
   if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden('not allowed to replicate roles');
   assertRoleReplicationSupported(integration, environment);
   return await replicateRolesToMfa(integration, { environment, roleName });

@@ -107,7 +107,7 @@ export const updateRequest = async (
       url = `${url}?submit=true`;
     }
 
-    data = omit(data, ['user', 'lastChanges']);
+    data = omit(data, ['user', 'lastChanges', 'organizationAccess', 'userTeamRole']);
 
     // Changing optional string fields from undefined to empty string.
     // Prevents lodash merger treating them as missing data.

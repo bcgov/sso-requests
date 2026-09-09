@@ -1,23 +1,22 @@
 import { Session } from '@app/shared/interfaces';
-import { models } from '@app/shared/sequelize/models/models';
 import { searchUsers } from '../keycloak/users';
-import { getBaseWhereForMyOrTeamIntegrations } from '@app/queries/request';
 import { getAdminClient } from '@app/keycloak/adminClient';
 import { Environment } from '@app/interfaces/types';
 import { defaultStandardRealmSettings, environments } from '@app/utils/constants';
 import { convertSeconds } from '@app/utils/helpers';
+import { assertAuthorizedIntegration } from '@app/queries/integrationAccess';
+import { API_ACTIONS, API_RESOURCES } from '@app/shared/enums';
+import { appPermissions, hasAppPermission } from '@app/utils/authorize';
+import { getIntegrationById } from '@app/queries/request';
 
 export const searchKeycloakUsers = async (session: Session, data: any) => {
-  const where: any = getBaseWhereForMyOrTeamIntegrations(session?.user?.id as number);
-  where.id = data.integrationId;
-  where.apiServiceAccount = false;
-  where.archived = false;
-
-  const integration = await models.request.findOne({
-    where,
-    attributes: ['id', 'clientId'],
-    raw: true,
-  });
+  const integration = hasAppPermission(session.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_ROLES_USERS)
+    ? await getIntegrationById(data.integrationId)
+    : await assertAuthorizedIntegration(session.user!.id, data.integrationId, {
+        resource: API_RESOURCES.IDP_USERS,
+        action: API_ACTIONS.READ,
+        environment: data.environment,
+      });
 
   data.clientId = integration.clientId;
 

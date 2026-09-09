@@ -35,6 +35,7 @@ import OTPStatusPanel from './OTPStatusPanel';
 import { Col, Row } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
+import { canManageRoleAssignments, getAccessibleEnvironments } from '@app/helpers/permissions';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -302,6 +303,10 @@ function IntegrationInfoTabs({ integration }: Props) {
   const isGold = integration.serviceType === 'gold';
   const hasBrowserFlow = integration.authType !== 'service-account';
   const hasBothFlows = integration.authType === 'both';
+  const readableEnvironments = getAccessibleEnvironments(integration, 'viewer');
+  const readableIntegration = { ...integration, environments: readableEnvironments };
+  const canAssignRoles = canManageRoleAssignments(integration);
+  const canManageSecrets = getAccessibleEnvironments(integration, 'editor').length > 0;
 
   const handleTabClick = (key: any) => {
     setActiveTab(key);
@@ -342,37 +347,37 @@ function IntegrationInfoTabs({ integration }: Props) {
       allowedTabs.push(TAB_DETAILS);
     }
   } else if (displayStatus === 'Completed') {
-    tabs.push(getInstallationTab({ integration, approvalContext }));
+    tabs.push(getInstallationTab({ integration: readableIntegration, approvalContext }));
     allowedTabs.push(TAB_DETAILS);
     // Exclude role management from integrations with only DC
     if (!idpOnlyIntegrationsWithRoleManagementDisabled) {
-      tabs.push(getRoleManagementTab({ integration }));
+      tabs.push(getRoleManagementTab({ integration: readableIntegration }));
       allowedTabs.push(TAB_ROLE_MANAGEMENT);
     }
 
     // Exclude user assignment from integrations with DC only
-    if (isGold && hasBrowserFlow && !idpOnlyIntegrationsWithRoleManagementDisabled) {
-      tabs.push(getUserAssignmentTab({ integration }));
+    if (isGold && hasBrowserFlow && !idpOnlyIntegrationsWithRoleManagementDisabled && canAssignRoles) {
+      tabs.push(getUserAssignmentTab({ integration: readableIntegration }));
       allowedTabs.push(TAB_USER_ROLE_MANAGEMENT);
     }
 
-    if (isGold && (!hasBrowserFlow || hasBothFlows)) {
-      tabs.push(getServiceAccountAssignmentTab({ integration }));
+    if (isGold && (!hasBrowserFlow || hasBothFlows) && canAssignRoles) {
+      tabs.push(getServiceAccountAssignmentTab({ integration: readableIntegration }));
       allowedTabs.push(TAB_SERVICE_ACCOUNT_ROLE_MANAGEMENT);
     }
 
-    if (!integration.publicAccess) {
-      tabs.push(getSecretsTab({ integration }));
+    if (!integration.publicAccess && canManageSecrets) {
+      tabs.push(getSecretsTab({ integration: readableIntegration }));
       allowedTabs.push(TAB_SECRET);
     }
 
     tabs.push(getHistoryTab({ integration }));
     allowedTabs.push(TAB_HISTORY);
 
-    tabs.push(getMetricsTab({ integration }));
+    tabs.push(getMetricsTab({ integration: readableIntegration }));
     allowedTabs.push(TAB_METRICS);
 
-    tabs.push(getLogsTab({ integration }));
+    tabs.push(getLogsTab({ integration: readableIntegration }));
     allowedTabs.push(TAB_LOGS);
   }
 

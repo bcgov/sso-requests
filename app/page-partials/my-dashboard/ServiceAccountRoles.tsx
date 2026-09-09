@@ -13,6 +13,7 @@ import { getServiceAccountUsername } from '@app/helpers/users';
 import { docusaurusURL } from '@app/utils/constants';
 import TableNew from '@app/components/TableNew';
 import { Col, Row } from 'react-bootstrap';
+import { getAccessibleEnvironments } from '@app/helpers/permissions';
 
 const Label = styled.label`
   font-weight: bold;
@@ -62,10 +63,9 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
   const [roles, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
-  const [environment, setEnvironment] = useState('dev');
+  const environments = getAccessibleEnvironments(selectedRequest, 'role-manager');
+  const [environment, setEnvironment] = useState(environments[0] || 'dev');
   const [userAssignmentError, setUserAssignmentError] = useState(false);
-
-  const environments = selectedRequest?.environments || [];
 
   const throttleUpdate = useCallback(
     throttle(

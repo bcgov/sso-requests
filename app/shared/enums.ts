@@ -16,6 +16,18 @@ export const EVENTS = {
   EMAIL_SUBMISSION_FAILURE: 'email-submission-failure',
   REQUEST_LIMIT_REACHED: 'request-limit-reached',
   TEAM_API_ACCOUNT_DELETE_SUCCESS: 'api-account-delete-success',
+  ORGANIZATION_CREATE_SUCCESS: 'organization-create-success',
+  ORGANIZATION_UPDATE_SUCCESS: 'organization-update-success',
+  ORGANIZATION_DELETE_SUCCESS: 'organization-delete-success',
+  ORGANIZATION_MEMBER_ADDED: 'organization-member-added',
+  ORGANIZATION_MEMBER_REMOVED: 'organization-member-removed',
+  ORGANIZATION_MEMBER_ROLE_UPDATED: 'organization-member-role-updated',
+  ORGANIZATION_TEAM_INVITED: 'organization-team-invited',
+  ORGANIZATION_TEAM_JOINED: 'organization-team-joined',
+  ORGANIZATION_TEAM_DECLINED: 'organization-team-declined',
+  ORGANIZATION_TEAM_LEFT: 'organization-team-left',
+  ORGANIZATION_CEILING_UPDATED: 'organization-ceiling-updated',
+  ORGANIZATION_API_ACCOUNT_GRANTS_UPDATED: 'organization-api-account-grants-updated',
   TEAM_API_ACCOUNT_DELETE_FAILURE: 'api-account-delete-failure',
   LOGS_DOWNLOADED_SUCCESS: 'logs-download-success',
   LOGS_DOWNLOADED_FAILURE: 'logs-download-failure',
@@ -71,12 +83,33 @@ export const API_ACTIONS = {
   WRITE: 'write',
 } as const;
 
-export const ALL_RESOURCE_ACTIONS: [string, string][] = [
-  [API_RESOURCES.ROLES, API_ACTIONS.READ],
-  [API_RESOURCES.ROLES, API_ACTIONS.WRITE],
-  [API_RESOURCES.USER_ROLE_MAPPINGS, API_ACTIONS.READ],
-  [API_RESOURCES.USER_ROLE_MAPPINGS, API_ACTIONS.WRITE],
-  [API_RESOURCES.INTEGRATIONS, API_ACTIONS.READ],
-  [API_RESOURCES.INTEGRATIONS, API_ACTIONS.WRITE],
-  [API_RESOURCES.IDP_USERS, API_ACTIONS.READ],
-];
+// Permission is chosen as one of a small ladder of levels rather than as
+// individual resource/action pairs. The ladder is strictly nested, so comparing
+// two levels is an ordering rather than a set operation.
+export const LEVELS = ['none', 'viewer', 'role-manager', 'editor'] as const;
+
+export type Level = typeof LEVELS[number];
+
+export const LEVEL_RANK: Record<Level, number> = {
+  none: 0,
+  viewer: 1,
+  'role-manager': 2,
+  editor: 3,
+};
+
+export const LEVEL_LABELS: Record<Level, string> = {
+  none: 'No access',
+  viewer: 'Viewer',
+  'role-manager': 'Role Manager',
+  editor: 'Editor',
+};
+
+export const LEVEL_DESCRIPTIONS: Record<Level, string> = {
+  none: 'Cannot see or change anything.',
+  viewer: 'Can view roles, role assignments and integration details.',
+  'role-manager': 'Everything a Viewer can do, plus creating roles and assigning them to users.',
+  editor: 'Everything a Role Manager can do, plus updating the integration itself.',
+};
+
+export const isValidLevel = (value: unknown): value is Level =>
+  typeof value === 'string' && (LEVELS as readonly string[]).includes(value);

@@ -44,6 +44,24 @@ const bcAndDcIntegration: Integration = {
   publicAccess: false,
 };
 
+const organizationIntegration = (level: 'viewer' | 'role-manager' | 'editor'): Integration => ({
+  ...sampleRequest,
+  usesTeam: true,
+  teamId: 20,
+  userTeamRole: undefined,
+  environments: ['dev'],
+  status: 'applied',
+  publicAccess: false,
+  organizationAccess: {
+    organizationId: 1,
+    organizationRole: 'admin',
+    maximumLevel: 'editor',
+    defaultLevel: level,
+    effectiveLevel: level,
+    environmentLevels: { dev: level },
+  },
+});
+
 describe('SSO Dashboard', () => {
   it('Displays the expected tabs for a service account integration', () => {
     render(<IntegrationTabs integration={serviceAccountIntegration} />);
@@ -92,5 +110,27 @@ describe('SSO Dashboard', () => {
         screen.getByText(name);
       }
     });
+  });
+
+  it('keeps organization viewers read-only', () => {
+    render(<IntegrationTabs integration={organizationIntegration('viewer')} />);
+
+    screen.getByText('Technical Details');
+    screen.getByText('Role Management');
+    screen.getByText('Change History');
+    screen.getByText('Metrics');
+    screen.getByText('Logs');
+    expect(screen.queryByText('Assign Users to Roles')).toBeNull();
+    expect(screen.queryByText('Secrets')).toBeNull();
+  });
+
+  it('shows assignment controls at role-manager and secrets at editor', () => {
+    const { rerender } = render(<IntegrationTabs integration={organizationIntegration('role-manager')} />);
+    screen.getByText('Assign Users to Roles');
+    expect(screen.queryByText('Secrets')).toBeNull();
+
+    rerender(<IntegrationTabs integration={organizationIntegration('editor')} />);
+    screen.getByText('Assign Users to Roles');
+    screen.getByText('Secrets');
   });
 });

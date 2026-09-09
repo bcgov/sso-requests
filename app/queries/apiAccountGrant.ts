@@ -1,12 +1,11 @@
 import { models } from '@app/shared/sequelize/models/models';
-import { ALL_RESOURCE_ACTIONS } from '@app/shared/enums';
+import { Level } from '@app/shared/enums';
 
 export interface GrantInput {
   teamId?: number | null;
   integrationId?: number | null;
-  resource: string;
-  action: string;
   environment?: string | null;
+  level: Level;
 }
 
 export const createGrants = async (apiAccountId: number, grants: GrantInput[], transaction?: any) => {
@@ -16,30 +15,25 @@ export const createGrants = async (apiAccountId: number, grants: GrantInput[], t
       apiAccountId,
       teamId: grant.teamId ?? null,
       integrationId: grant.integrationId ?? null,
-      resource: grant.resource,
-      action: grant.action,
       environment: grant.environment ?? null,
+      level: grant.level,
     })),
     { transaction },
   );
 };
 
 // A team-scoped API account has unrestricted authority over its own team's
-// integrations. Materializing that as real grant rows keeps enforcement to a
+// integrations. Materializing that as a real grant row keeps enforcement to a
 // single path rather than special-casing accounts that predate organizations.
 export const createTeamWildcardGrants = async (apiAccountId: number, teamId: number, transaction?: any) =>
-  createGrants(
-    apiAccountId,
-    ALL_RESOURCE_ACTIONS.map(([resource, action]) => ({ teamId, resource, action })),
-    transaction,
-  );
+  createGrants(apiAccountId, [{ teamId, level: 'editor' }], transaction);
 
 export const getGrantsForAccount = async (apiAccountId: number) =>
   models.apiAccountGrant.findAll({
     where: { apiAccountId },
     order: [
-      ['resource', 'ASC'],
-      ['action', 'ASC'],
+      ['team_id', 'ASC'],
+      ['integration_id', 'ASC'],
     ],
     raw: true,
   });

@@ -20,6 +20,9 @@ const NoProjects = styled.div`
   padding-bottom: 22px;
   weight: 700;
   background-color: #f8f8f8;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 `;
 
 export const SystemUnavailableMessage = () => (

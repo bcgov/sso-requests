@@ -12,6 +12,10 @@ import BcscClient from './BcscClient';
 import CustomRequest from './CustomRequest';
 import SdxRequest from './SdxRequest';
 import ApiAccountGrant from './ApiAccountGrant';
+import Organization from './Organization';
+import OrganizationMember from './OrganizationMember';
+import OrganizationTeam from './OrganizationTeam';
+import OrganizationTeamCeiling from './OrganizationTeamCeiling';
 
 const config: any = configs[`${process.env.NODE_ENV || 'development'}`];
 
@@ -42,6 +46,10 @@ console.log('sequelize initialized', !!sequelize);
   CustomRequest,
   SdxRequest,
   ApiAccountGrant,
+  Organization,
+  OrganizationMember,
+  OrganizationTeam,
+  OrganizationTeamCeiling,
 ].forEach((init) => {
   const model = init(sequelize, DataTypes);
   models[model.name] = model;

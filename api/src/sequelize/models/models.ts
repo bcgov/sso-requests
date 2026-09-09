@@ -22,6 +22,12 @@ import { ApiUsageMetrics as _ApiUsageMetrics } from '@/sequelize/models/ApiUsage
 import type { ApiUsageMetricsAttributes } from '@/sequelize/models/ApiUsageMetrics';
 import { ApiAccountGrants as _ApiAccountGrants } from '@/sequelize/models/ApiAccountGrants';
 import type { ApiAccountGrantsAttributes } from '@/sequelize/models/ApiAccountGrants';
+import { Organizations as _Organizations } from '@/sequelize/models/Organizations';
+import type { OrganizationsAttributes } from '@/sequelize/models/Organizations';
+import { OrganizationTeams as _OrganizationTeams } from '@/sequelize/models/OrganizationTeams';
+import type { OrganizationTeamsAttributes } from '@/sequelize/models/OrganizationTeams';
+import { OrganizationTeamCeilings as _OrganizationTeamCeilings } from '@/sequelize/models/OrganizationTeamCeilings';
+import type { OrganizationTeamCeilingsAttributes } from '@/sequelize/models/OrganizationTeamCeilings';
 
 export {
   _BcscClients as BcscClients,
@@ -56,6 +62,9 @@ export type {
   UsersTeamsCreationAttributes,
   ApiUsageMetricsAttributes,
   ApiAccountGrantsAttributes,
+  OrganizationsAttributes,
+  OrganizationTeamsAttributes,
+  OrganizationTeamCeilingsAttributes,
 };
 
 export function models(sequelize: Sequelize) {
@@ -70,6 +79,9 @@ export function models(sequelize: Sequelize) {
   const UsersTeams = _UsersTeams.initModel(sequelize);
   const ApiUsageMetrics = _ApiUsageMetrics.initModel(sequelize);
   const ApiAccountGrants = _ApiAccountGrants.initModel(sequelize);
+  const Organizations = _Organizations.initModel(sequelize);
+  const OrganizationTeams = _OrganizationTeams.initModel(sequelize);
+  const OrganizationTeamCeilings = _OrganizationTeamCeilings.initModel(sequelize);
 
   Teams.belongsToMany(Users, { as: 'userIdUsers', through: UsersTeams, foreignKey: 'teamId', otherKey: 'userId' });
   Users.belongsToMany(Teams, { as: 'teamIdTeams', through: UsersTeams, foreignKey: 'userId', otherKey: 'teamId' });
@@ -100,6 +112,9 @@ export function models(sequelize: Sequelize) {
     usersTeam: UsersTeams,
     apiUsageMetrics: ApiUsageMetrics,
     apiAccountGrant: ApiAccountGrants,
+    organization: Organizations,
+    organizationTeam: OrganizationTeams,
+    organizationTeamCeiling: OrganizationTeamCeilings,
   };
 }
 
