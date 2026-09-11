@@ -1,0 +1,20 @@
+{
+  "name": "@sso/authz",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Permission vocabulary and pure policy functions shared by the app and api packages. No dependencies, no I/O.",
+  "license": "Apache-2.0",
+  "author": "SSO Team",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.3.0",
+    "ts-jest": "^29.4.9",
+    "typescript": "^5.9.3"
+  }
+}
