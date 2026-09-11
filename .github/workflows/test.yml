@@ -44,6 +44,12 @@ jobs:
           asdf reshim
           pre-commit run --color=always --show-diff-on-failure --all-files
 
+      - name: Install dependencies for the authz package
+        run: make authz_install
+
+      - name: Run authz package tests
+        run: make authz_test
+
       - name: Install dependencies for frontend
         run: make app_install
 
