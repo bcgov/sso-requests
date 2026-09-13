@@ -453,6 +453,16 @@ export const bcscClientScopeMappers: any[] = [
   },
 ];
 
+export const bcgovIdirIdpMappers = [
+  { name: 'username', type: 'oidc-username-idp-mapper', template: '${CLAIM.oid}' },
+  { name: 'idir_username', type: 'oidc-user-attribute-idp-mapper', claim: 'samaccountname' },
+  { name: 'idir_user_guid', type: 'oidc-user-attribute-idp-mapper', claim: 'bcgovGUID' },
+  { name: 'user_principal_name', type: 'oidc-user-attribute-idp-mapper', claim: 'upn' },
+  { name: 'first_name', type: 'oidc-user-attribute-idp-mapper', claim: 'given_name' },
+  { name: 'last_name', type: 'oidc-user-attribute-idp-mapper', claim: 'family_name' },
+  { name: 'display_name', type: 'oidc-user-attribute-idp-mapper', claim: 'displayName' },
+];
+
 export const environments = ['dev', 'test', 'prod'] as Environment[];
 
 export const defaultStandardRealmSettings: StandardRealmSettings = {
@@ -476,3 +486,8 @@ export const SDX_ENVIRONMENTS = {
     'non-production': 'bct',
   },
 };
+
+export const KC_ENTRA_IDP_REALM = 'bcgovidir';
+
+// https://graph.microsoft.com/beta/policies/claimsMappingPolicies - check here
+export const ENTRA_CUSTOM_CLAIM_MAPPING_POLICY_ID = 'c363095e-eb91-4fff-9bc6-8d812424834a';

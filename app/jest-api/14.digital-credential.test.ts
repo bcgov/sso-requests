@@ -140,7 +140,6 @@ describe('Digital Credential Feature flag', () => {
   it('Does not allow digital credential as an IDP if feature flag is not included in env vars', async () => {
     process.env.NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL = undefined;
     const result = await submitNewIntegration(mockIntegration);
-    console.log('🚀 ~ result:', result.body);
     expect(result.status).toBe(422);
   });
 

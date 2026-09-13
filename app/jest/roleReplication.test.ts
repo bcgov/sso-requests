@@ -73,7 +73,7 @@ jest.mock('@app/keycloak/users', () => ({
   createAzureIdirUser: (arg: any) => mockCreateAzureIdirUser(arg),
 }));
 
-jest.mock('@app/utils/ms-graph-idir', () => ({
+jest.mock('@app/utils/graph-api', () => ({
   verifyAzureIdirAccountByGuid: (guid: string) => mockVerifyAzureIdirAccountByGuid(guid),
 }));
 

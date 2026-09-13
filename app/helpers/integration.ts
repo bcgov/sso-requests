@@ -18,6 +18,7 @@ export const checkNotDigitalCredential = (idp: string) => !checkDigitalCredentia
 export const checkNotOTP = (idp: string) => !checkOTP(idp);
 export const checkNotBcServicesCard = (idp: string) => !checkBcServicesCard(idp);
 export const checkNotSocial = (idp: string) => !checkSocial(idp);
+export const checkBcgovIdir = (idp: string) => idp === 'bcgovidir';
 
 export const usesBceid = (integration: Integration) => {
   if (!integration) return false;
@@ -111,4 +112,12 @@ export const usesSdxServices = (integration: Integration) => {
   const { sdxEnabled = false } = integration;
 
   return sdxEnabled;
+};
+
+export const usesBcgovIdir = (integration: Integration) => {
+  if (!integration) return false;
+
+  const { devIdps = [] } = integration;
+
+  return devIdps.some(checkBcgovIdir);
 };

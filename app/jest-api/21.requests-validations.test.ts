@@ -91,7 +91,6 @@ describe('integration validations', () => {
         { ...updateableIntegration, usesTeam: false, projectLead: true },
         true,
       );
-      console.log('🚀 ~ updateIntRes:', updateIntRes);
       expect(updateIntRes.status).toEqual(200);
       expect(updateIntRes.body.usesTeam).toEqual(true);
       expect(updateIntRes.body.projectLead).toEqual(false);

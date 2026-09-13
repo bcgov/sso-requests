@@ -2,8 +2,13 @@ import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clien
 import { getAdminClient } from './adminClient';
 import { IntegrationData } from '@app/shared/interfaces';
 import AuthenticationFlowRepresentation from '@keycloak/keycloak-admin-client/lib/defs/authenticationFlowRepresentation';
-import { createBCSCIntegration, deleteBCSCIntegration } from '@app/controllers/requests';
-import { usesBcServicesCard, usesOTP } from '@app/helpers/integration';
+import {
+  createBCSCIntegration,
+  createEntraIntegration,
+  deleteBCSCIntegration,
+  deleteEntraIntegration,
+} from '@app/controllers/requests';
+import { usesBcgovIdir, usesBcServicesCard, usesOTP } from '@app/helpers/integration';
 import axios from 'axios';
 import createHttpError from 'http-errors';
 import { getByRequestId } from '@app/queries/bcsc-client';
@@ -18,6 +23,7 @@ import {
 } from './protocolMappers';
 import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
 import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
+import { getEntraClientByRequestId } from '@app/queries/entra-client';
 
 const realm = 'standard';
 
@@ -159,6 +165,10 @@ export const getDefaultClientScopes = async (integration: IntegrationData, envir
     defaultScopes.push(privacyZoneUri);
   }
 
+  if (usesBcgovIdir(integration) && integration[`${environment}Idps` as keyof IntegrationData].includes('bcgovidir')) {
+    defaultScopes.push('bcgovidir');
+  }
+
   return defaultScopes;
 };
 
@@ -196,6 +206,11 @@ export const keycloakClient = async (
           const bcscClientDetails = await getByRequestId(integration?.id!, environment);
           if (bcscClientDetails) await deleteBCSCIntegration(bcscClientDetails, integration?.clientId!);
         }
+
+        if (usesBcgovIdir(integration)) {
+          await deleteEntraIntegration(environment, integration);
+        }
+
         // delete the client
         await kcAdminClient.clients.del({ id: clients[0]?.id!, realm });
       }
@@ -213,6 +228,10 @@ export const keycloakClient = async (
 
     if (usesBcServicesCard(integration)) {
       await createBCSCIntegration(environment, integration, integration?.userId!);
+    }
+
+    if (usesBcgovIdir(integration)) {
+      await createEntraIntegration(environment, integration);
     }
 
     const authenticationFlows = await axios.get(`${kcAdminClient.baseUrl}/admin/realms/standard/authentication/flows`, {

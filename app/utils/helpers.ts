@@ -448,10 +448,11 @@ export const validateIDPs = ({
   // Exclude admin-only options
   const addingGithubPublic = updatedIdps.includes('githubpublic') && !currentIdps.includes('githubpublic');
   const addingOTP = updatedIdps.includes('otp') && !currentIdps.includes('otp');
+  const addingBcgovidir = updatedIdps.includes('bcgovidir') && !currentIdps.includes('bcgovidir');
 
   if (
     !hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS) &&
-    (addingGithubPublic || addingOTP)
+    (addingGithubPublic || addingOTP || addingBcgovidir)
   ) {
     return false;
   }
@@ -785,3 +786,11 @@ export const containsPrefix = (csvString: string | string[], prefix: string) => 
 
 export const allBceidEnvsApproved = (integration: Integration) =>
   Boolean(integration.devBceidApproved && integration.testBceidApproved && integration.bceidApproved);
+
+export const getKeycloakBaseUrlByEnvironment = (environment: string) => {
+  return environment === 'prod'
+    ? process.env.KEYCLOAK_V2_PROD_URL
+    : environment === 'test'
+    ? process.env.KEYCLOAK_V2_TEST_URL
+    : process.env.KEYCLOAK_V2_DEV_URL;
+};

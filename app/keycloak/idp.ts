@@ -26,10 +26,10 @@ export interface IdpMapperConfig {
   template?: string;
 }
 
-export const getIdp = async (environment: string, alias: string) => {
+export const getIdp = async (environment: string, alias: string, realmName: string = 'standard') => {
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   return kcAdminClient.identityProviders.findOne({
-    realm: 'standard',
+    realm: realmName,
     alias,
   });
 };
@@ -48,6 +48,7 @@ export const createIdp = async (
     [key: string]: any;
   },
   environment: string,
+  realmName: string = 'standard',
 ) => {
   const {
     alias,
@@ -56,7 +57,6 @@ export const createIdp = async (
     config,
     storeToken,
     providerId,
-    realm,
     postBrokerLoginFlowAlias,
     firstBrokerLoginFlowAlias,
   } = IdpConfig;
@@ -64,7 +64,7 @@ export const createIdp = async (
   return kcAdminClient.identityProviders.create({
     alias,
     displayName,
-    realm,
+    realm: realmName,
     enabled,
     config,
     providerId,
@@ -74,13 +74,17 @@ export const createIdp = async (
   });
 };
 
-export const updateIdp = async (idp: IdentityProviderRepresentation, environment: string) => {
+export const updateIdp = async (
+  idp: IdentityProviderRepresentation,
+  environment: string,
+  realmName: string = 'standard',
+) => {
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-  return kcAdminClient.identityProviders.update({ alias: idp?.alias!, realm: 'standard' }, idp);
+  return kcAdminClient.identityProviders.update({ alias: idp?.alias!, realm: realmName }, idp);
 };
 
-export const deleteIdp = async (data: { environment: string; realmName: string; idpAlias: string }) => {
-  const { environment, realmName, idpAlias } = data;
+export const deleteIdp = async (data: { environment: string; idpAlias: string; realmName?: string }) => {
+  const { environment, realmName = 'standard', idpAlias } = data;
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   await kcAdminClient.identityProviders.del({
     realm: realmName,
@@ -89,12 +93,12 @@ export const deleteIdp = async (data: { environment: string; realmName: string; 
   return true;
 };
 
-export const getIdpMappers = async (data: { environment: string; idpAlias: string }) => {
-  const { environment, idpAlias } = data;
+export const getIdpMappers = async (data: { environment: string; idpAlias: string; realmName?: string }) => {
+  const { environment, idpAlias, realmName = 'standard' } = data;
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   return kcAdminClient.identityProviders.findMappers({
     alias: idpAlias,
-    realm: 'standard',
+    realm: realmName, // Consider making realm configurable if needed in the future
   });
 };
 
@@ -104,14 +108,15 @@ export const createIdpMapper = async (data: {
   idpAlias: string;
   idpMapper: string;
   idpMapperConfig: IdpMapperConfig;
+  realmName?: string;
 }) => {
-  const { environment, idpAlias, idpMapperConfig, name, idpMapper } = data;
+  const { environment, idpAlias, idpMapperConfig, name, idpMapper, realmName } = data;
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
 
   await kcAdminClient.identityProviders.createMapper({
     alias: idpAlias,
-    realm: 'standard',
+    realm: realmName ?? 'standard',
     identityProviderMapper: {
       identityProviderAlias: idpAlias,
       name,
@@ -125,11 +130,11 @@ export const createIdpMapper = async (data: {
 
 export const deleteIdpMapper = async (data: {
   environment: string;
-  realmName: string;
+  realmName?: string;
   idpAlias: string;
   mapperName: string;
 }) => {
-  const { environment, realmName, idpAlias, mapperName } = data;
+  const { environment, realmName = 'standard', idpAlias, mapperName } = data;
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const mappers = await kcAdminClient.identityProviders.findMappers({
     realm: realmName,

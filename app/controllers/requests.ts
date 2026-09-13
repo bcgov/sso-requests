@@ -59,7 +59,12 @@ import {
   test,
 } from '@app/schemas';
 import { pick } from 'lodash';
-import { validateIdirEmail } from '@app/utils/ms-graph-idir';
+import {
+  setupEntraIntegration,
+  validateIdirEmail,
+  deleteServicePrincipal,
+  deleteAppRegistration,
+} from '@app/utils/graph-api';
 import {
   BCSCClientParameters,
   createBCSCClient,
@@ -84,7 +89,7 @@ import {
   getClientScopeMapper,
   updateClientScopeMapper,
 } from '@app/keycloak/clientScopes';
-import { bcscClientScopeMappers, bcscIdpMappers } from '@app/utils/constants';
+import { bcgovIdirIdpMappers, bcscClientScopeMappers, bcscIdpMappers, KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 import createHttpError from 'http-errors';
 import { isSocialApprover, validateIDPs } from '@app/utils/helpers';
 import { getIdpApprovalStatus, canDeleteIntegration } from '@app/helpers/permissions';
@@ -94,6 +99,7 @@ import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import { Event } from '@app/interfaces/Event';
 import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
 import { createSdxRequest } from './sdx-services';
+import { getEntraClientByRequestId, saveEntraClient } from '@app/queries/entra-client';
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
@@ -1336,5 +1342,114 @@ export const getListOfDescrepencies = async () => {
       { projectName: 'css-request-monitor', message: '**Failed to get discrepancies**\n\n', statusCode: 'ERROR' },
       { headers: { Accept: 'application/json' } },
     );
+  }
+};
+
+export const createEntraIntegration = async (environment: string, request: IntegrationData) => {
+  try {
+    const getCurrentEntraClient = async () => {
+      return (await getEntraClientByRequestId({ integrationId: request.id!, environment }))?.[0] || null;
+    };
+    const msGraphApiAuthority = `${process.env.MS_GRAPH_API_AUTHORITY}/oauth2/v2.0` || '';
+
+    let entraClient = await getCurrentEntraClient();
+
+    let application = null;
+
+    const appName = kebabCase(`${request.projectName}-${request.id}-${environment}`);
+    if (!entraClient) {
+      application = await setupEntraIntegration(appName, environment, request);
+      if (application) {
+        entraClient = await saveEntraClient({
+          appName,
+          appId: application.appId,
+          secret: application.secret,
+          servicePrincipalId: application.servicePrincipalId,
+          secretExpiryDate: new Date(application.secretExpiryDate),
+          environment,
+          requestId: request.id!,
+        });
+      }
+    }
+
+    const idpCreated = await getIdp(environment, request.clientId!, KC_ENTRA_IDP_REALM);
+
+    if (!idpCreated) {
+      entraClient = await getCurrentEntraClient();
+
+      await createIdp(
+        {
+          alias: request.clientId as string,
+          displayName: request.projectName as string,
+          enabled: true,
+          storeToken: false,
+          providerId: 'oidc',
+          realm: 'standard',
+          firstBrokerLoginFlowAlias: 'first broker login - auto link existing user',
+          postBrokerLoginFlowAlias: '',
+          config: {
+            clientId: entraClient.clientId,
+            clientSecret: entraClient.clientSecret,
+            authorizationUrl: `${msGraphApiAuthority}/authorize`,
+            tokenUrl: `${msGraphApiAuthority}/token`,
+            userInfoUrl: 'https://graph.microsoft.com/oidc/userinfo',
+            jwksUrl: `${process.env.MS_GRAPH_API_AUTHORITY}/discovery/v2.0/keys`,
+            syncMode: 'IMPORT',
+            disableUserInfo: true,
+            clientAuthMethod: 'client_secret_post',
+            validateSignature: true,
+            useJwksUrl: true,
+            defaultScope: 'openid profile email',
+          },
+        },
+        environment,
+        KC_ENTRA_IDP_REALM,
+      );
+    }
+
+    const idpMappers = await getIdpMappers({
+      environment,
+      idpAlias: request?.clientId as string,
+      realmName: KC_ENTRA_IDP_REALM,
+    });
+
+    const createIdpMapperPromises = bcgovIdirIdpMappers.map((mapper) => {
+      const alreadyExists = idpMappers.some((existingMapper: any) => existingMapper.name === mapper.name);
+      if (!alreadyExists) {
+        const payload = {
+          environment: environment,
+          name: mapper.name,
+          idpAlias: request?.clientId as string,
+          idpMapper: mapper.type,
+          realmName: KC_ENTRA_IDP_REALM,
+          idpMapperConfig: {
+            claim: mapper.claim ?? mapper.name,
+            'user.attribute': mapper.name,
+            syncMode: 'FORCE' as 'FORCE',
+            template: mapper.template,
+          } as IdpMapperConfig,
+        };
+        return createIdpMapper(payload);
+      }
+    });
+    await Promise.all(createIdpMapperPromises);
+  } catch (err) {
+    console.error('could not create Entra integration', err);
+  }
+};
+
+export const deleteEntraIntegration = async (environment: string, request: IntegrationData) => {
+  try {
+    const entraClient = (await getEntraClientByRequestId({ integrationId: request?.id!, environment }))?.[0] || null;
+    if (!entraClient) return;
+    await deleteServicePrincipal(entraClient?.servicePrincipalId);
+    await deleteAppRegistration(entraClient?.appId);
+    const idp = await getIdp(environment, request.clientId!, KC_ENTRA_IDP_REALM);
+    if (idp) {
+      await deleteIdp({ environment, idpAlias: request.clientId!, realmName: KC_ENTRA_IDP_REALM });
+      await entraClient.destroy();
+    }
+  } catch (err) {
+    console.error('could not delete Entra integration', err);
   }
 };

@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { handleError } from '@app/utils/helpers';
 import { authenticate } from '@app/utils/authenticate';
-import { importIdirUser } from '@app/utils/ms-graph-idir';
+import { importIdirUser } from '@app/utils/graph-api';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
