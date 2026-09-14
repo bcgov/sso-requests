@@ -57,6 +57,7 @@ services:
       NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT: https://dev.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
       NEXT_PUBLIC_APP_ENV: local
       NEXT_PUBLIC_SSO_IDP_HINT: azureidir
+      NEXT_PUBLIC_INCLUDE_BCGOVIDIR: true
 
       MAINTENANCE_MODE_ACTIVE: 'false'
       SSO_REQUESTS_BACKEND_HOSTNAME: sso-requests

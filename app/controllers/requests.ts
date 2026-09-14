@@ -1399,6 +1399,7 @@ export const createEntraIntegration = async (environment: string, request: Integ
             clientSecret: entraClient.secret,
             authorizationUrl: `${msGraphApiAuthority}/authorize`,
             tokenUrl: `${msGraphApiAuthority}/token`,
+            logoutUrl: `${msGraphApiAuthority}/logout`,
             userInfoUrl: 'https://graph.microsoft.com/oidc/userinfo',
             jwksUrl: `${process.env.MS_GRAPH_API_AUTHORITY}/discovery/v2.0/keys`,
             syncMode: 'IMPORT',

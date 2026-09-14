@@ -374,7 +374,7 @@ export const setupEntraIntegration = async (
     }
   }
 
-  if (!appReg.api) {
+  if (!appReg.api?.acceptMappedClaims) {
     await updateAppRegistration(appReg.id as string, {
       api: {
         acceptMappedClaims: true,
