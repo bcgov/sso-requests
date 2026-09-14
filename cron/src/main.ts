@@ -51,6 +51,27 @@ export default function main() {
       );
     });
   });
+
+  console.info(
+    'Task 4: Refresh entra app registration client secrets daily at 6 am',
+  );
+  nodeCron.schedule('0 6 * * *', async () => {
+    fetch(
+      `${process.env.APP_URL}/api/refreshEntraAppRegistrationClientSecrets`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${process.env.API_AUTH_SECRET}`,
+        },
+      },
+    ).catch((error) => {
+      console.error(
+        `Error calling ${process.env.APP_URL}/api/refreshApplicationSecrets`,
+        error,
+      );
+    });
+  });
 }
 
 main();

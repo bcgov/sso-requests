@@ -4,7 +4,7 @@ import axios, { AxiosRequestConfig, AxiosResponse, Method, ResponseType } from '
 import { createAzureIdirUser } from '@app/keycloak/users';
 import { MsGraphUserValue, MsGraphUserResponse, IntegrationData } from '@app/shared/interfaces';
 import { IConfidentialClientApplication, ConfidentialClientApplication } from '@azure/msal-node';
-import { Application, ServicePrincipal } from '@microsoft/microsoft-graph-types';
+import { Application, PasswordCredential, ServicePrincipal } from '@microsoft/microsoft-graph-types';
 import { getKeycloakBaseUrlByEnvironment } from './helpers';
 
 const GRAPH_API_MAX_RETRIES = 5;
@@ -351,7 +351,7 @@ export const setupEntraIntegration = async (
   appName: string,
   environment: string,
   request: IntegrationData,
-): Promise<{ appId: string; servicePrincipalId: string; secret: string; secretExpiryDate: string }> => {
+): Promise<{ appId: string; servicePrincipalId: string; secret: string | null; secretExpiryDate: string | null }> => {
   let appReg = await getAppRegistration(appName as string);
   if (!appReg) {
     const kcBaseUrl = getKeycloakBaseUrlByEnvironment(environment);
@@ -385,8 +385,8 @@ export const setupEntraIntegration = async (
   return {
     appId: appReg?.appId!,
     servicePrincipalId: servicePrincipal.id!,
-    secret: appReg?.passwordCredentials?.[0]?.secretText!,
-    secretExpiryDate: appReg?.passwordCredentials?.[0]?.endDateTime!,
+    secret: appReg?.passwordCredentials?.[0]?.secretText || null,
+    secretExpiryDate: appReg?.passwordCredentials?.[0]?.endDateTime || null,
   };
 };
 
@@ -435,7 +435,7 @@ export const createAppRegistration = async (appName: string, redirectUris: strin
 
 export const deleteAppRegistration = async (appId: string): Promise<void> => {
   try {
-    await callAzureGraphApi(`${MS_GRAPH_URL}/v1.0/applications(appId='{${appId}}')`, {
+    await callAzureGraphApi(`${MS_GRAPH_URL}/v1.0/applications(appId='${appId}')`, {
       method: 'DELETE',
     });
   } catch (error) {
@@ -556,5 +556,37 @@ export const assignClaimMappingPolicy = async (servicePrincipalId: string, polic
     throw new Error(
       `Unable to assign the claim mapping policy with ID: ${policyId} to the service principal with ID: ${servicePrincipalId}`,
     );
+  }
+};
+
+export const refreshAppRegistrationSecret = async (appId: string): Promise<PasswordCredential | null> => {
+  try {
+    const response = await callAzureGraphApi(`${MS_GRAPH_URL}/v1.0/applications(appId='${appId}')/addPassword`, {
+      method: 'POST',
+      data: {
+        passwordCredential: {
+          displayName: `Secret for ${appId}`,
+          endDateTime: new Date(new Date().setFullYear(new Date().getFullYear() + 2)).toISOString(),
+        },
+      },
+    });
+    return response || null;
+  } catch (error) {
+    console.error(error);
+    throw new Error(`Unable to refresh the secret for the application with appId: ${appId}`);
+  }
+};
+
+export const deleteExpiredEntraClientSecret = async (appId: string, keyId: string) => {
+  try {
+    await callAzureGraphApi(`${MS_GRAPH_URL}/v1.0/applications(appId='${appId}')/removePassword`, {
+      method: 'POST',
+      data: {
+        keyId,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    throw new Error(`Unable to delete expired secrets for the application with appId: ${appId}`);
   }
 };

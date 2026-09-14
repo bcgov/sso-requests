@@ -185,7 +185,7 @@ export const getIntegrationsByUserTeam = async (
 
 export const getIntegrationById = async (
   integrationId: number,
-  attributes: string[] = ['id', 'clientId', 'environments', 'teamId', 'devIdps', 'lastChanges'],
+  attributes: string[] = ['id', 'clientId', 'environments', 'teamId', 'devIdps', 'lastChanges', 'status'],
   options = { raw: true },
 ) => {
   return await models.request.findOne({

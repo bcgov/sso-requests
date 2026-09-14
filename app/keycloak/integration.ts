@@ -23,7 +23,7 @@ import {
 } from './protocolMappers';
 import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
 import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
-import { getEntraClientByRequestId } from '@app/queries/entra-client';
+import { KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 
 const realm = 'standard';
 
@@ -165,8 +165,11 @@ export const getDefaultClientScopes = async (integration: IntegrationData, envir
     defaultScopes.push(privacyZoneUri);
   }
 
-  if (usesBcgovIdir(integration) && integration[`${environment}Idps` as keyof IntegrationData].includes('bcgovidir')) {
-    defaultScopes.push('bcgovidir');
+  if (
+    usesBcgovIdir(integration) &&
+    integration[`${environment}Idps` as keyof IntegrationData].includes(KC_ENTRA_IDP_REALM)
+  ) {
+    defaultScopes.push(KC_ENTRA_IDP_REALM);
   }
 
   return defaultScopes;

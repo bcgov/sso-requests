@@ -64,6 +64,7 @@ import {
   validateIdirEmail,
   deleteServicePrincipal,
   deleteAppRegistration,
+  refreshAppRegistrationSecret,
 } from '@app/utils/graph-api';
 import {
   BCSCClientParameters,
@@ -501,7 +502,6 @@ export const updateRequest = async (
   const bcscApprover = isBcServicesCardApprover(session);
   const socialApprover = isSocialApprover(session);
   const otpApprover = isOTPApprover(session);
-  const idirUserDisplayName = getDisplayName(session);
   const { id, comment, ...rest } = data;
   const isMerged = await checkIfRequestMerged(id!);
 
@@ -1360,12 +1360,19 @@ export const createEntraIntegration = async (environment: string, request: Integ
     if (!entraClient) {
       application = await setupEntraIntegration(appName, environment, request);
       if (application) {
+        // refresh the application secret if it does not exist
+        if (!application.secret) {
+          const refreshPwdCred = await refreshAppRegistrationSecret(application.appId);
+          application.secret = refreshPwdCred?.secretText || '';
+          application.secretExpiryDate = refreshPwdCred?.endDateTime || '';
+        }
+
         entraClient = await saveEntraClient({
           appName,
           appId: application.appId,
           secret: application.secret,
           servicePrincipalId: application.servicePrincipalId,
-          secretExpiryDate: new Date(application.secretExpiryDate),
+          secretExpiryDate: application.secretExpiryDate ? new Date(application.secretExpiryDate) : null,
           environment,
           requestId: request.id!,
         });
@@ -1388,8 +1395,8 @@ export const createEntraIntegration = async (environment: string, request: Integ
           firstBrokerLoginFlowAlias: 'first broker login - auto link existing user',
           postBrokerLoginFlowAlias: '',
           config: {
-            clientId: entraClient.clientId,
-            clientSecret: entraClient.clientSecret,
+            clientId: entraClient.appId,
+            clientSecret: entraClient.secret,
             authorizationUrl: `${msGraphApiAuthority}/authorize`,
             tokenUrl: `${msGraphApiAuthority}/token`,
             userInfoUrl: 'https://graph.microsoft.com/oidc/userinfo',
@@ -1447,8 +1454,8 @@ export const deleteEntraIntegration = async (environment: string, request: Integ
     const idp = await getIdp(environment, request.clientId!, KC_ENTRA_IDP_REALM);
     if (idp) {
       await deleteIdp({ environment, idpAlias: request.clientId!, realmName: KC_ENTRA_IDP_REALM });
-      await entraClient.destroy();
     }
+    await entraClient.destroy();
   } catch (err) {
     console.error('could not delete Entra integration', err);
   }

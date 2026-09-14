@@ -1,4 +1,4 @@
-import { errorMessages, environmentOptions } from '@app/utils/constants';
+import { errorMessages, environmentOptions, KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 import { LoggedInUser, Team, User } from '@app/interfaces/team';
 import { Integration, Option, GoldIDPOption } from '@app/interfaces/Request';
 import { getStatusDisplayName } from '@app/utils/status';
@@ -448,7 +448,7 @@ export const validateIDPs = ({
   // Exclude admin-only options
   const addingGithubPublic = updatedIdps.includes('githubpublic') && !currentIdps.includes('githubpublic');
   const addingOTP = updatedIdps.includes('otp') && !currentIdps.includes('otp');
-  const addingBcgovidir = updatedIdps.includes('bcgovidir') && !currentIdps.includes('bcgovidir');
+  const addingBcgovidir = updatedIdps.includes(KC_ENTRA_IDP_REALM) && !currentIdps.includes(KC_ENTRA_IDP_REALM);
 
   if (
     !hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS) &&

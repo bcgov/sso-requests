@@ -1,6 +1,6 @@
 import { Integration } from '../interfaces/Request';
 import { Schema } from './index';
-import { docusaurusURL } from '@app/utils/constants';
+import { docusaurusURL, KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { usesBcServicesCard, usesOTP, usesSocial } from '@app/helpers/integration';
 import { allBceidEnvsApproved, getDiscontinuedIdps } from '@app/utils/helpers';
@@ -137,7 +137,7 @@ export default function getSchema(
     }
 
     if (includeBcgovidir) {
-      idpEnum.push('bcgovidir');
+      idpEnum.push(KC_ENTRA_IDP_REALM);
     }
 
     // grandfather existing integrations and allow them to remove discontinued IDPs
