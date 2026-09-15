@@ -72,3 +72,27 @@ export const seedIntergrations = async (data: {
     serviceType: 'gold',
   });
 };
+
+/**
+ * Mirrors what the portal creates for a team API account. Nothing about
+ * authority is written: the account is owned by its team, and the api resolves
+ * what it may do from that ownership on every request. `null` seeds an account
+ * with no owner at all.
+ */
+export const seedApiAccount = async (teamId: number | null) => {
+  const account = await models.request.create({
+    projectName: `Service Account for team #${teamId ?? 'none'}`,
+    serviceType: 'gold',
+    usesTeam: teamId !== null,
+    teamId,
+    apiServiceAccount: true,
+    authType: 'service-account',
+    status: 'applied',
+    environments: ['prod'],
+  });
+
+  account.clientId = `service-account-team-${teamId ?? 'none'}-${account.id}`;
+  await account.save();
+
+  return account;
+};

@@ -9,6 +9,7 @@ import logger from '@/logger';
 
 export interface Claims {
   teamId: number | null;
+  apiClientId: string;
 }
 
 export interface Auth {
@@ -67,12 +68,16 @@ const validateJWTSignature = async (token) => {
     // jwt.verify throws error if invalid
     // If setting ignoreExpiration to true, you can control the maxAge on the backend
     const decoded = jwt.verify(token, pem, { issuer });
-    const team = typeof decoded === 'object' && 'team' in decoded ? decoded.team : null;
-    if (!team) {
-      throw new createHttpError.Unauthorized('could not validate token - expected claims not found');
+
+    const azp = typeof decoded === 'object' && 'azp' in decoded ? decoded.azp : null;
+    if (typeof azp !== 'string' || azp.trim().length === 0) {
+      throw new createHttpError.Unauthorized('could not validate token - invalid azp claim');
     }
 
-    return { success: true, data: { teamId: team }, err: null };
+    const rawTeam = typeof decoded === 'object' && 'team' in decoded ? decoded.team : null;
+    const team = !rawTeam || rawTeam === 'null' ? null : rawTeam;
+
+    return { success: true, data: { teamId: team, apiClientId: azp }, err: null };
   } catch (err) {
     logger.error(err);
 

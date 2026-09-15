@@ -6,13 +6,11 @@ and `api`.
 **This package has no dependencies and performs no I/O.** That is what makes it
 safe to import from a Next.js bundle and an Express server alike. Resolving
 permissions _from the database_ stays in each consumer — this package only says
-what a permission is, what the named sets contain, and how overlapping scopes
-resolve against each other.
+what a permission is, what the named sets contain, and how an organization's
+consented access to a team resolves for one integration.
 
-It ships with no consumers. `app` and `api` still carry their own authorization
-paths, and adopting this vocabulary is the work of the pull requests that follow.
-Landing it on its own keeps that diff readable and gives the vocabulary a review
-of its own, which is the part hardest to change later.
+The `api` is its first consumer. `app` still carries its own authorization path,
+and adopting this vocabulary there is the work of the pull requests that follow.
 
 ## What deliberately lives elsewhere
 
@@ -28,12 +26,21 @@ of its own, which is the part hardest to change later.
 
 ## Why permission is a set, not a level
 
-`team-member` and `role-manager` are deliberately incomparable: a team member may
-write an integration but not create roles, and a role manager is the reverse. No
-ordering holds both, so there is no ladder to climb and no "at least this level"
-to test. Authority from several sources is their union; a grant bounded by a
-ceiling is their intersection. `sets.ts` is those four operations and nothing
-else.
+`editor` and `role-manager` are deliberately incomparable: an editor may write
+the integration but not create roles, and a role manager is the reverse; `admin`
+is simply both. No ordering holds them, so there is no ladder to climb and no
+"at least this level" to test. Authority from several sources is their union; a
+consented set bounded by an override is their intersection. `sets.ts` is those
+four operations and nothing else.
+
+## Identity is live, consent is frozen
+
+A team API account _is_ its team, so it resolves to `team-admin` on every
+request and gains a new permission the moment the vocabulary does. An
+organization's access to a team is a consent record, so what gets stored is the
+expanded permission set at the time the team agreed to it. `organization.ts`
+resolves that stored set against a per-integration override, which can only
+narrow it.
 
 ## Presets are a presentation concern
 
