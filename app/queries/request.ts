@@ -1,25 +1,14 @@
 import { Op } from 'sequelize';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
-import { Session, User } from '@app/shared/interfaces';
-import { getAllowedIdpsForApprover } from '@app/utils/helpers';
+import { User } from '@app/shared/interfaces';
 import { getMyTeamsLiteral, getUserTeamRole } from '@app/queries/literals';
-import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
-const commonPopulation = [
-  {
-    model: models.user,
-    required: false,
-  },
-  {
-    model: models.team,
-    required: false,
-  },
-];
-
-export const getBaseWhereForMyOrTeamIntegrations = (userId: number, roles?: string[]) => {
+// Row visibility for list queries. Single-row authorization goes through
+// authorizeIntegration in queries/integrationAccess, which names the permission.
+export const getBaseWhereForMyOrTeamIntegrations = (userId: number) => {
   const where: any = { apiServiceAccount: false };
 
-  const teamIdsLiteral = getMyTeamsLiteral(userId, roles);
+  const teamIdsLiteral = getMyTeamsLiteral(userId);
 
   where[Op.or] = [
     {
@@ -54,89 +43,6 @@ export const findMyOrTeamIntegrationsByService = async (userId: number, options 
     attributes: ['id', 'serviceType'],
     ...options,
   });
-};
-
-export const getMyOrTeamRequest = async (userId: number, requestId: number, roles: string[] = ['member', 'admin']) => {
-  const where = getBaseWhereForMyOrTeamIntegrations(userId, roles);
-  where.id = requestId;
-
-  return models.request.findOne({
-    where,
-    include: commonPopulation,
-    attributes: {
-      include: [[sequelize.literal(getUserTeamRole(userId)), 'userTeamRole']],
-    },
-  });
-};
-
-export const findAllowedIntegrationInfo = async (
-  userId: number,
-  integrationId: number,
-  roles: string[] = ['member', 'admin'],
-  options = { raw: true },
-) => {
-  const where = getBaseWhereForMyOrTeamIntegrations(userId, roles);
-  where.id = integrationId;
-
-  return models.request.findOne({
-    where,
-    attributes: [
-      'id',
-      'clientId',
-      'devIdps',
-      'apiServiceAccount',
-      'status',
-      'archived',
-      'usesTeam',
-      [sequelize.literal(getUserTeamRole(userId)), 'userTeamRole'],
-    ],
-    ...options,
-  });
-};
-
-export const getAllowedRequest = async (session: Session, requestId: number, roles?: string[]) => {
-  if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST)) {
-    return models.request.findOne({
-      where: { id: requestId, apiServiceAccount: false },
-      include: commonPopulation,
-    });
-  } else if (getAllowedIdpsForApprover(session).length > 0) {
-    const teamIdsLiteral = getMyTeamsLiteral(session?.user?.id as number);
-    return await models.request.findOne({
-      where: {
-        id: requestId,
-        apiServiceAccount: false,
-        [Op.or]: [
-          {
-            [Op.or]: [
-              {
-                usesTeam: true,
-                teamId: {
-                  [Op.in]: sequelize.literal(`(${teamIdsLiteral})`),
-                },
-              },
-              {
-                usesTeam: false,
-                userId: session?.user?.id as number,
-              },
-              {
-                usesTeam: true,
-                teamId: null,
-                status: 'draft',
-                userId: session?.user?.id as number,
-              },
-            ],
-          },
-          {
-            devIdps: { [Op.overlap]: getAllowedIdpsForApprover(session) },
-          },
-        ],
-      },
-      include: commonPopulation,
-    });
-  }
-
-  return getMyOrTeamRequest(session?.user?.id as number, requestId, roles);
 };
 
 export const getIntegrationsByTeam = async (
@@ -207,18 +113,6 @@ export const getIntegrationByClientId = (clientId: string, options = { raw: true
     where: { clientId, apiServiceAccount: false, archived: false },
     ...options,
   });
-};
-
-export const canUpdateRequestByUserId = async (userId: number, requestId: number) => {
-  const where = getBaseWhereForMyOrTeamIntegrations(userId, ['admin', 'member']);
-  where.id = requestId;
-  const editableRequest = await models.request.findOne({
-    where,
-    archived: false,
-    apiServiceAccount: false,
-  });
-  if (!editableRequest) return false;
-  return true;
 };
 
 export const getWhereClauseForAllRequests = (data: {

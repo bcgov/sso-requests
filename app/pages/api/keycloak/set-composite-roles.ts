@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const authorized = await isAllowedToManageRoles(session as Session, req.body.integrationId);
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to update composite roles' });
-      const result = await setCompositeRoles(session?.user?.id!, req.body);
+      const result = await setCompositeRoles(session as Session, req.body);
       return res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['POST']);

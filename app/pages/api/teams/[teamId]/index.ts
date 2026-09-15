@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'PUT') {
       const { teamId } = req.query;
-      const result = await updateTeam(session?.user!, teamId as string, req.body);
+      const result = await updateTeam(session as Session, teamId as string, req.body);
       return res.status(200).json(result);
     } else if (req.method === 'DELETE') {
       const { teamId } = req.query;

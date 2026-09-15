@@ -13,11 +13,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'GET') {
       const { teamId, saId } = req.query;
-      const result = await getServiceAccountCredentials(session?.user?.id!, Number(teamId), Number(saId));
+      const result = await getServiceAccountCredentials(session as Session, Number(teamId), Number(saId));
       return res.status(200).json(result);
     } else if (req.method === 'PUT') {
       const { teamId, saId } = req.query;
-      const result = await updateServiceAccountSecret(session?.user?.id!, Number(teamId), Number(saId));
+      const result = await updateServiceAccountSecret(session as Session, Number(teamId), Number(saId));
       return res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['GET', 'PUT']);

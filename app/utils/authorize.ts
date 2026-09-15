@@ -1,8 +1,9 @@
+import { Permission, union } from '@sso/authz';
+
 export const appPermissions = {
   VIEW_TEAMS: 'view_teams',
   ADD_RESTRICTED_IDPS: 'add_restricted_idps',
   UPDATE_REQUEST_ADDITIONAL_SETTINGS: 'update_request_additional_settings',
-  UPDATE_REQUEST_META_DATA: 'update_request_metadata',
   UPDATE_SAML_REQUEST_CLIENT_ID: 'update_saml_request_client_id',
   ADD_REQUEST_COMMENT: 'update_request_comment',
   ADMIN_DASHBOARD_VIEW_REQUEST: 'admin_dashboard_view_request',
@@ -62,7 +63,6 @@ export const appRolePermissionMap: Record<string, string[]> = {
   'sso-admin': [
     appPermissions.VIEW_TEAMS,
     appPermissions.ADD_REQUEST_COMMENT,
-    appPermissions.UPDATE_REQUEST_META_DATA,
     appPermissions.UPDATE_SAML_REQUEST_CLIENT_ID,
     appPermissions.ADD_RESTRICTED_IDPS,
     appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS,
@@ -144,3 +144,24 @@ export const getAllAppPermissions = (roles: string[]) => {
   });
   return Array.from(permissionsSet);
 };
+
+// The app roles resolved into the common permission set — the fourth source
+// `resolveAccessForIntegrations` unions with personal ownership and team role.
+// Keyed by app permission rather than role so it reads as "what does this
+// dashboard permission let its holder do to an integration".
+//
+// Deliberately only what the admin dashboard admits today: reading, updating
+// and deleting any integration, and reading its roles and role mappings.
+// Nothing here grants roles:write, user-role-mappings:write or idp-users:read,
+// because no admin path does. IdP approvers are absent on purpose — their
+// authority depends on the integration's IdPs and is resolved per row.
+const APP_PERMISSION_GRANTS: Partial<Record<string, Permission[]>> = {
+  [appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST]: ['integrations:read'],
+  [appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST]: ['integrations:write', 'integrations:reassign-team'],
+  [appPermissions.ADMIN_DASHBOARD_DELETE_REQUEST]: ['integrations:delete'],
+  [appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_ROLES]: ['roles:read'],
+  [appPermissions.ADMIN_DASHBOARD_VIEW_ROLES_USERS]: ['user-role-mappings:read'],
+};
+
+export const commonPermissionsForAppRoles = (roles: string[] = []): Permission[] =>
+  union(getAllAppPermissions(roles).map((permission) => APP_PERMISSION_GRANTS[permission] ?? []));
