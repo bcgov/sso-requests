@@ -526,7 +526,7 @@ export const getAppRegistrationByAppId = async (appId: string): Promise<Applicat
 export const getAssignedClaimMappingPolicies = async (servicePrincipalId: string) => {
   try {
     const response = await callAzureGraphApi(
-      `https://graph.microsoft.com/beta/servicePrincipals/${servicePrincipalId}/claimsMappingPolicies`,
+      `https://graph.microsoft.com/v1.0/servicePrincipals/${servicePrincipalId}/claimsMappingPolicies`,
       {
         method: 'GET',
       },
@@ -543,11 +543,11 @@ export const getAssignedClaimMappingPolicies = async (servicePrincipalId: string
 export const assignClaimMappingPolicy = async (servicePrincipalId: string, policyId: string) => {
   try {
     await callAzureGraphApi(
-      `https://graph.microsoft.com/beta/servicePrincipals/${servicePrincipalId}/claimsMappingPolicies/$ref`,
+      `https://graph.microsoft.com/v1.0/servicePrincipals/${servicePrincipalId}/claimsMappingPolicies/$ref`,
       {
         method: 'POST',
         data: {
-          '@odata.id': `https://graph.microsoft.com/beta/policies/claimsMappingPolicies/${policyId}`,
+          '@odata.id': `https://graph.microsoft.com/v1.0/policies/claimsMappingPolicies/${policyId}`,
         },
       },
     );
