@@ -362,7 +362,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     loadBcscAttributes();
     loadDefaultSessionSettings();
     isBcscExcluded();
-    loadSdxResources();
+    if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true') loadSdxResources();
   }, []);
 
   // Clear other details when other is unselected

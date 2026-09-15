@@ -298,7 +298,6 @@ describe('callAzureGraphApi retries', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
-    jest.spyOn(Math, 'random').mockReturnValue(0);
     (ConfidentialClientApplication as jest.Mock).mockImplementation(() => ({
       acquireTokenByClientCredential: jest.fn(() =>
         Promise.resolve({ accessToken: 'graph-token', expiresOn: new Date(Date.now() + 3600_000) }),
@@ -319,7 +318,7 @@ describe('callAzureGraphApi retries', () => {
     const response = actualGraphApi.callAzureGraphApi('/v1.0/servicePrincipals/service-principal-id', {
       method: 'DELETE',
     });
-    await jest.advanceTimersByTimeAsync(750);
+    await jest.advanceTimersByTimeAsync(1500);
 
     await expect(response).resolves.toEqual({ deleted: true });
     expect(axios.request).toHaveBeenCalledTimes(2);
@@ -333,7 +332,7 @@ describe('callAzureGraphApi retries', () => {
       method: 'POST',
       data: { displayName: 'Entra Project' },
     });
-    await jest.advanceTimersByTimeAsync(750);
+    await jest.advanceTimersByTimeAsync(1500);
 
     await expect(response).resolves.toEqual({ id: 'created' });
     expect(axios.request).toHaveBeenCalledTimes(2);

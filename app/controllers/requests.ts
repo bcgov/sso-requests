@@ -1350,7 +1350,7 @@ export const createEntraIntegration = async (environment: string, request: Integ
     const getCurrentEntraClient = async () => {
       return (await getEntraClientByRequestId({ integrationId: request.id!, environment }))?.[0] || null;
     };
-    const msGraphApiAuthority = `${process.env.MS_GRAPH_API_AUTHORITY}/oauth2/v2.0` || '';
+    const msGraphApiAuthority = `${process.env.MS_GRAPH_API_AUTHORITY}/oauth2/v2.0`;
 
     let entraClient = await getCurrentEntraClient();
 
@@ -1421,7 +1421,7 @@ export const createEntraIntegration = async (environment: string, request: Integ
       realmName: KC_ENTRA_IDP_REALM,
     });
 
-    const createIdpMapperPromises = bcgovIdirIdpMappers.map((mapper) => {
+    const createIdpMapperPromises = bcgovIdirIdpMappers.map(async (mapper) => {
       const alreadyExists = idpMappers.some((existingMapper: any) => existingMapper.name === mapper.name);
       if (!alreadyExists) {
         const payload = {
@@ -1433,11 +1433,11 @@ export const createEntraIntegration = async (environment: string, request: Integ
           idpMapperConfig: {
             claim: mapper.claim ?? mapper.name,
             'user.attribute': mapper.name,
-            syncMode: 'FORCE' as 'FORCE',
+            syncMode: 'FORCE',
             template: mapper.template,
           } as IdpMapperConfig,
         };
-        return createIdpMapper(payload);
+        return await createIdpMapper(payload);
       }
     });
     await Promise.all(createIdpMapperPromises);

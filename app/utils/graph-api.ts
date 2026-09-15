@@ -9,8 +9,14 @@ import axios, { AxiosRequestConfig, AxiosResponse, Method, ResponseType } from '
 import { createAzureIdirUser } from '@app/keycloak/users';
 import { MsGraphUserValue, MsGraphUserResponse, IntegrationData } from '@app/shared/interfaces';
 import { IConfidentialClientApplication, ConfidentialClientApplication } from '@azure/msal-node';
-import { Application, PasswordCredential, ServicePrincipal } from '@microsoft/microsoft-graph-types';
+import {
+  Application,
+  ClaimsMappingPolicy,
+  PasswordCredential,
+  ServicePrincipal,
+} from '@microsoft/microsoft-graph-types';
 import { getKeycloakBaseUrlByEnvironment } from './helpers';
+import { randomInt } from 'crypto';
 
 const GRAPH_API_MAX_RETRIES = 5;
 const GRAPH_API_RETRY_INTERVAL_MS = 1500;
@@ -48,9 +54,9 @@ function getRetryDelayMs(response: AxiosResponse | undefined, retryNumber: numbe
     }
   }
 
-  // Equal jitter to avoid retry storms; Math.random is fine here (non-security use).
+  // Equal jitter to avoid retry storms.
   const cap = Math.min(GRAPH_API_RETRY_INTERVAL_MS * 2 ** retryNumber, GRAPH_API_MAX_RETRY_DELAY_MS);
-  return Math.floor(cap / 2 + Math.random() * (cap / 2));
+  return randomInt(cap / 2, cap);
 }
 
 function sleepWithAbort(ms: number, signal?: AbortSignal): Promise<void> {
@@ -371,10 +377,10 @@ export const setupEntraIntegration = async (
     servicePrincipal = await createServicePrincipal(appReg.appId as string);
   }
 
-  if (servicePrincipal && servicePrincipal.id) {
-    const assignedPolicy = await getAssignedClaimMappingPolicies(servicePrincipal.id);
+  if (servicePrincipal?.id) {
+    const assignedPolicies = await getAssignedClaimMappingPolicies(servicePrincipal.id);
 
-    if (!assignedPolicy || assignedPolicy.id !== ENTRA_CUSTOM_CLAIM_MAPPING_POLICY_ID) {
+    if (!assignedPolicies.some((policy: ClaimsMappingPolicy) => policy.id === ENTRA_CUSTOM_CLAIM_MAPPING_POLICY_ID)) {
       await assignClaimMappingPolicy(servicePrincipal.id, ENTRA_CUSTOM_CLAIM_MAPPING_POLICY_ID);
     }
   }
@@ -537,7 +543,7 @@ export const getAppRegistrationByAppId = async (appId: string): Promise<Applicat
   }
 };
 
-export const getAssignedClaimMappingPolicies = async (servicePrincipalId: string) => {
+export const getAssignedClaimMappingPolicies = async (servicePrincipalId: string): Promise<ClaimsMappingPolicy[]> => {
   try {
     const response = await callAzureGraphApi(
       `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/servicePrincipals/${servicePrincipalId}/claimsMappingPolicies`,
@@ -545,7 +551,7 @@ export const getAssignedClaimMappingPolicies = async (servicePrincipalId: string
         method: 'GET',
       },
     );
-    return response.value && response.value.length > 0 ? response.value[0] : null;
+    return response.value || [];
   } catch (error) {
     console.error(error);
     throw new Error(

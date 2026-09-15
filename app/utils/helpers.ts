@@ -788,9 +788,8 @@ export const allBceidEnvsApproved = (integration: Integration) =>
   Boolean(integration.devBceidApproved && integration.testBceidApproved && integration.bceidApproved);
 
 export const getKeycloakBaseUrlByEnvironment = (environment: string) => {
-  return environment === 'prod'
-    ? process.env.KEYCLOAK_V2_PROD_URL
-    : environment === 'test'
-    ? process.env.KEYCLOAK_V2_TEST_URL
-    : process.env.KEYCLOAK_V2_DEV_URL;
+  if (environment === 'dev') return process.env.KEYCLOAK_V2_DEV_URL;
+  if (environment === 'test') return process.env.KEYCLOAK_V2_TEST_URL;
+  if (environment === 'prod') return process.env.KEYCLOAK_V2_PROD_URL;
+  return '';
 };

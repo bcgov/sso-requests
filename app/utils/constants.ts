@@ -457,7 +457,7 @@ export const bcscClientScopeMappers: any[] = [
 
 export const bcgovIdirIdpMappers = [
   { name: 'username', type: 'oidc-username-idp-mapper', template: '${CLAIM.oid}' },
-  { name: 'idir_username', type: 'oidc-user-attribute-idp-mapper', claim: 'samaccountname' },
+  { name: 'idir_username', type: 'oidc-user-attribute-idp-mapper', claim: 'samAccountName' },
   { name: 'idir_user_guid', type: 'oidc-user-attribute-idp-mapper', claim: 'bcgovGUID' },
   { name: 'user_principal_name', type: 'oidc-user-attribute-idp-mapper', claim: 'upn' },
   { name: 'first_name', type: 'oidc-user-attribute-idp-mapper', claim: 'given_name' },
