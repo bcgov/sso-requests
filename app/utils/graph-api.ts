@@ -1,4 +1,9 @@
-import { CYPRESS_MOCKED_IDIR_LOOKUP, ENTRA_CUSTOM_CLAIM_MAPPING_POLICY_ID, MS_GRAPH_URL } from './constants';
+import {
+  CYPRESS_MOCKED_IDIR_LOOKUP,
+  ENTRA_CUSTOM_CLAIM_MAPPING_POLICY_ID,
+  MS_GRAPH_API_VERSION,
+  MS_GRAPH_URL,
+} from './constants';
 import createHttpError from 'http-errors';
 import axios, { AxiosRequestConfig, AxiosResponse, Method, ResponseType } from 'axios';
 import { createAzureIdirUser } from '@app/keycloak/users';
@@ -228,14 +233,14 @@ export const searchIdirEmail = async (email: string) => {
   if (process.env.CYPRESS_RUNNER) {
     return CYPRESS_MOCKED_IDIR_LOOKUP;
   }
-  const url = `${MS_GRAPH_URL}/v1.0/users?$filter=startswith(mail,'${email}')&$orderby=userPrincipalName&$count=true&$top=25`;
+  const url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=startswith(mail,'${email}')&$orderby=userPrincipalName&$count=true&$top=25`;
   return callAzureGraphApi(url).then((res) => res.value?.map((value: any) => ({ mail: value.mail, id: value.id })));
 };
 
 /** Validate the provided email is linked to an existing IDIR account. */
 export const validateIdirEmail = async (email: string) => {
   const encodedEmail = encodeURIComponent(email);
-  const url = `${MS_GRAPH_URL}/v1.0/users/${encodedEmail}`;
+  const url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users/${encodedEmail}`;
   try {
     const response = await callAzureGraphApi(url);
     return { given_name: response.givenName, family_name: response.surname };
@@ -278,7 +283,7 @@ export const searchIdirUsers = async ({ field, search }: { field: string; search
     throw new Error('Allowed search fields are givenName, surname, mail, mailNickname');
   }
   try {
-    const url = `${MS_GRAPH_URL}/v1.0/users?$filter=startswith(${field},'${search}')&$top=100&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName`;
+    const url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=startswith(${field},'${search}')&$top=100&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName`;
     const response = (await callAzureGraphApi(url)) as MsGraphUserResponse;
     const formattedUsers = response.value.map(formatUser);
     return formattedUsers;
@@ -298,7 +303,7 @@ export const verifyAzureIdirAccountByGuid = async (guid: string) => {
     // OData string literals delimit with single quotes; escape any embedded single quote by
     // doubling it (the OData standard) so the GUID cannot break out of the filter expression.
     const escapedGuid = guid.replace(/'/g, "''");
-    const url = `${MS_GRAPH_URL}/v1.0/users?$filter=onPremisesExtensionAttributes/extensionAttribute12 eq '${escapedGuid}'&$count=true&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName`;
+    const url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=onPremisesExtensionAttributes/extensionAttribute12 eq '${escapedGuid}'&$count=true&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName`;
     const response = (await callAzureGraphApi(url)) as MsGraphUserResponse;
     const match = response?.value?.find(
       (user) => user.onPremisesExtensionAttributes?.extensionAttribute12?.toLowerCase() === guid.toLowerCase(),
@@ -318,7 +323,7 @@ export const importIdirUser = async ({ guid, userId }: { guid: string; userId: s
   }
 
   try {
-    const url = `${MS_GRAPH_URL}/v1.0/users?$filter=mailNickname eq '${userId}'&$select=onPremisesExtensionAttributes,displayName,mail,givenName,surname,userPrincipalName`;
+    const url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=mailNickname eq '${userId}'&$select=onPremisesExtensionAttributes,displayName,mail,givenName,surname,userPrincipalName`;
     const response = (await callAzureGraphApi(url)) as MsGraphUserResponse;
 
     if (!response?.value?.length) {
@@ -392,7 +397,7 @@ export const setupEntraIntegration = async (
 
 export const updateAppRegistration = async (id: string, application: Application): Promise<Application> => {
   try {
-    return await callAzureGraphApi(`${MS_GRAPH_URL}/v1.0/applications/${id}`, {
+    return await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications/${id}`, {
       method: 'PATCH',
       data: application,
     });
@@ -408,7 +413,7 @@ export const createAppRegistration = async (appName: string, redirectUris: strin
   }
 
   try {
-    return await callAzureGraphApi(`${MS_GRAPH_URL}/v1.0/applications`, {
+    return await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications`, {
       method: 'POST',
       data: {
         displayName: appName,
@@ -435,7 +440,7 @@ export const createAppRegistration = async (appName: string, redirectUris: strin
 
 export const deleteAppRegistration = async (appId: string): Promise<void> => {
   try {
-    await callAzureGraphApi(`${MS_GRAPH_URL}/v1.0/applications(appId='${appId}')`, {
+    await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications(appId='${appId}')`, {
       method: 'DELETE',
     });
   } catch (error) {
@@ -446,9 +451,12 @@ export const deleteAppRegistration = async (appId: string): Promise<void> => {
 
 export const getAppRegistration = async (appName: string): Promise<Application | null> => {
   try {
-    const response = await callAzureGraphApi(`${MS_GRAPH_URL}/v1.0/applications?$filter=displayName eq '${appName}'`, {
-      method: 'GET',
-    });
+    const response = await callAzureGraphApi(
+      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications?$filter=displayName eq '${appName}'`,
+      {
+        method: 'GET',
+      },
+    );
     return response.value && response.value.length > 0 ? response.value[0] : null;
   } catch (error) {
     console.error(error);
@@ -458,7 +466,7 @@ export const getAppRegistration = async (appName: string): Promise<Application |
 
 export const createServicePrincipal = async (appId: string): Promise<ServicePrincipal> => {
   try {
-    return await callAzureGraphApi(`${MS_GRAPH_URL}/v1.0/servicePrincipals`, {
+    return await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/servicePrincipals`, {
       method: 'POST',
       data: {
         appId,
@@ -478,7 +486,7 @@ export const updateServicePrincipal = async (
     if (!servicePrincipal) {
       throw new Error('Service principal not found');
     }
-    return await callAzureGraphApi(`${MS_GRAPH_URL}/v1.0/servicePrincipals/${servicePrincipalId}`, {
+    return await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/servicePrincipals/${servicePrincipalId}`, {
       method: 'PATCH',
       data: servicePrincipal,
     });
@@ -490,9 +498,12 @@ export const updateServicePrincipal = async (
 
 export const getServicePrincipal = async (appId: string): Promise<ServicePrincipal | null> => {
   try {
-    const response = await callAzureGraphApi(`${MS_GRAPH_URL}/v1.0/servicePrincipals?$filter=appId eq '${appId}'`, {
-      method: 'GET',
-    });
+    const response = await callAzureGraphApi(
+      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/servicePrincipals?$filter=appId eq '${appId}'`,
+      {
+        method: 'GET',
+      },
+    );
     return response.value && response.value.length > 0 ? response.value[0] : null;
   } catch (error) {
     console.error(error);
@@ -502,7 +513,7 @@ export const getServicePrincipal = async (appId: string): Promise<ServicePrincip
 
 export const deleteServicePrincipal = async (servicePrincipalId: string): Promise<void> => {
   try {
-    await callAzureGraphApi(`${MS_GRAPH_URL}/v1.0/servicePrincipals/${servicePrincipalId}`, {
+    await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/servicePrincipals/${servicePrincipalId}`, {
       method: 'DELETE',
     });
   } catch (error) {
@@ -513,9 +524,12 @@ export const deleteServicePrincipal = async (servicePrincipalId: string): Promis
 
 export const getAppRegistrationByAppId = async (appId: string): Promise<Application | null> => {
   try {
-    const response = await callAzureGraphApi(`${MS_GRAPH_URL}/v1.0/applications?$filter=appId eq '${appId}'`, {
-      method: 'GET',
-    });
+    const response = await callAzureGraphApi(
+      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications?$filter=appId eq '${appId}'`,
+      {
+        method: 'GET',
+      },
+    );
     return response.value && response.value.length > 0 ? response.value[0] : null;
   } catch (error) {
     console.error(error);
@@ -526,7 +540,7 @@ export const getAppRegistrationByAppId = async (appId: string): Promise<Applicat
 export const getAssignedClaimMappingPolicies = async (servicePrincipalId: string) => {
   try {
     const response = await callAzureGraphApi(
-      `https://graph.microsoft.com/v1.0/servicePrincipals/${servicePrincipalId}/claimsMappingPolicies`,
+      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/servicePrincipals/${servicePrincipalId}/claimsMappingPolicies`,
       {
         method: 'GET',
       },
@@ -543,11 +557,11 @@ export const getAssignedClaimMappingPolicies = async (servicePrincipalId: string
 export const assignClaimMappingPolicy = async (servicePrincipalId: string, policyId: string) => {
   try {
     await callAzureGraphApi(
-      `https://graph.microsoft.com/v1.0/servicePrincipals/${servicePrincipalId}/claimsMappingPolicies/$ref`,
+      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/servicePrincipals/${servicePrincipalId}/claimsMappingPolicies/$ref`,
       {
         method: 'POST',
         data: {
-          '@odata.id': `https://graph.microsoft.com/v1.0/policies/claimsMappingPolicies/${policyId}`,
+          '@odata.id': `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/policies/claimsMappingPolicies/${policyId}`,
         },
       },
     );
@@ -561,15 +575,18 @@ export const assignClaimMappingPolicy = async (servicePrincipalId: string, polic
 
 export const refreshAppRegistrationSecret = async (appId: string): Promise<PasswordCredential | null> => {
   try {
-    const response = await callAzureGraphApi(`${MS_GRAPH_URL}/v1.0/applications(appId='${appId}')/addPassword`, {
-      method: 'POST',
-      data: {
-        passwordCredential: {
-          displayName: `Secret for ${appId}`,
-          endDateTime: new Date(new Date().setFullYear(new Date().getFullYear() + 2)).toISOString(),
+    const response = await callAzureGraphApi(
+      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications(appId='${appId}')/addPassword`,
+      {
+        method: 'POST',
+        data: {
+          passwordCredential: {
+            displayName: `Secret for ${appId}`,
+            endDateTime: new Date(new Date().setFullYear(new Date().getFullYear() + 2)).toISOString(),
+          },
         },
       },
-    });
+    );
     return response || null;
   } catch (error) {
     console.error(error);
@@ -579,7 +596,7 @@ export const refreshAppRegistrationSecret = async (appId: string): Promise<Passw
 
 export const deleteExpiredEntraClientSecret = async (appId: string, keyId: string) => {
   try {
-    await callAzureGraphApi(`${MS_GRAPH_URL}/v1.0/applications(appId='${appId}')/removePassword`, {
+    await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications(appId='${appId}')/removePassword`, {
       method: 'POST',
       data: {
         keyId,

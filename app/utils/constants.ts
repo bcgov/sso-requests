@@ -435,6 +435,8 @@ export const bcscAttributes = () => {
 
 export const MS_GRAPH_URL = 'https://graph.microsoft.com';
 
+export const MS_GRAPH_API_VERSION = 'v1.0';
+
 export const CYPRESS_MOCKED_IDIR_LOOKUP = [{ mail: 'Pathfinder.SSOTraining2@gov.bc.ca', id: 1 }];
 
 export const bcscIdpMappers = [
@@ -460,7 +462,7 @@ export const bcgovIdirIdpMappers = [
   { name: 'user_principal_name', type: 'oidc-user-attribute-idp-mapper', claim: 'upn' },
   { name: 'first_name', type: 'oidc-user-attribute-idp-mapper', claim: 'given_name' },
   { name: 'last_name', type: 'oidc-user-attribute-idp-mapper', claim: 'family_name' },
-  { name: 'display_name', type: 'oidc-user-attribute-idp-mapper', claim: 'displayName' },
+  { name: 'display_name', type: 'oidc-user-attribute-idp-mapper', claim: 'display_name' },
 ];
 
 export const environments = ['dev', 'test', 'prod'] as Environment[];
@@ -489,5 +491,4 @@ export const SDX_ENVIRONMENTS = {
 
 export const KC_ENTRA_IDP_REALM = 'bcgovidir';
 
-// https://graph.microsoft.com/beta/policies/claimsMappingPolicies - check here
-export const ENTRA_CUSTOM_CLAIM_MAPPING_POLICY_ID = 'c363095e-eb91-4fff-9bc6-8d812424834a';
+export const ENTRA_CUSTOM_CLAIM_MAPPING_POLICY_ID = '600bfa8b-1ae5-4d5c-ba03-56f63c490ff7';
