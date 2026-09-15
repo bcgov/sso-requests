@@ -178,7 +178,6 @@ describe('app-role permission expansion (dev baseline)', () => {
       [
         appPermissions.VIEW_TEAMS,
         appPermissions.ADD_REQUEST_COMMENT,
-        appPermissions.UPDATE_REQUEST_META_DATA,
         appPermissions.UPDATE_SAML_REQUEST_CLIENT_ID,
         appPermissions.ADD_RESTRICTED_IDPS,
         appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS,

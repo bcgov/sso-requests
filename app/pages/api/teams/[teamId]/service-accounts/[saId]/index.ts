@@ -13,11 +13,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'GET') {
       const { teamId, saId } = req.query;
-      const result = await getServiceAccount(session?.user?.id!, Number(teamId), Number(saId));
+      const result = await getServiceAccount(session as Session, Number(teamId), Number(saId));
       return res.status(200).json(result);
     } else if (req.method === 'DELETE') {
       const { teamId, saId } = req.query;
-      const result = await deleteServiceAccount(session as Session, session?.user?.id!, Number(teamId), Number(saId));
+      const result = await deleteServiceAccount(session as Session, Number(teamId), Number(saId));
       return res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['GET', 'DELETE']);

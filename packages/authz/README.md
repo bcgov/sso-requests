@@ -9,8 +9,10 @@ permissions _from the database_ stays in each consumer — this package only say
 what a permission is, what the named sets contain, and how an organization's
 consented access to a team resolves for one integration.
 
-The `api` is its first consumer. `app` still carries its own authorization path,
-and adopting this vocabulary there is the work of the pull requests that follow.
+Both `api` and `app` consume it. In the app, `queries/integrationAccess.ts`
+resolves personal ownership, team role, app role and IdP approval into one
+`Permission[]` per integration, and `authorizeIntegration` names the permission
+at every call site.
 
 ## What deliberately lives elsewhere
 
@@ -18,7 +20,9 @@ and adopting this vocabulary there is the work of the pull requests that follow.
   `app/utils/authorize.ts`). Those are Keycloak client roles — a different
   authority with a different trust root. Keeping the namespaces apart is what
   makes it impossible to express IdP approval as something an organization could
-  confer.
+  confer. The app converts them _into_ this vocabulary
+  (`commonPermissionsForAppRoles`) so they can be unioned with team and
+  organization authority; the conversion lives with the roles, not here.
 - **Migrations.** `db/src/migrations/*` should carry their own frozen copy of the
   vocabulary. A migration must keep meaning what it meant on the day it ran;
   importing this package there would make past consent shift whenever the

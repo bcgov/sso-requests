@@ -21,16 +21,14 @@ import { ACTION_TYPES, EMAILS, REQUEST_TYPES, EVENTS } from '@app/shared/enums';
 import { sendTemplate } from '@app/shared/templates';
 import { getAllowedTeams, getTeamById } from '@app/queries/team';
 import {
-  getMyOrTeamRequest,
-  getAllowedRequest,
   getBaseWhereForMyOrTeamIntegrations,
   getIntegrationsByUserTeam,
   getIntegrationByClientId,
-  canUpdateRequestByUserId,
   getIntegrationById,
   getWhereClauseForAllRequests,
   getAllActiveRequests,
 } from '@app/queries/request';
+import { authorizeIntegration, IntegrationAccess } from '@app/queries/integrationAccess';
 import { fetchClient } from '@app/keycloak/client';
 import { getUserTeamRole } from '@app/queries/literals';
 import {
@@ -152,11 +150,11 @@ export const createEvent = async (data: Event) => {
   }
 };
 
-export const getRequester = async (session: Session, requestId: number) => {
-  let requester = getDisplayName(session);
-  const isMyOrTeamRequest = await getMyOrTeamRequest(session?.user?.id as number, requestId);
-  if (!isMyOrTeamRequest && isAdmin(session)) requester = 'SSO Admin';
-  return requester;
+// The name recorded on a change. An admin acting on an integration they
+// neither own nor belong to is recorded as SSO Admin rather than by name.
+export const getRequester = (session: Session, access: IntegrationAccess) => {
+  const ownOrTeam = access.owner || access.userTeamRole !== null;
+  return !ownOrTeam && isAdmin(session) ? 'SSO Admin' : getDisplayName(session);
 };
 
 const checkIfHasFailedRequests = async () => {
@@ -501,8 +499,12 @@ export const updateRequest = async (
 
   try {
     let existingClientId: string = '';
-    const current = await getAllowedRequest(session, data?.id!);
-    if (!current) throw new Error('Request not found');
+    // Entry is read. What the actor may change is constrained below —
+    // sanitizeRequest, getIdpApprovalStatus and the approver revert — until
+    // per-field authority over the diff replaces all three.
+    const authorized = await authorizeIntegration(session, data?.id!, 'integrations:read');
+    if (!authorized) throw new Error('Request not found');
+    const { integration: current, access } = authorized;
     const getCurrentValue = () => current.get({ plain: true, clone: true });
 
     if (current.status === 'applied' && !submit) {
@@ -567,12 +569,9 @@ export const updateRequest = async (
       );
     }
 
-    // IDP approvers are not allowed to update other fields except approved flag if request doesn't belong to them
-    if (
-      !hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST) &&
-      (bceidApprover || githubApprover || bcscApprover || socialApprover || otpApprover) &&
-      !(await canUpdateRequestByUserId(session?.user?.id as number, data?.id!))
-    ) {
+    // An actor who may read but not write — an IdP approver on an integration
+    // they neither own nor belong to — may change nothing but their approval flags.
+    if (!access.permissions.includes('integrations:write')) {
       Object.assign(current, {
         ...originalData,
         bceidApproved: bceidApprover ? data.bceidApproved : originalData.bceidApproved,
@@ -637,7 +636,7 @@ export const updateRequest = async (
       const removingBcscIdp =
         originalData.devIdps.includes('bcservicescard') && !current.devIdps.includes('bcservicescard');
 
-      current.requester = await getRequester(session, current.id);
+      current.requester = getRequester(session, access);
 
       finalData = getCurrentValue();
       changes = getDifferences(finalData, originalData);
@@ -691,7 +690,9 @@ export const updateRequest = async (
 
       await processIntegrationRequest(updated, false, existingClientId, addingProd);
 
-      updated = await getAllowedRequest(session, data?.id!);
+      const refreshed = await authorizeIntegration(session, data?.id!, 'integrations:read');
+      if (!refreshed) throw new Error('Request not found');
+      updated = refreshed.integration;
     }
 
     return updated.get({ plain: true });
@@ -717,16 +718,15 @@ export const resubmitRequest = async (session: Session, id: number) => {
   if (!isMerged) return;
 
   try {
-    const current = await getAllowedRequest(session, id);
-    const getCurrentValue = () => current.get({ plain: true, clone: true });
-    const isAllowedStatus = ['submitted'].includes(current.status);
-
-    if (!current || !isAllowedStatus) {
+    const authorized = await authorizeIntegration(session, id, 'integrations:write');
+    if (!authorized || !['submitted'].includes(authorized.integration.status)) {
       throw new createHttpError.BadRequest('Request not found or not in draft or applied status');
     }
+    const { integration: current, access } = authorized;
+    const getCurrentValue = () => current.get({ plain: true, clone: true });
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
-    current.requester = await getRequester(session, current.id);
+    current.requester = getRequester(session, access);
     current.changed('updatedAt', true);
 
     await processIntegrationRequest(getCurrentValue());
@@ -781,13 +781,12 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
   if (!isMerged) return;
 
   try {
-    const current = await getAllowedRequest(session, id);
-    const getCurrentValue = () => current.get({ plain: true, clone: true });
-    const isAllowedStatus = ['submitted'].includes(current.status);
-
-    if (!current || (!isAllowedStatus && !current.archived)) {
+    const authorized = await authorizeIntegration(session, id, 'integrations:write');
+    if (!authorized || (!['submitted'].includes(authorized.integration.status) && !authorized.integration.archived)) {
       throw new createHttpError.BadRequest('Request not found or in invalid state');
     }
+    const { integration: current } = authorized;
+    const getCurrentValue = () => current.get({ plain: true, clone: true });
     if (current.usesTeam) {
       const teamExists = await getTeamById(current.teamId);
       if (!teamExists) {
@@ -856,8 +855,8 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
 };
 
 export const getRequest = async (session: Session, user: User, data: { requestId: number }) => {
-  const { requestId } = data;
-  return getAllowedRequest(session, requestId);
+  const authorized = await authorizeIntegration(session, data.requestId, 'integrations:read');
+  return authorized?.integration ?? null;
 };
 
 // see https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll
@@ -940,14 +939,14 @@ export const getIntegrations = async (session: Session, teamId: number, user: Us
 
 export const deleteRequest = async (session: Session, user: User, id: number) => {
   try {
-    const current = await getAllowedRequest(session, id);
+    const authorized = await authorizeIntegration(session, id, 'integrations:delete');
 
-    if (!current) {
+    if (!authorized) {
       throw new createHttpError.NotFound(`request #${id} not found`);
     }
 
-    const requester = await getRequester(session, current.id);
-    current.requester = requester;
+    const { integration: current, access } = authorized;
+    current.requester = getRequester(session, access);
     current.archived = true;
 
     if (current.status === 'draft') {
@@ -1011,9 +1010,12 @@ export const updateRequestMetadata = async (session: Session, user: User, data: 
 };
 
 export const isAllowedToDeleteIntegration = async (session: Session, integrationId: number) => {
+  // F9: an admin is not held to the status guard. Deliberate; it becomes the
+  // forceDelete transition once the transition table lands.
   if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_DELETE_REQUEST)) return true;
-  const integration = await getMyOrTeamRequest(session?.user?.id as number, integrationId);
-  return canDeleteIntegration(integration);
+  const authorized = await authorizeIntegration(session, integrationId, 'integrations:delete');
+  if (!authorized) return false;
+  return canDeleteIntegration(authorized.integration);
 };
 
 export const buildGitHubRequestData = (baseData: IntegrationData) => {

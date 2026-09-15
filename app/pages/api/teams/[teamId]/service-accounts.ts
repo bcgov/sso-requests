@@ -13,16 +13,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'GET') {
       const { teamId } = req.query;
-      const result = await getServiceAccounts(session?.user?.id!, Number(teamId));
+      const result = await getServiceAccounts(session as Session, Number(teamId));
       return res.status(200).json(result);
     } else if (req.method === 'POST') {
       const { teamId } = req.query;
-      const result = await requestServiceAccount(
-        session as Session,
-        session?.user?.id!,
-        Number(teamId),
-        session?.user?.displayName!,
-      );
+      const result = await requestServiceAccount(session as Session, Number(teamId), session?.user?.displayName!);
       return res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['GET', 'POST']);

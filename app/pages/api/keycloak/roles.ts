@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const result = await listRoles(session as Session, req.body);
       return res.status(200).json(result);
     } else if (req.method === 'PUT') {
-      const result = await createClientRole(session?.user?.id!, req.body);
+      const result = await createClientRole(session as Session, req.body);
       return res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['POST', 'PUT']);
