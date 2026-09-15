@@ -300,7 +300,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
 
   const canDelete = (request: Integration) => {
     if (request.archived === true) return false;
-    else if (['pr', 'planned', 'submitted'].includes(request?.status || '')) return false;
+    else if (['pr', 'planned', 'processing', 'submitted'].includes(request?.status || '')) return false;
     else return true;
   };
 

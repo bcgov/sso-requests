@@ -270,6 +270,7 @@ export const hasAnyPendingStatus = (requests: Integration[]) => {
       'pr',
       'prFailed',
       'planned',
+      'processing',
       'planFailed',
       'approved',
       // 'applied',

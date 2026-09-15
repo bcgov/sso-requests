@@ -27,7 +27,18 @@ export interface RequestsAttributes {
   bceidApproved?: boolean;
   devBceidApproved?: boolean;
   testBceidApproved?: boolean;
-  status: 'draft' | 'submitted' | 'pr' | 'prFailed' | 'planned' | 'planFailed' | 'approved' | 'applied' | 'applyFailed';
+  status:
+    | 'draft'
+    | 'submitted'
+    | 'pr'
+    | 'prFailed'
+    | 'planned'
+    | 'processing'
+    | 'compensating'
+    | 'planFailed'
+    | 'approved'
+    | 'applied'
+    | 'applyFailed';
   archived: boolean;
   idirUserDisplayName?: string;
   additionalEmails?: string[];
@@ -212,6 +223,8 @@ export class Requests extends Model<RequestsAttributes, RequestsCreationAttribut
     | 'pr'
     | 'prFailed'
     | 'planned'
+    | 'processing'
+    | 'compensating'
     | 'planFailed'
     | 'approved'
     | 'applied'
@@ -425,6 +438,8 @@ export class Requests extends Model<RequestsAttributes, RequestsCreationAttribut
             'pr',
             'prFailed',
             'planned',
+            'processing',
+            'compensating',
             'planFailed',
             'approved',
             'applied',

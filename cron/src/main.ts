@@ -4,8 +4,10 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 export default function main() {
-  console.info('Task 1: Processing requests queue for every 5 minutes');
-  nodeCron.schedule('*/5 * * * *', async () => {
+  console.info(
+    'Task 1: Integration saga recovery tick every minute (picks up sagas abandoned by a crashed pod or waiting on a retry backoff)',
+  );
+  nodeCron.schedule('*/1 * * * *', async () => {
     fetch(`${process.env.APP_URL}/api/processRequestQueue`, {
       method: 'GET',
       headers: {

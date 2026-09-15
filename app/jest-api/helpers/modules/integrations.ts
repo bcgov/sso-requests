@@ -1,6 +1,6 @@
 import { testClient } from '../test-client';
 import { API_BASE_PATH } from '../constants';
-import { IntegrationData, QUEUE_ACTION } from '@app/shared/interfaces';
+import { IntegrationData } from '@app/shared/interfaces';
 import { models } from '@app/shared/sequelize/models/models';
 import requestsHandler from '@app/pages/api/requests';
 import requestMetricsHandler from '@app/pages/api/requests/[id]/metrics';
@@ -87,27 +87,18 @@ export const fetchMetrics = async (integrationId: number, fromDate: string, toDa
   );
 };
 
-interface RequestData extends IntegrationData {
-  existingClientId?: string;
-}
+export const getSagas = async () => models.integrationSaga.findAll({ order: [['createdAt', 'ASC']], raw: true });
 
-export const createRequestQueueItem = async (
-  requestId: number,
-  requestData: RequestData,
-  action: QUEUE_ACTION,
-  ageSeconds?: number,
-  attempts: number = 0,
-) => {
-  const queueItem: any = { type: 'request', action, requestId, request: requestData, attempts };
-  if (ageSeconds) {
-    const currentTime = new Date();
-    const secondsAgoTime = currentTime.getTime() - ageSeconds * 1000;
-    queueItem.createdAt = new Date(secondsAgoTime);
-  }
-  return models.requestQueue.create(queueItem);
-};
+export const getSagaForRequest = async (requestId: number) =>
+  models.integrationSaga.findOne({ where: { requestId }, order: [['createdAt', 'DESC']], raw: true });
 
-export const getQueueItems = async () => models.requestQueue.findAll();
+export const getSagaSteps = async (sagaId: string) =>
+  models.integrationSagaStep.findAll({ where: { sagaId }, order: [['sequence', 'ASC']], raw: true });
+
+export const getSagaStep = async (sagaId: string, name: string) =>
+  models.integrationSagaStep.findOne({ where: { sagaId, name }, raw: true });
+
+export const getDeadLetters = async () => models.integrationSagaDeadLetter.findAll({ raw: true });
 
 export const getRequest = async (id: number) => models.request.findOne({ where: { id } });
 

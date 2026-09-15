@@ -163,6 +163,7 @@ const githubPropertyOptions: PropertyOption[] = [
 const propertyOptionMap: { [key: string]: PropertyOption[] } = {
   idir: idirPropertyOptions,
   azureidir: idirPropertyOptions,
+  bcgovidir: idirPropertyOptions,
   bceidbasic: bceidPropertyOptions,
   bceidbusiness: bceidPropertyOptions,
   bceidboth: bceidPropertyOptions,
@@ -184,7 +185,7 @@ const fetchIdpUsers = async ({ idp, userQuery }: { idp: string; userQuery: { pro
     });
     if (err) return [null, err];
     return [data, null];
-  } else if (idp == 'azureidir') {
+  } else if (['azureidir', 'bcgovidir'].includes(idp)) {
     switch (userQuery.property) {
       case 'firstName':
         userQuery.property = 'givenName';
@@ -221,7 +222,7 @@ const importUserToKeycloak = async (user: KeycloakUser & { source: string }) => 
       displayName: user.attributes['displayName'] || '',
       idirUsername: user.attributes['idir_username'] || '',
     });
-  } else if (user.username.split('@')[1].startsWith('azureidir')) {
+  } else if (['azureidir', 'bcgovidir'].includes(user.username.split('@')[1])) {
     await importAzureIdirUser({
       guid: user.username.split('@')[0].toUpperCase(),
       userId: user.attributes['idir_username'] || '',

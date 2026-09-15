@@ -2,7 +2,7 @@ import type { SDXAccessRequest, Session } from '@app/shared/interfaces';
 import { SDXResourceServer } from '@app/shared/interfaces';
 import { getAllowedRequest, getIntegrationById } from '@app/queries/request';
 import { EVENTS } from '@app/shared/enums';
-import { createEvent } from './requests';
+import { createEvent } from '@app/queries/event';
 import { getAdminClient } from '@app/keycloak/adminClient';
 import { getClientScopes } from '@app/keycloak/clientScopes';
 import ClientScopeRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientScopeRepresentation';
