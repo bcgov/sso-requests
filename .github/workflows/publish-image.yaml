@@ -13,6 +13,7 @@ on:
       - 'helm/templates/**'
       - 'helm/values**'
       - 'api/**'
+      - 'packages/**'
       - 'cron/**'
       - '.github/workflows/publish-image.yaml'
 
@@ -284,7 +285,10 @@ jobs:
       - name: Build and Push SSO Requests API Docker image
         uses: docker/build-push-action@v7
         with:
-          context: ./api
+          # Root context: the api compiles @sso/authz from packages/, which sits
+          # outside ./api and would not otherwise be in the build context.
+          context: .
+          file: ./api/Dockerfile
           push: true
           tags: ${{ env.GITHUB_REGISTRY }}/bcgov/sso-requests-api:${{ needs.set-tag.outputs.tag }}
           cache-from: type=local,src=/tmp/.buildx-cache-sso-requests-api

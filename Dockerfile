@@ -65,6 +65,10 @@ COPY app/ ./app/
 
 COPY db/ ./db/
 
+# The app imports @sso/authz from source; next.config's experimental.externalDir
+# lets it compile from outside the app directory.
+COPY packages/ ./packages/
+
 COPY --from=deps /app/app/node_modules ./app/node_modules
 
 COPY --from=deps /app/db/node_modules ./db/node_modules

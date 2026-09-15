@@ -1,13 +1,19 @@
 import { Permission } from './permissions';
-import { sortPermissions } from './sets';
+import { sortPermissions, union } from './sets';
 
 const order = (permissions: Permission[]): Permission[] => sortPermissions(permissions);
 
 const VIEWER: Permission[] = order(['integrations:read', 'roles:read', 'user-role-mappings:read']);
-// idp-users:read sits here because a role cannot be assigned without first
-// looking the user up.
+// The two organization-facing capabilities are independent, not rungs: a team
+// may let an organization manage roles without touching the integration, or
+// edit the integration without touching roles. idp-users:read sits with role
+// management because a role cannot be assigned without first looking the user
+// up.
 const ROLE_MANAGER: Permission[] = order([...VIEWER, 'roles:write', 'user-role-mappings:write', 'idp-users:read']);
-const EDITOR: Permission[] = order([...ROLE_MANAGER, 'integrations:write', 'integrations:delete']);
+const EDITOR: Permission[] = order([...VIEWER, 'integrations:write', 'integrations:delete']);
+// Both, and nothing more. In particular not reassign-team: ownership stays the
+// team's to change, however broad the organization's access.
+const ADMIN: Permission[] = union([ROLE_MANAGER, EDITOR]);
 
 // Named sets. Presets are a presentation concern: what is stored is always the
 // expansion, so editing a preset never changes what a team already consented to.
@@ -16,6 +22,7 @@ export const PRESETS = {
   viewer: VIEWER,
   'role-manager': ROLE_MANAGER,
   editor: EDITOR,
+  admin: ADMIN,
   'team-member': order([
     ...VIEWER,
     'integrations:write',
@@ -23,6 +30,9 @@ export const PRESETS = {
     'user-role-mappings:write',
     'idp-users:read',
   ]),
+  // A team admin's authority, and therefore a team API account's: the account
+  // is the team, so it resolves to this preset live rather than to a stored
+  // copy of it.
   'team-admin': order([
     'integrations:read',
     'integrations:write',
@@ -38,13 +48,14 @@ export const PRESETS = {
 
 export type PresetName = keyof typeof PRESETS;
 
-export const ORG_FACING_PRESETS: PresetName[] = ['none', 'viewer', 'role-manager', 'editor'];
+export const ORG_FACING_PRESETS: PresetName[] = ['none', 'viewer', 'role-manager', 'editor', 'admin'];
 
 export const PRESET_LABELS: Record<PresetName, string> = {
   none: 'No access',
   viewer: 'Viewer',
   'role-manager': 'Role Manager',
   editor: 'Editor',
+  admin: 'Admin',
   'team-member': 'Team Member',
   'team-admin': 'Team Admin',
 };
@@ -53,7 +64,8 @@ export const PRESET_DESCRIPTIONS: Record<PresetName, string> = {
   none: 'Cannot see or change anything.',
   viewer: 'Can view roles, role assignments and integration details.',
   'role-manager': 'Everything a Viewer can do, plus creating roles and assigning them to users.',
-  editor: 'Everything a Role Manager can do, plus updating the integration itself.',
+  editor: 'Everything a Viewer can do, plus updating and deleting the integration itself.',
+  admin: 'Everything a Role Manager and an Editor can do.',
   'team-member': 'Can update the integration and assign roles, but not create them.',
   'team-admin': 'Full control of the integration.',
 };

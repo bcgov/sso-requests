@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "outDir": "./build",
-    "rootDir": "./src",
+    "rootDir": "../",
     "sourceMap": false,
     "declaration": true,
     "removeComments": true,
@@ -18,12 +18,13 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@sso/authz": ["../packages/authz/src"]
     },
     "types": ["node", "jest"]
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "**/*.spec.ts"],
+  "include": ["src/**/*.ts", "../packages/authz/src/**/*.ts"],
+  "exclude": ["node_modules", "**/*.spec.ts", "src/tests/**/*"],
   "ts-node": {
     "files": true
   }

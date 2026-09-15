@@ -11,6 +11,7 @@ import {
   permissionsForTeamRole,
   presetFor,
   sortPermissions,
+  union,
 } from '../src';
 
 describe('preset invariants', () => {
@@ -34,10 +35,23 @@ describe('preset invariants', () => {
   });
 
   /**
-   * The reason permission is a set rather than a rung on a ladder. If someone
-   * later tidies the presets into a hierarchy, this fails rather than silently
-   * changing what a team member may do.
+   * The reason permission is a set rather than a rung on a ladder. Role
+   * management and integration editing are independent capabilities a team may
+   * hand an organization separately; admin is simply both. If someone later
+   * tidies the presets into a hierarchy, this fails rather than silently
+   * changing what a team consented to.
    */
+  it('keeps role-manager and editor incomparable', () => {
+    expect(isSubset(PRESETS['role-manager'], PRESETS.editor)).toBe(false);
+    expect(isSubset(PRESETS.editor, PRESETS['role-manager'])).toBe(false);
+  });
+
+  it('defines admin as exactly the union of role-manager and editor', () => {
+    expect(PRESETS.admin).toEqual(union([PRESETS['role-manager'], PRESETS.editor]));
+    expect(isSubset(PRESETS['role-manager'], PRESETS.admin)).toBe(true);
+    expect(isSubset(PRESETS.editor, PRESETS.admin)).toBe(true);
+  });
+
   it('keeps team-member and role-manager incomparable', () => {
     expect(isSubset(PRESETS['role-manager'], PRESETS['team-member'])).toBe(false);
     expect(isSubset(PRESETS['team-member'], PRESETS['role-manager'])).toBe(false);
@@ -47,6 +61,7 @@ describe('preset invariants', () => {
     expect(PRESETS['team-member']).toContain('integrations:write');
     expect(PRESETS['team-member']).not.toContain('integrations:delete');
     expect(PRESETS.editor).toContain('integrations:delete');
+    expect(PRESETS.editor).not.toContain('roles:write');
   });
 
   /**
@@ -62,7 +77,7 @@ describe('preset invariants', () => {
   });
 
   it('offers only the org-facing presets to an organization', () => {
-    expect(ORG_FACING_PRESETS).toEqual(['none', 'viewer', 'role-manager', 'editor']);
+    expect(ORG_FACING_PRESETS).toEqual(['none', 'viewer', 'role-manager', 'editor', 'admin']);
     expect(ORG_FACING_PRESETS).not.toContain('team-member');
     expect(ORG_FACING_PRESETS).not.toContain('team-admin');
   });
