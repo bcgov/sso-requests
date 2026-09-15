@@ -76,7 +76,7 @@ describe('refreshApplicationSecrets', () => {
     await createRequestWithEntraClient({ id: 1, expiresInDays: 11 });
 
     const response = await testClient(refreshApplicationSecretsHandler)
-      .get('/api/ms-graph/refreshApplicationSecrets')
+      .get('/api/ms-graph/refreshApplicationSecrets?daysUntilExpiry=10')
       .set('Authorization', 'test');
 
     expect(response.status).toBe(200);

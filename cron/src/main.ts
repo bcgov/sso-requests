@@ -57,7 +57,7 @@ export default function main() {
   );
   nodeCron.schedule('0 6 * * *', async () => {
     fetch(
-      `${process.env.APP_URL}/api/refreshEntraAppRegistrationClientSecrets`,
+      `${process.env.APP_URL}/api/ms-graph/refreshApplicationSecrets?daysUntilExpiry=21`,
       {
         method: 'GET',
         headers: {
@@ -67,7 +67,7 @@ export default function main() {
       },
     ).catch((error) => {
       console.error(
-        `Error calling ${process.env.APP_URL}/api/refreshApplicationSecrets`,
+        `Error calling ${process.env.APP_URL}/api/ms-graph/refreshApplicationSecrets`,
         error,
       );
     });

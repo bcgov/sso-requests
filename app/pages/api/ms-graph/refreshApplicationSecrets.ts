@@ -15,7 +15,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(401).json({ success: false, message: 'not authorized' });
       }
 
-      const expiringEntraClients = await fetchAllEntraClientsWithExpiringSecrets(10);
+      const { daysUntilExpiry = '21' } = req.query as { daysUntilExpiry: string };
+
+      const expiringEntraClients = await fetchAllEntraClientsWithExpiringSecrets(Number(daysUntilExpiry));
 
       if (expiringEntraClients.length === 0) {
         return res.status(200).json({ success: true, message: 'No expiring Entra clients found' });
@@ -27,7 +29,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           throw new Error(`Entra application not found for client: ${client.appName}`);
         }
         const expiringSecretKeyId = app?.passwordCredentials?.find(
-          (cred) => !!cred.endDateTime && new Date(cred.endDateTime) <= new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+          (cred) =>
+            !!cred.endDateTime &&
+            new Date(cred.endDateTime) <= new Date(Date.now() + Number(daysUntilExpiry) * 24 * 60 * 60 * 1000),
         )?.keyId;
 
         const newPwdCred = await refreshAppRegistrationSecret(app.appId);
