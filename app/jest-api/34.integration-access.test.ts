@@ -151,7 +151,7 @@ describe('integration access resolution', () => {
   });
 
   describe('app role', () => {
-    it('resolves an sso-admin to the dashboard permissions on any integration', async () => {
+    it('resolves an sso-admin to the dashboard permissions and every admin-scoped permission on any integration', async () => {
       const access = await permissionsOf(await asSsoAdmin(), teamIntegrationId);
       expect(access).toEqual({
         owner: false,
@@ -163,6 +163,15 @@ describe('integration access resolution', () => {
           'integrations:reassign-team',
           'roles:read',
           'user-role-mappings:read',
+          'integrations:approve-bceid',
+          'integrations:approve-github',
+          'integrations:approve-bcsc',
+          'integrations:approve-social',
+          'integrations:approve-otp',
+          'integrations:write-lifespans',
+          'integrations:write-client-id',
+          'integrations:add-restricted-idps',
+          'integrations:delete-in-flight',
         ],
       });
     });
@@ -178,14 +187,20 @@ describe('integration access resolution', () => {
   });
 
   describe('IdP approval', () => {
-    it('resolves an approver to read on an integration using their IdP', async () => {
+    it('resolves an approver to read plus their approval flag on an integration using their IdP', async () => {
       const access = await permissionsOf(await asBceidApprover(), bceidIntegrationId);
-      expect(access).toEqual({ owner: false, userTeamRole: null, permissions: ['integrations:read'] });
+      expect(access).toEqual({
+        owner: false,
+        userTeamRole: null,
+        permissions: ['integrations:read', 'integrations:approve-bceid'],
+      });
     });
 
-    it('resolves an approver to nothing on an integration not using their IdP', async () => {
+    // The approval permission comes from the session, as the app permission it
+    // resolves from always did; without read it reaches nothing.
+    it('resolves an approver to only their approval flag on an integration not using their IdP', async () => {
       const access = await permissionsOf(await asBceidApprover(), nonBceidIntegrationId);
-      expect(access.permissions).toEqual([]);
+      expect(access.permissions).toEqual(['integrations:approve-bceid']);
     });
   });
 

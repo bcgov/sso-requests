@@ -84,7 +84,7 @@ const adjustIdps = ({
   const valid = validateIDPs({
     currentIdps,
     updatedIdps,
-    session: user,
+    canAddRestrictedIdps: hasAppPermission(user?.client_roles, appPermissions.ADD_RESTRICTED_IDPS),
     bceidApproved,
     protocol,
     githubApproved,

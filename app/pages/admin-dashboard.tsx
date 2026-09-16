@@ -22,6 +22,8 @@ import DeleteModal from '@app/components/DeleteModal';
 import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 import TableNew from '@app/components/TableNew';
 import ActionButton from '@app/components/ActionButton';
+import { canEditIntegration } from '@app/helpers/permissions';
+import { isResting } from '@app/helpers/transitions';
 
 const idpOptions = [
   { value: 'idir', label: 'IDIR' },
@@ -295,14 +297,12 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
     return <SystemUnavailableMessage />;
   }
 
-  const canEdit = (request: Integration) =>
-    !request.archived && ['applied'].includes(request?.status || '') && !request.apiServiceAccount;
+  // The dashboard offers the same edit and delete as the owner's own list
+  // (every resting state), from the shared transition table. The in-flight
+  // delete an sso-admin holds is deliberately not offered here.
+  const canEdit = (request: Integration) => canEditIntegration(request) && request.status !== 'draft';
 
-  const canDelete = (request: Integration) => {
-    if (request.archived === true) return false;
-    else if (['pr', 'planned', 'submitted'].includes(request?.status || '')) return false;
-    else return true;
-  };
+  const canDelete = (request: Integration) => !request.archived && isResting(request.status);
 
   const canRestore = (request: Integration) => {
     if (request.archived === false) return false;
