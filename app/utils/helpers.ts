@@ -445,6 +445,7 @@ export const validateIDPs = ({
 
   // Exclude admin-only options
   if (!canAddRestrictedIdps && restrictedIdpsAdded(currentIdps, updatedIdps).length > 0) return false;
+
   const addingGithubPublic = updatedIdps.includes('githubpublic') && !currentIdps.includes('githubpublic');
   const addingOTP = updatedIdps.includes('otp') && !currentIdps.includes('otp');
   const addingBcgovidir = updatedIdps.includes(KC_ENTRA_IDP_REALM) && !currentIdps.includes(KC_ENTRA_IDP_REALM);
@@ -457,6 +458,8 @@ export const validateIDPs = ({
   }
   if (!canAddRestrictedIdps && restrictedIdpsAdded(currentIdps, updatedIdps).length > 0) return false;
   if (!canAddRestrictedIdps && restrictedIdpsAdded(currentIdps, updatedIdps).length > 0) return false;
+  if (!canAddRestrictedIdps && restrictedIdpsAdded(currentIdps, updatedIdps).length > 0) return false;
+
 
   const addingGithub =
     (updatedIdps.includes('githubbcgov') && !currentIdps.includes('githubbcgov')) ||
