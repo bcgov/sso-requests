@@ -7,7 +7,7 @@ import { Integration, Option } from 'interfaces/Request';
 import { ActionButtonContainer, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import { PRIMARY_RED } from 'styles/theme';
-import { formatFilters } from 'utils/helpers';
+import { formatFilters, hasAnyPendingStatus } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
 import { workflowStatusOptions } from 'metadata/options';
 import VerticalLayout from 'page-partials/admin-dashboard/VerticalLayout';
@@ -290,6 +290,18 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
       loadData();
     }
   }, [searchKey, limit, page, workflowStatus, selectedIdp, selectedEnvironments, archiveStatus]);
+
+  useEffect(() => {
+    let interval: any;
+    if (hasAnyPendingStatus(rows)) {
+      interval = setTimeout(async () => {
+        await loadData();
+      }, 2000); // Poll every 2 seconds
+    }
+    return () => {
+      if (interval) clearTimeout(interval);
+    };
+  }, [rows]);
 
   if (hasError) {
     return <SystemUnavailableMessage />;
