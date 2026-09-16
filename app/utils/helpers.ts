@@ -263,25 +263,7 @@ export const transformErrors = (errors: any) => {
   });
 };
 
-<<<<<<< HEAD
-export const hasAnyPendingStatus = (requests: Integration[]) => {
-  return requests.some((request) => {
-    return [
-      // 'draft',
-      'submitted',
-      'pr',
-      'prFailed',
-      'planned',
-      'planFailed',
-      'approved',
-      // 'applied',
-      'applyFailed',
-    ].includes(request.status || '');
-  });
-};
-=======
 export const hasAnyPendingStatus = (requests: Integration[]) => requests.some((request) => !isSettled(request.status));
->>>>>>> 6aa00e75 (feat: app permissions)
 
 interface Args {
   integration: Integration | undefined;
@@ -462,6 +444,18 @@ export const validateIDPs = ({
   if (invalidBceidCombo || invalidGithubCombo) return false;
 
   // Exclude admin-only options
+  if (!canAddRestrictedIdps && restrictedIdpsAdded(currentIdps, updatedIdps).length > 0) return false;
+  const addingGithubPublic = updatedIdps.includes('githubpublic') && !currentIdps.includes('githubpublic');
+  const addingOTP = updatedIdps.includes('otp') && !currentIdps.includes('otp');
+  const addingBcgovidir = updatedIdps.includes(KC_ENTRA_IDP_REALM) && !currentIdps.includes(KC_ENTRA_IDP_REALM);
+
+  if (
+    !hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS) &&
+    (addingGithubPublic || addingOTP || addingBcgovidir)
+  ) {
+    return false;
+  }
+  if (!canAddRestrictedIdps && restrictedIdpsAdded(currentIdps, updatedIdps).length > 0) return false;
   if (!canAddRestrictedIdps && restrictedIdpsAdded(currentIdps, updatedIdps).length > 0) return false;
 
   const addingGithub =
