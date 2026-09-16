@@ -63,21 +63,19 @@ const setStatus = async (integrationId: number, status: string) =>
   models.request.update({ status }, { where: { id: integrationId } });
 
 /**
- * Characterization tests for the authorization behaviour on `dev`, recorded before the
- * authorization rewrite begins. They describe what the code does today, not what it should do.
+ * Characterization tests for the authorization behaviour, recorded on `dev` before the
+ * authorization rewrite began.
  *
  * Two things are pinned:
  *
- *  1. Row visibility — which (actor, integration) pairs `getAllowedRequest` and
- *     `getBaseWhereForMyOrTeamIntegrations` admit, and the status code each route turns a
- *     miss into. The same authorization miss surfaces as 200-with-null, 403, 401 or 422
- *     depending on which route you came in through; that is deliberate to record, because the
- *     rewrite is meant to make rejection uniform.
+ *  1. Row visibility — which (actor, integration) pairs are admitted, and the status code each
+ *     route turns a miss into. The same authorization miss surfaces as 200-with-null, 403, 401
+ *     or 422 depending on which route you came in through; that is deliberate to record, because
+ *     the rewrite is meant to make rejection uniform.
  *
- *  2. Known bugs, pinned AS BUGS. Each is marked `BUG (Fn)` with the finding id from the
- *     design note. If one of these goes red, a change has altered behaviour — intentionally or
- *     not. They are expected to be flipped deliberately, one at a time, in the field-authority
- *     and transition-table PR.
+ *  2. Known bugs, pinned AS BUGS while they stood. The delete and update sections were flipped
+ *     deliberately when the transition table and diff-then-authorize landed: each case marked
+ *     `Fn` now pins the corrected behaviour and says what it replaced. `BUG (F6)` still stands.
  */
 describe('authorization characterization (dev baseline)', () => {
   let teamId: number;
@@ -331,9 +329,10 @@ describe('authorization characterization (dev baseline)', () => {
   });
 
   /**
-   * `DELETE /api/requests?id=` -> isAllowedToDeleteIntegration -> getMyOrTeamRequest +
-   * canDeleteIntegration. The status guard lives in `canDeleteIntegration`, which the client
-   * imports too — see the pure-function pins in jest/authz-characterization.
+   * `DELETE /api/requests?id=` -> deleteRequest. The guard is in the controller: which delete
+   * transition the row's status admits (deleteDraft, requestDelete, forceDelete) and whether the
+   * actor holds its permission. A row the actor cannot read is 404; a transition they may not
+   * take is 403.
    */
   describe('delete an integration', () => {
     let deletable: number;
@@ -350,38 +349,35 @@ describe('authorization characterization (dev baseline)', () => {
       expect(res.status).toEqual(200);
     });
 
-    it('rejects an unrelated user with 401', async () => {
+    it('rejects an unrelated user with 404 — the row is not theirs to see', async () => {
       asUnrelatedUser();
       const res = await deleteIntegration(deletable);
-      expect(res.status).toEqual(401);
+      expect(res.status).toEqual(404);
     });
 
     /**
-     * BUG (F4): the client draws an enabled delete button for these statuses — they are exactly
-     * the states where the "integration failed" modal invites the user to act — and the API
-     * then refuses.
+     * F4 flipped: a failed integration is resting, so its owner may delete it — the button the
+     * "integration failed" modal draws now does what it says. Was 401.
      */
-    it.each(['planFailed', 'applyFailed'])(
-      'BUG (F4): rejects the owner with 401 when the integration is in %s',
-      async (status) => {
-        await setStatus(deletable, status);
-        asTeamAdmin();
-        const res = await deleteIntegration(deletable);
-        expect(res.status).toEqual(401);
-      },
-    );
+    it.each(['planFailed', 'applyFailed'])('F4: admits the owner when the integration is in %s', async (status) => {
+      await setStatus(deletable, status);
+      asTeamAdmin();
+      const res = await deleteIntegration(deletable);
+      expect(res.status).toEqual(200);
+      expect(res.body.archived).toBe(true);
+    });
 
-    it('rejects the owner with 401 while the integration is in flight', async () => {
+    it('rejects the owner with 403 while the integration is in flight — forceDelete is not theirs', async () => {
       await setStatus(deletable, 'planned');
       asTeamAdmin();
       const res = await deleteIntegration(deletable);
-      expect(res.status).toEqual(401);
+      expect(res.status).toEqual(403);
+      expect(res.body.message).toContain('forceDelete');
     });
 
     /**
-     * F9: the admin branch of `isAllowedToDeleteIntegration` returns before the status check,
-     * so an sso-admin may delete an integration mid-flight. Decided to be deliberate; it becomes
-     * an explicit `forceDelete` transition rather than a path around the status guard.
+     * F9: deliberate, and now a row in the transition table — `forceDelete`, gated by
+     * `integrations:delete-in-flight`, which sso-admin holds — rather than a branch around it.
      */
     it('F9: admits an sso-admin while the integration is in flight', async () => {
       await setStatus(deletable, 'planned');
@@ -391,11 +387,10 @@ describe('authorization characterization (dev baseline)', () => {
     });
 
     /**
-     * BUG (F8): `deleteRequest` has no status guard of its own — the only one sits at the route.
-     * Called directly, it archives an in-flight integration, racing the Keycloak client creation
-     * that `planned` represents.
+     * F8 flipped: the status guard lives in the controller, so a second caller cannot archive an
+     * in-flight integration under the Keycloak client creation that `planned` represents.
      */
-    it('BUG (F8): the controller archives an in-flight integration when called directly', async () => {
+    it('F8: the controller refuses an in-flight integration when called directly', async () => {
       await setStatus(deletable, 'planned');
       const user = await models.user.findOne({ where: { idirEmail: TEAM_ADMIN_IDIR_EMAIL_01 } });
       const session = {
@@ -405,14 +400,17 @@ describe('authorization characterization (dev baseline)', () => {
         user: user.get({ plain: true }),
       } as unknown as Session;
 
-      const result = await deleteRequest(session, session.user!, deletable);
-      expect(result.archived).toBe(true);
+      await expect(deleteRequest(session, session.user!, deletable)).rejects.toMatchObject({ status: 403 });
+      const stored = await models.request.findOne({ where: { id: deletable } });
+      expect(stored.archived).toBe(false);
+      expect(stored.status).toEqual('planned');
     });
   });
 
   /**
-   * `PUT /api/requests` -> updateRequest -> getAllowedRequest, then the environment-preservation
-   * block that runs for applied integrations.
+   * `PUT /api/requests` -> updateRequest. The environment rules are constraints on the diff now,
+   * so a refused change is a refusal naming the field rather than a silent edit to the payload.
+   * The route still wraps every update failure as 422.
    */
   describe('update an integration', () => {
     let applied: any;
@@ -448,50 +446,45 @@ describe('authorization characterization (dev baseline)', () => {
     });
 
     /**
-     * BUG (F3): removing an environment from an applied integration is discarded silently.
-     * The caller gets a 200 and a record still carrying the environment they removed.
+     * F3 flipped: removing an environment from an applied integration is refused, naming the
+     * environments. Was a 200 with the removal silently discarded.
      */
-    it('BUG (F3): discards an environment removal and returns 200', async () => {
+    it('F3: refuses an environment removal and names the environments', async () => {
       asTeamAdmin();
       const res = await updateIntegration(getUpdateIntegrationData({ integration: applied, envs: ['dev'] }), true);
-      expect(res.status).toEqual(200);
-      expect(res.body.environments).toEqual(['dev', 'test', 'prod']);
+      expect(res.status).toEqual(422);
+      expect(res.body.message).toEqual('environments: cannot remove test, prod once the integration is applied');
+
+      const stored = await models.request.findOne({ where: { id: applied.id } });
+      expect(stored.environments).toEqual(['dev', 'test', 'prod']);
     });
 
     /**
-     * BUG (F12): an environment value outside dev/test/prod is filtered out rather than rejected.
-     * 'staging' should be a 400.
+     * F12 flipped: an environment outside dev/test/prod is refused rather than filtered out.
      */
-    it('BUG (F12): silently drops an invalid environment instead of returning 400', async () => {
+    it('F12: refuses an invalid environment and names it', async () => {
       asTeamAdmin();
       const res = await updateIntegration(
         getUpdateIntegrationData({ integration: applied, envs: ['dev', 'test', 'prod', 'staging'] }),
         true,
       );
-      expect(res.status).toEqual(200);
-      expect(res.body.environments).toEqual(['dev', 'test', 'prod']);
+      expect(res.status).toEqual(422);
+      expect(res.body.message).toEqual('environments: staging is not a valid environment');
     });
 
     /**
-     * BUG (F11): `concat` appends a non-array argument as an element, so omitting `environments`
-     * from the payload builds `[...environments, undefined]`. On `dev` that malformed array is
-     * caught downstream by the JSON-schema validation that runs on submit, which is what turns it
-     * into a 422 rather than a write — the validation error naming `.environments.3` is the
-     * evidence that the bad element was constructed. Nothing in the update path itself rejects it,
-     * so the schema is the only thing standing between this and Terraform.
+     * F11 flipped: a field absent from the payload is not a change. Nothing is built from it,
+     * so nothing malformed reaches validation or Terraform; the stored value stands.
      */
-    it('BUG (F11): builds a malformed environments array when the payload omits the field', async () => {
+    it('F11: leaves environments untouched when the payload omits the field', async () => {
       asTeamAdmin();
       const payload: any = getUpdateIntegrationData({ integration: applied });
       delete payload.environments;
       const res = await updateIntegration(payload, true);
 
-      expect(res.status).toEqual(422);
-      const errors = JSON.stringify(res.body.message.errors);
-      expect(errors).toContain('.environments.3');
-      expect(errors).toContain('must be string');
+      expect(res.status).toEqual(200);
+      expect(res.body.environments).toEqual(['dev', 'test', 'prod']);
 
-      // the record itself is untouched
       const stored = await models.request.findOne({ where: { id: applied.id } });
       expect(stored.environments).toEqual(['dev', 'test', 'prod']);
     });

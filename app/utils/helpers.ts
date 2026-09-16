@@ -1,4 +1,4 @@
-import { errorMessages, environmentOptions, KC_ENTRA_IDP_REALM } from '@app/utils/constants';
+import { errorMessages, environmentOptions, environments, KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 import { LoggedInUser, Team, User } from '@app/interfaces/team';
 import { Integration, Option, GoldIDPOption } from '@app/interfaces/Request';
 import { getStatusDisplayName } from '@app/utils/status';
@@ -17,13 +17,14 @@ import {
 } from '@app/helpers/integration';
 import { Session } from '@app/shared/interfaces';
 import { sortBy, compact, omit, isString } from 'lodash';
-import { getSchemas, oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
+import { getSchemas } from '@app/schemas';
 import { diff } from 'deep-diff';
 import { validateForm } from './validate';
 import { getAttributes, getPrivacyZones } from '@app/controllers/bc-services-card';
 import { NextApiResponse } from 'next';
 import * as XLSX from '@e965/xlsx';
 import { hasAppPermission, appPermissions, getAllAppPermissions } from './authorize';
+import { isSettled } from '@app/helpers/transitions';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   const gold_realms: GoldIDPOption = {
@@ -262,6 +263,7 @@ export const transformErrors = (errors: any) => {
   });
 };
 
+<<<<<<< HEAD
 export const hasAnyPendingStatus = (requests: Integration[]) => {
   return requests.some((request) => {
     return [
@@ -277,6 +279,9 @@ export const hasAnyPendingStatus = (requests: Integration[]) => {
     ].includes(request.status || '');
   });
 };
+=======
+export const hasAnyPendingStatus = (requests: Integration[]) => requests.some((request) => !isSettled(request.status));
+>>>>>>> 6aa00e75 (feat: app permissions)
 
 interface Args {
   integration: Integration | undefined;
@@ -377,6 +382,15 @@ export const getDiscontinuedIdps = () => {
   return ['idir'];
 };
 
+// IdPs only an admin may add. Removing one, or keeping one that is already
+// there, is a plain edit.
+export const RESTRICTED_IDPS = ['githubpublic', 'otp'];
+
+export const restrictedIdpsAdded = (currentIdps: readonly string[] = [], updatedIdps: readonly string[] = []) =>
+  updatedIdps.filter(
+    (idp) => !currentIdps.includes(idp) && (RESTRICTED_IDPS.includes(idp) || getDiscontinuedIdps().includes(idp)),
+  );
+
 export const getAllowedIdps = () => {
   return [
     'azureidir',
@@ -412,11 +426,13 @@ const idpsEqual = (idpsA: string[], idpsB: string[]) => {
 
 /**
  * Shared validation function for client and API. Returns true if the updated idps are allowed and false otherwise.
+ * Whether the actor may add a restricted IdP is decided by the caller: the client reads it off the session's app
+ * permissions, the server off the actor's resolved permissions over the integration.
  */
 export const validateIDPs = ({
   currentIdps,
   updatedIdps,
-  session,
+  canAddRestrictedIdps = false,
   bceidApproved = false,
   devBceidApproved = false,
   testBceidApproved = false,
@@ -426,7 +442,7 @@ export const validateIDPs = ({
 }: {
   currentIdps: string[];
   updatedIdps: string[];
-  session: LoggedInUser | null;
+  canAddRestrictedIdps?: boolean;
   bceidApproved?: boolean;
   devBceidApproved?: boolean;
   testBceidApproved?: boolean;
@@ -446,16 +462,7 @@ export const validateIDPs = ({
   if (invalidBceidCombo || invalidGithubCombo) return false;
 
   // Exclude admin-only options
-  const addingGithubPublic = updatedIdps.includes('githubpublic') && !currentIdps.includes('githubpublic');
-  const addingOTP = updatedIdps.includes('otp') && !currentIdps.includes('otp');
-  const addingBcgovidir = updatedIdps.includes(KC_ENTRA_IDP_REALM) && !currentIdps.includes(KC_ENTRA_IDP_REALM);
-
-  if (
-    !hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS) &&
-    (addingGithubPublic || addingOTP || addingBcgovidir)
-  ) {
-    return false;
-  }
+  if (!canAddRestrictedIdps && restrictedIdpsAdded(currentIdps, updatedIdps).length > 0) return false;
 
   const addingGithub =
     (updatedIdps.includes('githubbcgov') && !currentIdps.includes('githubbcgov')) ||
@@ -468,13 +475,6 @@ export const validateIDPs = ({
     const newBceidIdps = updatedIdps.filter(checkBceidGroup);
     const previousBceidIdps = currentIdps.filter(checkBceidGroup);
     if (newBceidIdps.some((idp) => !previousBceidIdps.includes(idp))) return false;
-  }
-
-  const discontinuedIdps = getDiscontinuedIdps();
-  if (!hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS)) {
-    for (let idp of discontinuedIdps) {
-      if (!currentIdps.includes(idp) && updatedIdps.includes(idp)) return false;
-    }
   }
 
   // No one can remove bcsc after approval
@@ -512,65 +512,81 @@ export const omitNonFormFields = (data: Integration) =>
 
 export type BceidEvent = 'submission' | 'deletion' | 'update';
 
-const sortURIFields = (data: any) => {
-  const sortedData = { ...data };
-  const { devValidRedirectUris, testValidRedirectUris, prodValidRedirectUris } = data;
-  sortedData.devValidRedirectUris = sortBy(devValidRedirectUris);
-  sortedData.testValidRedirectUris = sortBy(testValidRedirectUris);
-  sortedData.prodValidRedirectUris = sortBy(prodValidRedirectUris);
-  return sortedData;
+/**
+ * The canonical form of every array an actor may send. changedFields compares
+ * arrays as sets — sorted, with empty entries dropped — so the value that gets
+ * written has to be canonicalized the same way. Otherwise a reorder, or a
+ * stray '', is invisible to the diff, is therefore never authorized against
+ * anyone's permissions, and is saved anyway.
+ *
+ * Every order here is a function of the set alone, so the actor never chooses
+ * it. Environments keep their logical order rather than an alphabetical one:
+ * the reports render that column verbatim, and dev, test, prod reads better
+ * than dev, prod, test. Anything outside the known environments sorts last and
+ * survives to the environments constraint, which is what refuses it.
+ */
+const ARRAY_FIELDS = [
+  'devIdps',
+  'testIdps',
+  'prodIdps',
+  'devValidRedirectUris',
+  'testValidRedirectUris',
+  'prodValidRedirectUris',
+  'devRoles',
+  'testRoles',
+  'prodRoles',
+  'bcscAttributes',
+  'primaryEndUsers',
+];
+
+const environmentOrder = (env: string) => {
+  const index = environments.indexOf(env as any);
+  return index === -1 ? environments.length : index;
 };
 
-const durationAdditionalFields: any[] = [];
-['dev', 'test', 'prod'].forEach((env) => {
-  const addDurationAdditionalField = (field: any) => durationAdditionalFields.push(`${env}${field}`);
-  oidcDurationAdditionalFields.forEach(addDurationAdditionalField);
-  samlDurationAdditionalFields.forEach(addDurationAdditionalField);
-  durationAdditionalFields.push(`${env}OfflineAccessEnabled`);
-});
+export const canonicalizeArrayFields = (data: any) => {
+  const canonical = { ...data };
+  ARRAY_FIELDS.forEach((field) => {
+    // A field the payload does not carry, or carries as null, keeps that:
+    // absent and empty are not the same thing to a nullable column.
+    if (Array.isArray(canonical[field])) canonical[field] = sortBy(compact(canonical[field]));
+  });
+  if (Array.isArray(canonical.environments))
+    canonical.environments = sortBy(compact(canonical.environments), [environmentOrder, (env: string) => env]);
+  return canonical;
+};
 
-export const sanitizeRequest = (session: Session, data: Integration, isMerged: boolean) => {
-  let immutableFields = ['user', 'userId', 'idirUserid', 'status', 'serviceType', 'lastChanges'];
-
-  if (isMerged) {
-    immutableFields.push('realm');
+/**
+ * The shape the update path works on, with no authorization in it: what the
+ * actor may change is decided over the diff by authorizeChanges. This derives
+ * fields from other fields, drops the ones that have no meaning in the
+ * payload's own terms — the offline timeouts of an environment without offline
+ * access, the realm once the integration exists — so they keep their stored
+ * values, and puts every array in the canonical form the diff compares.
+ */
+export const normalizeRequest = (data: Integration, isMerged: boolean) => {
+  const derived: string[] = [];
+  if (isMerged) derived.push('realm');
+  if (data?.protocol === 'oidc') {
+    environments.forEach((env) => {
+      if (!data[`${env}OfflineAccessEnabled` as keyof Integration])
+        derived.push(`${env}OfflineSessionIdleTimeout`, `${env}OfflineSessionMaxLifespan`);
+    });
   }
 
-  if (!hasAppPermission(session?.client_roles, appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS)) {
-    immutableFields.push(...durationAdditionalFields, 'clientId');
+  // An empty client id is never an instruction: the system generates one on
+  // first submission, and a stale copy of the record echoes it back empty.
+  if (!data.clientId) derived.push('clientId');
 
-    if (!isBceidApprover(session)) {
-      immutableFields.push('bceidApproved');
-      immutableFields.push('devBceidApproved');
-      immutableFields.push('testBceidApproved');
-    }
-
-    if (!isGithubApprover(session)) {
-      immutableFields.push('githubApproved');
-    }
-
-    if (!isBcServicesCardApprover(session)) {
-      immutableFields.push('bcServicesCardApproved');
-    }
-  }
-
-  if (hasAppPermission(session?.client_roles, appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS)) {
-    if (data?.protocol === 'oidc') {
-      ['dev', 'test', 'prod'].forEach((env: string) => {
-        if (!data[`${env}OfflineAccessEnabled` as keyof Integration])
-          immutableFields.push(`${env}OfflineSessionIdleTimeout`, `${env}OfflineSessionMaxLifespan`);
-      });
-    }
-  }
-
-  data = omit(data, immutableFields);
-  data = sortURIFields(data);
+  data = omit(data, derived);
   data.testIdps = data.testIdps || [];
   data.prodIdps = data.prodIdps || [];
 
-  data.devRoles = compact(data.devRoles || []);
-  data.testRoles = compact(data.testRoles || []);
-  data.prodRoles = compact(data.prodRoles || []);
+  data.devRoles = data.devRoles || [];
+  data.testRoles = data.testRoles || [];
+  data.prodRoles = data.prodRoles || [];
+
+  data = canonicalizeArrayFields(data);
 
   if (data.protocol === 'saml') data.authType = 'browser-login';
 
@@ -582,7 +598,7 @@ export const sanitizeRequest = (session: Session, data: Integration, isMerged: b
 };
 
 export const getDifferences = (newData: any, originalData: Integration) => {
-  newData = sortURIFields(newData);
+  newData = canonicalizeArrayFields(newData);
   if (newData.usesTeam === true) newData.teamId = parseInt(newData.teamId);
   return diff(omitNonFormFields(originalData), omitNonFormFields(newData));
 };

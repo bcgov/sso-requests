@@ -64,7 +64,6 @@ export default function Actionbuttons({
   };
 
   const confirmDelete = async () => {
-    const canDelete = !['pr', 'planned', 'submitted'].includes(request?.status || '');
     if (!canDelete) return;
 
     const [_result, error] = await deleteRequest(request.id);

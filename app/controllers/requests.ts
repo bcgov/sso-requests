@@ -8,11 +8,7 @@ import {
   getRequiredBCSCScopes,
   compareTwoArrays as compareScopes,
   getAllowedIdpsForApprover,
-  isBceidApprover,
-  isGithubApprover,
-  isBcServicesCardApprover,
-  sanitizeRequest,
-  isOTPApprover,
+  normalizeRequest,
   isAdmin,
 } from '@app/utils/helpers';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
@@ -88,8 +84,10 @@ import {
 } from '@app/keycloak/clientScopes';
 import { bcgovIdirIdpMappers, bcscClientScopeMappers, bcscIdpMappers, KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 import createHttpError from 'http-errors';
-import { isSocialApprover, validateIDPs } from '@app/utils/helpers';
-import { getIdpApprovalStatus, canDeleteIntegration } from '@app/helpers/permissions';
+import { validateIDPs } from '@app/utils/helpers';
+import { approvalResetsForRemovedIdps } from '@app/helpers/permissions';
+import { TRANSITIONS, deleteIntentFor } from '@app/helpers/transitions';
+import { actorPayload, authorizeChanges, authorizeTransition } from '@app/utils/requestPolicy';
 import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
@@ -488,73 +486,42 @@ export const updateRequest = async (
   // let's skip this logic for now and see if we might need it back later
   // await checkIfHasFailedRequests();
   let addingProd = false;
-  const bceidApprover = isBceidApprover(session);
-  const githubApprover = isGithubApprover(session);
-  const bcscApprover = isBcServicesCardApprover(session);
-  const socialApprover = isSocialApprover(session);
-  const otpApprover = isOTPApprover(session);
   const { id, comment, ...rest } = data;
   const isMerged = await checkIfRequestMerged(id!);
 
   try {
     let existingClientId: string = '';
-    // Entry is read. What the actor may change is constrained below —
-    // sanitizeRequest, getIdpApprovalStatus and the approver revert — until
-    // per-field authority over the diff replaces all three.
-    const authorized = await authorizeIntegration(session, data?.id!, 'integrations:read');
-    if (!authorized) throw new Error('Request not found');
-    const { integration: current, access } = authorized;
+    const readable = await authorizeIntegration(session, id!, 'integrations:read', { archived: false });
+    if (!readable) throw new createHttpError.NotFound('Request not found');
+    const { integration: current, access } = readable;
     const getCurrentValue = () => current.get({ plain: true, clone: true });
-
-    if (current.status === 'applied' && !submit) {
-      throw Error('Temporary updates not allowed for applied requests.');
-    }
-
     const originalData = getCurrentValue();
-    const isAllowedStatus = ['draft', 'applied'].includes(current.status);
 
-    if (current.status === 'applied' && current.clientId !== rest.clientId) existingClientId = current.clientId;
+    // A save is a draft's autosave; anything else is a submission
+    const intent = submit ? 'submit' : 'save';
+    authorizeTransition(current, intent, access);
 
-    if (!current || !isAllowedStatus) {
-      throw new createHttpError.BadRequest('Request not found or not in draft or applied status');
-    }
+    const submitted = normalizeRequest(rest, isMerged);
+    const changed = authorizeChanges(originalData, submitted, access, { merged: isMerged });
+    assign(current, actorPayload(submitted));
 
-    if (originalData.status === 'applied') {
-      // Once an integration has been created for a team, cannot revert to single person ownership.
-      if (originalData.usesTeam && !rest.usesTeam) rest.usesTeam = originalData.usesTeam;
-      if (!originalData.projectLead && rest.projectLead) rest.projectLead = originalData.projectLead;
-
-      // preserve environments if already applied
-      rest.environments = originalData.environments.concat(
-        rest?.environments?.filter((env) => {
-          if (!originalData.environments.includes(env) && ['dev', 'test', 'prod'].includes(env)) return env;
-        }),
-      );
-    }
-
-    const allowedData = sanitizeRequest(session, rest, isMerged);
-
-    assign(current, allowedData);
+    // A renamed client on an applied integration has its old client torn down.
+    if (current.status === 'applied' && changed.includes('clientId')) existingClientId = originalData.clientId;
 
     const mergedData = getCurrentValue();
 
-    const updatedAttributes = getIdpApprovalStatus({
-      session,
-      originalData,
-      updatedData: current,
-    });
-    assign(current, updatedAttributes);
+    assign(current, approvalResetsForRemovedIdps(originalData, current));
 
     const validIDPSelection = validateIDPs({
       currentIdps: originalData.devIdps,
       updatedIdps: current.devIdps,
+      canAddRestrictedIdps: access.permissions.includes('integrations:add-restricted-idps'),
       bceidApproved: originalData.bceidApproved,
       devBceidApproved: originalData.devBceidApproved,
       testBceidApproved: originalData.testBceidApproved,
       githubApproved: originalData.githubApproved,
       bcServicesCardApproved: originalData.bcServicesCardApproved,
       protocol: current.protocol,
-      session,
     });
     if (!validIDPSelection) {
       throw new createHttpError[400]('Invalid IDP Selection');
@@ -566,21 +533,6 @@ export const updateRequest = async (
       throw new createHttpError[400](
         'OTP IDP is not allowed for this integration as it is part of BCSC exclusion list',
       );
-    }
-
-    // An actor who may read but not write — an IdP approver on an integration
-    // they neither own nor belong to — may change nothing but their approval flags.
-    if (!access.permissions.includes('integrations:write')) {
-      Object.assign(current, {
-        ...originalData,
-        bceidApproved: bceidApprover ? data.bceidApproved : originalData.bceidApproved,
-        devBceidApproved: bceidApprover ? data.devBceidApproved : originalData.devBceidApproved,
-        testBceidApproved: bceidApprover ? data.testBceidApproved : originalData.testBceidApproved,
-        githubApproved: githubApprover ? data.githubApproved : originalData.githubApproved,
-        bcServicesCardApproved: bcscApprover ? data.bcServicesCardApproved : originalData.bcServicesCardApproved,
-        socialApproved: socialApprover ? data.socialApproved : originalData.socialApproved,
-        otpApproved: otpApprover ? data.otpApproved : originalData.otpApproved,
-      });
     }
 
     const allowedTeams = await getAllowedTeams(session, { raw: true });
@@ -626,7 +578,7 @@ export const updateRequest = async (
             );
         }
       }
-      current.status = 'submitted';
+      current.status = TRANSITIONS.submit.to;
       let environments = current.environments.concat();
 
       const hasProd = environments.includes('prod');
@@ -689,7 +641,7 @@ export const updateRequest = async (
 
       await processIntegrationRequest(updated, false, existingClientId, addingProd);
 
-      const refreshed = await authorizeIntegration(session, data?.id!, 'integrations:read');
+      const refreshed = await authorizeIntegration(session, id!, 'integrations:read');
       if (!refreshed) throw new Error('Request not found');
       updated = refreshed.integration;
     }
@@ -717,11 +669,10 @@ export const resubmitRequest = async (session: Session, id: number) => {
   if (!isMerged) return;
 
   try {
-    const authorized = await authorizeIntegration(session, id, 'integrations:write');
-    if (!authorized || !['submitted'].includes(authorized.integration.status)) {
-      throw new createHttpError.BadRequest('Request not found or not in draft or not in a resubmittable state');
-    }
-    const { integration: current, access } = authorized;
+    const readable = await authorizeIntegration(session, id, 'integrations:read', { archived: false });
+    if (!readable) throw new createHttpError.NotFound('Request not found');
+    const { integration: current, access } = readable;
+    authorizeTransition(current, 'resubmit', access);
     const getCurrentValue = () => current.get({ plain: true, clone: true });
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
@@ -902,14 +853,12 @@ export const getIntegrations = async (session: Session, teamId: number, user: Us
 };
 
 export const deleteRequest = async (session: Session, user: User, id: number) => {
+  const readable = await authorizeIntegration(session, id, 'integrations:read', { archived: false });
+  if (!readable) throw new createHttpError.NotFound(`request #${id} not found`);
+  const { integration: current, access } = readable;
+  const transition = authorizeTransition(current, deleteIntentFor(current.status), access);
+
   try {
-    const authorized = await authorizeIntegration(session, id, 'integrations:delete');
-
-    if (!authorized) {
-      throw new createHttpError.NotFound(`request #${id} not found`);
-    }
-
-    const { integration: current, access } = authorized;
     current.requester = getRequester(session, access);
     current.archived = true;
 
@@ -918,7 +867,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
       return result.get({ plain: true });
     }
 
-    current.status = 'submitted';
+    current.status = transition.to;
 
     const result = await current.save();
 
@@ -971,15 +920,6 @@ export const updateRequestMetadata = async (session: Session, user: User, data: 
   }
 
   return result[1].dataValues;
-};
-
-export const isAllowedToDeleteIntegration = async (session: Session, integrationId: number) => {
-  // F9: an admin is not held to the status guard. Deliberate; it becomes the
-  // forceDelete transition once the transition table lands.
-  if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_DELETE_REQUEST)) return true;
-  const authorized = await authorizeIntegration(session, integrationId, 'integrations:delete');
-  if (!authorized) return false;
-  return canDeleteIntegration(authorized.integration);
 };
 
 export const buildGitHubRequestData = (baseData: IntegrationData) => {

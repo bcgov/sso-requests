@@ -3,10 +3,12 @@ import { Status } from 'interfaces/types';
 import { canCreateOrDeleteRoles, canDeleteIntegration, canEditIntegration } from '@app/helpers/permissions';
 import { hasAnyPendingStatus } from 'utils/helpers';
 import { appPermissions, getAllAppPermissions, hasTeamPermission, teamPermissions } from '@app/utils/authorize';
+import { IN_FLIGHT, isInFlight, isResting } from '@app/helpers/transitions';
 
 /**
- * Characterization tests for the client-side authorization vocabulary on `dev`, recorded before
- * the authorization rewrite begins. They describe what the code does today, not what it should do.
+ * Characterization tests for the client-side authorization vocabulary, recorded on `dev` before
+ * the authorization rewrite began. The status-guard section was flipped deliberately when the
+ * transition table landed (F4, F16, F19); the rest still pins `dev` behaviour.
  *
  * The server-side counterpart is jest-api/33.authz-characterization.
  */
@@ -32,32 +34,32 @@ const integration = (overrides: Partial<Integration> = {}): Integration =>
     ...overrides,
   } as Integration);
 
-describe('status guards (dev baseline)', () => {
+describe('status guards (transition table)', () => {
   /**
-   * Three guards, three different status lists, no two alike — plus `hasAnyPendingStatus`, which
-   * is a fourth. Reading the columns across is the argument for a single transition table: there
-   * is no status for which all four agree on what is in flight.
+   * Every guard now reads helpers/transitions. In flight is {submitted, planned}; everything else
+   * is resting — editable, deletable, roles manageable. `pending` is the dashboard's polling
+   * question, which is wider: a failed integration is resting but the retry job may still move it.
    *
    *   status        delete   edit    roles   pending
    *   ------------------------------------------------
    *   draft           Y       Y       Y        N
    *   submitted       N       N       N        Y
-   *   pr              Y       N       N        Y
-   *   prFailed        Y       N       Y        Y
+   *   pr              Y       Y       Y        Y
+   *   prFailed        Y       Y       Y        Y
    *   planned         N       N       N        Y
-   *   planFailed      N       N       Y        Y
+   *   planFailed      Y       Y       Y        Y
    *   applied         Y       Y       Y        N
-   *   applyFailed     N       N       Y        Y
+   *   applyFailed     Y       Y       Y        Y
    */
   const table: Record<Status, { canDelete: boolean; canEdit: boolean; canManageRoles: boolean; pending: boolean }> = {
     draft: { canDelete: true, canEdit: true, canManageRoles: true, pending: false },
     submitted: { canDelete: false, canEdit: false, canManageRoles: false, pending: true },
-    pr: { canDelete: true, canEdit: false, canManageRoles: false, pending: true },
-    prFailed: { canDelete: true, canEdit: false, canManageRoles: true, pending: true },
+    pr: { canDelete: true, canEdit: true, canManageRoles: true, pending: true },
+    prFailed: { canDelete: true, canEdit: true, canManageRoles: true, pending: true },
     planned: { canDelete: false, canEdit: false, canManageRoles: false, pending: true },
-    planFailed: { canDelete: false, canEdit: false, canManageRoles: true, pending: true },
+    planFailed: { canDelete: true, canEdit: true, canManageRoles: true, pending: true },
     applied: { canDelete: true, canEdit: true, canManageRoles: true, pending: false },
-    applyFailed: { canDelete: false, canEdit: false, canManageRoles: true, pending: true },
+    applyFailed: { canDelete: true, canEdit: true, canManageRoles: true, pending: true },
   };
 
   it.each(ALL_STATUSES)('pins every guard for status %s', (status) => {
@@ -71,26 +73,34 @@ describe('status guards (dev baseline)', () => {
   });
 
   /**
-   * BUG (F4): `planFailed` and `applyFailed` are editable by neither guard, so a user whose
-   * integration failed can only delete it — and `canDeleteIntegration` says no to that too. The
-   * server agrees (401); see the delete cases in jest-api/33.authz-characterization. Both flip
-   * when every resting state becomes editable and deletable.
+   * F4 flipped: a failed integration is resting, so its owner may fix and resubmit it or delete
+   * it — the buttons the "integration failed" modal invites them to use now work, and the server
+   * agrees (see the delete cases in jest-api/33.authz-characterization).
    */
-  it('BUG (F4): a failed integration can be neither edited nor deleted', () => {
+  it('F4: a failed integration can be edited and deleted', () => {
     for (const status of ['planFailed', 'applyFailed'] as Status[]) {
       const request = integration({ status });
-      expect(canEditIntegration(request)).toBe(false);
-      expect(canDeleteIntegration(request)).toBe(false);
+      expect(canEditIntegration(request)).toBe(true);
+      expect(canDeleteIntegration(request)).toBe(true);
     }
   });
 
   /**
-   * F19: a fifth status list, and the only one containing 'approved' — which is not a member of
-   * the `Status` union at all, so the entry can never match.
+   * F19 flipped: hasAnyPendingStatus reads the table, so a status outside the union matches
+   * nothing in particular — it is simply not settled.
    */
-  it('F19: hasAnyPendingStatus tests a status that does not exist', () => {
+  it('F19: hasAnyPendingStatus is the complement of the settled states', () => {
     expect(hasAnyPendingStatus([{ status: 'approved' } as unknown as Integration])).toBe(true);
+    expect(hasAnyPendingStatus([integration({ status: 'draft' }), integration({ status: 'applied' })])).toBe(false);
     expect(ALL_STATUSES).not.toContain('approved');
+  });
+
+  it('agrees with the table about what is in flight', () => {
+    for (const status of ALL_STATUSES) {
+      expect(isInFlight(status)).toBe(!isResting(status));
+      expect(canEditIntegration(integration({ status }))).toBe(isResting(status));
+    }
+    expect(IN_FLIGHT).toEqual(['submitted', 'planned']);
   });
 
   it('archived and api-service-account integrations are refused by every guard', () => {

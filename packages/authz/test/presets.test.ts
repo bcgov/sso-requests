@@ -6,6 +6,7 @@ import {
   PRESET_LABELS,
   Permission,
   PresetName,
+  TEAM_SCOPED_PERMISSIONS,
   describePermissions,
   isSubset,
   permissionsForTeamRole,
@@ -18,6 +19,15 @@ describe('preset invariants', () => {
   it('keeps every preset within the vocabulary', () => {
     for (const permissions of Object.values(PRESETS)) {
       expect(isSubset(permissions, [...PERMISSIONS])).toBe(true);
+    }
+  });
+
+  // No preset — and so no team role, team API account or organization link —
+  // can confer an admin-scoped permission. Those reach an actor only through
+  // an app role.
+  it('keeps every preset within the team-scoped half of the vocabulary', () => {
+    for (const permissions of Object.values(PRESETS)) {
+      expect(isSubset(permissions, [...TEAM_SCOPED_PERMISSIONS])).toBe(true);
     }
   });
 
@@ -109,8 +119,11 @@ describe('F1: team-admin is enumerated, not derived', () => {
     ]);
   });
 
-  it('covers the vocabulary as it stands today', () => {
-    expect(PRESETS['team-admin']).toEqual(sortPermissions([...PERMISSIONS]));
+  it('holds exactly the team-scoped half of the vocabulary and none of the admin-scoped half', () => {
+    expect(PRESETS['team-admin']).toEqual(sortPermissions([...TEAM_SCOPED_PERMISSIONS]));
+    const adminScoped = PERMISSIONS.filter((permission) => !TEAM_SCOPED_PERMISSIONS.includes(permission));
+    expect(adminScoped.length).toBeGreaterThan(0);
+    for (const permission of adminScoped) expect(PRESETS['team-admin']).not.toContain(permission);
   });
 });
 

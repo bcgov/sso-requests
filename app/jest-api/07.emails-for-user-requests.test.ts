@@ -108,8 +108,9 @@ describe('integration email updates for individual users', () => {
     });
 
     it('Should include the most recent changes in the submission and applied emails', async () => {
-      // Setup a BCeID approved integration
-      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      // Setup a BCeID approved integration: approving needs the approver's permission, so the
+      // setup runs as sso-admin and the update below as the owner.
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01, ['sso-admin']);
       const originalProjectName: string = 'original project name';
       let integrationRes = await buildIntegration({
         projectName: originalProjectName,
@@ -121,7 +122,7 @@ describe('integration email updates for individual users', () => {
 
       emailList = createMockSendEmail();
 
-      // Remove BCeID to check new emails
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const newProjectName = 'new project';
       await updateIntegration({ ...integrationRes.body, projectName: newProjectName }, true);
       expect(emailList.length).toBe(1);

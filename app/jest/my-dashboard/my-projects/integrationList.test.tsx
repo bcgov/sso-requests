@@ -117,7 +117,10 @@ describe('Integration list', () => {
 
 describe('Delete Permissions', () => {
   const setupDeleteRender = (integration: Integration) => {
-    jest.spyOn(requestService, 'getRequests').mockResolvedValueOnce([[{ ...sampleRequest, ...integration }], null]);
+    // Deletability is decided from the transition table, so the row needs a resting status.
+    jest
+      .spyOn(requestService, 'getRequests')
+      .mockResolvedValueOnce([[{ ...sampleRequest, status: 'applied', ...integration }], null]);
     render(<IntegrationListComponent />);
     return screen.findByRole('button', { name: 'delete' });
   };

@@ -145,22 +145,30 @@ export const getAllAppPermissions = (roles: string[]) => {
   return Array.from(permissionsSet);
 };
 
-// The app roles resolved into the common permission set — the fourth source
-// `resolveAccessForIntegrations` unions with personal ownership and team role.
-// Keyed by app permission rather than role so it reads as "what does this
-// dashboard permission let its holder do to an integration".
-//
-// Deliberately only what the admin dashboard admits today: reading, updating
-// and deleting any integration, and reading its roles and role mappings.
-// Nothing here grants roles:write, user-role-mappings:write or idp-users:read,
-// because no admin path does. IdP approvers are absent on purpose — their
-// authority depends on the integration's IdPs and is resolved per row.
+// Map global application role permissions (e.g. sso-admin, bceid-approver) to the shared permission vocabulary
 const APP_PERMISSION_GRANTS: Partial<Record<string, Permission[]>> = {
   [appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST]: ['integrations:read'],
-  [appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST]: ['integrations:write', 'integrations:reassign-team'],
-  [appPermissions.ADMIN_DASHBOARD_DELETE_REQUEST]: ['integrations:delete'],
+  [appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST]: [
+    'integrations:read',
+    'integrations:write',
+    'integrations:reassign-team',
+  ],
+  [appPermissions.ADMIN_DASHBOARD_DELETE_REQUEST]: [
+    'integrations:read',
+    'integrations:delete',
+    'integrations:delete-in-flight',
+  ],
   [appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_ROLES]: ['roles:read'],
   [appPermissions.ADMIN_DASHBOARD_VIEW_ROLES_USERS]: ['user-role-mappings:read'],
+
+  [appPermissions.APPROVE_BCEID]: ['integrations:approve-bceid'],
+  [appPermissions.APPROVE_GITHUB]: ['integrations:approve-github'],
+  [appPermissions.APPROVE_BC_SERVICES_CARD]: ['integrations:approve-bcsc'],
+  [appPermissions.APPROVE_SOCIAL]: ['integrations:approve-social'],
+  [appPermissions.APPROVE_OTP]: ['integrations:approve-otp'],
+  [appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS]: ['integrations:write-lifespans'],
+  [appPermissions.UPDATE_SAML_REQUEST_CLIENT_ID]: ['integrations:write-client-id'],
+  [appPermissions.ADD_RESTRICTED_IDPS]: ['integrations:add-restricted-idps'],
 };
 
 export const commonPermissionsForAppRoles = (roles: string[] = []): Permission[] =>

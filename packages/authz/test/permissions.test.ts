@@ -1,6 +1,13 @@
 import fs from 'fs';
 import path from 'path';
-import { ACTIONS, PERMISSIONS, RESOURCES, isValidPermission, isValidPermissionSet } from '../src';
+import {
+  ACTIONS,
+  PERMISSIONS,
+  RESOURCES,
+  TEAM_SCOPED_PERMISSIONS,
+  isValidPermission,
+  isValidPermissionSet,
+} from '../src';
 
 describe('vocabulary', () => {
   it('has no duplicates', () => {
@@ -18,9 +25,26 @@ describe('vocabulary', () => {
     }
   });
 
+  it('splits into team-scoped and admin-scoped, with nothing outside either', () => {
+    for (const permission of TEAM_SCOPED_PERMISSIONS) expect(PERMISSIONS).toContain(permission);
+    const adminScoped = PERMISSIONS.filter((permission) => !TEAM_SCOPED_PERMISSIONS.includes(permission));
+    expect(adminScoped).toEqual([
+      'integrations:approve-bceid',
+      'integrations:approve-github',
+      'integrations:approve-bcsc',
+      'integrations:approve-social',
+      'integrations:approve-otp',
+      'integrations:write-lifespans',
+      'integrations:write-client-id',
+      'integrations:add-restricted-idps',
+      'integrations:delete-in-flight',
+    ]);
+  });
+
   it('validates a permission', () => {
     expect(isValidPermission('integrations:read')).toBe(true);
-    expect(isValidPermission('integrations:approve-bceid')).toBe(false);
+    expect(isValidPermission('integrations:approve-bceid')).toBe(true);
+    expect(isValidPermission('integrations:approve-idir')).toBe(false);
     expect(isValidPermission('integrations')).toBe(false);
     expect(isValidPermission(null)).toBe(false);
     expect(isValidPermission(['integrations:read'])).toBe(false);
