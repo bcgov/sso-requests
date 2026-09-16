@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import Alert from 'react-bootstrap/Alert';
 import InstallationPanel from 'components/InstallationPanel';
@@ -19,7 +19,7 @@ import {
 import { Border, Tabs } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
 import Link from '@app/components/Link';
-import { padStart } from 'lodash';
+import { isNil, padStart } from 'lodash';
 import { ApprovalContext } from './shared';
 import BceidStatusPanel from './BceidStatusPanel';
 import GithubStatusPanel from './GithubStatusPanel';
@@ -35,6 +35,9 @@ import OTPStatusPanel from './OTPStatusPanel';
 import { Col, Row } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
+import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
+import { getIntegrationProgress } from 'services/request';
+import { RequestWorkflowProgress } from '@app/interfaces/WorkflowProgress';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -55,6 +58,7 @@ const BottomMargin = styled.div`
 `;
 
 const TAB_DETAILS = 'tech-details';
+const TAB_PROGRESS = 'submission-progress';
 const TAB_ROLE_MANAGEMENT = 'role-management';
 const TAB_USER_ROLE_MANAGEMENT = 'user-role-management';
 const TAB_SERVICE_ACCOUNT_ROLE_MANAGEMENT = 'service-account-role-management';
@@ -221,6 +225,18 @@ const getLogsTab = ({ integration }: { integration: Integration }) => {
   };
 };
 
+const getProgressTab = ({ progress }: { progress: RequestWorkflowProgress }) => {
+  return {
+    key: TAB_PROGRESS,
+    label: 'Submission Progress',
+    children: (
+      <TabWrapper short={true}>
+        <SubmittedStatusIndicator progress={progress} />
+      </TabWrapper>
+    ),
+  };
+};
+
 const getHistoryTab = ({ integration }: { integration: Integration }) => {
   return {
     key: TAB_HISTORY,
@@ -239,6 +255,43 @@ interface Props {
 
 function IntegrationInfoTabs({ integration }: Props) {
   const [activeTab, setActiveTab] = useState(TAB_DETAILS);
+  const [progress, setProgress] = useState<RequestWorkflowProgress | null>(null);
+
+  const integrationId = integration?.id;
+  const integrationStatus = integration?.status;
+
+  // Poll the workflow projection while the workflow is running. `integrationStatus` is a dependency so
+  // polling restarts when the dashboard list observes a new submission for this integration.
+  useEffect(() => {
+    if (isNil(integrationId)) return;
+
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+
+    const poll = async () => {
+      const [data] = await getIntegrationProgress(integrationId);
+      if (cancelled) return;
+
+      setProgress(data ?? null);
+      if (data?.active) timer = setTimeout(poll, 3000);
+    };
+
+    poll();
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [integrationId, integrationStatus]);
+
+  const showProgressTab = !!progress && (progress.active || progress.state === 'FAILED');
+
+  // Surface the temporary tab as soon as a submission starts; it is dropped from `tabs` once the
+  // workflow completes, and the existing allowed-tab fallback moves the user back to the details tab.
+  useEffect(() => {
+    if (showProgressTab) setActiveTab(TAB_PROGRESS);
+  }, [showProgressTab]);
+
   if (!integration) return null;
 
   const {
@@ -325,8 +378,8 @@ function IntegrationInfoTabs({ integration }: Props) {
     );
   }
 
-  const tabs = [];
-  const allowedTabs = [];
+  let tabs = [];
+  let allowedTabs = [];
 
   // Integrations with only DC, social, or BC services card should not have role management
   const idpOnlyIntegrationsWithRoleManagementDisabled =
@@ -374,6 +427,20 @@ function IntegrationInfoTabs({ integration }: Props) {
 
     tabs.push(getLogsTab({ integration }));
     allowedTabs.push(TAB_LOGS);
+  }
+
+  if (showProgressTab) {
+    const progressTab = getProgressTab({ progress: progress as RequestWorkflowProgress });
+
+    if (progress?.active || tabs.length === 0) {
+      // Nothing is configured yet while the workflow runs, so progress is the only thing to show.
+      tabs = [progressTab];
+      allowedTabs = [TAB_PROGRESS];
+    } else {
+      // The workflow failed: keep the outcome visible next to the details the user already has.
+      tabs.splice(1, 0, progressTab);
+      allowedTabs.push(TAB_PROGRESS);
+    }
   }
 
   let activeKey = activeTab;

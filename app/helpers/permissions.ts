@@ -14,7 +14,7 @@ export const canDeleteIntegration = (integration: Integration) => {
     !integration ||
     integration.apiServiceAccount ||
     integration.archived ||
-    ['planFailed', 'planned', 'applyFailed', 'submitted'].includes(integration?.status || '')
+    ['planFailed', 'planned', 'processing', 'applyFailed', 'submitted'].includes(integration?.status || '')
   ) {
     return false;
   }
@@ -56,7 +56,7 @@ export const canCreateOrDeleteRoles = (integration: Integration) => {
     !integration ||
     integration.apiServiceAccount ||
     integration.archived ||
-    ['pr', 'planned', 'submitted'].includes(integration?.status || '')
+    ['pr', 'planned', 'processing', 'submitted'].includes(integration?.status || '')
   ) {
     return false;
   }

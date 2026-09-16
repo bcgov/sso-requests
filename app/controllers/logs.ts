@@ -1,7 +1,7 @@
 import { getAllowedRequest } from '@app/queries/request';
 import { Session } from '@app/shared/interfaces';
 import { clientEventsAggregationQuery, queryGrafana } from '@app/utils/grafana';
-import { createEvent } from './requests';
+import { createEvent } from '@app/queries/event';
 import { EVENTS } from '@app/shared/enums';
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';

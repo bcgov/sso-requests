@@ -17,7 +17,7 @@ import {
 } from '@app/utils/helpers';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@app/shared/interfaces';
-import { ACTION_TYPES, EMAILS, REQUEST_TYPES, EVENTS } from '@app/shared/enums';
+import { EMAILS, EVENTS } from '@app/shared/enums';
 import { sendTemplate } from '@app/shared/templates';
 import { getAllowedTeams, getTeamById } from '@app/queries/team';
 import {
@@ -47,9 +47,6 @@ import {
   usesOTP,
   usesSdxServices,
 } from '@app/helpers/integration';
-import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@app/keycloak/users';
-import { getRolesWithEnvironments } from '@app/queries/roles';
-import { keycloakClient } from '@app/keycloak/integration';
 import { getAccountableEntity } from '@app/shared/templates/helpers';
 import {
   oidcDurationAdditionalFields,
@@ -101,6 +98,8 @@ import { Event } from '@app/interfaces/Event';
 import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
 import { createSdxRequest } from './sdx-services';
 import { getEntraClientByRequestId, saveEntraClient } from '@app/queries/entra-client';
+import { createEvent } from '@app/queries/event';
+import { enqueueRequestWorkflow } from '@app/workflow/request-workflow';
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
@@ -150,14 +149,6 @@ const allowedFieldsForGithub = [
   'usesTeam',
   ...envFieldsAll,
 ];
-
-export const createEvent = async (data: Event) => {
-  try {
-    await models.event.create(data);
-  } catch (err) {
-    console.log(err);
-  }
-};
 
 export const getRequester = async (session: Session, requestId: number) => {
   let requester = getDisplayName(session);
@@ -725,22 +716,27 @@ export const resubmitRequest = async (session: Session, id: number) => {
   try {
     const current = await getAllowedRequest(session, id);
     const getCurrentValue = () => current.get({ plain: true, clone: true });
-    const isAllowedStatus = ['submitted'].includes(current.status);
+    // Resubmit now means "retry the workflow", so anything that is in flight or ended badly qualifies.
+    const isAllowedStatus = ['submitted', 'planned', 'processing', 'planFailed', 'applyFailed'].includes(
+      current.status,
+    );
 
     if (!current || !isAllowedStatus) {
-      throw new createHttpError.BadRequest('Request not found or not in draft or applied status');
+      throw new createHttpError.BadRequest('Request not found or not in a resubmittable state');
     }
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     current.requester = await getRequester(session, current.id);
     current.changed('updatedAt', true);
 
-    await processIntegrationRequest(getCurrentValue());
-
     const updated = await current.save();
     if (!updated) {
       throw new createHttpError.UnprocessableEntity('update failed');
     }
+
+    // Enqueue is de-duplicated: if a workflow is still in flight it is simply re-driven from its last
+    // completed step instead of starting a second workflow.
+    await processIntegrationRequest(getCurrentValue());
 
     return updated.get({ plain: true });
   } catch (err) {
@@ -788,7 +784,6 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
 
   try {
     const current = await getAllowedRequest(session, id);
-    const getCurrentValue = () => current.get({ plain: true, clone: true });
     const isAllowedStatus = ['submitted'].includes(current.status);
 
     if (!current || (!isAllowedStatus && !current.archived)) {
@@ -808,51 +803,14 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
     current.archived = false;
     current.changed('updatedAt', true);
 
-    await processIntegrationRequest(current, true);
-
     const updated = await current.save();
     if (!updated) {
       throw new createHttpError.UnprocessableEntity('update failed');
     }
 
-    const int = getCurrentValue();
-
-    const dbRoles: NewRole[] = (await getRolesWithEnvironments(int.id)) as NewRole[];
-
-    await bulkCreateRole(int, dbRoles);
-
-    const requestRoles = await models.requestRole.findAll({
-      where: {
-        requestId: int.id,
-      },
-      raw: true,
-    });
-
-    for (const role of requestRoles) {
-      let compRoleNames: { name: string }[];
-      if (role.composite) {
-        compRoleNames = await models.requestRole.findAll({
-          where: {
-            id: {
-              [Op.in]: role.compositeRoles,
-            },
-            requestId: int.id,
-          },
-          attributes: ['name'],
-          raw: true,
-        });
-        await setCompositeClientRoles(int, {
-          environment: role.environment,
-          roleName: role.name,
-          compositeRoleNames: compRoleNames.map((role: { name: string }) => role.name),
-        });
-      }
-    }
-
-    await sendTemplate(EMAILS.RESTORE_INTEGRATION, {
-      integration: int,
-      hasClientSecret: !int.publicAccess || ['both', 'service-account'].includes(int.authType),
-    });
+    // Role re-creation and the restore notification are workflow steps so they only run once the
+    // Keycloak clients actually exist again.
+    await processIntegrationRequest(current, true);
 
     return updated.get({ plain: true });
   } catch (err) {
@@ -1068,17 +1026,13 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   return baseData;
 };
 
-export const processIntegrationRequest = async (
-  integration: any,
-  restore: boolean = false,
-  existingClientId: string = '',
-  addingProd: boolean = false,
-) => {
+/** Normalizes an integration row into the flat payload the Keycloak layer consumes. */
+export const buildIntegrationPayload = async (integration: any): Promise<IntegrationData> => {
   if (integration instanceof models.request) {
     integration = integration.get({ plain: true, clone: true });
   }
 
-  integration = buildGitHubRequestData(integration);
+  integration = buildGitHubRequestData({ ...integration });
 
   const idps = integration.devIdps;
 
@@ -1093,199 +1047,36 @@ export const processIntegrationRequest = async (
     payload.browserFlowOverride = browserFlowAlias;
   }
 
-  if (['development', 'production'].includes(process.env.NODE_ENV)) {
-    return await standardClients(payload, restore, existingClientId, addingProd);
-  }
+  return payload as IntegrationData;
 };
 
-export const standardClients = async (
-  integration: IntegrationData,
+interface ProcessIntegrationOptions {
+  /** Block until the workflow finishes. Only used by callers that need the Keycloak client to exist
+   * before they return (team API service accounts). */
+  awaitCompletion?: boolean;
+}
+
+/**
+ * Hands the integration off to the workflow orchestrator and returns immediately. Callers no longer wait
+ * for Keycloak; progress is tracked in `integration_workflows` and surfaced on the dashboard.
+ */
+export const processIntegrationRequest = async (
+  integration: any,
   restore: boolean = false,
   existingClientId: string = '',
   addingProd: boolean = false,
+  options: ProcessIntegrationOptions = {},
 ) => {
-  // add to the queue
-  const queueItem = await models.requestQueue.create({
-    type: REQUEST_TYPES.INTEGRATION,
-    action: integration.archived ? ACTION_TYPES.DELETE : ACTION_TYPES.UPDATE,
-    requestId: integration.id,
-    request: { ...integration, existingClientId },
+  const payload = await buildIntegrationPayload(integration);
+
+  if (!['development', 'production'].includes(process.env.NODE_ENV)) return;
+
+  return await enqueueRequestWorkflow(payload, {
+    restore,
+    existingClientId,
+    addingProd,
+    awaitCompletion: options.awaitCompletion,
   });
-  if (!queueItem) {
-    await models.request.update({ status: 'planFailed' }, { where: { id: integration?.id } });
-    await createEvent({ eventCode: EVENTS.REQUEST_PLAN_FAILURE, requestId: integration.id });
-    return false;
-  }
-
-  await models.request.update({ status: 'planned' }, { where: { id: integration.id } });
-  await createEvent({ eventCode: EVENTS.REQUEST_PLAN_SUCCESS, requestId: integration.id });
-  try {
-    const responses = await Promise.all(
-      (integration?.environments as string[]).map((env: string) => keycloakClient(env, integration, existingClientId)),
-    );
-    for (const res of responses) {
-      if (!res) {
-        throw new createHttpError.UnprocessableEntity('Unable to create client at keycloak');
-      }
-    }
-  } catch (err) {
-    console.error(err);
-    await createEvent({
-      eventCode: restore ? EVENTS.REQUEST_RESTORE_FAILURE : EVENTS.REQUEST_APPLY_FAILURE,
-      requestId: integration.id,
-    });
-    await models.request.update({ status: 'applyFailed' }, { where: { id: integration?.id } });
-    return false;
-  }
-
-  await createEvent({
-    eventCode: restore ? EVENTS.REQUEST_RESTORE_SUCCESS : EVENTS.REQUEST_APPLY_SUCCESS,
-    requestId: integration.id,
-  });
-  await models.request.update({ status: 'applied' }, { where: { id: integration.id } });
-  // delete from the queue
-  await models.requestQueue.destroy({ where: { id: queueItem.id } });
-  if (!restore) await updatePlannedIntegration(integration, addingProd);
-  return true;
-};
-
-export const updatePlannedIntegration = async (integration: IntegrationData, addingProd: boolean = false) => {
-  const updatedIntegration = await models.request.findOne({
-    where: {
-      id: integration.id,
-    },
-    raw: true,
-  });
-
-  integration = Object.assign(integration, updatedIntegration);
-  if (integration.archived) return;
-  const isUpdate =
-    (await models.event.count({ where: { eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id } })) > 1;
-
-  if (integration.apiServiceAccount) {
-    const teamIntegrations = await models.request.findAll({
-      where: {
-        teamId: integration.teamId,
-        apiServiceAccount: false,
-        archived: false,
-        serviceType: 'gold',
-      },
-      raw: true,
-      attributes: ['id', 'projectName', 'usesTeam', 'teamId', 'userId', 'devIdps', 'environments', 'authType'],
-    });
-
-    const team = await getTeamById(integration.teamId as number);
-    await sendTemplate(EMAILS.CREATE_TEAM_API_ACCOUNT_APPROVED, {
-      requester: integration.requester,
-      team,
-      integrations: teamIntegrations,
-    });
-  } else {
-    const hasProd = integration?.environments?.includes('prod');
-    const hasBceid = usesBceid(integration);
-    const hasGithub = usesGithub(integration);
-    const hasSocial = usesSocial(integration);
-    const hasOTP = usesOTP(integration);
-    const hasBcServicesCard = usesBcServicesCard(integration);
-    const waitingGithubProdApproval = hasGithub && hasProd && !integration.githubApproved;
-    const waitingSocialProdApproval = hasSocial && hasProd && !integration.socialApproved;
-    const waitingBcServicesCardProdApproval = hasBcServicesCard && hasProd && !integration.bcServicesCardApproved;
-    const waitingOTPProdApproval = hasOTP && hasProd && !integration.otpApproved;
-
-    const approvals = {
-      bceidApproved: { type: 'BCeID', environment: 'production', integration },
-      devBceidApproved: { type: 'BCeID', environment: 'development', integration },
-      testBceidApproved: { type: 'BCeID', environment: 'test', integration },
-      githubApproved: { type: 'GitHub', environment: 'production', integration },
-      bcServicesCardApproved: { type: 'BC Services Card', environment: 'production', integration },
-      socialApproved: { type: 'Social', environment: 'production', integration },
-      otpApproved: { type: 'One Time Passcode', environment: 'production', integration },
-    };
-
-    let approvalType;
-    const isApproval = integration?.lastChanges?.some((change) => {
-      // change example: {lhs: false, rhs: true, path: ['devBceidApproved']} when approving dev Bceid
-      if (!change.lhs && change.rhs === true && Object.keys(approvals).includes(change.path[0])) {
-        approvalType = change.path[0];
-        return true;
-      }
-      return false;
-    });
-
-    if (isApproval && approvalType) {
-      await sendTemplate(EMAILS.PROD_APPROVED, approvals[approvalType as keyof typeof approvals]);
-    } else {
-      const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPLIED : EMAILS.CREATE_INTEGRATION_APPLIED;
-      await sendTemplate(emailCode, {
-        integration,
-        hasBceid,
-        waitingGithubProdApproval,
-        waitingBcServicesCardProdApproval,
-        waitingSocialProdApproval,
-        waitingOTPProdApproval,
-        addingProd,
-      });
-    }
-  }
-};
-
-export const retryFailedRequests = async () => {
-  const REQUEST_QUEUE_INTERVAL_SECONDS = 60;
-  const MAX_ATTEMPTS = 5;
-  try {
-    const requestQueue = await models.requestQueue.findAll();
-    if (requestQueue.length === 0) {
-      console.info('Request queue empty, exiting.');
-    }
-
-    for (const queuedRequest of requestQueue) {
-      if (queuedRequest.attempts >= MAX_ATTEMPTS) {
-        console.info(`request ${queuedRequest.request.clientId} at maximum attempts. Skipping.`);
-        continue;
-      }
-
-      // Only act on queued items more than a minute old to prevent potential duplication.
-      const requestQueueSecondsAgo = (new Date().getTime() - new Date(queuedRequest.createdAt).getTime()) / 1000;
-      if (requestQueueSecondsAgo < REQUEST_QUEUE_INTERVAL_SECONDS) continue;
-
-      console.info(`processing queued request ${queuedRequest.request.id}`);
-      const { existingClientId, ...request } = queuedRequest.request;
-
-      // Handle client update for each env
-      const environmentPromises = queuedRequest.request.environments.map((env: string) =>
-        keycloakClient(env, request, existingClientId),
-      );
-      const envResults = await Promise.all(environmentPromises);
-
-      const allEnvironmentsSucceeded = envResults.every((result) => result);
-      const sendEmail = queuedRequest.action !== ACTION_TYPES.DELETE;
-
-      // Update DB, create event and send email based on keycloak results.
-      if (allEnvironmentsSucceeded) {
-        await models.request.update({ status: 'applied' }, { where: { id: queuedRequest.requestId } });
-        await models.requestQueue.destroy({ where: { id: queuedRequest.id } });
-        await createEvent({ eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: request.id });
-        if (sendEmail) await updatePlannedIntegration(request);
-      } else {
-        await models.requestQueue.update({ attempts: queuedRequest.attempts + 1 }, { where: { id: queuedRequest.id } });
-        await models.request.update({ status: 'applyFailed' }, { where: { id: queuedRequest.requestId } });
-        await createEvent({ eventCode: EVENTS.REQUEST_APPLY_FAILURE, requestId: request.id });
-      }
-      if (queuedRequest.attempts >= MAX_ATTEMPTS - 1) {
-        let message = `Request ${queuedRequest.request.clientId} has reached maximum retries and requires manual intervention.`;
-        if (process.env.NODE_ENV === 'development') {
-          message = 'SANDBOX: ' + message;
-        }
-        await axios.post(
-          process.env.RC_SSO_OPS_WEBHOOK || '',
-          { projectName: 'request_queue', message },
-          { headers: { Accept: 'application/json' } },
-        );
-      }
-    }
-  } catch (err) {
-    console.error(err);
-  }
 };
 
 export const getListOfDescrepencies = async () => {

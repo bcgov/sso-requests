@@ -6,12 +6,14 @@ import Team from './Team';
 import User from './User';
 import Survey from './Survey';
 import UserTeam from './UserTeam';
-import RequestQueue from './RequestQueue';
 import RequestRole from './RequestRole';
 import BcscClient from './BcscClient';
 import CustomRequest from './CustomRequest';
 import SdxRequest from './SdxRequest';
 import EntraClient from './EntraClient';
+import RequestWorkflow from './requestWorkflow';
+import RequestWorkflowStep from './requestWorkflowStep';
+import RequestWorkflowFailures from './requestWorkflowFailure';
 
 const config: any = configs[`${process.env.NODE_ENV || 'development'}`];
 
@@ -36,12 +38,14 @@ console.log('sequelize initialized', !!sequelize);
   User,
   UserTeam,
   Survey,
-  RequestQueue,
   RequestRole,
   BcscClient,
   CustomRequest,
   SdxRequest,
   EntraClient,
+  RequestWorkflow,
+  RequestWorkflowStep,
+  RequestWorkflowFailures,
 ].forEach((init) => {
   const model = init(sequelize, DataTypes);
   models[model.name] = model;

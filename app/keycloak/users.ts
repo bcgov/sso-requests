@@ -737,7 +737,18 @@ export const searchUsersByIdp = async ({
     }
   }
 
-  if (!['azureidir', 'idir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubpublic', 'githubbcgov'].includes(idp))
+  if (
+    ![
+      'azureidir',
+      'idir',
+      'bceidbasic',
+      'bceidbusiness',
+      'bceidboth',
+      'githubpublic',
+      'githubbcgov',
+      'bcgovidir',
+    ].includes(idp)
+  )
     throw new createHttpError.BadRequest(`invalid idp ${idp}`);
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });

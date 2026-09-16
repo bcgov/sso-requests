@@ -3,8 +3,6 @@ import { BcscClients as _BcscClients } from '@/sequelize/models/BcscClients';
 import type { BcscClientsAttributes, BcscClientsCreationAttributes } from '@/sequelize/models/BcscClients';
 import { Events as _Events } from '@/sequelize/models/Events';
 import type { EventsAttributes, EventsCreationAttributes } from '@/sequelize/models/Events';
-import { RequestQueues as _RequestQueues } from '@/sequelize/models/RequestQueues';
-import type { RequestQueuesAttributes, RequestQueuesCreationAttributes } from '@/sequelize/models/RequestQueues';
 import { RequestRoles as _RequestRoles } from '@/sequelize/models/RequestRoles';
 import type { RequestRolesAttributes, RequestRolesCreationAttributes } from '@/sequelize/models/RequestRoles';
 import { Requests as _Requests } from '@/sequelize/models/Requests';
@@ -24,7 +22,6 @@ import type { ApiUsageMetricsAttributes } from '@/sequelize/models/ApiUsageMetri
 export {
   _BcscClients as BcscClients,
   _Events as Events,
-  _RequestQueues as RequestQueues,
   _RequestRoles as RequestRoles,
   _Requests as Requests,
   _Surveys as Surveys,
@@ -38,8 +35,6 @@ export type {
   BcscClientsCreationAttributes,
   EventsAttributes,
   EventsCreationAttributes,
-  RequestQueuesAttributes,
-  RequestQueuesCreationAttributes,
   RequestRolesAttributes,
   RequestRolesCreationAttributes,
   RequestsAttributes,
@@ -58,7 +53,6 @@ export type {
 export function models(sequelize: Sequelize) {
   const BcscClients = _BcscClients.initModel(sequelize);
   const Events = _Events.initModel(sequelize);
-  const RequestQueues = _RequestQueues.initModel(sequelize);
   const RequestRoles = _RequestRoles.initModel(sequelize);
   const Requests = _Requests.initModel(sequelize);
   const Surveys = _Surveys.initModel(sequelize);
@@ -87,7 +81,6 @@ export function models(sequelize: Sequelize) {
   return {
     bcscClient: BcscClients,
     event: Events,
-    requestQueue: RequestQueues,
     requestRole: RequestRoles,
     request: Requests,
     survey: Surveys,

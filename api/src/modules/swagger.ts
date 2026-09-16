@@ -5119,7 +5119,17 @@ export const swaggerOptions = {
         },
         status: {
           type: 'string',
-          enum: ['draft', 'submitted', 'pr', 'prFailed', 'planned', 'applied', 'applyFailed'],
+          enum: [
+            'draft',
+            'submitted',
+            'pr',
+            'prFailed',
+            'planned',
+            'processing',
+            'compensating',
+            'applied',
+            'applyFailed',
+          ],
           xml: {
             name: 'status',
           },

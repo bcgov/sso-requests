@@ -17,9 +17,9 @@ export const searchAzureIdirUsers = async ({
   }
 };
 
-export const importAzureIdirUser = async (data: any) => {
+export const importAzureIdirUser = async (data: any, idp: string = 'azureidir') => {
   try {
-    await instance.post('ms-graph/idir/import', data).then((res) => res.data);
+    await instance.post(`ms-graph/idir/import?idp=${idp}`, data).then((res) => res.data);
   } catch (err: any) {
     console.error('Failed to import Azure IDIR user from Graph API:', err);
     throw err;

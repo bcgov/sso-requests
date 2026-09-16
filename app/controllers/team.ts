@@ -12,7 +12,8 @@ import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { sendTemplate } from '@app/shared/templates';
 import { EMAILS, EVENTS } from '@app/shared/enums';
 import { User, Team, Member, Session } from '@app/shared/interfaces';
-import { processIntegrationRequest, checkIfRequestMerged, createEvent } from '@app/controllers/requests';
+import { processIntegrationRequest, checkIfRequestMerged } from '@app/controllers/requests';
+import { createEvent } from '@app/queries/event';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
@@ -290,7 +291,8 @@ export const requestServiceAccount = async (session: Session, userId: number, te
   serviceAccount.environments = ['prod']; // service accounts are by default only created in prod
   const saved = await serviceAccount.save();
 
-  await processIntegrationRequest(saved);
+  // Service account creation stays synchronous: the caller reads the client credentials right after.
+  await processIntegrationRequest(saved, false, '', false, { awaitCompletion: true });
 
   const eventData = {
     eventCode: EVENTS.REQUEST_CREATE_SUCCESS,
@@ -385,7 +387,7 @@ export const deleteServiceAccount = async (session: Session, userId: number, tea
 
     if (isMerged) {
       // Trigger workflow with empty environments to delete client
-      await processIntegrationRequest(saved);
+      await processIntegrationRequest(saved, false, '', false, { awaitCompletion: true });
     }
 
     await sendTemplate(EMAILS.DELETE_TEAM_API_ACCOUNT_SUBMITTED, { team, requester });
@@ -444,7 +446,7 @@ export const restoreTeamServiceAccount = async (session: Session, userId: number
   serviceAccount.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
   const saved = await serviceAccount.save();
 
-  await processIntegrationRequest(saved, true);
+  await processIntegrationRequest(saved, true, '', false, { awaitCompletion: true });
 
   const teamIntegrations = await models.request.findAll({
     where: {
