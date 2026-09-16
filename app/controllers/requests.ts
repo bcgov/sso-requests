@@ -17,16 +17,15 @@ import { ACTION_TYPES, EMAILS, REQUEST_TYPES, EVENTS } from '@app/shared/enums';
 import { sendTemplate } from '@app/shared/templates';
 import { getAllowedTeams, getTeamById } from '@app/queries/team';
 import {
-  getBaseWhereForMyOrTeamIntegrations,
   getIntegrationsByUserTeam,
   getIntegrationByClientId,
   getIntegrationById,
   getWhereClauseForAllRequests,
   getAllActiveRequests,
 } from '@app/queries/request';
-import { authorizeIntegration, IntegrationAccess } from '@app/queries/integrationAccess';
+import { authorizeIntegration, IntegrationAccess, resolveAccessForIntegrations } from '@app/queries/integrationAccess';
+import { AccessScope, accessibleIntegrationsWhere, resolveAccessScope } from '@app/queries/accessScope';
 import { fetchClient } from '@app/keycloak/client';
-import { getUserTeamRole } from '@app/queries/literals';
 import {
   usesBceid,
   usesGithub,
@@ -153,6 +152,17 @@ export const createEvent = async (data: Event) => {
 export const getRequester = (session: Session, access: IntegrationAccess) => {
   const ownOrTeam = access.owner || access.userTeamRole !== null;
   return !ownOrTeam && isAdmin(session) ? 'SSO Admin' : getDisplayName(session);
+};
+
+// The client-side guards (canDeleteIntegration, canCreateOrDeleteRoles) read
+// the role off each row. It comes from the resolver rather than a SQL literal,
+// so a list row reports the role it was admitted on.
+const attachUserTeamRole = async (session: Session, integrations: any[], scope: AccessScope) => {
+  const access = await resolveAccessForIntegrations(session, integrations, scope);
+  integrations.forEach((integration) =>
+    integration.setDataValue('userTeamRole', access.get(integration.id)?.userTeamRole ?? null),
+  );
+  return integrations;
 };
 
 const checkIfHasFailedRequests = async () => {
@@ -860,10 +870,14 @@ export const getRequestAll = async (
   return result;
 };
 
+// The dashboard list. One scope resolves the actor's memberships; the `where`
+// clause and the per-row resolve are both read off it, so the rows admitted and
+// the authority attached to them cannot disagree.
 export const getRequests = async (session: Session, user: User, include: string = 'active') => {
-  const where: any = getBaseWhereForMyOrTeamIntegrations(session?.user?.id as number);
-  // ignore api accounts
-  where.apiServiceAccount = false;
+  const scope = await resolveAccessScope(session?.user?.id as number);
+  const where: any = accessibleIntegrationsWhere(scope, 'integrations:read');
+  if (!where) return [];
+
   if (include === 'archived') where.archived = true;
   else if (include === 'active') where.archived = false;
 
@@ -875,16 +889,15 @@ export const getRequests = async (session: Session, user: User, include: string 
         required: false,
       },
     ],
-    attributes: {
-      include: [[sequelize.literal(getUserTeamRole(session?.user?.id as number)), 'userTeamRole']],
-    },
   });
 
-  return requests;
+  return attachUserTeamRole(session, requests, scope);
 };
 
 export const getIntegrations = async (session: Session, teamId: number, user: User, include: string = 'active') => {
-  return getIntegrationsByUserTeam(user, teamId);
+  const scope = await resolveAccessScope(session?.user?.id as number);
+  const integrations = await getIntegrationsByUserTeam(scope, teamId);
+  return attachUserTeamRole(session, integrations, scope);
 };
 
 export const deleteRequest = async (session: Session, user: User, id: number) => {
