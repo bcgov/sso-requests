@@ -299,6 +299,13 @@ class Request {
 
     cy.contains('td', id, { timeout: 10000 })
       .parent()
+      .scrollIntoView()
+      .within(() => {
+        cy.contains('td', 'Completed', { timeout: 10000 });
+      });
+
+    cy.contains('td', id, { timeout: 10000 })
+      .parent()
       .click()
       .scrollIntoView()
       .within(() => {
@@ -417,6 +424,13 @@ class Request {
   updateRequest(id: string): boolean {
     cy.log('Update Request: ' + id);
     this.navigation.goToMyDashboard();
+
+    cy.contains('td', id, { timeout: 10000 })
+      .parent()
+      .scrollIntoView()
+      .within(() => {
+        cy.contains('td', 'Completed', { timeout: 10000 });
+      });
 
     cy.contains('td', id, { timeout: 10000 })
       .parent()

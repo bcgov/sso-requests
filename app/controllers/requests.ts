@@ -1182,7 +1182,7 @@ export const createEntraIntegration = async (environment: string, request: Integ
           enabled: true,
           storeToken: false,
           providerId: 'oidc',
-          realm: 'standard',
+          realm: KC_ENTRA_IDP_REALM,
           firstBrokerLoginFlowAlias: 'first broker login - auto link existing user',
           postBrokerLoginFlowAlias: '',
           config: {
@@ -1202,7 +1202,6 @@ export const createEntraIntegration = async (environment: string, request: Integ
           },
         },
         environment,
-        KC_ENTRA_IDP_REALM,
       );
     }
 

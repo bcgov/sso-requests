@@ -48,7 +48,6 @@ export const createIdp = async (
     [key: string]: any;
   },
   environment: string,
-  realmName: string = 'standard',
 ) => {
   const {
     alias,
@@ -57,6 +56,7 @@ export const createIdp = async (
     config,
     storeToken,
     providerId,
+    realm,
     postBrokerLoginFlowAlias,
     firstBrokerLoginFlowAlias,
   } = IdpConfig;
@@ -64,7 +64,7 @@ export const createIdp = async (
   return kcAdminClient.identityProviders.create({
     alias,
     displayName,
-    realm: realmName,
+    realm,
     enabled,
     config,
     providerId,
