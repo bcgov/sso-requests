@@ -11,20 +11,30 @@ export interface TeamAccess {
   permissions: string[];
 }
 
-// The accepted memberships a user holds across the given teams, one query
-// however many teams are asked about. A pending invitation confers nothing.
-// This is the leaf that integration authority composes: the same lookup
-// answers "may I add a member to this team" and "what may I do to the
-// integrations this team owns".
-export const resolveTeamRoles = async (userId: number, teamIds: number[]): Promise<Map<number, string>> => {
-  if (teamIds.length === 0) return new Map();
+// The accepted memberships a user holds, one query. A pending invitation
+// confers nothing. This is the leaf that integration authority composes: the
+// same lookup answers "may I add a member to this team" and "what may I do to
+// the integrations this team owns".
+const findMemberships = async (userId: number, teamIds?: number[]): Promise<Map<number, string>> => {
+  const where: any = { userId, pending: false };
+  if (teamIds) where.teamId = teamIds;
+
   const memberships = await models.usersTeam.findAll({
-    where: { userId, teamId: teamIds, pending: false },
+    where,
     attributes: ['teamId', 'role'],
     raw: true,
   });
   return new Map(memberships.map((row: { teamId: number; role: string }) => [row.teamId, row.role]));
 };
+
+// Narrowed to teams already in hand — a single row's team, or the teams owning
+// a set of rows.
+export const resolveTeamRoles = async (userId: number, teamIds: number[]): Promise<Map<number, string>> =>
+  teamIds.length === 0 ? new Map() : findMemberships(userId, teamIds);
+
+// Every membership, for the access scope a list query is built from: the
+// predicate is derived from what the user belongs to, before any row is read.
+export const resolveAllTeamRoles = (userId: number): Promise<Map<number, string>> => findMemberships(userId);
 
 export const resolveTeamAccess = async (userId: number, teamId: number): Promise<TeamAccess> => {
   const role = (await resolveTeamRoles(userId, [teamId])).get(teamId) ?? null;

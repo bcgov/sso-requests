@@ -4,6 +4,7 @@ import { Session } from '@app/shared/interfaces';
 import { commonPermissionsForAppRoles } from '@app/utils/authorize';
 import { getAllowedIdpsForApprover } from '@app/utils/helpers';
 import { resolveTeamRoles } from '@app/queries/teamAccess';
+import { AccessScope } from '@app/queries/accessScope';
 
 // The columns the resolver reads off a request row. A query that selects a
 // subset with `attributes:` must still satisfy this, so a missing column is a
@@ -32,6 +33,9 @@ const plain = (value: any): AccessResolvable => (value?.get ? value.get({ plain:
 
 const overlaps = (a: readonly string[], b: readonly string[]) => a.some((item) => b.includes(item));
 
+const teamsOwning = (rows: AccessResolvable[]) =>
+  Array.from(new Set(rows.filter((row) => row.usesTeam && row.teamId).map((row) => row.teamId!)));
+
 // Same population getAllowedRequest attached, so responses keep their shape.
 const commonPopulation = [
   { model: models.user, required: false },
@@ -42,18 +46,23 @@ const commonPopulation = [
  * Resolve every source of authority for many integrations at once: one
  * membership query however many rows are passed, the app roles once, and the
  * per-row ownership and IdP checks in memory.
+ *
+ * A list path passes the `scope` its `where` clause was built from, so the role
+ * a row was admitted on is the role it is resolved with, and the memberships
+ * are read once for the request rather than once per query. A single-row caller
+ * has no scope to hand over and looks up the one team it needs.
  */
 export const resolveAccessForIntegrations = async (
   session: Session,
   integrations: any[],
+  scope?: AccessScope,
 ): Promise<Map<number, IntegrationAccess>> => {
   const userId = session?.user?.id as number;
   const rows = integrations.map(plain);
   const byIntegration = new Map<number, IntegrationAccess>();
   if (rows.length === 0) return byIntegration;
 
-  const teamIds = Array.from(new Set(rows.filter((row) => row.usesTeam && row.teamId).map((row) => row.teamId!)));
-  const roleByTeam = await resolveTeamRoles(userId, teamIds);
+  const roleByTeam = scope ? scope.roleByTeam : await resolveTeamRoles(userId, teamsOwning(rows));
 
   const appPermissions = commonPermissionsForAppRoles(session?.client_roles);
   const approverIdps = getAllowedIdpsForApprover(session);

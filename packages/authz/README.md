@@ -12,7 +12,10 @@ consented access to a team resolves for one integration.
 Both `api` and `app` consume it. In the app, `queries/integrationAccess.ts`
 resolves personal ownership, team role, app role and IdP approval into one
 `Permission[]` per integration, and `authorizeIntegration` names the permission
-at every call site.
+at every call site. `queries/accessScope.ts` resolves the row-level half of that
+once per request, so a list query's `where` clause and the per-row resolve that
+follows it are the same derivation — the app's counterpart to the api's
+`accessibleIntegrationsWhere`.
 
 ## Two halves of the vocabulary
 

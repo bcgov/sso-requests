@@ -243,7 +243,7 @@ describe('authorization characterization (dev baseline)', () => {
   });
 
   /**
-   * `GET /api/requests` -> getRequests -> getBaseWhereForMyOrTeamIntegrations.
+   * `GET /api/requests` -> getRequests -> accessibleIntegrationsWhere.
    * The list path never consults the admin or IdP-approver branches: it is the bare predicate.
    */
   describe('list my integrations', () => {
