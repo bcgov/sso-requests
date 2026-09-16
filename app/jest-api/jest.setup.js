@@ -12,10 +12,10 @@ process.env.LOCAL_DEV = true;
 process.env.VERIFY_USER_SECRET = 'test';
 
 // Run integration sagas inline so API specs observe the final outcome within the request call.
-process.env.SAGA_EXECUTION_MODE = 'synchronous';
-process.env.SAGA_MAX_STEP_ATTEMPTS = '1';
-process.env.SAGA_RETRY_BASE_DELAY_MS = '0';
-process.env.SAGA_RETRY_MAX_DELAY_MS = '0';
+process.env.WORKFLOW_EXECUTION_MODE = 'synchronous';
+process.env.WORKFLOW_MAX_STEP_ATTEMPTS = '1';
+process.env.WORKFLOW_RETRY_BASE_DELAY_MS = '0';
+process.env.WORKFLOW_RETRY_MAX_DELAY_MS = '0';
 
 beforeAll(async () => {
   await cleanUpDatabaseTables();
