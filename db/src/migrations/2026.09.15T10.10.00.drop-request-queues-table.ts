@@ -2,7 +2,7 @@ import { DataTypes } from 'sequelize';
 
 export const name = '2026.09.15T10.10.00.drop-request-queues-table';
 
-// Superseded by integration_sagas / integration_saga_steps.
+// Superseded by request_workflows / request_workflow_steps.
 export const up = async ({ context: sequelize }) => {
   await sequelize.getQueryInterface().dropTable('request_queues');
 };

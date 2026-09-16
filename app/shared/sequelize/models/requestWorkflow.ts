@@ -1,6 +1,6 @@
 const init = (sequelize: any, DataTypes: any) => {
   return sequelize.define(
-    'integrationSaga',
+    'requestWorkflow',
     {
       id: {
         type: DataTypes.UUID,
@@ -73,7 +73,7 @@ const init = (sequelize: any, DataTypes: any) => {
       },
     },
     {
-      tableName: 'integration_sagas',
+      tableName: 'request_workflows',
       underscored: true,
     },
   );

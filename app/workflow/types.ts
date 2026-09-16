@@ -1,7 +1,7 @@
 import { IntegrationData } from '@app/shared/interfaces';
 
 /**
- * Lifecycle of a saga instance. Every value is persisted; the orchestrator never keeps workflow
+ * Lifecycle of a workflow instance. Every value is persisted; the orchestrator never keeps workflow
  * state in memory, so a crashed pod resumes from whatever is in Postgres.
  *
  *   PENDING ──▶ RUNNING ──▶ COMPLETED
@@ -11,10 +11,10 @@ import { IntegrationData } from '@app/shared/interfaces';
  *   Failed steps are never rolled back: work already applied stays applied, and a retry always
  *   resumes from the step that failed.
  *
- *   SUPERSEDED is terminal and set when a newer saga takes ownership of the same integration
+ *   SUPERSEDED is terminal and set when a newer workflow takes ownership of the same integration
  *   (e.g. a delete issued while an update is still in flight).
  */
-export enum SagaState {
+export enum WorkflowState {
   PENDING = 'PENDING',
   RUNNING = 'RUNNING',
   COMPLETED = 'COMPLETED',
@@ -22,9 +22,9 @@ export enum SagaState {
   SUPERSEDED = 'SUPERSEDED',
 }
 
-export const ACTIVE_SAGA_STATES = [SagaState.PENDING, SagaState.RUNNING];
+export const ACTIVE_WORKFLOW_STATES = [WorkflowState.PENDING, WorkflowState.RUNNING];
 
-export const TERMINAL_SAGA_STATES = [SagaState.COMPLETED, SagaState.FAILED, SagaState.SUPERSEDED];
+export const TERMINAL_WORKFLOW_STATES = [WorkflowState.COMPLETED, WorkflowState.FAILED, WorkflowState.SUPERSEDED];
 
 export enum StepState {
   PENDING = 'PENDING',
@@ -34,7 +34,7 @@ export enum StepState {
   SKIPPED = 'SKIPPED',
 }
 
-export enum SagaType {
+export enum WorkflowType {
   INTEGRATION_APPLY = 'INTEGRATION_APPLY',
   INTEGRATION_DELETE = 'INTEGRATION_DELETE',
   INTEGRATION_RESTORE = 'INTEGRATION_RESTORE',
@@ -49,26 +49,26 @@ export const STEP_NAMES = {
 };
 
 /**
- * Immutable snapshot the saga was created with. Persisted as JSONB so a different pod can rebuild
+ * Immutable snapshot the workflow was created with. Persisted as JSONB so a different pod can rebuild
  * the exact same step list on recovery.
  */
-export interface SagaContext {
-  /** True when this saga is the very first successful apply for the integration. */
+export interface WorkflowContext {
+  /** True when this workflow is the very first successful apply for the integration. */
   isCreate: boolean;
   restore: boolean;
   addingProd: boolean;
   existingClientId: string;
 }
 
-export interface SagaRecord {
+export interface WorkflowRecord {
   id: string;
   correlationId: string;
   requestId: number;
-  type: SagaType;
+  type: WorkflowType;
   action: string;
-  state: SagaState;
+  state: WorkflowState;
   payload: IntegrationData;
-  context: SagaContext;
+  context: WorkflowContext;
   attempts: number;
   currentStep: string | null;
   lastError: string | null;
@@ -81,9 +81,9 @@ export interface SagaRecord {
   updatedAt: Date;
 }
 
-export interface SagaStepRecord {
+export interface WorkflowStepRecord {
   id: string;
-  sagaId: string;
+  workflowId: string;
   name: string;
   label: string;
   sequence: number;
@@ -96,21 +96,21 @@ export interface SagaStepRecord {
 }
 
 export interface StepExecutionContext {
-  saga: SagaRecord;
-  step: SagaStepRecord;
-  log: SagaLogger;
+  workflow: WorkflowRecord;
+  step: WorkflowStepRecord;
+  log: WorkflowLogger;
 }
 
-export interface SagaStepDefinition {
+export interface WorkflowStepDefinition {
   name: string;
   label: string;
   /** Must be idempotent: re-running after a partial failure has to converge on the same result. */
   execute: (ctx: StepExecutionContext) => Promise<any>;
 }
 
-export interface SagaLogger {
+export interface WorkflowLogger {
   correlationId: string;
-  child: (fields: Record<string, unknown>) => SagaLogger;
+  child: (fields: Record<string, unknown>) => WorkflowLogger;
   info: (message: string, fields?: Record<string, unknown>) => void;
   warn: (message: string, fields?: Record<string, unknown>) => void;
   error: (message: string, fields?: Record<string, unknown>) => void;

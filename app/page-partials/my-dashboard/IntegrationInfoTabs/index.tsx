@@ -37,7 +37,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import SubmittedStatusIndicator from 'components/SubmittedStatusIndicator';
 import { getIntegrationProgress } from 'services/request';
-import { IntegrationProgress } from 'interfaces/SagaProgress';
+import { RequestWorkflowProgress } from '@app/interfaces/WorkflowProgress';
 
 const TabWrapper = styled.div<{ short?: boolean }>`
   padding-left: 1rem;
@@ -225,7 +225,7 @@ const getLogsTab = ({ integration }: { integration: Integration }) => {
   };
 };
 
-const getProgressTab = ({ progress }: { progress: IntegrationProgress }) => {
+const getProgressTab = ({ progress }: { progress: RequestWorkflowProgress }) => {
   return {
     key: TAB_PROGRESS,
     label: 'Submission Progress',
@@ -255,12 +255,12 @@ interface Props {
 
 function IntegrationInfoTabs({ integration }: Props) {
   const [activeTab, setActiveTab] = useState(TAB_DETAILS);
-  const [progress, setProgress] = useState<IntegrationProgress | null>(null);
+  const [progress, setProgress] = useState<RequestWorkflowProgress | null>(null);
 
   const integrationId = integration?.id;
   const integrationStatus = integration?.status;
 
-  // Poll the saga projection while the workflow is running. `integrationStatus` is a dependency so
+  // Poll the workflow projection while the workflow is running. `integrationStatus` is a dependency so
   // polling restarts when the dashboard list observes a new submission for this integration.
   useEffect(() => {
     if (isNil(integrationId)) return;
@@ -287,7 +287,7 @@ function IntegrationInfoTabs({ integration }: Props) {
   const showProgressTab = !!progress && (progress.active || progress.state === 'FAILED');
 
   // Surface the temporary tab as soon as a submission starts; it is dropped from `tabs` once the
-  // saga completes, and the existing allowed-tab fallback moves the user back to the details tab.
+  // workflow completes, and the existing allowed-tab fallback moves the user back to the details tab.
   useEffect(() => {
     if (showProgressTab) setActiveTab(TAB_PROGRESS);
   }, [showProgressTab]);
@@ -430,7 +430,7 @@ function IntegrationInfoTabs({ integration }: Props) {
   }
 
   if (showProgressTab) {
-    const progressTab = getProgressTab({ progress: progress as IntegrationProgress });
+    const progressTab = getProgressTab({ progress: progress as RequestWorkflowProgress });
 
     if (progress?.active || tabs.length === 0) {
       // Nothing is configured yet while the workflow runs, so progress is the only thing to show.

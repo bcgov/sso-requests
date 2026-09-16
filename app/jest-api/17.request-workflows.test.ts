@@ -7,27 +7,27 @@ import {
   getRequest,
   generateRequest,
   getEventsByRequestId,
-  getSagaForRequest,
-  getSagaSteps,
-  getSagaStep,
-  getSagas,
+  getWorkflowForRequest,
+  getWorkflowSteps,
+  getWorkflowStep,
+  getWorkflows,
   getDeadLetters,
 } from './helpers/modules/integrations';
 import { EMAILS, EVENTS } from '@app/shared/enums';
 import { createEvent } from '@app/queries/event';
-import { enqueueIntegrationSaga, getIntegrationProgress } from '@app/saga/integration-saga';
-import { drainSagas, runSaga } from '@app/saga/orchestrator';
+import { enqueueRequestWorkflow, getIntegrationProgress } from '@app/workflow/request-workflow';
+import { drainWorkflows, runWorkflow } from '@app/workflow/orchestrator';
 
 jest.mock('@app/keycloak/adminClient');
 
-// This suite drives the orchestrator step by step, so sagas are persisted but never auto-started.
-process.env.SAGA_EXECUTION_MODE = 'manual';
+// This suite drives the orchestrator step by step, so workflows are persisted but never auto-started.
+process.env.WORKFLOW_EXECUTION_MODE = 'manual';
 
 const MAX_STEP_ATTEMPTS = 5;
 
-// Pin the retry policy: no jitter, no waiting, and a `runAfter` in the past so a retried saga is
-// immediately re-claimable by the next `drainSagas()` call.
-jest.mock('@app/saga/backoff', () => ({
+// Pin the retry policy: no jitter, no waiting, and a `runAfter` in the past so a retried workflow is
+// immediately re-claimable by the next `drainWorkflows()` call.
+jest.mock('@app/workflow/backoff', () => ({
   MAX_STEP_ATTEMPTS: 5,
   CLAIM_LEASE_SECONDS: 300,
   IN_PROCESS_RETRY_CEILING_MS: 0,
@@ -37,11 +37,11 @@ jest.mock('@app/saga/backoff', () => ({
 
 const enqueue = async (payload: any = formDataProd, options: any = {}) => {
   const request = await generateRequest(payload);
-  const result = await enqueueIntegrationSaga({ ...payload, id: request.id }, options);
+  const result = await enqueueRequestWorkflow({ ...payload, id: request.id }, options);
   return { request, ...result };
 };
 
-describe('Integration saga - happy path', () => {
+describe('Integration workflow - happy path', () => {
   beforeEach(async () => {
     await cleanUpDatabaseTables();
     jest.clearAllMocks();
@@ -51,20 +51,20 @@ describe('Integration saga - happy path', () => {
     await cleanUpDatabaseTables();
   });
 
-  it('Persists the saga and its full step plan before executing anything', async () => {
+  it('Persists the workflow and its full step plan before executing anything', async () => {
     const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
     kcClientSpy.mockImplementation(() => Promise.resolve(true));
 
-    const { request, sagaId } = await enqueue();
+    const { request, workflowId } = await enqueue();
 
     // Nothing has run yet - the workflow is durable from the moment it is accepted.
     expect(kcClientSpy).not.toHaveBeenCalled();
 
-    const saga = await getSagaForRequest(request.id);
-    expect(saga.state).toBe('PENDING');
-    expect(saga.id).toBe(sagaId);
+    const workflow = await getWorkflowForRequest(request.id);
+    expect(workflow.state).toBe('PENDING');
+    expect(workflow.id).toBe(workflowId);
 
-    const steps = await getSagaSteps(sagaId);
+    const steps = await getWorkflowSteps(workflowId);
     expect(steps.map((step: any) => step.name)).toEqual([
       'PLAN',
       'APPLY_DEV',
@@ -78,21 +78,21 @@ describe('Integration saga - happy path', () => {
     kcClientSpy.mockRestore();
   });
 
-  it('Applies every environment, completes the saga, marks the request applied and emails the requester', async () => {
+  it('Applies every environment, completes the workflow, marks the request applied and emails the requester', async () => {
     const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
     kcClientSpy.mockImplementation(() => Promise.resolve(true));
     const emailResults = createMockSendEmail();
 
-    const { request, sagaId } = await enqueue();
-    await runSaga(sagaId);
+    const { request, workflowId } = await enqueue();
+    await runWorkflow(workflowId);
 
     expect(kcClientSpy).toHaveBeenCalledTimes(3);
 
-    const saga = await getSagaForRequest(request.id);
-    expect(saga.state).toBe('COMPLETED');
-    expect(saga.claimedBy).toBeNull();
+    const workflow = await getWorkflowForRequest(request.id);
+    expect(workflow.state).toBe('COMPLETED');
+    expect(workflow.claimedBy).toBeNull();
 
-    const steps = await getSagaSteps(sagaId);
+    const steps = await getWorkflowSteps(workflowId);
     expect(steps.every((step: any) => step.state === 'COMPLETED')).toBe(true);
 
     const updatedRequest = await getRequest(request.id);
@@ -117,11 +117,11 @@ describe('Integration saga - happy path', () => {
     await createEvent({ eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: request.id });
 
     const emailResults = createMockSendEmail();
-    const { sagaId } = await enqueueIntegrationSaga({ ...formDataProd, id: request.id } as any);
-    await runSaga(sagaId);
+    const { workflowId } = await enqueueRequestWorkflow({ ...formDataProd, id: request.id } as any);
+    await runWorkflow(workflowId);
 
-    const saga = await getSagaForRequest(request.id);
-    expect(saga.context.isCreate).toBe(false);
+    const workflow = await getWorkflowForRequest(request.id);
+    expect(workflow.context.isCreate).toBe(false);
 
     expect(emailResults.length).toBe(1);
     expect(emailResults[0].code).toBe(EMAILS.UPDATE_INTEGRATION_APPLIED);
@@ -133,8 +133,8 @@ describe('Integration saga - happy path', () => {
     const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
     kcClientSpy.mockImplementation(() => Promise.resolve(true));
 
-    const { sagaId } = await enqueue(formDataProd, { existingClientId: 'existing-id' });
-    await runSaga(sagaId);
+    const { workflowId } = await enqueue(formDataProd, { existingClientId: 'existing-id' });
+    await runWorkflow(workflowId);
 
     expect(kcClientSpy).toHaveBeenCalledWith('dev', expect.anything(), 'existing-id');
 
@@ -142,7 +142,7 @@ describe('Integration saga - happy path', () => {
   });
 });
 
-describe('Integration saga - idempotency and de-duplication', () => {
+describe('Integration workflow - idempotency and de-duplication', () => {
   beforeEach(async () => {
     await cleanUpDatabaseTables();
     jest.clearAllMocks();
@@ -152,27 +152,27 @@ describe('Integration saga - idempotency and de-duplication', () => {
     await cleanUpDatabaseTables();
   });
 
-  it('Returns the in-flight saga instead of starting a second workflow for the same integration', async () => {
-    const { request, sagaId, created } = await enqueue();
+  it('Returns the in-flight workflow instead of starting a second workflow for the same integration', async () => {
+    const { request, workflowId, created } = await enqueue();
     expect(created).toBe(true);
 
-    const duplicate = await enqueueIntegrationSaga({ ...formDataProd, id: request.id } as any);
+    const duplicate = await enqueueRequestWorkflow({ ...formDataProd, id: request.id } as any);
     expect(duplicate.created).toBe(false);
-    expect(duplicate.sagaId).toBe(sagaId);
+    expect(duplicate.workflowId).toBe(workflowId);
 
-    expect((await getSagas()).length).toBe(1);
+    expect((await getWorkflows()).length).toBe(1);
   });
 
-  it('Re-running a completed saga is a safe no-op', async () => {
+  it('Re-running a completed workflow is a safe no-op', async () => {
     const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
     kcClientSpy.mockImplementation(() => Promise.resolve(true));
 
-    const { sagaId } = await enqueue();
-    await runSaga(sagaId);
+    const { workflowId } = await enqueue();
+    await runWorkflow(workflowId);
     expect(kcClientSpy).toHaveBeenCalledTimes(3);
 
     // A redelivered command must not re-apply anything.
-    await runSaga(sagaId);
+    await runWorkflow(workflowId);
     expect(kcClientSpy).toHaveBeenCalledTimes(3);
 
     kcClientSpy.mockRestore();
@@ -185,20 +185,20 @@ describe('Integration saga - idempotency and de-duplication', () => {
       .mockResolvedValueOnce(false) // test fails
       .mockImplementation(() => Promise.resolve(true));
 
-    const { sagaId } = await enqueue();
-    await runSaga(sagaId);
+    const { workflowId } = await enqueue();
+    await runWorkflow(workflowId);
 
-    expect(await getSagaStep(sagaId, 'APPLY_DEV').then((step: any) => step.state)).toBe('COMPLETED');
-    expect(await getSagaStep(sagaId, 'APPLY_TEST').then((step: any) => step.state)).toBe('FAILED');
+    expect(await getWorkflowStep(workflowId, 'APPLY_DEV').then((step: any) => step.state)).toBe('COMPLETED');
+    expect(await getWorkflowStep(workflowId, 'APPLY_TEST').then((step: any) => step.state)).toBe('FAILED');
 
     kcClientSpy.mockClear();
-    await drainSagas();
+    await drainWorkflows();
 
-    // dev is not re-applied; the saga picks up at test.
+    // dev is not re-applied; the workflow picks up at test.
     expect(kcClientSpy.mock.calls.map((call) => call[0])).toEqual(['test', 'prod']);
 
-    const saga = await getSagaForRequest((await getSagas())[0].requestId);
-    expect(saga.state).toBe('COMPLETED');
+    const workflow = await getWorkflowForRequest((await getWorkflows())[0].requestId);
+    expect(workflow.state).toBe('COMPLETED');
 
     kcClientSpy.mockRestore();
   });
@@ -207,9 +207,9 @@ describe('Integration saga - idempotency and de-duplication', () => {
     const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
     kcClientSpy.mockImplementation(() => Promise.resolve(true));
 
-    const { request, sagaId } = await enqueue();
-    await runSaga(sagaId);
-    await runSaga(sagaId);
+    const { request, workflowId } = await enqueue();
+    await runWorkflow(workflowId);
+    await runWorkflow(workflowId);
 
     const events = await getEventsByRequestId(request.id);
     const planEvents = events.filter((event: any) => event.eventCode === EVENTS.REQUEST_PLAN_SUCCESS);
@@ -219,7 +219,7 @@ describe('Integration saga - idempotency and de-duplication', () => {
   });
 });
 
-describe('Integration saga - retries and dead lettering', () => {
+describe('Request workflow - retries and dead lettering', () => {
   beforeEach(async () => {
     await cleanUpDatabaseTables();
     jest.clearAllMocks();
@@ -233,16 +233,16 @@ describe('Integration saga - retries and dead lettering', () => {
     const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
     kcClientSpy.mockResolvedValueOnce(false).mockImplementation(() => Promise.resolve(true));
 
-    const { request, sagaId } = await enqueue();
-    await runSaga(sagaId);
+    const { request, workflowId } = await enqueue();
+    await runWorkflow(workflowId);
 
-    let step = await getSagaStep(sagaId, 'APPLY_DEV');
+    let step = await getWorkflowStep(workflowId, 'APPLY_DEV');
     expect(step.state).toBe('FAILED');
     expect(step.attempts).toBe(1);
 
-    await drainSagas();
+    await drainWorkflows();
 
-    step = await getSagaStep(sagaId, 'APPLY_DEV');
+    step = await getWorkflowStep(workflowId, 'APPLY_DEV');
     expect(step.state).toBe('COMPLETED');
     expect(step.attempts).toBe(2);
 
@@ -252,22 +252,22 @@ describe('Integration saga - retries and dead lettering', () => {
     kcClientSpy.mockRestore();
   });
 
-  it('Dead letters the saga and alerts operations once retries are exhausted', async () => {
+  it('Dead letters the workflow and alerts operations once retries are exhausted', async () => {
     const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
     kcClientSpy.mockImplementation(() => Promise.resolve(false));
     jest.spyOn(axios, 'post').mockImplementation(() => Promise.resolve({ data: [] }) as any);
     process.env.RC_SSO_OPS_WEBHOOK = 'https://example.test/hook';
 
-    const { request, sagaId } = await enqueue();
+    const { request, workflowId } = await enqueue();
 
-    for (let attempt = 0; attempt < MAX_STEP_ATTEMPTS; attempt += 1) await drainSagas();
+    for (let attempt = 0; attempt < MAX_STEP_ATTEMPTS; attempt += 1) await drainWorkflows();
 
-    const step = await getSagaStep(sagaId, 'APPLY_DEV');
+    const step = await getWorkflowStep(workflowId, 'APPLY_DEV');
     expect(step.attempts).toBe(MAX_STEP_ATTEMPTS);
 
-    const saga = await getSagaForRequest(request.id);
-    expect(saga.state).toBe('FAILED');
-    expect(saga.claimedBy).toBeNull();
+    const workflow = await getWorkflowForRequest(request.id);
+    expect(workflow.state).toBe('FAILED');
+    expect(workflow.claimedBy).toBeNull();
 
     const updatedRequest = await getRequest(request.id);
     expect(updatedRequest.status).toBe('applyFailed');
@@ -287,7 +287,7 @@ describe('Integration saga - retries and dead lettering', () => {
   });
 });
 
-describe('Integration saga - no rollback on failure', () => {
+describe('Integration workflow - no rollback on failure', () => {
   beforeEach(async () => {
     await cleanUpDatabaseTables();
     jest.clearAllMocks();
@@ -302,9 +302,9 @@ describe('Integration saga - no rollback on failure', () => {
     const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
     kcClientSpy.mockImplementation((environment: string) => Promise.resolve(environment !== 'prod'));
 
-    const { request, sagaId } = await enqueue();
+    const { request, workflowId } = await enqueue();
 
-    for (let attempt = 0; attempt < MAX_STEP_ATTEMPTS; attempt += 1) await drainSagas();
+    for (let attempt = 0; attempt < MAX_STEP_ATTEMPTS; attempt += 1) await drainWorkflows();
 
     // Nothing is ever torn down.
     expect(kcClientSpy.mock.calls.some((call: any) => call[1]?.archived === true)).toBe(false);
@@ -313,44 +313,44 @@ describe('Integration saga - no rollback on failure', () => {
     expect(kcClientSpy.mock.calls.filter((call: any) => call[0] === 'test').length).toBe(1);
     expect(kcClientSpy.mock.calls.filter((call: any) => call[0] === 'prod').length).toBe(MAX_STEP_ATTEMPTS);
 
-    const steps = await getSagaSteps(sagaId);
+    const steps = await getWorkflowSteps(workflowId);
     const byName = Object.fromEntries(steps.map((step: any) => [step.name, step.state]));
     expect(byName.APPLY_DEV).toBe('COMPLETED');
     expect(byName.APPLY_TEST).toBe('COMPLETED');
     expect(byName.APPLY_PROD).toBe('FAILED');
 
-    const saga = await getSagaForRequest(request.id);
-    expect(saga.state).toBe('FAILED');
-    expect(saga.currentStep).toBe('APPLY_PROD');
+    const workflow = await getWorkflowForRequest(request.id);
+    expect(workflow.state).toBe('FAILED');
+    expect(workflow.currentStep).toBe('APPLY_PROD');
 
     kcClientSpy.mockRestore();
   });
 
-  it('Resumes from the failed step when the cron tick retries a recovered saga', async () => {
+  it('Resumes from the failed step when the cron tick retries a recovered workflow', async () => {
     const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
     kcClientSpy.mockImplementation((environment: string) => Promise.resolve(environment !== 'prod'));
 
-    const { request, sagaId } = await enqueue();
-    await runSaga(sagaId);
+    const { request, workflowId } = await enqueue();
+    await runWorkflow(workflowId);
 
-    expect(await getSagaStep(sagaId, 'APPLY_PROD').then((step: any) => step.state)).toBe('FAILED');
+    expect(await getWorkflowStep(workflowId, 'APPLY_PROD').then((step: any) => step.state)).toBe('FAILED');
 
     // Keycloak recovers before the next tick.
     kcClientSpy.mockClear();
     kcClientSpy.mockImplementation(() => Promise.resolve(true));
-    await drainSagas();
+    await drainWorkflows();
 
     expect(kcClientSpy.mock.calls.map((call: any) => call[0])).toEqual(['prod']);
 
-    const saga = await getSagaForRequest(request.id);
-    expect(saga.state).toBe('COMPLETED');
+    const workflow = await getWorkflowForRequest(request.id);
+    expect(workflow.state).toBe('COMPLETED');
     expect((await getRequest(request.id)).status).toBe('applied');
 
     kcClientSpy.mockRestore();
   });
 });
 
-describe('Integration saga - progress projection', () => {
+describe('Request workflow - progress projection', () => {
   beforeEach(async () => {
     await cleanUpDatabaseTables();
     jest.clearAllMocks();
@@ -360,11 +360,11 @@ describe('Integration saga - progress projection', () => {
     await cleanUpDatabaseTables();
   });
 
-  it('Reports an active saga while it runs and an inactive one once complete', async () => {
+  it('Reports an active workflow while it runs and an inactive one once complete', async () => {
     const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
     kcClientSpy.mockImplementation(() => Promise.resolve(true));
 
-    const { request, sagaId } = await enqueue();
+    const { request, workflowId } = await enqueue();
 
     let progress = await getIntegrationProgress(request.id);
     expect(progress?.active).toBe(true);
@@ -372,7 +372,7 @@ describe('Integration saga - progress projection', () => {
     expect(progress?.steps.length).toBe(6);
     expect(progress?.steps[0].label).toBe('Request received and validated');
 
-    await runSaga(sagaId);
+    await runWorkflow(workflowId);
 
     progress = await getIntegrationProgress(request.id);
     expect(progress?.active).toBe(false);

@@ -6,7 +6,11 @@ import DefaultTitle from 'components/SHeader3';
 import StatusList from 'components/StatusList';
 import { ErrorMessage, InfoMessage } from 'components/MessageBox';
 import Link from '@app/components/Link';
-import { IntegrationProgress, IntegrationProgressStep, SagaStepState } from 'interfaces/SagaProgress';
+import {
+  RequestWorkflowStepState,
+  RequestWorkflowProgress,
+  RequestWorkflowProgressStep,
+} from 'interfaces/WorkflowProgress';
 
 const Title = styled(DefaultTitle)`
   border-bottom: none;
@@ -27,9 +31,9 @@ const HelpText = styled.p`
   margin-top: 5px;
 `;
 
-const SETTLED_STATES: SagaStepState[] = ['COMPLETED', 'SKIPPED', 'FAILED'];
+const SETTLED_STATES: RequestWorkflowStepState[] = ['COMPLETED', 'SKIPPED', 'FAILED'];
 
-const stepIcon = (state: SagaStepState) => {
+const stepIcon = (state: RequestWorkflowStepState) => {
   switch (state) {
     case 'COMPLETED':
       return <FontAwesomeIcon icon={faCheckCircle} color="#00C45B" title="completed" />;
@@ -42,15 +46,16 @@ const stepIcon = (state: SagaStepState) => {
   }
 };
 
-const stepText = (step: IntegrationProgressStep) => (step.state === 'FAILED' ? `${step.label} - failed` : step.label);
+const stepText = (step: RequestWorkflowProgressStep) =>
+  step.state === 'FAILED' ? `${step.label} - failed` : step.label;
 
-export const getProgressPercent = (progress: IntegrationProgress) => {
+export const getProgressPercent = (progress: RequestWorkflowProgress) => {
   if (progress.steps.length === 0) return 0;
   const settled = progress.steps.filter((step) => SETTLED_STATES.includes(step.state)).length;
   return Math.round((settled / progress.steps.length) * 100);
 };
 
-const getStatusMessage = (progress: IntegrationProgress) => {
+const getStatusMessage = (progress: RequestWorkflowProgress) => {
   if (progress.state === 'COMPLETED') return 'Your integration has been processed successfully.';
   if (progress.state === 'FAILED') return 'An error has occurred.';
 
@@ -59,12 +64,12 @@ const getStatusMessage = (progress: IntegrationProgress) => {
 };
 
 interface Props {
-  progress: IntegrationProgress;
+  progress: RequestWorkflowProgress;
   title?: string;
 }
 
 /**
- * Live view of the integration submission saga. Each entry maps to a persisted saga step, so the
+ * Live view of the integration submission workflow. Each entry maps to a persisted workflow step, so the
  * progress shown here survives a page refresh or a backend restart.
  */
 function SubmittedStatusIndicator({ progress, title }: Readonly<Props>) {

@@ -11,9 +11,9 @@ import BcscClient from './BcscClient';
 import CustomRequest from './CustomRequest';
 import SdxRequest from './SdxRequest';
 import EntraClient from './EntraClient';
-import IntegrationSaga from './IntegrationSaga';
-import IntegrationSagaStep from './IntegrationSagaStep';
-import IntegrationSagaDeadLetter from './IntegrationSagaDeadLetter';
+import RequestWorkflow from './requestWorkflow';
+import RequestWorkflowStep from './requestWorkflowStep';
+import RequestWorkflowFailures from './requestWorkflowFailure';
 
 const config: any = configs[`${process.env.NODE_ENV || 'development'}`];
 
@@ -43,9 +43,9 @@ console.log('sequelize initialized', !!sequelize);
   CustomRequest,
   SdxRequest,
   EntraClient,
-  IntegrationSaga,
-  IntegrationSagaStep,
-  IntegrationSagaDeadLetter,
+  RequestWorkflow,
+  RequestWorkflowStep,
+  RequestWorkflowFailures,
 ].forEach((init) => {
   const model = init(sequelize, DataTypes);
   models[model.name] = model;

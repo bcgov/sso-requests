@@ -99,7 +99,7 @@ import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
 import { createSdxRequest } from './sdx-services';
 import { getEntraClientByRequestId, saveEntraClient } from '@app/queries/entra-client';
 import { createEvent } from '@app/queries/event';
-import { enqueueIntegrationSaga } from '@app/saga/integration-saga';
+import { enqueueRequestWorkflow } from '@app/workflow/request-workflow';
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
@@ -734,7 +734,7 @@ export const resubmitRequest = async (session: Session, id: number) => {
       throw new createHttpError.UnprocessableEntity('update failed');
     }
 
-    // Enqueue is de-duplicated: if a saga is still in flight it is simply re-driven from its last
+    // Enqueue is de-duplicated: if a workflow is still in flight it is simply re-driven from its last
     // completed step instead of starting a second workflow.
     await processIntegrationRequest(getCurrentValue());
 
@@ -808,7 +808,7 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
       throw new createHttpError.UnprocessableEntity('update failed');
     }
 
-    // Role re-creation and the restore notification are saga steps so they only run once the
+    // Role re-creation and the restore notification are workflow steps so they only run once the
     // Keycloak clients actually exist again.
     await processIntegrationRequest(current, true);
 
@@ -1057,8 +1057,8 @@ interface ProcessIntegrationOptions {
 }
 
 /**
- * Hands the integration off to the saga orchestrator and returns immediately. Callers no longer wait
- * for Keycloak; progress is tracked in `integration_sagas` and surfaced on the dashboard.
+ * Hands the integration off to the workflow orchestrator and returns immediately. Callers no longer wait
+ * for Keycloak; progress is tracked in `integration_workflows` and surfaced on the dashboard.
  */
 export const processIntegrationRequest = async (
   integration: any,
@@ -1071,7 +1071,7 @@ export const processIntegrationRequest = async (
 
   if (!['development', 'production'].includes(process.env.NODE_ENV)) return;
 
-  return await enqueueIntegrationSaga(payload, {
+  return await enqueueRequestWorkflow(payload, {
     restore,
     existingClientId,
     addingProd,

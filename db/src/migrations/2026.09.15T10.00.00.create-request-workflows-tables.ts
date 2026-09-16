@@ -1,13 +1,13 @@
 import { DataTypes } from 'sequelize';
 
-export const name = '2026.09.15T10.00.00.create-integration-saga-tables';
+export const name = '2026.09.15T10.00.00.create-request-workflows-tables';
 
-// Durable store for the integration submission saga. Saga + step state must survive a pod
+// Durable store for the integration submission workflow. Workflow + step state must survive a pod
 // restart mid-flight, so every transition is written here before any side effect is attempted.
 export const up = async ({ context: sequelize }) => {
   const queryInterface = sequelize.getQueryInterface();
 
-  await queryInterface.createTable('integration_sagas', {
+  await queryInterface.createTable('request_workflows', {
     id: {
       type: DataTypes.UUID,
       allowNull: false,
@@ -103,33 +103,33 @@ export const up = async ({ context: sequelize }) => {
   });
 
   // Worker claim query filters on exactly these two columns.
-  await queryInterface.addIndex('integration_sagas', ['state', 'run_after'], {
-    name: 'integration_sagas_state_run_after_idx',
+  await queryInterface.addIndex('request_workflows', ['state', 'run_after'], {
+    name: 'request_workflows_state_run_after_idx',
   });
 
-  await queryInterface.addIndex('integration_sagas', ['request_id'], {
-    name: 'integration_sagas_request_id_idx',
+  await queryInterface.addIndex('request_workflows', ['request_id'], {
+    name: 'request_workflows_request_id_idx',
   });
 
-  // De-duplication guard: a single integration can only have one in-flight saga at a time, so a
+  // De-duplication guard: a single integration can only have one in-flight workflow at a time, so a
   // double-submit (or a retried HTTP request) can never spawn a second concurrent workflow.
   await sequelize.query(`
-    CREATE UNIQUE INDEX integration_sagas_one_active_per_request_idx
-    ON integration_sagas (request_id)
+    CREATE UNIQUE INDEX request_workflows_one_active_per_request_idx
+    ON request_workflows (request_id)
     WHERE state IN ('PENDING', 'RUNNING', 'COMPENSATING')
   `);
 
-  await queryInterface.createTable('integration_saga_steps', {
+  await queryInterface.createTable('request_workflow_steps', {
     id: {
       type: DataTypes.UUID,
       allowNull: false,
       primaryKey: true,
     },
-    sagaId: {
+    requestWorkflowId: {
       type: DataTypes.UUID,
-      field: 'saga_id',
+      field: 'request_workflow_id',
       allowNull: false,
-      references: { model: 'integration_sagas', key: 'id' },
+      references: { model: 'request_workflows', key: 'id' },
       onDelete: 'CASCADE',
     },
     name: {
@@ -194,22 +194,22 @@ export const up = async ({ context: sequelize }) => {
   });
 
   // Step rows double as the idempotency ledger: a step that is already COMPLETED is a no-op on
-  // replay, which is what makes re-delivering the same saga command safe.
-  await queryInterface.addConstraint('integration_saga_steps', {
-    fields: ['saga_id', 'name'],
+  // replay, which is what makes re-delivering the same workflow command safe.
+  await queryInterface.addConstraint('request_workflow_steps', {
+    fields: ['request_workflow_id', 'name'],
     type: 'unique',
-    name: 'integration_saga_steps_saga_id_name_key',
+    name: 'request_workflow_steps_request_workflow_id_name_key',
   });
 
-  await queryInterface.createTable('integration_saga_dead_letters', {
+  await queryInterface.createTable('request_workflow_failures', {
     id: {
       type: DataTypes.UUID,
       allowNull: false,
       primaryKey: true,
     },
-    sagaId: {
+    requestWorkflowId: {
       type: DataTypes.UUID,
-      field: 'saga_id',
+      field: 'request_workflow_id',
       allowNull: true,
     },
     requestId: {
@@ -258,15 +258,15 @@ export const up = async ({ context: sequelize }) => {
     },
   });
 
-  await queryInterface.addIndex('integration_saga_dead_letters', ['acknowledged'], {
-    name: 'integration_saga_dead_letters_acknowledged_idx',
+  await queryInterface.addIndex('request_workflow_failures', ['acknowledged'], {
+    name: 'request_workflow_failures_acknowledged_idx',
   });
 };
 
 export const down = async ({ context: sequelize }) => {
-  await sequelize.getQueryInterface().dropTable('integration_saga_dead_letters');
-  await sequelize.getQueryInterface().dropTable('integration_saga_steps');
-  await sequelize.getQueryInterface().dropTable('integration_sagas');
+  await sequelize.getQueryInterface().dropTable('request_workflow_failures');
+  await sequelize.getQueryInterface().dropTable('request_workflow_steps');
+  await sequelize.getQueryInterface().dropTable('request_workflows');
 };
 
 export default { name, up, down };

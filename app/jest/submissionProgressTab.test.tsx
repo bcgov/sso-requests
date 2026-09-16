@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import IntegrationTabs from 'page-partials/my-dashboard/IntegrationInfoTabs';
 import { Integration } from 'interfaces/Request';
-import { IntegrationProgress } from 'interfaces/SagaProgress';
+import { RequestWorkflowProgress } from '@app/interfaces/WorkflowProgress';
 import { getIntegrationProgress } from 'services/request';
 import { sampleRequest } from './samples/integrations';
 
@@ -11,8 +11,8 @@ jest.mock('services/request', () => ({
 
 const mockedGetProgress = getIntegrationProgress as jest.Mock;
 
-const buildProgress = (overrides: Partial<IntegrationProgress> = {}): IntegrationProgress => ({
-  sagaId: 'saga-1',
+const buildProgress = (overrides: Partial<RequestWorkflowProgress> = {}): RequestWorkflowProgress => ({
+  workflowId: 'workflow-1',
   correlationId: 'corr-1',
   requestId: sampleRequest.id as number,
   type: 'INTEGRATION_APPLY',
@@ -70,7 +70,7 @@ const appliedIntegration: Integration = { ...sampleRequest, status: 'applied', p
 describe('Submission progress tab', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('Shows only the progress tab while the saga is running', async () => {
+  it('Shows only the progress tab while the request workflow is running', async () => {
     mockedGetProgress.mockResolvedValue([buildProgress(), null]);
 
     render(<IntegrationTabs integration={submittedIntegration} />);
@@ -81,7 +81,7 @@ describe('Submission progress tab', () => {
     expect(screen.queryByText('Technical Details')).toBeNull();
   });
 
-  it('Hides the progress tab once the saga has completed', async () => {
+  it('Hides the progress tab once the request workflow has completed', async () => {
     mockedGetProgress.mockResolvedValue([buildProgress({ state: 'COMPLETED', active: false }), null]);
 
     render(<IntegrationTabs integration={appliedIntegration} />);
@@ -141,7 +141,7 @@ describe('Submission progress tab', () => {
     expect(panel.textContent).toContain('steps that already succeeded are left in place');
   });
 
-  it('Does not render a progress tab when the integration has no saga history', async () => {
+  it('Does not render a progress tab when the integration has no request workflow history', async () => {
     mockedGetProgress.mockResolvedValue([null, null]);
 
     render(<IntegrationTabs integration={appliedIntegration} />);

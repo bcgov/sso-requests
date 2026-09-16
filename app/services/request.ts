@@ -1,7 +1,7 @@
 import { instance } from './axios';
 import { orderBy, isString, omit } from 'lodash';
 import { Integration } from 'interfaces/Request';
-import { IntegrationProgress } from 'interfaces/SagaProgress';
+import { IntegrationProgress } from '@app/interfaces/WorkflowProgress';
 import { processRequest } from 'utils/helpers';
 import { handleAxiosError } from 'services/axios';
 import { AxiosError } from 'axios';

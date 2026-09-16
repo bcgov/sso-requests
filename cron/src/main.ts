@@ -5,7 +5,7 @@ dotenv.config();
 
 export default function main() {
   console.info(
-    'Task 1: Integration saga recovery tick every minute (picks up sagas abandoned by a crashed pod or waiting on a retry backoff)',
+    'Task 1: Request workflow recovery tick every minute (picks up workflows abandoned by a crashed pod or waiting on a retry backoff)',
   );
   nodeCron.schedule('*/1 * * * *', async () => {
     fetch(`${process.env.APP_URL}/api/processRequestQueue`, {

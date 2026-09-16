@@ -1,13 +1,13 @@
 const init = (sequelize: any, DataTypes: any) => {
   return sequelize.define(
-    'integrationSagaStep',
+    'requestWorkflowStep',
     {
       id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      sagaId: {
+      requestWorkflowId: {
         type: DataTypes.UUID,
         allowNull: false,
       },
@@ -51,7 +51,7 @@ const init = (sequelize: any, DataTypes: any) => {
       },
     },
     {
-      tableName: 'integration_saga_steps',
+      tableName: 'request_workflow_steps',
       underscored: true,
     },
   );

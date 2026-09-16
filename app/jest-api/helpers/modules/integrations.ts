@@ -87,18 +87,18 @@ export const fetchMetrics = async (integrationId: number, fromDate: string, toDa
   );
 };
 
-export const getSagas = async () => models.integrationSaga.findAll({ order: [['createdAt', 'ASC']], raw: true });
+export const getWorkflows = async () => models.requestWorkflow.findAll({ order: [['createdAt', 'ASC']], raw: true });
 
-export const getSagaForRequest = async (requestId: number) =>
-  models.integrationSaga.findOne({ where: { requestId }, order: [['createdAt', 'DESC']], raw: true });
+export const getWorkflowForRequest = async (requestId: number) =>
+  models.requestWorkflow.findOne({ where: { requestId }, order: [['createdAt', 'DESC']], raw: true });
 
-export const getSagaSteps = async (sagaId: string) =>
-  models.integrationSagaStep.findAll({ where: { sagaId }, order: [['sequence', 'ASC']], raw: true });
+export const getWorkflowSteps = async (requestWorkflowId: string) =>
+  models.requestWorkflowStep.findAll({ where: { requestWorkflowId }, order: [['sequence', 'ASC']], raw: true });
 
-export const getSagaStep = async (sagaId: string, name: string) =>
-  models.integrationSagaStep.findOne({ where: { sagaId, name }, raw: true });
+export const getWorkflowStep = async (requestWorkflowId: string, name: string) =>
+  models.requestWorkflowStep.findOne({ where: { requestWorkflowId, name }, raw: true });
 
-export const getDeadLetters = async () => models.integrationSagaDeadLetter.findAll({ raw: true });
+export const getDeadLetters = async () => models.requestWorkflowFailure.findAll({ raw: true });
 
 export const getRequest = async (id: number) => models.request.findOne({ where: { id } });
 

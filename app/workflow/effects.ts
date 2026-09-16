@@ -9,7 +9,7 @@ import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@app/keycloak/
 import { usesBceid, usesBcServicesCard, usesGithub, usesOTP, usesSocial } from '@app/helpers/integration';
 
 /**
- * Side effects invoked by saga steps. These live outside the controller so the saga module graph
+ * Side effects invoked by workflow steps. These live outside the controller so the workflow module graph
  * stays acyclic, and every function here is safe to call more than once for the same integration.
  */
 

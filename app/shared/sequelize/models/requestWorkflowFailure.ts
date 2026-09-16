@@ -1,13 +1,13 @@
 const init = (sequelize: any, DataTypes: any) => {
   return sequelize.define(
-    'integrationSagaDeadLetter',
+    'requestWorkflowFailure',
     {
       id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      sagaId: {
+      requestWorkflowId: {
         type: DataTypes.UUID,
         allowNull: true,
       },
@@ -42,7 +42,7 @@ const init = (sequelize: any, DataTypes: any) => {
       },
     },
     {
-      tableName: 'integration_saga_dead_letters',
+      tableName: 'request_workflow_failures',
       underscored: true,
     },
   );

@@ -1,13 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { handleError } from '@app/utils/helpers';
-import { drainSagas } from '@app/saga/orchestrator';
+import { drainWorkflows } from '@app/workflow/orchestrator';
 
 /**
- * Recovery tick for the integration saga orchestrator.
+ * Recovery tick for the integration workflow orchestrator.
  *
- * Sagas are normally started in-process by the pod that accepted the submission. This endpoint is
- * the crash-recovery path: it re-claims sagas whose owner died mid-flight (expired lease), sagas
- * waiting out a retry backoff window, and sagas that were persisted but never started.
+ * Workflows are normally started in-process by the pod that accepted the submission. This endpoint is
+ * the crash-recovery path: it re-claims workflows whose owner died mid-flight (expired lease), workflows
+ * waiting out a retry backoff window, and workflows that were persisted but never started.
  */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(401).json({ success: false, message: 'not authorized' });
       }
 
-      const { processed } = await drainSagas();
+      const { processed } = await drainWorkflows();
       return res.status(200).json({ success: true, processed });
     } else {
       res.setHeader('Allow', ['GET']);

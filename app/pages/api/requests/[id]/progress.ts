@@ -4,7 +4,7 @@ import { Session } from '@app/shared/interfaces';
 import { handleError } from '@app/utils/helpers';
 import { processUserSession } from '@app/controllers/user';
 import { getAllowedRequest } from '@app/queries/request';
-import { getIntegrationProgress } from '@app/saga/integration-saga';
+import { getIntegrationProgress } from '@app/workflow/request-workflow';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
