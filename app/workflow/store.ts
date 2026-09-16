@@ -1,5 +1,5 @@
-import os from 'os';
-import { randomUUID } from 'crypto';
+import os from 'node:os';
+import { randomUUID } from 'node:crypto';
 import { Op } from 'sequelize';
 import { models, sequelize } from '@app/shared/sequelize/models/models';
 import { IntegrationData } from '@app/shared/interfaces';

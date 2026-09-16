@@ -118,8 +118,7 @@ export const buildIntegrationWorkflowSteps = (workflow: WorkflowRecord): Workflo
 
   if (workflow.type === WorkflowType.INTEGRATION_RESTORE) steps.push(restoreRolesStep(workflow));
 
-  steps.push(finalizeStep(workflow));
-  steps.push(notifyStep(workflow));
+  steps.push(finalizeStep(workflow), notifyStep(workflow));
 
   return steps;
 };

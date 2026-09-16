@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { models } from '@app/shared/sequelize/models/models';
 import { IntegrationData } from '@app/shared/interfaces';
 import { ACTION_TYPES, EVENTS } from '@app/shared/enums';

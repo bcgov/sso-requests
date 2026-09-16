@@ -31,7 +31,11 @@ const HelpText = styled.p`
   margin-top: 5px;
 `;
 
-const SETTLED_STATES: RequestWorkflowStepState[] = ['COMPLETED', 'SKIPPED', 'FAILED'];
+const SETTLED_STATES: Set<RequestWorkflowStepState> = new Set([
+  'COMPLETED',
+  'SKIPPED',
+  'FAILED',
+] as RequestWorkflowStepState[]);
 
 const stepIcon = (state: RequestWorkflowStepState) => {
   switch (state) {
@@ -51,7 +55,7 @@ const stepText = (step: RequestWorkflowProgressStep) =>
 
 export const getProgressPercent = (progress: RequestWorkflowProgress) => {
   if (progress.steps.length === 0) return 0;
-  const settled = progress.steps.filter((step) => SETTLED_STATES.includes(step.state)).length;
+  const settled = progress.steps.filter((step) => SETTLED_STATES.has(step.state)).length;
   return Math.round((settled / progress.steps.length) * 100);
 };
 
@@ -59,7 +63,7 @@ const getStatusMessage = (progress: RequestWorkflowProgress) => {
   if (progress.state === 'COMPLETED') return 'Your integration has been processed successfully.';
   if (progress.state === 'FAILED') return 'An error has occurred.';
 
-  const active = progress.steps.find((step) => !SETTLED_STATES.includes(step.state));
+  const active = progress.steps.find((step) => !SETTLED_STATES.has(step.state));
   return active ? `${active.label}...` : 'Processing your request...';
 };
 

@@ -1,3 +1,5 @@
+import { randomInt } from 'crypto';
+
 export const MAX_STEP_ATTEMPTS = Number(process.env.WORKFLOW_MAX_STEP_ATTEMPTS || 5);
 
 /** A claim older than this is assumed to belong to a dead pod and is reclaimed by the next worker. */
@@ -15,7 +17,8 @@ export const IN_PROCESS_RETRY_CEILING_MS = Number(process.env.WORKFLOW_IN_PROCES
  */
 export const backoffDelayMs = (attempt: number): number => {
   const exponential = Math.min(MAX_DELAY_MS, BASE_DELAY_MS * 2 ** Math.max(0, attempt - 1));
-  return Math.floor(Math.random() * exponential);
+  // randomInt() is backed by the CSPRNG, so the jitter can't be predicted or biased.
+  return randomInt(Math.max(1, Math.floor(exponential)));
 };
 
 export const nextRunAfter = (attempt: number): { runAfter: Date; delayMs: number } => {

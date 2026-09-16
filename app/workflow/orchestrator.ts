@@ -26,7 +26,7 @@ import {
   WorkflowType,
 } from './types';
 
-const FINISHED_STEP_STATES = [StepState.COMPLETED, StepState.SKIPPED];
+const FINISHED_STEP_STATES = new Set([StepState.COMPLETED, StepState.SKIPPED]);
 
 /**
  * How workflows are executed once persisted:
@@ -185,7 +185,7 @@ const runNextStep = async (
   definitions: Map<string, WorkflowStepDefinition>,
   log: WorkflowLogger,
 ): Promise<PhaseResult> => {
-  const step = steps.find((candidate) => !FINISHED_STEP_STATES.includes(candidate.state));
+  const step = steps.find((candidate) => !FINISHED_STEP_STATES.has(candidate.state));
 
   if (!step) {
     await completeWorkflow(workflow, log);

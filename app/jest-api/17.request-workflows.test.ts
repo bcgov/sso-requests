@@ -98,7 +98,7 @@ describe('Integration workflow - happy path', () => {
     const updatedRequest = await getRequest(request.id);
     expect(updatedRequest.status).toBe('applied');
 
-    expect(emailResults.length).toBe(1);
+    expect(emailResults).toHaveLength(1);
     expect(emailResults[0].code).toBe(EMAILS.CREATE_INTEGRATION_APPLIED);
 
     const events = await getEventsByRequestId(request.id);
@@ -123,7 +123,7 @@ describe('Integration workflow - happy path', () => {
     const workflow = await getWorkflowForRequest(request.id);
     expect(workflow.context.isCreate).toBe(false);
 
-    expect(emailResults.length).toBe(1);
+    expect(emailResults).toHaveLength(1);
     expect(emailResults[0].code).toBe(EMAILS.UPDATE_INTEGRATION_APPLIED);
 
     kcClientSpy.mockRestore();
@@ -160,7 +160,7 @@ describe('Integration workflow - idempotency and de-duplication', () => {
     expect(duplicate.created).toBe(false);
     expect(duplicate.workflowId).toBe(workflowId);
 
-    expect((await getWorkflows()).length).toBe(1);
+    expect(await getWorkflows()).toHaveLength(1);
   });
 
   it('Re-running a completed workflow is a safe no-op', async () => {
@@ -213,7 +213,7 @@ describe('Integration workflow - idempotency and de-duplication', () => {
 
     const events = await getEventsByRequestId(request.id);
     const planEvents = events.filter((event: any) => event.eventCode === EVENTS.REQUEST_PLAN_SUCCESS);
-    expect(planEvents.length).toBe(1);
+    expect(planEvents).toHaveLength(1);
 
     kcClientSpy.mockRestore();
   });
@@ -273,7 +273,7 @@ describe('Request workflow - retries and dead lettering', () => {
     expect(updatedRequest.status).toBe('applyFailed');
 
     const deadLetters = await getDeadLetters();
-    expect(deadLetters.length).toBe(1);
+    expect(deadLetters).toHaveLength(1);
     expect(deadLetters[0].failedStep).toBe('APPLY_DEV');
 
     expect(axios.post).toHaveBeenCalled();
@@ -309,9 +309,9 @@ describe('Integration workflow - no rollback on failure', () => {
     // Nothing is ever torn down.
     expect(kcClientSpy.mock.calls.some((call: any) => call[1]?.archived === true)).toBe(false);
     // dev/test are applied exactly once and never re-applied by the retries of prod.
-    expect(kcClientSpy.mock.calls.filter((call: any) => call[0] === 'dev').length).toBe(1);
-    expect(kcClientSpy.mock.calls.filter((call: any) => call[0] === 'test').length).toBe(1);
-    expect(kcClientSpy.mock.calls.filter((call: any) => call[0] === 'prod').length).toBe(MAX_STEP_ATTEMPTS);
+    expect(kcClientSpy.mock.calls.filter((call: any) => call[0] === 'dev')).toHaveLength(1);
+    expect(kcClientSpy.mock.calls.filter((call: any) => call[0] === 'test')).toHaveLength(1);
+    expect(kcClientSpy.mock.calls.filter((call: any) => call[0] === 'prod')).toHaveLength(MAX_STEP_ATTEMPTS);
 
     const steps = await getWorkflowSteps(workflowId);
     const byName = Object.fromEntries(steps.map((step: any) => [step.name, step.state]));
