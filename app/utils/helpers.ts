@@ -446,24 +446,10 @@ export const validateIDPs = ({
   // Exclude admin-only options
   if (!canAddRestrictedIdps && restrictedIdpsAdded(currentIdps, updatedIdps).length > 0) return false;
 
-  const addingGithubPublic = updatedIdps.includes('githubpublic') && !currentIdps.includes('githubpublic');
-  const addingOTP = updatedIdps.includes('otp') && !currentIdps.includes('otp');
-  const addingBcgovidir = updatedIdps.includes(KC_ENTRA_IDP_REALM) && !currentIdps.includes(KC_ENTRA_IDP_REALM);
-
-  if (
-    !hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS) &&
-    (addingGithubPublic || addingOTP || addingBcgovidir)
-  ) {
-    return false;
-  }
-  if (!canAddRestrictedIdps && restrictedIdpsAdded(currentIdps, updatedIdps).length > 0) return false;
-  if (!canAddRestrictedIdps && restrictedIdpsAdded(currentIdps, updatedIdps).length > 0) return false;
-  if (!canAddRestrictedIdps && restrictedIdpsAdded(currentIdps, updatedIdps).length > 0) return false;
-
-
   const addingGithub =
     (updatedIdps.includes('githubbcgov') && !currentIdps.includes('githubbcgov')) ||
     (updatedIdps.includes('githubpublic') && !currentIdps.includes('githubpublic'));
+
   if (addingGithub && githubApproved) {
     return false;
   }
@@ -474,7 +460,6 @@ export const validateIDPs = ({
     if (newBceidIdps.some((idp) => !previousBceidIdps.includes(idp))) return false;
   }
 
-  // No one can remove bcsc after approval
   if (bcServicesCardApproved && !updatedIdps.includes('bcservicescard') && currentIdps.includes('bcservicescard')) {
     return false;
   }
