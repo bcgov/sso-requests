@@ -34,6 +34,9 @@ export interface RequestsAttributes {
   hasUnreadNotifications?: boolean;
   browserFlowOverride?: string;
   teamId?: number;
+  // Only ever set on an API service account: the organization that owns it, in
+  // place of a team.
+  organizationId?: number;
   usesTeam: boolean;
   requester?: string;
   userId?: number;
@@ -127,6 +130,7 @@ export type RequestsOptionalAttributes =
   | 'hasUnreadNotifications'
   | 'browserFlowOverride'
   | 'teamId'
+  | 'organizationId'
   | 'requester'
   | 'userId'
   | 'serviceType'
@@ -222,6 +226,7 @@ export class Requests extends Model<RequestsAttributes, RequestsCreationAttribut
   hasUnreadNotifications?: boolean;
   browserFlowOverride?: string;
   teamId?: number;
+  organizationId?: number;
   usesTeam!: boolean;
   requester?: string;
   userId?: number;
@@ -466,6 +471,15 @@ export class Requests extends Model<RequestsAttributes, RequestsCreationAttribut
             key: 'id',
           },
           field: 'team_id',
+        },
+        organizationId: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+          references: {
+            model: 'organizations',
+            key: 'id',
+          },
+          field: 'organization_id',
         },
         usesTeam: {
           type: DataTypes.BOOLEAN,

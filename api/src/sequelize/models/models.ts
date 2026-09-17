@@ -18,6 +18,10 @@ import type { UsersAttributes, UsersCreationAttributes } from '@/sequelize/model
 import { UsersTeams as _UsersTeams } from '@/sequelize/models/UsersTeams';
 import type { UsersTeamsAttributes, UsersTeamsCreationAttributes } from '@/sequelize/models/UsersTeams';
 import sequelize from '@/sequelize/config';
+import { OrganizationTeams as _OrganizationTeams } from '@/sequelize/models/OrganizationTeams';
+import type { OrganizationTeamsAttributes } from '@/sequelize/models/OrganizationTeams';
+import { OrganizationIntegrationOverrides as _OrganizationIntegrationOverrides } from '@/sequelize/models/OrganizationIntegrationOverrides';
+import type { OrganizationIntegrationOverridesAttributes } from '@/sequelize/models/OrganizationIntegrationOverrides';
 import { ApiUsageMetrics as _ApiUsageMetrics } from '@/sequelize/models/ApiUsageMetrics';
 import type { ApiUsageMetricsAttributes } from '@/sequelize/models/ApiUsageMetrics';
 
@@ -31,6 +35,8 @@ export {
   _Teams as Teams,
   _Users as Users,
   _UsersTeams as UsersTeams,
+  _OrganizationTeams as OrganizationTeams,
+  _OrganizationIntegrationOverrides as OrganizationIntegrationOverrides,
 };
 
 export type {
@@ -53,6 +59,8 @@ export type {
   UsersTeamsAttributes,
   UsersTeamsCreationAttributes,
   ApiUsageMetricsAttributes,
+  OrganizationTeamsAttributes,
+  OrganizationIntegrationOverridesAttributes,
 };
 
 export function models(sequelize: Sequelize) {
@@ -66,6 +74,8 @@ export function models(sequelize: Sequelize) {
   const Users = _Users.initModel(sequelize);
   const UsersTeams = _UsersTeams.initModel(sequelize);
   const ApiUsageMetrics = _ApiUsageMetrics.initModel(sequelize);
+  const OrganizationTeams = _OrganizationTeams.initModel(sequelize);
+  const OrganizationIntegrationOverrides = _OrganizationIntegrationOverrides.initModel(sequelize);
 
   Teams.belongsToMany(Users, { as: 'userIdUsers', through: UsersTeams, foreignKey: 'teamId', otherKey: 'userId' });
   Users.belongsToMany(Teams, { as: 'teamIdTeams', through: UsersTeams, foreignKey: 'userId', otherKey: 'teamId' });
@@ -95,6 +105,8 @@ export function models(sequelize: Sequelize) {
     user: Users,
     usersTeam: UsersTeams,
     apiUsageMetrics: ApiUsageMetrics,
+    organizationTeam: OrganizationTeams,
+    organizationIntegrationOverride: OrganizationIntegrationOverrides,
   };
 }
 

@@ -203,6 +203,8 @@ describe('app-role permission expansion (dev baseline)', () => {
         appPermissions.VIEW_ADMIN_DASHBOARD,
         appPermissions.DOWNLOAD_ADMIN_REPORTS,
         appPermissions.ADMIN_DASHBOARD_VIEW_IDPS_FILTER,
+        // Added with organizations: an sso-admin may unpick a misconfigured one.
+        appPermissions.MANAGE_ORGANIZATIONS,
         appPermissions.APPROVE_BC_SERVICES_CARD,
         appPermissions.APPROVE_OTP,
         appPermissions.APPROVE_GITHUB,

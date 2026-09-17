@@ -28,9 +28,6 @@ export const getIntegrationsByTeam = async (
   });
 };
 
-// One team's integrations, for a user who belongs to it. The membership comes
-// off the same scope the dashboard list is built from rather than a second
-// literal, and `userTeamRole` is attached by the caller from that same scope.
 export const getIntegrationsByUserTeam = async (
   scope: AccessScope,
   teamId: number,
@@ -39,7 +36,10 @@ export const getIntegrationsByUserTeam = async (
 ) => {
   if (!scopedTeamIds(scope, 'integrations:read').includes(teamId)) return [];
 
-  const where: any = { apiServiceAccount: false, archived: false, teamId };
+  const accessible = accessibleIntegrationsWhere(scope, 'integrations:read');
+  if (!accessible) return [];
+
+  const where: any = { ...accessible, archived: false, teamId };
   if (serviceType) where.serviceType = serviceType;
 
   return models.request.findAll({

@@ -11,6 +11,10 @@ import RequestRole from './RequestRole';
 import BcscClient from './BcscClient';
 import CustomRequest from './CustomRequest';
 import SdxRequest from './SdxRequest';
+import Organization from './Organization';
+import OrganizationMember from './OrganizationMember';
+import OrganizationTeam from './OrganizationTeam';
+import OrganizationIntegrationOverride from './OrganizationIntegrationOverride';
 
 const config: any = configs[`${process.env.NODE_ENV || 'development'}`];
 
@@ -40,6 +44,10 @@ console.log('sequelize initialized', !!sequelize);
   BcscClient,
   CustomRequest,
   SdxRequest,
+  Organization,
+  OrganizationMember,
+  OrganizationTeam,
+  OrganizationIntegrationOverride,
 ].forEach((init) => {
   const model = init(sequelize, DataTypes);
   models[model.name] = model;
