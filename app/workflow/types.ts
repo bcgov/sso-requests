@@ -106,6 +106,8 @@ export interface WorkflowStepDefinition {
   label: string;
   /** Must be idempotent: re-running after a partial failure has to converge on the same result. */
   execute: (ctx: StepExecutionContext) => Promise<any>;
+  /** Best-effort step: once retries are exhausted it is marked SKIPPED and the workflow carries on. */
+  optional?: boolean;
 }
 
 export interface WorkflowLogger {

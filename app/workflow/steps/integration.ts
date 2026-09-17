@@ -95,6 +95,8 @@ const finalizeStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
 const notifyStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
   name: STEP_NAMES.NOTIFY,
   label: 'Sending notifications',
+  // FINALIZE already applied the integration, so an unreachable mail server must not fail the workflow.
+  optional: true,
   execute: async () => {
     if (workflow.type === WorkflowType.INTEGRATION_RESTORE) {
       await sendRestoreIntegrationEmail(workflow.requestId);

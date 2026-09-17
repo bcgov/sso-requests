@@ -154,6 +154,8 @@ class Request {
     }
 
     approvalButtons.forEach((btnText) => {
+      // ensure the btn is not disabled before clicking
+      cy.contains(btnText).should('not.be.disabled', { timeout: 10000 });
       cy.contains(btnText).click();
       cy.get(confirmSelector).trigger('click');
 

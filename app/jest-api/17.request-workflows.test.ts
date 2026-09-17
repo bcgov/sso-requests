@@ -17,6 +17,7 @@ import { EMAILS, EVENTS } from '@app/shared/enums';
 import { createEvent } from '@app/queries/event';
 import { enqueueRequestWorkflow, getIntegrationProgress } from '@app/workflow/request-workflow';
 import { drainWorkflows, runWorkflow } from '@app/workflow/orchestrator';
+import * as EffectsModule from '@app/workflow/effects';
 
 jest.mock('@app/keycloak/adminClient');
 
@@ -346,6 +347,43 @@ describe('Integration workflow - no rollback on failure', () => {
     expect(workflow.state).toBe('COMPLETED');
     expect((await getRequest(request.id)).status).toBe('applied');
 
+    kcClientSpy.mockRestore();
+  });
+
+  it('Skips the notification step rather than failing an integration that is already applied', async () => {
+    const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
+    kcClientSpy.mockImplementation(() => Promise.resolve(true));
+    const notifySpy = jest.spyOn(EffectsModule, 'updatePlannedIntegration');
+    notifySpy.mockImplementation(() => Promise.reject(new Error('smtp unavailable')));
+    process.env.RC_SSO_OPS_WEBHOOK = 'https://example.test/hook';
+
+    const { request, workflowId } = await enqueue();
+
+    for (let attempt = 0; attempt < MAX_STEP_ATTEMPTS; attempt += 1) await drainWorkflows();
+
+    const steps = await getWorkflowSteps(workflowId);
+    const byName = Object.fromEntries(steps.map((step: any) => [step.name, step.state]));
+    expect(byName.FINALIZE).toBe('COMPLETED');
+    expect(byName.NOTIFY).toBe('SKIPPED');
+
+    const notifyStep = await getWorkflowStep(workflowId, 'NOTIFY');
+    expect(notifyStep.attempts).toBe(MAX_STEP_ATTEMPTS);
+    expect(notifyStep.lastError).toContain('smtp unavailable');
+
+    // The integration itself succeeded, so the workflow must not be failed or dead lettered.
+    const workflow = await getWorkflowForRequest(request.id);
+    expect(workflow.state).toBe('COMPLETED');
+    expect((await getRequest(request.id)).status).toBe('applied');
+    expect(await getDeadLetters()).toHaveLength(0);
+
+    const events = await getEventsByRequestId(request.id);
+    expect(events.map((event: any) => event.eventCode)).toContain(EVENTS.REQUEST_APPLY_SUCCESS);
+    expect(events.map((event: any) => event.eventCode)).not.toContain(EVENTS.REQUEST_APPLY_FAILURE);
+
+    const [, alertBody] = (axios.post as jest.Mock).mock.calls[0];
+    expect(alertBody.message).toContain('skipped it');
+
+    notifySpy.mockRestore();
     kcClientSpy.mockRestore();
   });
 });

@@ -73,6 +73,48 @@ stateDiagram-v2
   SUPERSEDED --> [*]
 ```
 
+### End to End flow
+
+```mermaid
+sequenceDiagram
+  autonumber
+  actor U as User
+  participant API as PUT /api/requests?submit=true<br/>(controllers/requests.ts)
+  participant EQ as enqueueRequestWorkflow
+  participant DB as Postgres
+  participant OR as orchestrator
+  participant KC as Keycloak
+  participant CR as cron GET /api/processRequestQueue
+
+  U->>API: submit integration
+  API->>DB: save request row (status = submitted)
+  API->>EQ: processIntegrationRequest(payload)
+  EQ->>DB: hasBeenApplied(requestId)? → isCreate
+  alt type = INTEGRATION_DELETE
+    EQ->>DB: supersedeActiveWorkflows(requestId)
+  end
+  EQ->>DB: TX { INSERT workflow(PENDING) + INSERT all step rows }
+  EQ-->>API: { workflowId, correlationId, state }
+  API-->>U: HTTP 200 (immediately)
+
+  par background
+    EQ-)OR: runWorkflow(id)  (fire & forget)
+    OR->>DB: claimWorkflow → FOR UPDATE SKIP LOCKED + lease
+    loop first unfinished step
+      OR->>DB: step → RUNNING, attempts++
+      OR->>KC: definition.execute()
+      OR->>DB: step → COMPLETED (+ result)
+    end
+    OR->>DB: workflow → COMPLETED, release claim
+  and recovery
+    CR->>OR: drainWorkflows() every minute
+    OR->>DB: claim anything runnable (run_after <= now, lease expired)
+  end
+
+  U->>API: GET /api/requests/[id]/progress (poll 3s)
+  API-->>U: step list + state
+```
+
 ### Claiming and recovery across pods
 
 ```mermaid
@@ -91,6 +133,25 @@ sequenceDiagram
   DB-->>P2: workflow (APPLY_DEV already COMPLETED)
   P2->>DB: step APPLY_TEST -> COMPLETED
   P2->>DB: workflow -> COMPLETED
+```
+
+### Retries
+
+```mermaid
+flowchart TD
+  S[step.execute] --> OK{threw?}
+  OK -- no --> C[step → COMPLETED<br/>loop to next step]
+  OK -- yes --> PERM{isPermanentError?}
+  PERM -- yes --> FAIL
+  PERM -- no --> EX{attempt >= MAX_STEP_ATTEMPTS?}
+  EX -- yes --> FAIL[failWorkflow:<br/>workflow → FAILED<br/>status → applyFailed/planFailed<br/>failure row + ops alert]
+  EX -- no --> B["nextRunAfter(attempt)<br/>delay = randomInt(min(120s, 2s · 2^(n-1)))"]
+  B --> REL[releaseWorkflow: drop lease, set run_after]
+  REL --> CEIL{delay <= 60s<br/>AND mode = background?}
+  CEIL -- yes --> T[setTimeout → runWorkflow id<br/>in-process re-arm]
+  CEIL -- no --> K[wait for cron tick]
+  T --> S
+  K --> S
 ```
 
 ## Design rules

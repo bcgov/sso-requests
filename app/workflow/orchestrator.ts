@@ -233,6 +233,22 @@ const runNextStep = async (
     stepLog.error('step failed', { state: StepState.FAILED, error: message, permanent, exhausted });
 
     if (permanent || exhausted) {
+      if (definition.optional) {
+        // The integration is already applied at this point; losing a notification must not undo that.
+        await updateStep(step.id, { state: StepState.SKIPPED, lastError: message, completedAt: new Date() });
+        stepLog.error('optional step gave up, continuing workflow', { state: StepState.SKIPPED, error: message });
+
+        await alertOps(
+          `Request workflow ${workflow.id} for request ${workflow.requestId} (${
+            workflow.payload?.clientId || 'unknown client'
+          }) ` +
+            `could not complete the optional step ${step.name} and skipped it: ${message}. ` +
+            `The integration itself was applied. Correlation id: ${workflow.correlationId}.`,
+        );
+
+        return {};
+      }
+
       await failWorkflow(workflow, log, {
         failedStep: step.name,
         reason: permanent

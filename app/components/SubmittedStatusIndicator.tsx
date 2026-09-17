@@ -43,6 +43,8 @@ const stepIcon = (state: RequestWorkflowStepState) => {
       return <FontAwesomeIcon icon={faCheckCircle} color="#00C45B" title="completed" />;
     case 'FAILED':
       return <FontAwesomeIcon icon={faTimesCircle} color="#FF0000" title="failed" />;
+    case 'SKIPPED':
+      return <FontAwesomeIcon icon={faCheckCircle} color="#B2B2B2" title="skipped" />;
     case 'RUNNING':
       return <FontAwesomeIcon icon={faSpinner} color="#B2B2B2" spin title="in progress" />;
     default:
