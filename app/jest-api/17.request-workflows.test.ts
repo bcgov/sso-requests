@@ -17,7 +17,9 @@ import { EMAILS, EVENTS } from '@app/shared/enums';
 import { createEvent } from '@app/queries/event';
 import { enqueueRequestWorkflow, getIntegrationProgress } from '@app/workflow/request-workflow';
 import { drainWorkflows, runWorkflow } from '@app/workflow/orchestrator';
+import { supersedeActiveWorkflows } from '@app/workflow/store';
 import * as EffectsModule from '@app/workflow/effects';
+import { models } from '@app/shared/sequelize/models/models';
 
 jest.mock('@app/keycloak/adminClient');
 
@@ -32,6 +34,7 @@ jest.mock('@app/workflow/backoff', () => ({
   MAX_STEP_ATTEMPTS: 5,
   CLAIM_LEASE_SECONDS: 300,
   IN_PROCESS_RETRY_CEILING_MS: 0,
+  STEP_TIMEOUT_MS: 2000,
   backoffDelayMs: () => 0,
   nextRunAfter: () => ({ runAfter: new Date(Date.now() - 1000), delayMs: 0 }),
 }));
@@ -158,10 +161,14 @@ describe('Integration workflow - idempotency and de-duplication', () => {
     expect(created).toBe(true);
 
     const duplicate = await enqueueRequestWorkflow({ ...formDataProd, id: request.id } as any);
-    expect(duplicate.created).toBe(false);
-    expect(duplicate.workflowId).toBe(workflowId);
+    expect(duplicate.queued).toBe(true);
+    expect(duplicate.workflowId).not.toBe(workflowId);
 
-    expect(await getWorkflows()).toHaveLength(1);
+    // Only one workflow is claimable; the resubmit waits its turn rather than being dropped.
+    const workflows = await getWorkflows();
+    expect(workflows).toHaveLength(2);
+    expect(workflows.filter((workflow: any) => workflow.state === 'PENDING')).toHaveLength(1);
+    expect(workflows.filter((workflow: any) => workflow.state === 'QUEUED')).toHaveLength(1);
   });
 
   it('Re-running a completed workflow is a safe no-op', async () => {
@@ -384,6 +391,215 @@ describe('Integration workflow - no rollback on failure', () => {
     expect(alertBody.message).toContain('skipped it');
 
     notifySpy.mockRestore();
+    kcClientSpy.mockRestore();
+  });
+});
+
+describe('Integration workflow - superseding', () => {
+  beforeEach(async () => {
+    await cleanUpDatabaseTables();
+    jest.clearAllMocks();
+    jest.spyOn(axios, 'post').mockImplementation(() => Promise.resolve({ data: [] }) as any);
+  });
+
+  afterAll(async () => {
+    await cleanUpDatabaseTables();
+  });
+
+  it('Abandons a workflow superseded mid-flight instead of applying the remaining environments', async () => {
+    const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
+    // Simulates a delete landing while the dev environment is still being configured.
+    kcClientSpy.mockImplementation(async (environment: string, integration: any) => {
+      if (environment === 'dev') await supersedeActiveWorkflows(integration.id, 'superseded by delete');
+      return true;
+    });
+
+    const { request, workflowId } = await enqueue();
+    await runWorkflow(workflowId);
+
+    // test and prod are never touched, so the delete cannot be undone by this workflow.
+    expect(kcClientSpy.mock.calls.map((call: any) => call[0])).toEqual(['dev']);
+
+    const steps = await getWorkflowSteps(workflowId);
+    const byName = Object.fromEntries(steps.map((step: any) => [step.name, step.state]));
+    expect(byName.APPLY_DEV).toBe('COMPLETED');
+    expect(byName.APPLY_TEST).toBe('PENDING');
+    expect(byName.FINALIZE).toBe('PENDING');
+
+    const workflow = await getWorkflowForRequest(request.id);
+    expect(workflow.state).toBe('SUPERSEDED');
+    expect(workflow.claimedBy).toBeNull();
+
+    // The superseded workflow owns neither the request status nor the dead letter queue.
+    expect((await getRequest(request.id)).status).not.toBe('applied');
+    expect(await getDeadLetters()).toHaveLength(0);
+
+    kcClientSpy.mockRestore();
+  });
+
+  it('Sweeps every environment when deleting so a client left behind by a superseded update is removed', async () => {
+    const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
+    kcClientSpy.mockImplementation(() => Promise.resolve(true));
+
+    // The snapshot only lists dev, but an earlier update may already have created test and prod.
+    const { workflowId } = await enqueue({ ...formDataProd, environments: ['dev'], archived: true });
+
+    const steps = await getWorkflowSteps(workflowId);
+    expect(steps.map((step: any) => step.name)).toEqual([
+      'PLAN',
+      'APPLY_DEV',
+      'APPLY_TEST',
+      'APPLY_PROD',
+      'FINALIZE',
+      'NOTIFY',
+    ]);
+
+    await runWorkflow(workflowId);
+    expect(kcClientSpy.mock.calls.map((call: any) => call[0])).toEqual(['dev', 'test', 'prod']);
+    expect(kcClientSpy.mock.calls.every((call: any) => call[1]?.archived === true)).toBe(true);
+
+    kcClientSpy.mockRestore();
+  });
+});
+
+describe('Request workflow - queued resubmissions', () => {
+  beforeEach(async () => {
+    await cleanUpDatabaseTables();
+    jest.clearAllMocks();
+    jest.spyOn(axios, 'post').mockImplementation(() => Promise.resolve({ data: [] }) as any);
+  });
+
+  afterAll(async () => {
+    await cleanUpDatabaseTables();
+  });
+
+  it('Keeps only the newest queued follow-up when a user resubmits repeatedly', async () => {
+    const { request } = await enqueue();
+
+    await enqueueRequestWorkflow({ ...formDataProd, id: request.id, projectName: 'first edit' } as any);
+    await enqueueRequestWorkflow({ ...formDataProd, id: request.id, projectName: 'second edit' } as any);
+
+    const workflows = await getWorkflows();
+    expect(workflows).toHaveLength(2);
+
+    const queued = workflows.find((workflow: any) => workflow.state === 'QUEUED');
+    expect(queued.payload.projectName).toBe('second edit');
+  });
+
+  it('Promotes and applies the queued submission once the in-flight workflow completes', async () => {
+    const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
+    kcClientSpy.mockImplementation(() => Promise.resolve(true));
+
+    const { request, workflowId } = await enqueue();
+    const { workflowId: queuedId } = await enqueueRequestWorkflow({
+      ...formDataProd,
+      id: request.id,
+      projectName: 'edited while in flight',
+    } as any);
+
+    await runWorkflow(workflowId);
+
+    const promoted = await getWorkflowForRequest(request.id);
+    expect(promoted.id).toBe(queuedId);
+    expect(promoted.state).toBe('PENDING');
+
+    await drainWorkflows();
+
+    const workflows = await getWorkflows();
+    expect(workflows.map((workflow: any) => workflow.state)).toEqual(['COMPLETED', 'COMPLETED']);
+
+    // The edit the user made mid-flight is what actually reached Keycloak.
+    expect(kcClientSpy.mock.calls.some((call: any) => call[1]?.projectName === 'edited while in flight')).toBe(true);
+
+    kcClientSpy.mockRestore();
+  });
+
+  it('Promotes a queued workflow orphaned by a pod that died before promoting it', async () => {
+    const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
+    kcClientSpy.mockImplementation(() => Promise.resolve(true));
+
+    const { request, workflowId } = await enqueue();
+    await enqueueRequestWorkflow({ ...formDataProd, id: request.id } as any);
+
+    // The owning pod wrote its terminal state and then died before handing over.
+    await models.requestWorkflow.update({ state: 'COMPLETED' }, { where: { id: workflowId } });
+
+    await drainWorkflows();
+
+    const workflows = await getWorkflows();
+    expect(workflows.map((workflow: any) => workflow.state)).toEqual(['COMPLETED', 'COMPLETED']);
+
+    kcClientSpy.mockRestore();
+  });
+
+  it('Runs the queued submission even when the workflow ahead of it failed', async () => {
+    const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
+    kcClientSpy.mockImplementation((environment: string) => Promise.resolve(environment !== 'prod'));
+
+    const { request, workflowId } = await enqueue();
+    await enqueueRequestWorkflow({ ...formDataProd, id: request.id } as any);
+
+    // Drive only the workflow ahead so the promoted one is not drained into the same outage.
+    for (let attempt = 0; attempt < MAX_STEP_ATTEMPTS; attempt += 1) await runWorkflow(workflowId);
+
+    const failed = (await getWorkflows()).find((workflow: any) => workflow.id === workflowId);
+    expect(failed.state).toBe('FAILED');
+
+    const promoted = (await getWorkflows()).find((workflow: any) => workflow.id !== workflowId);
+    expect(promoted.state).toBe('PENDING');
+
+    kcClientSpy.mockImplementation(() => Promise.resolve(true));
+    await drainWorkflows();
+
+    const queued = (await getWorkflows()).find((workflow: any) => workflow.id !== workflowId);
+    expect(queued.state).toBe('COMPLETED');
+
+    kcClientSpy.mockRestore();
+  });
+
+  it('Adopts the winner when two submissions race the very first insert', async () => {
+    const request = await generateRequest(formDataProd);
+    const payload = { ...formDataProd, id: request.id } as any;
+
+    // Row locks cannot block an insert of a row that does not exist yet, so this really does race.
+    const results = await Promise.all([enqueueRequestWorkflow(payload), enqueueRequestWorkflow(payload)]);
+
+    expect(results.every((result) => Boolean(result.workflowId))).toBe(true);
+
+    const workflows = await getWorkflows();
+    expect(workflows.filter((workflow: any) => workflow.state === 'PENDING')).toHaveLength(1);
+    expect(workflows.length).toBeLessThanOrEqual(2);
+  });
+});
+
+describe('Request workflow - step timeouts', () => {
+  beforeEach(async () => {
+    await cleanUpDatabaseTables();
+    jest.clearAllMocks();
+    jest.spyOn(axios, 'post').mockImplementation(() => Promise.resolve({ data: [] }) as any);
+  });
+
+  afterAll(async () => {
+    await cleanUpDatabaseTables();
+  });
+
+  it('Times out a step that never returns instead of wedging the workflow in RUNNING', async () => {
+    const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
+    kcClientSpy.mockImplementation(() => new Promise(() => undefined));
+
+    const { request, workflowId } = await enqueue();
+    await runWorkflow(workflowId);
+
+    const step = await getWorkflowStep(workflowId, 'APPLY_DEV');
+    expect(step.state).toBe('FAILED');
+    expect(step.lastError).toContain('timed out');
+    expect(step.attempts).toBe(1);
+
+    // The lease is dropped, so the recovery tick can retry rather than waiting on a dead heartbeat.
+    const workflow = await getWorkflowForRequest(request.id);
+    expect(workflow.claimedBy).toBeNull();
+    expect(workflow.state).toBe('RUNNING');
+
     kcClientSpy.mockRestore();
   });
 });

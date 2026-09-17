@@ -2,22 +2,34 @@ import axios from 'axios';
 import { EVENTS } from '@app/shared/enums';
 import { models } from '@app/shared/sequelize/models/models';
 import { createWorkflowLogger } from './logger';
-import { CLAIM_LEASE_SECONDS, IN_PROCESS_RETRY_CEILING_MS, MAX_STEP_ATTEMPTS, nextRunAfter } from './backoff';
+import {
+  CLAIM_LEASE_SECONDS,
+  IN_PROCESS_RETRY_CEILING_MS,
+  MAX_STEP_ATTEMPTS,
+  nextRunAfter,
+  STEP_TIMEOUT_MS,
+} from './backoff';
 import {
   claimWorkflow,
+  getWorkflowState,
   getWorkflowSteps,
   heartbeatWorkflow,
+  promoteOrphanedQueuedWorkflows,
+  promoteQueuedWorkflow,
   recordRequestWorkflowFailure,
   releaseWorkflow,
+  releaseWorkflowIfActive,
   updateStep,
   updateWorkflow,
   WORKER_ID,
 } from './store';
 import { buildIntegrationWorkflowSteps, emitWorkflowEventOnce } from './steps/integration';
 import {
+  CLAIMABLE_WORKFLOW_STATES,
   isPermanentError,
   STEP_NAMES,
   StepState,
+  TransientStepError,
   WorkflowLogger,
   WorkflowRecord,
   WorkflowState,
@@ -103,21 +115,56 @@ const scheduleInProcessRetry = (workflowId: string, delayMs: number) => {
   timer.unref?.();
 };
 
+/**
+ * Bounds a single step. The underlying call cannot be cancelled, so the loser may still be in flight -
+ * acceptable because every step converges on the same desired state, and the alternative is a workflow
+ * wedged in RUNNING forever behind a heartbeat that never stops.
+ */
+const withTimeout = <T>(work: Promise<T>, ms: number, step: string): Promise<T> => {
+  if (ms <= 0) return work;
+
+  let timer: ReturnType<typeof setTimeout>;
+  const expiry = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => reject(new TransientStepError(`step ${step} timed out after ${ms}ms`)), ms);
+    timer.unref?.();
+  });
+
+  return Promise.race([work, expiry]).finally(() => clearTimeout(timer)) as Promise<T>;
+};
+
 const stepDefinitionsByName = (workflow: WorkflowRecord): Map<string, WorkflowStepDefinition> =>
   new Map(buildIntegrationWorkflowSteps(workflow).map((definition) => [definition.name, definition]));
 
+/** Hands ownership to a submission that arrived while this workflow was in flight. */
+const startQueuedWorkflow = async (workflow: WorkflowRecord, log: WorkflowLogger) => {
+  const promoted = await promoteQueuedWorkflow(workflow.requestId);
+  if (!promoted) return;
+
+  log.info('promoted queued workflow', { promotedWorkflowId: promoted });
+
+  if (backgroundExecutionEnabled()) {
+    runWorkflow(promoted).catch((err) => log.error('queued workflow kickoff failed', { error: String(err) }));
+  }
+};
+
 /** Terminal success: the workflow ran to completion and the claim is dropped. */
 const completeWorkflow = async (workflow: WorkflowRecord, log: WorkflowLogger) => {
-  await releaseWorkflow(workflow.id, {
+  const won = await releaseWorkflowIfActive(workflow.id, {
     state: WorkflowState.COMPLETED,
     currentStep: null,
     completedAt: new Date(),
     lastError: null,
   });
 
+  if (!won) {
+    log.warn('workflow was superseded before it could complete');
+    return;
+  }
+
   workflow.state = WorkflowState.COMPLETED;
   log.info('workflow completed', { state: WorkflowState.COMPLETED });
   log.metric('workflow.duration', Date.now() - new Date(workflow.startedAt || workflow.createdAt).getTime());
+  await startQueuedWorkflow(workflow, log);
 };
 
 /**
@@ -133,12 +180,18 @@ const failWorkflow = async (
   const failedDuringPlanning = params.failedStep === STEP_NAMES.PLAN;
   const isRestore = workflow.type === WorkflowType.INTEGRATION_RESTORE;
 
-  await releaseWorkflow(workflow.id, {
+  const won = await releaseWorkflowIfActive(workflow.id, {
     state: WorkflowState.FAILED,
     currentStep: params.failedStep,
     completedAt: new Date(),
     lastError: params.error,
   });
+
+  // A delete superseded us; its own outcome owns the request status and the audit trail now.
+  if (!won) {
+    log.warn('workflow was superseded before it could fail, skipping status write and dead letter');
+    return;
+  }
 
   workflow.state = WorkflowState.FAILED;
   await setRequestStatus(workflow.requestId, failedDuringPlanning ? 'planFailed' : 'applyFailed');
@@ -171,6 +224,9 @@ const failWorkflow = async (
       `failed at step ${params.failedStep || 'unknown'} and requires manual intervention. ` +
       `Reason: ${params.reason}. Correlation id: ${workflow.correlationId}.`,
   );
+
+  // A queued resubmit is the operator's retry path, so it runs even though this workflow failed.
+  await startQueuedWorkflow(workflow, log);
 };
 
 interface PhaseResult {
@@ -185,6 +241,15 @@ const runNextStep = async (
   definitions: Map<string, WorkflowStepDefinition>,
   log: WorkflowLogger,
 ): Promise<PhaseResult> => {
+  // A delete can supersede us between steps; never start another one on a workflow we no longer own.
+  const liveState = await getWorkflowState(workflow.id);
+  if (!liveState || !CLAIMABLE_WORKFLOW_STATES.includes(liveState)) {
+    workflow.state = liveState ?? WorkflowState.SUPERSEDED;
+    log.warn('workflow is no longer active, abandoning', { state: workflow.state });
+    await releaseWorkflow(workflow.id);
+    return { done: true };
+  }
+
   const step = steps.find((candidate) => !FINISHED_STEP_STATES.has(candidate.state));
 
   if (!step) {
@@ -211,7 +276,11 @@ const runNextStep = async (
 
   try {
     const result = await withHeartbeat(workflow.id, () =>
-      definition.execute({ workflow, step: { ...step, attempts: attempt }, log: stepLog }),
+      withTimeout(
+        definition.execute({ workflow, step: { ...step, attempts: attempt }, log: stepLog }),
+        STEP_TIMEOUT_MS,
+        step.name,
+      ),
     );
 
     await updateStep(step.id, {
@@ -317,11 +386,14 @@ export const runWorkflow = async (workflowId: string): Promise<WorkflowState | n
 
 /**
  * Recovery entry point used by the cron tick. Picks up anything runnable: brand new workflows whose
- * originating pod died before starting them, workflows waiting on a backoff window, and workflows whose
- * lease expired mid-flight.
+ * originating pod died before starting them, workflows waiting on a backoff window, workflows whose
+ * lease expired mid-flight, and queued follow-ups orphaned by a pod that died before promoting them.
  */
 export const drainWorkflows = async (maxWorkflows: number = 25): Promise<{ processed: number }> => {
   let processed = 0;
+
+  const promoted = await promoteOrphanedQueuedWorkflows(maxWorkflows);
+  if (promoted.length > 0) console.info(`promoted ${promoted.length} orphaned queued workflow(s)`);
 
   for (let i = 0; i < maxWorkflows; i += 1) {
     const workflow = await claimWorkflow();

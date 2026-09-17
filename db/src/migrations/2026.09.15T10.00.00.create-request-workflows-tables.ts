@@ -261,12 +261,25 @@ export const up = async ({ context: sequelize }) => {
   await queryInterface.addIndex('request_workflow_failures', ['acknowledged'], {
     name: 'request_workflow_failures_acknowledged_idx',
   });
+
+  // A submission that arrives while another workflow owns the integration is parked as QUEUED and
+  // promoted when that workflow finishes. At most one follow-up per integration: a newer submit
+  // overwrites the queued payload so the latest desired state always wins.
+  //
+  // QUEUED is deliberately absent from `request_workflows_one_active_per_request_idx`, otherwise the
+  // queued row would collide with the workflow it is waiting behind.
+  await sequelize.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS request_workflows_one_queued_per_request_idx
+    ON request_workflows (request_id)
+    WHERE state = 'QUEUED'
+  `);
 };
 
 export const down = async ({ context: sequelize }) => {
   await sequelize.getQueryInterface().dropTable('request_workflow_failures');
   await sequelize.getQueryInterface().dropTable('request_workflow_steps');
   await sequelize.getQueryInterface().dropTable('request_workflows');
+  await sequelize.query(`DROP INDEX IF EXISTS request_workflows_one_queued_per_request_idx`);
 };
 
 export default { name, up, down };

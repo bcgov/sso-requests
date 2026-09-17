@@ -41,6 +41,8 @@ export interface EnqueueResult {
   correlationId: string;
   state: WorkflowState;
   created: boolean;
+  /** True when an in-flight workflow owned the integration and this submission was parked behind it. */
+  queued: boolean;
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -117,7 +119,7 @@ export const enqueueRequestWorkflow = async (
     if (superseded > 0) log.warn('superseded in-flight workflows', { superseded });
   }
 
-  const { workflow, created } = await createWorkflow({
+  const { workflow, created, queued } = await createWorkflow({
     requestId,
     type,
     action: resolveAction(type, isCreate),
@@ -127,28 +129,46 @@ export const enqueueRequestWorkflow = async (
     steps: buildIntegrationWorkflowSteps({ payload, context, type } as WorkflowRecord),
   });
 
-  if (!created) {
-    log.warn('an in-flight workflow already owns this integration, skipping duplicate submission', {
+  if (queued) {
+    // The caller needs the Keycloak client to exist on return, and a queued workflow cannot promise that.
+    if (options.awaitCompletion) {
+      throw new Error(`cannot await integration ${requestId}: another workflow is still in flight`);
+    }
+
+    log.info('an in-flight workflow owns this integration, submission queued behind it', {
       workflowId: workflow.id,
       state: workflow.state,
     });
 
-    // Re-drive the existing workflow rather than starting a second one. This is what makes a
-    // resubmit (or a duplicate click) a safe retry instead of a double apply.
-    if (backgroundExecutionEnabled()) {
-      runWorkflow(workflow.id).catch((err) =>
-        log.error('background workflow execution failed', { error: String(err) }),
-      );
-    }
+    return {
+      workflowId: workflow.id,
+      correlationId: workflow.correlationId,
+      state: workflow.state,
+      created,
+      queued: true,
+    };
+  }
 
-    return { workflowId: workflow.id, correlationId: workflow.correlationId, state: workflow.state, created: false };
+  if (!created) {
+    log.warn('a concurrent submission won the race, adopting its workflow', {
+      workflowId: workflow.id,
+      state: workflow.state,
+    });
+
+    return {
+      workflowId: workflow.id,
+      correlationId: workflow.correlationId,
+      state: workflow.state,
+      created: false,
+      queued: false,
+    };
   }
 
   log.info('workflow enqueued', { workflowId: workflow.id, state: workflow.state, isCreate });
 
   if (options.awaitCompletion || workflowExecutionMode() === 'synchronous') {
     const state = await runToCompletion(workflow.id);
-    return { workflowId: workflow.id, correlationId, state, created: true };
+    return { workflowId: workflow.id, correlationId, state, created: true, queued: false };
   }
 
   if (backgroundExecutionEnabled()) {
@@ -156,7 +176,7 @@ export const enqueueRequestWorkflow = async (
     runWorkflow(workflow.id).catch((err) => log.error('background workflow execution failed', { error: String(err) }));
   }
 
-  return { workflowId: workflow.id, correlationId, state: workflow.state, created: true };
+  return { workflowId: workflow.id, correlationId, state: workflow.state, created: true, queued: false };
 };
 
 export interface RequestWorkflowProgressStep {

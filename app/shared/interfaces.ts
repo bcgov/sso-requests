@@ -107,16 +107,7 @@ export interface UserSurveyInformation {
 }
 
 export type QUEUE_ACTION = 'create' | 'update' | 'delete';
-export type Status =
-  | 'draft'
-  | 'submitted'
-  | 'pr'
-  | 'prFailed'
-  | 'planned'
-  | 'processing'
-  | 'planFailed'
-  | 'applied'
-  | 'applyFailed';
+export type Status = 'draft' | 'submitted' | 'pr' | 'prFailed' | 'planned' | 'planFailed' | 'applied' | 'applyFailed';
 
 export interface MsGraphUserValue {
   mailNickname: string;
