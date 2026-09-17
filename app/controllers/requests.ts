@@ -46,6 +46,7 @@ import {
   checkNotOTP,
   usesOTP,
   usesSdxServices,
+  usesBcgovIdir,
 } from '@app/helpers/integration';
 import { getAccountableEntity } from '@app/shared/templates/helpers';
 import {
@@ -1042,8 +1043,9 @@ export const buildIntegrationPayload = async (integration: any): Promise<Integra
   payload.idpNames = idps || [];
 
   if (payload.serviceType === 'gold') {
+    const hasBcgovIdir = usesBcgovIdir(integration);
     const hasDigitalCredential = usesDigitalCredential(integration);
-    const browserFlowAlias = hasDigitalCredential ? 'client stopper' : 'idp stopper';
+    const browserFlowAlias = hasDigitalCredential || hasBcgovIdir ? 'client stopper' : 'idp stopper';
 
     payload.browserFlowOverride = browserFlowAlias;
   }
