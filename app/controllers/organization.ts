@@ -7,7 +7,8 @@ import { EVENTS } from '@app/shared/enums';
 import { getDisplayName } from '@app/utils/helpers';
 import { lowcase } from '@app/helpers/string';
 import { appPermissions, hasAppPermission, organizationPermissions, teamPermissions } from '@app/utils/authorize';
-import { processIntegrationRequest, checkIfRequestMerged, createEvent } from '@app/controllers/requests';
+import { processIntegrationRequest, checkIfRequestMerged } from '@app/controllers/requests';
+import { createEvent } from '@app/queries/event';
 import { generateInstallation, updateClientSecret } from '@app/keycloak/installation';
 import { authorizeTeam } from '@app/queries/teamAccess';
 import { authorizeOrganization } from '@app/queries/organizationAccess';
@@ -393,7 +394,8 @@ export const createOrganizationApiAccount = async (session: Session, organizatio
   account.clientId = `service-account-org-${organizationId}-${account.id}`;
   const saved = await account.save();
 
-  await processIntegrationRequest(saved);
+  // Service account creation stays synchronous: the caller reads the client credentials right after.
+  await processIntegrationRequest(saved, false, '', false, { awaitCompletion: true });
 
   orgEvent(session, organizationId, EVENTS.REQUEST_CREATE_SUCCESS, { apiAccountId: saved.id });
   return saved;
@@ -441,7 +443,10 @@ export const deleteOrganizationApiAccount = async (session: Session, organizatio
   account.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
   const saved = await account.save();
 
-  if (isMerged) await processIntegrationRequest(saved);
+  if (isMerged) {
+    // Trigger workflow with empty environments to delete client
+    await processIntegrationRequest(saved, false, '', false, { awaitCompletion: true });
+  }
 
   createEvent({
     eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_SUCCESS,

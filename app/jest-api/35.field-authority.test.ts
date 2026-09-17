@@ -282,9 +282,20 @@ describe('field constraints', () => {
 describe('transitions', () => {
   it('partitions every status into in flight or resting', () => {
     expect([...IN_FLIGHT, ...RESTING].sort()).toEqual(
-      ['draft', 'submitted', 'pr', 'prFailed', 'planned', 'planFailed', 'applied', 'applyFailed'].sort(),
+      [
+        'draft',
+        'submitted',
+        'pr',
+        'prFailed',
+        'planned',
+        'processing',
+        'compensating',
+        'planFailed',
+        'applied',
+        'applyFailed',
+      ].sort(),
     );
-    expect(IN_FLIGHT).toEqual(['submitted', 'planned']);
+    expect(IN_FLIGHT).toEqual(['submitted', 'planned', 'processing', 'compensating']);
   });
 
   it('picks the delete transition from the status', () => {
@@ -292,6 +303,8 @@ describe('transitions', () => {
     expect(deleteIntentFor('applied')).toEqual('requestDelete');
     expect(deleteIntentFor('applyFailed')).toEqual('requestDelete');
     expect(deleteIntentFor('planned')).toEqual('forceDelete');
+    expect(deleteIntentFor('processing')).toEqual('forceDelete');
+    expect(deleteIntentFor('compensating')).toEqual('forceDelete');
     expect(deleteIntentFor('submitted')).toEqual('forceDelete');
   });
 

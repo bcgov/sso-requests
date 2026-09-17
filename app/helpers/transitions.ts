@@ -1,7 +1,9 @@
 import type { Permission } from '@sso/authz';
 import type { Status } from '@app/interfaces/types';
 
-export const IN_FLIGHT: readonly Status[] = ['submitted', 'planned'];
+// A workflow owns the row in every one of these: submitted before it is claimed,
+// then planned, processing, and compensating while it rolls back.
+export const IN_FLIGHT: readonly Status[] = ['submitted', 'planned', 'processing', 'compensating'];
 export const RESTING: readonly Status[] = ['draft', 'applied', 'planFailed', 'applyFailed', 'pr', 'prFailed'];
 
 export const SETTLED: readonly Status[] = ['draft', 'applied'];

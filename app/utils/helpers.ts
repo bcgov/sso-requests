@@ -366,7 +366,7 @@ export const getDiscontinuedIdps = () => {
 
 // IdPs only an admin may add. Removing one, or keeping one that is already
 // there, is a plain edit.
-export const RESTRICTED_IDPS = ['githubpublic', 'otp'];
+export const RESTRICTED_IDPS = ['githubpublic', 'otp', KC_ENTRA_IDP_REALM];
 
 export const restrictedIdpsAdded = (currentIdps: readonly string[] = [], updatedIdps: readonly string[] = []) =>
   updatedIdps.filter(
@@ -460,6 +460,7 @@ export const validateIDPs = ({
     if (newBceidIdps.some((idp) => !previousBceidIdps.includes(idp))) return false;
   }
 
+  // No one can remove bcsc after approval
   if (bcServicesCardApproved && !updatedIdps.includes('bcservicescard') && currentIdps.includes('bcservicescard')) {
     return false;
   }

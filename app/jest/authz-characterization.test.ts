@@ -19,6 +19,8 @@ const ALL_STATUSES: Status[] = [
   'pr',
   'prFailed',
   'planned',
+  'processing',
+  'compensating',
   'planFailed',
   'applied',
   'applyFailed',
@@ -36,7 +38,8 @@ const integration = (overrides: Partial<Integration> = {}): Integration =>
 
 describe('status guards (transition table)', () => {
   /**
-   * Every guard now reads helpers/transitions. In flight is {submitted, planned}; everything else
+   * Every guard now reads helpers/transitions. In flight is {submitted, planned, processing,
+   * compensating} — the statuses a running workflow owns; everything else
    * is resting — editable, deletable, roles manageable. `pending` is the dashboard's polling
    * question, which is wider: a failed integration is resting but the retry job may still move it.
    *
@@ -47,6 +50,8 @@ describe('status guards (transition table)', () => {
    *   pr              Y       Y       Y        Y
    *   prFailed        Y       Y       Y        Y
    *   planned         N       N       N        Y
+   *   processing      N       N       N        Y
+   *   compensating    N       N       N        Y
    *   planFailed      Y       Y       Y        Y
    *   applied         Y       Y       Y        N
    *   applyFailed     Y       Y       Y        Y
@@ -57,6 +62,8 @@ describe('status guards (transition table)', () => {
     pr: { canDelete: true, canEdit: true, canManageRoles: true, pending: true },
     prFailed: { canDelete: true, canEdit: true, canManageRoles: true, pending: true },
     planned: { canDelete: false, canEdit: false, canManageRoles: false, pending: true },
+    processing: { canDelete: false, canEdit: false, canManageRoles: false, pending: true },
+    compensating: { canDelete: false, canEdit: false, canManageRoles: false, pending: true },
     planFailed: { canDelete: true, canEdit: true, canManageRoles: true, pending: true },
     applied: { canDelete: true, canEdit: true, canManageRoles: true, pending: false },
     applyFailed: { canDelete: true, canEdit: true, canManageRoles: true, pending: true },
@@ -100,7 +107,7 @@ describe('status guards (transition table)', () => {
       expect(isInFlight(status)).toBe(!isResting(status));
       expect(canEditIntegration(integration({ status }))).toBe(isResting(status));
     }
-    expect(IN_FLIGHT).toEqual(['submitted', 'planned']);
+    expect(IN_FLIGHT).toEqual(['submitted', 'planned', 'processing', 'compensating']);
   });
 
   it('archived and api-service-account integrations are refused by every guard', () => {
