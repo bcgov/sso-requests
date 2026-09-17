@@ -22,7 +22,7 @@ export default defineConfig({
     json: true,
   },
   e2e: {
-    baseUrl: 'http://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/',
+    baseUrl: 'https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/',
     projectId: 'gctfmh',
     experimentalModifyObstructiveThirdPartyCode: true,
     setupNodeEvents(on, config) {
