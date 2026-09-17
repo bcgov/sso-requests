@@ -25,6 +25,32 @@ export const appPermissions = {
   APPROVE_GITHUB: 'approve_github',
   APPROVE_BCEID: 'approve_bceid',
   APPROVE_SOCIAL: 'approve_social',
+  MANAGE_ORGANIZATIONS: 'manage_organizations',
+};
+
+export const organizationPermissions = {
+  UPDATE_ORGANIZATION: 'update_organization',
+  VIEW_ORGANIZATION: 'view_organization',
+  ADD_ORG_MEMBER: 'add_org_member',
+  REMOVE_ORG_MEMBER: 'remove_org_member',
+  UPDATE_ORG_MEMBER_ROLE: 'update_org_member_role',
+  INVITE_TEAM: 'invite_team',
+  REMOVE_TEAM: 'remove_team',
+  MANAGE_ORG_API_ACCOUNTS: 'manage_org_api_accounts',
+};
+
+export const organizationRolePermissionMap: Record<string, string[]> = {
+  admin: [
+    organizationPermissions.UPDATE_ORGANIZATION,
+    organizationPermissions.VIEW_ORGANIZATION,
+    organizationPermissions.ADD_ORG_MEMBER,
+    organizationPermissions.REMOVE_ORG_MEMBER,
+    organizationPermissions.UPDATE_ORG_MEMBER_ROLE,
+    organizationPermissions.INVITE_TEAM,
+    organizationPermissions.REMOVE_TEAM,
+    organizationPermissions.MANAGE_ORG_API_ACCOUNTS,
+  ],
+  member: [organizationPermissions.VIEW_ORGANIZATION],
 };
 
 export const teamPermissions = {
@@ -78,6 +104,7 @@ export const appRolePermissionMap: Record<string, string[]> = {
     appPermissions.VIEW_ADMIN_DASHBOARD,
     appPermissions.DOWNLOAD_ADMIN_REPORTS,
     appPermissions.ADMIN_DASHBOARD_VIEW_IDPS_FILTER,
+    appPermissions.MANAGE_ORGANIZATIONS,
     appPermissions.APPROVE_BC_SERVICES_CARD,
     appPermissions.APPROVE_OTP,
     appPermissions.APPROVE_GITHUB,
@@ -119,6 +146,13 @@ export const appRolePermissionMap: Record<string, string[]> = {
 export const hasTeamPermission = (role: string | undefined, permission: string) => {
   if (!role) return false;
   const permissions = teamRolePermissionMap[role];
+  if (!permissions) return false;
+  return permissions.includes(permission);
+};
+
+export const hasOrganizationPermission = (role: string | undefined, permission: string) => {
+  if (!role) return false;
+  const permissions = organizationRolePermissionMap[role];
   if (!permissions) return false;
   return permissions.includes(permission);
 };

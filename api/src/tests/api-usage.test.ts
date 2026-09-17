@@ -18,6 +18,15 @@ let integration;
 let apiAccount;
 const API_BASE_PATH = '/api/v1';
 
+const waitForRows = async (read: () => Promise<any[]>, attempts = 20): Promise<any[]> => {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const rows = await read();
+    if (rows.length > 0) return rows;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  return read();
+};
+
 describe('API Usage', () => {
   beforeAll(async () => {
     jest.clearAllMocks();
@@ -67,10 +76,12 @@ describe('API Usage', () => {
       });
     });
     await supertest(app).get(`${API_BASE_PATH}/integrations`).expect(200);
-    const rows = await models.apiUsageMetrics.findAll({
-      where: { teamId: team.id },
-    });
+
+    // The row is written from the response's `finish` handler, which the client
+    // does not wait for, so the read is retried rather than raced.
+    const rows = await waitForRows(() => models.apiUsageMetrics.findAll({ where: { teamId: team.id } }));
     expect(rows.length).toBe(1);
     expect(rows[0].teamId).toBe(team.id);
+    expect(rows[0].apiClientId).toBe(apiAccount.clientId);
   });
 });

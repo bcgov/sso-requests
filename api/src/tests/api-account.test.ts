@@ -54,12 +54,8 @@ describe('api account resolution', () => {
   });
 
   describe('an account with no owner', () => {
-    beforeAll(async () => {
-      apiClientId = (await seedApiAccount(null)).clientId;
-    });
-
-    it('is rejected as unauthorized rather than resolving to an empty context', async () => {
-      await supertest(app).get(`${API_BASE_PATH}/integrations`).expect(401);
+    it('cannot be created at all', async () => {
+      await expect(seedApiAccount(null)).rejects.toThrow();
     });
   });
 

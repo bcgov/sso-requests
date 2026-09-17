@@ -1,26 +1,10 @@
 import createHttpError from 'http-errors';
 import { Op, WhereOptions } from 'sequelize';
 import models from '@/sequelize/models/models';
-import { Action, PRESETS, Permission, Resource, organizationPermissions, permits } from '@sso/authz';
+import { Action, OrganizationLink, PRESETS, Permission, Resource, organizationPermissions, permits } from '@sso/authz';
 
 /**
- * Everything enforcement needs to answer for one API account, resolved once per
- * request (well, once per cache TTL) and carried on `req.authz`.
- *
- * An account's authority is its owner's, read live. Nothing is stored per
- * account:
- *
- *   - A team account *is* the team. It holds `team-admin` over every
- *     integration in that team — including one created tomorrow — and nothing
- *     outside it.
- *   - An organization account is the organization. Its reach is the teams
- *     that have consented to the organization; what it may do in each is the
- *     permission set the team consented to, capped per integration by any
- *     override the team has placed under that link.
- *
- * Nothing else is consulted. In particular the team id on the token is not: the
- * owner on the account's own row is the whole answer, and a second source would
- * be a second place to get wrong.
+ * API accounts can be at a team or organization level.
  */
 export type AuthContext = TeamAuthContext | OrganizationAuthContext;
 
@@ -40,12 +24,7 @@ export interface OrganizationAuthContext {
   teams: Map<number, OrganizationTeamLink>;
 }
 
-export interface OrganizationTeamLink {
-  /** What the team consented to for the organization, across the whole team. */
-  permissions: Permission[];
-  /** Per-integration caps placed under this link, keyed by integration id. */
-  overrides: Map<number, Permission[]>;
-}
+export type OrganizationTeamLink = OrganizationLink;
 
 export interface Requirement {
   resource: Resource;
@@ -67,10 +46,44 @@ const cache = new Map<string, { expiresAt: number; context: AuthContext | null }
 
 export const clearAuthContextCache = () => cache.clear();
 
+const loadOrganizationTeams = async (organizationId: number): Promise<Map<number, OrganizationTeamLink>> => {
+  // Team level permissions granted to the organization
+  const links: any[] = await models.organizationTeam.findAll({
+    where: { organizationId, pending: false },
+    attributes: ['id', 'teamId', 'permissions'],
+    raw: true,
+  });
+
+  // Map of team IDs to their base permissions and overrides
+  const permissionsByTeam = new Map<number, OrganizationTeamLink>();
+  if (links.length === 0) return permissionsByTeam;
+
+  // Check for any specific integration level permission overrides
+  const overrides: any[] = await models.organizationIntegrationOverride.findAll({
+    where: { organizationTeamId: { [Op.in]: links.map((link) => link.id) } },
+    attributes: ['organizationTeamId', 'requestId', 'permissions'],
+    raw: true,
+  });
+
+  const overridesByLink = new Map<number, Map<number, Permission[]>>(links.map((link) => [link.id, new Map()]));
+  for (const override of overrides) {
+    overridesByLink.get(override.organizationTeamId)?.set(override.requestId, override.permissions ?? []);
+  }
+
+  for (const link of links) {
+    permissionsByTeam.set(link.teamId, {
+      permissions: link.permissions ?? [],
+      overrides: overridesByLink.get(link.id) ?? new Map(),
+    });
+  }
+
+  return permissionsByTeam;
+};
+
 const loadAuthContext = async (apiClientId: string): Promise<AuthContext | null> => {
   const account: any = await models.request.findOne({
     where: { clientId: apiClientId, apiServiceAccount: true, archived: false },
-    attributes: ['id', 'teamId'],
+    attributes: ['id', 'teamId', 'organizationId'],
     raw: true,
   });
 
@@ -80,10 +93,16 @@ const loadAuthContext = async (apiClientId: string): Promise<AuthContext | null>
     return { kind: 'team', apiClientId, apiAccountId: account.id, teamId: account.teamId };
   }
 
-  // An organization account is owned through `requests.organization_id` and
-  // resolves to an OrganizationAuthContext from organization_teams and
-  // organization_integration_overrides. Until organizations land, an account
-  // with no team has no owner and therefore no authority.
+  if (account.organizationId !== null && account.organizationId !== undefined) {
+    return {
+      kind: 'organization',
+      apiClientId,
+      apiAccountId: account.id,
+      organizationId: account.organizationId,
+      teams: await loadOrganizationTeams(account.organizationId),
+    };
+  }
+
   return null;
 };
 

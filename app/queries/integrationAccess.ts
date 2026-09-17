@@ -1,9 +1,17 @@
-import { Permission, PRESETS, permissionsForTeamRole, union } from '@sso/authz';
+import {
+  OrganizationLink,
+  Permission,
+  PRESETS,
+  organizationPermissions,
+  permissionsForTeamRole,
+  union,
+} from '@sso/authz';
 import { models } from '@app/shared/sequelize/models/models';
 import { Session } from '@app/shared/interfaces';
 import { commonPermissionsForAppRoles } from '@app/utils/authorize';
 import { getAllowedIdpsForApprover } from '@app/utils/helpers';
 import { resolveTeamRoles } from '@app/queries/teamAccess';
+import { resolveOrganizationLinks } from '@app/queries/organizationAccess';
 import { AccessScope } from '@app/queries/accessScope';
 
 // The columns the resolver reads off a request row. A query that selects a
@@ -19,10 +27,10 @@ export interface AccessResolvable {
 }
 
 // The merged authority one actor holds over one integration. Personal
-// ownership, team role and app role all resolve into the same set and are
-// unioned, so every rule downstream reads `permissions` and nothing else.
-// `userTeamRole` and `owner` are display data and the requester label, not
-// inputs to any decision.
+// ownership, team role, organization consent and app role all resolve into the
+// same set and are unioned, so every rule downstream reads `permissions` and
+// nothing else. `userTeamRole` and `owner` are display data and the requester
+// label, not inputs to any decision.
 export interface IntegrationAccess {
   userTeamRole: string | null;
   owner: boolean;
@@ -44,8 +52,9 @@ const commonPopulation = [
 
 /**
  * Resolve every source of authority for many integrations at once: one
- * membership query however many rows are passed, the app roles once, and the
- * per-row ownership and IdP checks in memory.
+ * membership query and one organization-link query however many rows are
+ * passed, the app roles once, and the per-row ownership and IdP checks in
+ * memory.
  *
  * A list path passes the `scope` its `where` clause was built from, so the role
  * a row was admitted on is the role it is resolved with, and the memberships
@@ -62,7 +71,11 @@ export const resolveAccessForIntegrations = async (
   const byIntegration = new Map<number, IntegrationAccess>();
   if (rows.length === 0) return byIntegration;
 
-  const roleByTeam = scope ? scope.roleByTeam : await resolveTeamRoles(userId, teamsOwning(rows));
+  const teamIds = scope ? [] : teamsOwning(rows);
+  const roleByTeam = scope ? scope.roleByTeam : await resolveTeamRoles(userId, teamIds);
+  const linkByTeam: Map<number, OrganizationLink> = scope
+    ? scope.organizationTeams
+    : await resolveOrganizationLinks(userId, teamIds);
 
   const appPermissions = commonPermissionsForAppRoles(session?.client_roles);
   const approverIdps = getAllowedIdpsForApprover(session);
@@ -80,12 +93,17 @@ export const resolveAccessForIntegrations = async (
     // ownership, so their share is decided per row.
     const approverPermissions: Permission[] = overlaps(approverIdps, row.devIdps ?? []) ? ['integrations:read'] : [];
 
+    // An organization reaches the integration through the team that owns it
+    // *now*, so an override left behind by a reassignment is never found.
+    const link = row.usesTeam && row.teamId ? linkByTeam.get(row.teamId) : undefined;
+
     byIntegration.set(row.id, {
       userTeamRole: teamRole,
       owner,
       permissions: union([
         owner ? PRESETS['team-admin'] : [],
         permissionsForTeamRole(teamRole),
+        organizationPermissions(link, link?.overrides.get(row.id)),
         appPermissions,
         approverPermissions,
       ]),

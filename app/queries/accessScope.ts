@@ -1,6 +1,7 @@
 import { Op, WhereOptions } from 'sequelize';
-import { Permission, PRESETS, permissionsForTeamRole } from '@sso/authz';
+import { OrganizationLink, Permission, PRESETS, permissionsForTeamRole } from '@sso/authz';
 import { resolveAllTeamRoles } from '@app/queries/teamAccess';
+import { resolveOrganizationLinks } from '@app/queries/organizationAccess';
 
 /**
  * Every source of *row-level* authority one user holds over integrations,
@@ -23,57 +24,62 @@ import { resolveAllTeamRoles } from '@app/queries/teamAccess';
  */
 export interface AccessScope {
   userId: number;
-  /** Every accepted membership, role by team id. A pending invitation confers nothing. */
+  /** Every accepted membership, role by team id. */
   roleByTeam: Map<number, string>;
   /**
-   * Integrations reached individually rather than through a team. Empty until
-   * organizations land, when an organization link's per-integration overrides
-   * fill it.
+   * Every team this user reaches through an organization they belong to with permissions granted
    */
-  integrationIds: number[];
+  organizationTeams: Map<number, OrganizationLink>;
 }
 
 export const resolveAccessScope = async (userId: number): Promise<AccessScope> => ({
   userId,
   roleByTeam: await resolveAllTeamRoles(userId),
-  integrationIds: [],
+  organizationTeams: await resolveOrganizationLinks(userId),
 });
 
-/** The teams whose role confers `permission`. */
-export const scopedTeamIds = (scope: AccessScope, permission: Permission): number[] =>
-  Array.from(scope.roleByTeam.entries())
-    .filter(([, role]) => permissionsForTeamRole(role).includes(permission))
-    .map(([teamId]) => teamId);
+/** The teams whose role, or whose consent to an organization this user belongs to, confers `permission`. */
+export const scopedTeamIds = (scope: AccessScope, permission: Permission): number[] => {
+  const teamIds = new Set<number>();
 
-/**
- * The scope read as a query filter: the rows on which this user holds
- * `permission`.
- *
- * Returns `null` when nothing is reachable, which callers must read as "empty
- * result", not "no filter".
- *
- * Each clause is one branch of `resolveAccessForIntegrations` written as SQL,
- * in the same order:
- *
- *   team role      → the teams `scopedTeamIds` admits
- *   personal owner → an integration not using a team, and a draft switched to
- *                    team ownership before a team was picked
- *   individual     → organization overrides, once they exist
- */
+  Array.from(scope.roleByTeam.entries()).forEach(([teamId, role]) => {
+    if (permissionsForTeamRole(role).includes(permission)) teamIds.add(teamId);
+  });
+  Array.from(scope.organizationTeams.entries()).forEach(([teamId, link]) => {
+    if (link.permissions.includes(permission)) teamIds.add(teamId);
+  });
+
+  return Array.from(teamIds);
+};
+
 export const accessibleIntegrationsWhere = (scope: AccessScope, permission: Permission): WhereOptions | null => {
   const clauses: WhereOptions[] = [];
 
-  const teamIds = scopedTeamIds(scope, permission);
-  if (teamIds.length > 0) clauses.push({ usesTeam: true, teamId: { [Op.in]: teamIds } });
+  // Check which teams the user is in. Add to the where clause if the user's team role allows the requested permission
+  const memberTeamIds = Array.from(scope.roleByTeam.entries())
+    .filter(([, role]) => permissionsForTeamRole(role).includes(permission))
+    .map(([teamId]) => teamId);
+  if (memberTeamIds.length > 0) clauses.push({ usesTeam: true, teamId: { [Op.in]: memberTeamIds } });
 
-  // Personal ownership resolves to team-admin, so it confers exactly what that
-  // preset holds — the same test resolveAccessForIntegrations makes per row.
+  // If the user directly owns the integration, they have 'team-admin' permissions over it
   if (PRESETS['team-admin'].includes(permission)) {
     clauses.push({ usesTeam: false, userId: scope.userId });
     clauses.push({ usesTeam: true, teamId: null, status: 'draft', userId: scope.userId });
   }
 
-  if (scope.integrationIds.length > 0) clauses.push({ id: { [Op.in]: scope.integrationIds } });
+  Array.from(scope.organizationTeams.entries()).forEach(([teamId, link]) => {
+    // Team memberships already checked that the user role allows requested permission, so can skip org check.
+    if (memberTeamIds.includes(teamId)) return;
+    if (!link.permissions.includes(permission)) return;
+
+    const capped = Array.from(link.overrides.entries())
+      .filter(([, override]) => !override.includes(permission))
+      .map(([integrationId]) => integrationId);
+
+    clauses.push(
+      capped.length > 0 ? { usesTeam: true, teamId, id: { [Op.notIn]: capped } } : { usesTeam: true, teamId },
+    );
+  });
 
   if (clauses.length === 0) return null;
   return { apiServiceAccount: false, [Op.or]: clauses };

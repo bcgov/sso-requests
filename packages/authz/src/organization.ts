@@ -2,6 +2,20 @@ import { Permission } from './permissions';
 import { intersect } from './sets';
 
 /**
+ * One organization's reach into one team: what the team consented to across the
+ * whole team, and the per-integration caps it has placed under that consent.
+ *
+ * The app and the api both resolve to this shape — the app from the actor's
+ * organization memberships, the api from the account's own organization — so
+ * one function answers both.
+ */
+export interface OrganizationLink {
+  permissions: Permission[];
+  /** Per-integration caps under this link, keyed by integration id. */
+  overrides: Map<number, Permission[]>;
+}
+
+/**
  * What an organization may do to one integration.
  *
  * `link` is the organization's active row in organization_teams for the
