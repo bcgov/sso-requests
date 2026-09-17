@@ -1,4 +1,4 @@
-import { randomInt } from 'crypto';
+import { randomInt } from 'node:crypto';
 
 export const MAX_STEP_ATTEMPTS = Number(process.env.WORKFLOW_MAX_STEP_ATTEMPTS || 5);
 

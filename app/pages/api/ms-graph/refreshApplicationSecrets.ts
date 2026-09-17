@@ -60,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           appReg?.passwordCredentials?.some(
             (c) =>
               c.keyId === previousSecretKeyId &&
-              new Date(c.endDateTime || 0) <= new Date(new Date().getTime() + days * 24 * 60 * 60 * 1000),
+              new Date(c.endDateTime || 0) <= new Date(Date.now() + days * 24 * 60 * 60 * 1000),
           )
         ) {
           console.log(`Entra application secret for appId ${client.appId} is expiring within ${days} days`);

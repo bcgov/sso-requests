@@ -16,7 +16,7 @@ import {
   ServicePrincipal,
 } from '@microsoft/microsoft-graph-types';
 import { getKeycloakBaseUrlByEnvironment } from './helpers';
-import { randomInt } from 'crypto';
+import { randomInt } from 'node:crypto';
 
 const GRAPH_API_MAX_RETRIES = 5;
 const GRAPH_API_RETRY_INTERVAL_MS = 1500;
