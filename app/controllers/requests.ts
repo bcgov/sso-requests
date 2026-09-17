@@ -719,9 +719,7 @@ export const resubmitRequest = async (session: Session, id: number) => {
     const current = await getAllowedRequest(session, id);
     const getCurrentValue = () => current.get({ plain: true, clone: true });
     // Resubmit now means "retry the workflow", so anything that is in flight or ended badly qualifies.
-    const isAllowedStatus = ['submitted', 'planned', 'processing', 'planFailed', 'applyFailed'].includes(
-      current.status,
-    );
+    const isAllowedStatus = ['submitted', 'planned', 'planFailed', 'applyFailed'].includes(current.status);
 
     if (!current || !isAllowedStatus) {
       throw new createHttpError.BadRequest('Request not found or not in a resubmittable state');

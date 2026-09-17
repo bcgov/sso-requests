@@ -64,7 +64,7 @@ const buildProgress = (overrides: Partial<RequestWorkflowProgress> = {}): Reques
   ...overrides,
 });
 
-const submittedIntegration: Integration = { ...sampleRequest, status: 'processing' };
+const submittedIntegration: Integration = { ...sampleRequest, status: 'planned' };
 const appliedIntegration: Integration = { ...sampleRequest, status: 'applied', publicAccess: false };
 
 describe('Submission progress tab', () => {

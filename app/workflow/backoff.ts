@@ -12,6 +12,12 @@ const MAX_DELAY_MS = Number(process.env.WORKFLOW_RETRY_MAX_DELAY_MS || 120_000);
 export const IN_PROCESS_RETRY_CEILING_MS = Number(process.env.WORKFLOW_IN_PROCESS_RETRY_CEILING_MS || 60_000);
 
 /**
+ * Ceiling on a single step. Without it a Keycloak call that never returns keeps the lease alive via the
+ * heartbeat forever, so the workflow is never retried, never fails and never dead letters.
+ */
+export const STEP_TIMEOUT_MS = Number(process.env.WORKFLOW_STEP_TIMEOUT_MS || 300_000);
+
+/**
  * Exponential backoff with full jitter. Jitter is what stops every pod that failed against the
  * same Keycloak outage from retrying in lockstep and re-creating the stampede.
  */

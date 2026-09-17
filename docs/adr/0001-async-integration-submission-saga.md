@@ -62,11 +62,15 @@ flowchart LR
 ```mermaid
 stateDiagram-v2
   [*] --> PENDING: enqueueRequestWorkflow()
+  [*] --> QUEUED: enqueued while another workflow is in flight
+  QUEUED --> QUEUED: a newer resubmit overwrites the payload
+  QUEUED --> PENDING: promoted once the workflow ahead reaches a terminal state
   PENDING --> RUNNING: claimed by a worker
   RUNNING --> RUNNING: step completed
   RUNNING --> COMPLETED: all steps completed
   RUNNING --> FAILED: retries exhausted or permanent error
   PENDING --> SUPERSEDED: a delete workflow takes over
+  QUEUED --> SUPERSEDED: a delete workflow takes over
   RUNNING --> SUPERSEDED: a delete workflow takes over
   COMPLETED --> [*]
   FAILED --> [*]
@@ -162,9 +166,16 @@ flowchart TD
 - **Step rows are the idempotency ledger.** `request_workflow_steps` has a unique
   `(request_workflow_id, name)` constraint; a step already in `COMPLETED` is skipped on replay, so re-delivering
   the same command is a safe no-op.
-- A **partial unique index** allows only one active workflow per integration:
+- A **partial unique index** allows only one _claimable_ workflow per integration:
   `CREATE UNIQUE INDEX ... ON request_workflows (request_id) WHERE state IN ('PENDING','RUNNING',...)`.
-  A double-click or a retried HTTP request gets the existing workflow back instead of a second workflow.
+- A submission that arrives while one is in flight is parked as **`QUEUED`** and promoted when the
+  workflow ahead reaches a terminal state, so an edit made mid-apply is never silently dropped. A
+  second partial unique index (`... WHERE state = 'QUEUED'`) allows only one follow-up, so rapid
+  resubmits collapse into "latest desired state wins". `QUEUED` is excluded from the claim query, so
+  no worker can pick it up early.
+- Row locks cannot block an insert of a row that does not exist yet, so two pods racing the very first
+  submit both insert. The unique index picks a winner and the loser **adopts** it instead of surfacing
+  a 500.
 - Audit events are written through `emitWorkflowEventOnce`, which stamps `details.requestWorkflowId` and checks for
   an existing row first, so a crash between the event insert and the step commit cannot duplicate
   the change history.
@@ -198,11 +209,20 @@ rollback is worse than the partial state it repairs. Instead:
   Jitter prevents every pod that failed against the same Keycloak outage from retrying in lockstep.
 - **`SELECT ... FOR UPDATE SKIP LOCKED`** claims plus a **lease** (`claimed_by` / `claimed_at`)
   guarantee a single owner per workflow and make a workflow abandoned by a crashed pod claimable again once
-  the lease expires. A heartbeat refreshes the lease during long steps so it is not stolen mid-flight.
+  the lease expires. A heartbeat refreshes the lease during long steps so it is not stolen mid-flight,
+  and only while this worker still owns a claimable workflow.
+- **Every step is bounded by `WORKFLOW_STEP_TIMEOUT_MS`.** Without it a Keycloak call that never
+  returns would be kept alive by its own heartbeat forever: never retried, never failed, never dead
+  lettered. A timeout is raised as a `TransientStepError` so it retries with the normal backoff.
+- A delete **supersedes** any in-flight or queued workflow for the integration, and the orchestrator
+  re-reads the workflow state before each step so a superseded workflow stops instead of re-creating
+  what the delete just removed. Terminal transitions are state-guarded, so a superseded workflow can
+  never overwrite the delete's outcome or dead letter itself.
 - Retries shorter than `IN_PROCESS_RETRY_CEILING_MS` are re-armed with an in-process timer; anything
   longer (and anything lost to a restart) is picked up by the cron tick.
 - Exhausted or permanently failed workflows are written to `request_workflow_failures` and raise a
-  Rocket.Chat ops alert.
+  Rocket.Chat ops alert. Steps marked `optional` (currently `NOTIFY`) become `SKIPPED` instead of
+  failing the workflow, because `FINALIZE` has already applied the integration by then.
 
 ### 5. Code quality and observability
 
@@ -219,26 +239,35 @@ rollback is worse than the partial state it repairs. Instead:
 
 Three new tables (`db/src/migrations/2026.09.15T10.00.00.create-request-workflow-tables.ts`):
 
-| Table                           | Purpose                                                                                            |
-| ------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `request_workflows`             | One row per workflow: state, payload snapshot, context, claim/lease, `run_after`, `correlation_id` |
-| `request_workflow_steps`        | The persisted plan and the idempotency ledger; unique on `(request_workflow_id, name)`             |
-| `request_workflow_dead_letters` | Unrecoverable workflows awaiting manual intervention                                               |
+| Table                       | Purpose                                                                                            |
+| --------------------------- | -------------------------------------------------------------------------------------------------- |
+| `request_workflows`         | One row per workflow: state, payload snapshot, context, claim/lease, `run_after`, `correlation_id` |
+| `request_workflow_steps`    | The persisted plan and the idempotency ledger; unique on `(request_workflow_id, name)`             |
+| `request_workflow_failures` | Unrecoverable workflows awaiting manual intervention                                               |
 
 Other migrations:
 
-- `2026.09.15T10.05.00.add-request-workflow-statuses` — adds `processing` to the `requests.status` enum.
-  It also adds a `compensating` label; rollback was removed after this migration shipped, so that
-  label (and the `compensation_attempts` column) is inert and no code writes it.
 - `2026.09.15T10.10.00.drop-request-queues-table` — drops `request_queues`. The `RequestQueue`
   sequelize models were deleted from both `app/` and `api/`.
+- `2026.09.17T10.00.00.add-queued-workflow-index` — the one-queued-follow-up-per-integration index.
+
+No change to `requests.status` was needed. An earlier revision added a `processing` label to the
+`enum_requests_status` type, but `ALTER TYPE ... ADD VALUE` requires **ownership** of the type, and
+ownership cannot be granted with `GRANT`. In OpenShift the type is owned by the role that
+bootstrapped the database, not by the migration user, so the migration failed with
+`must be owner of type enum_requests_status`. The label was purely cosmetic — the request sits on
+`planned` for the duration of the apply, which every status guard and `getStatusDisplayName` already
+treat identically — so the dependency was removed rather than worked around.
+
+> Adding a value to `requests.status` therefore requires a DBA to run
+> `ALTER TYPE "enum_requests_status" OWNER TO <migration_role>` first. Prefer deriving new UI state
+> from `request_workflow_steps` instead.
 
 ### Request status transitions
 
-`submitted → planned → processing → applied`, or `→ planFailed` / `→ applyFailed` on terminal
-failure. `getStatusDisplayName` maps the new `processing` value to the existing "Submitted" display
-name, so nothing downstream had to change; `hasAnyPendingStatus` includes it so the dashboard keeps
-polling.
+`submitted → planned → applied`, or `→ planFailed` / `→ applyFailed` on terminal failure. Live
+progress during the apply comes from `request_workflow_steps` via the progress endpoint, not from
+`requests.status`.
 
 ### Code layout
 
@@ -266,7 +295,7 @@ is evaluated while the module graph is mid-cycle.
 | Submit / update integration                           | Asynchronous                                                                                                                      |
 | Delete integration                                    | Asynchronous; supersedes any in-flight workflow for that integration                                                              |
 | Restore integration                                   | Asynchronous; role re-creation and the restore email became workflow steps so they only run once the Keycloak clients exist again |
-| Resubmit                                              | Now means "retry the workflow"; accepts in-flight and failed statuses and re-drives the existing workflow                         |
+| Resubmit                                              | Now means "retry the workflow"; accepts in-flight and failed statuses. A resubmit during an apply is queued behind it             |
 | Team API service accounts (`app/controllers/team.ts`) | Still synchronous via `{ awaitCompletion: true }`, because the caller reads the client credentials immediately afterwards         |
 
 ### User interface
@@ -294,6 +323,7 @@ is evaluated while the module graph is mid-cycle.
   | `WORKFLOW_RETRY_BASE_DELAY_MS`         | `2000`       | Backoff base                                          |
   | `WORKFLOW_RETRY_MAX_DELAY_MS`          | `120000`     | Backoff ceiling                                       |
   | `WORKFLOW_IN_PROCESS_RETRY_CEILING_MS` | `60000`      | Above this, retries wait for the cron tick            |
+  | `WORKFLOW_STEP_TIMEOUT_MS`             | `300000`     | Ceiling on a single step before it is retried         |
   | `WORKFLOW_EXECUTION_MODE`              | `background` | `background` \| `synchronous` \| `manual` (see below) |
 
 ### Testing

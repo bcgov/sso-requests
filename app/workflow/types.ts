@@ -4,9 +4,12 @@ import { IntegrationData } from '@app/shared/interfaces';
  * Lifecycle of a workflow instance. Every value is persisted; the orchestrator never keeps workflow
  * state in memory, so a crashed pod resumes from whatever is in Postgres.
  *
- *   PENDING ──▶ RUNNING ──▶ COMPLETED
- *                  │
- *                  └──▶ FAILED (retries exhausted or permanent error)
+ *   QUEUED ──▶ PENDING ──▶ RUNNING ──▶ COMPLETED
+ *                             │
+ *                             └──▶ FAILED (retries exhausted or permanent error)
+ *
+ *   QUEUED holds a submission that arrived while another workflow owned the integration. It is never
+ *   claimed by a worker; it is promoted to PENDING once the in-flight workflow reaches a terminal state.
  *
  *   Failed steps are never rolled back: work already applied stays applied, and a retry always
  *   resumes from the step that failed.
@@ -15,6 +18,7 @@ import { IntegrationData } from '@app/shared/interfaces';
  *   (e.g. a delete issued while an update is still in flight).
  */
 export enum WorkflowState {
+  QUEUED = 'QUEUED',
   PENDING = 'PENDING',
   RUNNING = 'RUNNING',
   COMPLETED = 'COMPLETED',
@@ -22,7 +26,11 @@ export enum WorkflowState {
   SUPERSEDED = 'SUPERSEDED',
 }
 
-export const ACTIVE_WORKFLOW_STATES = [WorkflowState.PENDING, WorkflowState.RUNNING];
+/** States that own the integration: the dashboard keeps polling while a workflow is in one of these. */
+export const ACTIVE_WORKFLOW_STATES = [WorkflowState.QUEUED, WorkflowState.PENDING, WorkflowState.RUNNING];
+
+/** Only these can be leased by a worker. A QUEUED workflow waits for promotion instead. */
+export const CLAIMABLE_WORKFLOW_STATES = [WorkflowState.PENDING, WorkflowState.RUNNING];
 
 export const TERMINAL_WORKFLOW_STATES = [WorkflowState.COMPLETED, WorkflowState.FAILED, WorkflowState.SUPERSEDED];
 

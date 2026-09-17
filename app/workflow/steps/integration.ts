@@ -14,7 +14,11 @@ const ENVIRONMENT_LABELS: Record<string, string> = {
 };
 
 export const orderedEnvironments = (workflow: WorkflowRecord): string[] =>
-  ENVIRONMENT_ORDER.filter((env) => (workflow.payload?.environments || []).includes(env));
+  // Removal is a no-op where nothing exists, so deletes sweep every environment rather than trusting a
+  // snapshot that may not list one a superseded update already created.
+  workflow.type === WorkflowType.INTEGRATION_DELETE
+    ? ENVIRONMENT_ORDER
+    : ENVIRONMENT_ORDER.filter((env) => (workflow.payload?.environments || []).includes(env));
 
 const setRequestStatus = async (requestId: number, status: string) => {
   await models.request.update({ status }, { where: { id: requestId } });
@@ -49,8 +53,6 @@ const applyEnvironmentStep = (workflow: WorkflowRecord, environment: string): Wo
     // `keycloakClient` is a converge-to-desired-state operation (find-or-create for the client,
     // roles, scopes and mappers), so re-running it after a partial failure is safe.
     execute: async ({ log }) => {
-      await setRequestStatus(workflow.requestId, 'processing');
-
       const applied = await keycloakClient(environment, workflow.payload, workflow.context.existingClientId);
       if (!applied) {
         throw new TransientStepError(`Keycloak did not confirm the ${environment} client configuration`);
