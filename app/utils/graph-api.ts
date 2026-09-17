@@ -362,7 +362,7 @@ export const setupEntraIntegration = async (
   appName: string,
   environment: string,
   request: IntegrationData,
-): Promise<{ appId: string; servicePrincipalId: string; secret: string | null; secretExpiryDate: string | null }> => {
+): Promise<{ appId: string; servicePrincipalId: string; secret: PasswordCredential | null }> => {
   let appReg = await getAppRegistration(appName as string);
   if (!appReg) {
     const kcBaseUrl = getKeycloakBaseUrlByEnvironment(environment);
@@ -396,8 +396,7 @@ export const setupEntraIntegration = async (
   return {
     appId: appReg?.appId!,
     servicePrincipalId: servicePrincipal.id!,
-    secret: appReg?.passwordCredentials?.[0]?.secretText || null,
-    secretExpiryDate: appReg?.passwordCredentials?.[0]?.endDateTime || null,
+    secret: appReg?.passwordCredentials?.[0]!,
   };
 };
 
@@ -470,6 +469,19 @@ export const getAppRegistration = async (appName: string): Promise<Application |
   }
 };
 
+export const getAppRegistrationByAppId = async (appId: string): Promise<Application | null> => {
+  try {
+    // Alternate-key addressing returns the entity itself, not an OData collection.
+    const response = await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications(appId='${appId}')`, {
+      method: 'GET',
+    });
+    return response?.id ? response : null;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Unable to retrieve the Entra application registration by appId ' + appId);
+  }
+};
+
 export const createServicePrincipal = async (appId: string): Promise<ServicePrincipal> => {
   try {
     return await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/servicePrincipals`, {
@@ -524,22 +536,7 @@ export const deleteServicePrincipal = async (servicePrincipalId: string): Promis
     });
   } catch (error) {
     console.error(error);
-    throw new Error('Unable to delete the Entra service principal');
-  }
-};
-
-export const getAppRegistrationByAppId = async (appId: string): Promise<Application | null> => {
-  try {
-    const response = await callAzureGraphApi(
-      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications?$filter=appId eq '${appId}'`,
-      {
-        method: 'GET',
-      },
-    );
-    return response.value && response.value.length > 0 ? response.value[0] : null;
-  } catch (error) {
-    console.error(error);
-    throw new Error('Unable to retrieve the Entra application registration by appId');
+    throw new Error('Unable to delete the Entra service principal with id ' + servicePrincipalId);
   }
 };
 
@@ -581,7 +578,7 @@ export const assignClaimMappingPolicy = async (servicePrincipalId: string, polic
 
 export const refreshAppRegistrationSecret = async (appId: string): Promise<PasswordCredential | null> => {
   try {
-    const response = await callAzureGraphApi(
+    const newSecret = await callAzureGraphApi(
       `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications(appId='${appId}')/addPassword`,
       {
         method: 'POST',
@@ -593,14 +590,14 @@ export const refreshAppRegistrationSecret = async (appId: string): Promise<Passw
         },
       },
     );
-    return response || null;
+    return newSecret;
   } catch (error) {
     console.error(error);
     throw new Error(`Unable to refresh the secret for the application with appId: ${appId}`);
   }
 };
 
-export const deleteExpiredEntraClientSecret = async (appId: string, keyId: string) => {
+export const deleteAppRegistrationSecret = async (appId: string, keyId: string): Promise<void> => {
   try {
     await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications(appId='${appId}')/removePassword`, {
       method: 'POST',
@@ -610,6 +607,6 @@ export const deleteExpiredEntraClientSecret = async (appId: string, keyId: strin
     });
   } catch (error) {
     console.error(error);
-    throw new Error(`Unable to delete expired secrets for the application with appId: ${appId}`);
+    throw new Error(`Unable to remove the secret with keyId: ${keyId} for the application with appId: ${appId}`);
   }
 };

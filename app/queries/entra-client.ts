@@ -20,6 +20,7 @@ export const saveEntraClient = async (
     appId: string;
     secret: string;
     servicePrincipalId: string;
+    secretKeyId: string;
     secretExpiryDate: Date | null;
     environment: string;
     requestId: number;
@@ -27,6 +28,12 @@ export const saveEntraClient = async (
   options: { plain?: boolean } = {},
 ) => {
   return await models.entraClient.create(data, options);
+};
+
+export const fetchAllEntraClients = async (options: { plain?: boolean } = {}) => {
+  return await models.entraClient.findAll({
+    ...(options.plain ? { plain: true } : {}),
+  });
 };
 
 export const fetchAllEntraClientsWithExpiringSecrets = async (days: number, options: { plain?: boolean } = {}) => {

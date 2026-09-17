@@ -70,6 +70,7 @@ const createPersistedEntraClient = (request: typeof integration) =>
     appName: 'entra-project-1-dev',
     appId: 'app-id',
     secret: 'client-secret',
+    secretKeyId: 'secret-key-id',
     servicePrincipalId: 'service-principal-id',
     secretExpiryDate: new Date('2028-01-01T00:00:00.000Z'),
     environment: 'dev',
@@ -112,11 +113,11 @@ beforeEach(() => {
   graphApi.setupEntraIntegration.mockResolvedValue({
     appId: 'app-id',
     servicePrincipalId: 'service-principal-id',
-    secret: 'client-secret',
-    secretExpiryDate: '2028-01-01T00:00:00.000Z',
+    secret: { secretText: 'client-secret', keyId: 'secret-key-id', endDateTime: '2028-01-01T00:00:00.000Z' },
   });
   graphApi.refreshAppRegistrationSecret.mockResolvedValue({
     secretText: 'refreshed-client-secret',
+    keyId: 'refreshed-secret-key-id',
     endDateTime: '2029-01-01T00:00:00.000Z',
   } as never);
 });
@@ -150,11 +151,10 @@ describe('createEntraIntegration', () => {
       expect.objectContaining({
         alias: 'entra-client',
         displayName: 'Entra Project',
-        realm: 'standard',
+        realm: KC_ENTRA_IDP_REALM,
         config: expect.objectContaining({ clientId: 'app-id', clientSecret: 'client-secret' }),
       }),
       'dev',
-      KC_ENTRA_IDP_REALM,
     );
     expect(idp.createIdpMapper).toHaveBeenCalledTimes(bcgovIdirIdpMappers.length);
     expect(idp.createIdpMapper).toHaveBeenCalledWith(
@@ -183,8 +183,7 @@ describe('createEntraIntegration', () => {
     graphApi.setupEntraIntegration.mockResolvedValue({
       appId: 'app-id',
       servicePrincipalId: 'service-principal-id',
-      secret: '',
-      secretExpiryDate: '',
+      secret: { secretText: '', keyId: '', endDateTime: '' },
     });
 
     await requests.createEntraIntegration('dev', missingSecretIntegration);

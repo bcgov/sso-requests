@@ -100,6 +100,7 @@ import { createSdxRequest } from './sdx-services';
 import { getEntraClientByRequestId, saveEntraClient } from '@app/queries/entra-client';
 import { createEvent } from '@app/queries/event';
 import { enqueueRequestWorkflow } from '@app/workflow/request-workflow';
+import { PasswordCredential } from '@microsoft/microsoft-graph-types';
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
@@ -1145,25 +1146,33 @@ export const createEntraIntegration = async (environment: string, request: Integ
 
     let entraClient = await getCurrentEntraClient();
 
-    let application = null;
+    let application: {
+      appId: string;
+      secret?: PasswordCredential | null;
+      servicePrincipalId: string;
+    } = {
+      appId: '',
+      servicePrincipalId: '',
+      secret: undefined,
+    };
 
     const appName = kebabCase(`${request.projectName}-${request.id}-${environment}`);
     if (!entraClient) {
       application = await setupEntraIntegration(appName, environment, request);
       if (application) {
         // refresh the application secret if it does not exist
-        if (!application.secret) {
+        if (!application?.secret?.secretText) {
           const refreshPwdCred = await refreshAppRegistrationSecret(application.appId);
-          application.secret = refreshPwdCred?.secretText || '';
-          application.secretExpiryDate = refreshPwdCred?.endDateTime || '';
+          application.secret = refreshPwdCred;
         }
 
         entraClient = await saveEntraClient({
           appName,
           appId: application.appId,
-          secret: application.secret,
+          secret: application?.secret?.secretText!,
+          secretKeyId: application?.secret?.keyId!,
+          secretExpiryDate: new Date(application?.secret?.endDateTime!),
           servicePrincipalId: application.servicePrincipalId,
-          secretExpiryDate: application.secretExpiryDate ? new Date(application.secretExpiryDate) : null,
           environment,
           requestId: request.id!,
         });

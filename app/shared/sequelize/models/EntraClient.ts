@@ -25,6 +25,10 @@ const init = (sequelize: any, DataTypes: any) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
+      secretKeyId: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
       secretExpiryDate: {
         type: DataTypes.DATE,
         allowNull: true,
