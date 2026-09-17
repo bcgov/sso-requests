@@ -4,8 +4,10 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 export default function main() {
-  console.info('Task 1: Processing requests queue for every 5 minutes');
-  nodeCron.schedule('*/5 * * * *', async () => {
+  console.info(
+    'Task 1: Request workflow recovery tick every minute (picks up workflows abandoned by a crashed pod or waiting on a retry backoff)',
+  );
+  nodeCron.schedule('*/1 * * * *', async () => {
     fetch(`${process.env.APP_URL}/api/processRequestQueue`, {
       method: 'GET',
       headers: {
@@ -47,6 +49,27 @@ export default function main() {
     }).catch((error) => {
       console.error(
         `Error calling ${process.env.APP_URL}/api/cleanupCssApiUsage`,
+        error,
+      );
+    });
+  });
+
+  console.info(
+    'Task 4: Refresh entra app registration client secrets daily at 6 am',
+  );
+  nodeCron.schedule('0 6 * * *', async () => {
+    fetch(
+      `${process.env.APP_URL}/api/ms-graph/refreshApplicationSecrets?daysUntilExpiry=21`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `${process.env.API_AUTH_SECRET}`,
+        },
+      },
+    ).catch((error) => {
+      console.error(
+        `Error calling ${process.env.APP_URL}/api/ms-graph/refreshApplicationSecrets`,
         error,
       );
     });

@@ -2,7 +2,7 @@ import { chunk } from 'lodash';
 import createHttpError from 'http-errors';
 import { getAdminClient } from './adminClient';
 import { createAzureIdirUser } from './users';
-import { verifyAzureIdirAccountByGuid } from '@app/utils/ms-graph-idir';
+import { verifyAzureIdirAccountByGuid } from '@app/utils/graph-api';
 import { Integration } from '@app/interfaces/Request';
 
 const MAX_CLIENT_ROLE_COUNT = 5000;

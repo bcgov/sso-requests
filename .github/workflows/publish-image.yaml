@@ -101,6 +101,7 @@ jobs:
           NEXT_PUBLIC_SSO_IDP_HINT=azureidir
           NEXT_PUBLIC_APP_URL=https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca
           NEXT_PUBLIC_INCLUDE_SDX_SERVICES=true
+          NEXT_PUBLIC_INCLUDE_BCGOVIDIR=true
 
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           GRAFANA_API_TOKEN=${{ secrets.DEV_GRAFANA_API_TOKEN }}
@@ -138,6 +139,7 @@ jobs:
           NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT=https://test.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
           NEXT_PUBLIC_APP_URL=https://sso-requests-test.apps.gold.devops.gov.bc.ca
           NEXT_PUBLIC_INCLUDE_SDX_SERVICES=false
+          NEXT_PUBLIC_INCLUDE_BCGOVIDIR=false
 
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           GRAFANA_API_TOKEN=${{ secrets.DEV_GRAFANA_API_TOKEN }}
@@ -177,6 +179,7 @@ jobs:
           NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT=https://loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
           NEXT_PUBLIC_APP_URL=https://sso-requests.apps.gold.devops.gov.bc.ca
           NEXT_PUBLIC_INCLUDE_SDX_SERVICES=false
+          NEXT_PUBLIC_INCLUDE_BCGOVIDIR=false
 
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           GRAFANA_API_TOKEN=${{ secrets.PROD_GRAFANA_API_TOKEN }}
@@ -255,6 +258,7 @@ jobs:
             NEXT_PUBLIC_APP_ENV=${{ env.NEXT_PUBLIC_APP_ENV }}
             NEXT_PUBLIC_SSO_IDP_HINT=${{ env.NEXT_PUBLIC_SSO_IDP_HINT }}
             NEXT_PUBLIC_INCLUDE_SDX_SERVICES=${{ env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES }}
+            NEXT_PUBLIC_INCLUDE_BCGOVIDIR=${{ env.NEXT_PUBLIC_INCLUDE_BCGOVIDIR }}
           context: .
           push: true
           tags: ${{ env.GITHUB_REGISTRY }}/bcgov/sso-requests:${{ needs.set-tag.outputs.tag }}

@@ -10,6 +10,7 @@ export const idpMap: any = {
   bcservicescard: 'BC Services Card',
   social: 'Social',
   otp: 'One Time Passcode',
+  bcgovidir: 'BCGOV IDIR',
 };
 
 export const envMap: any = {

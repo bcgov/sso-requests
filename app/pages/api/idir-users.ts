@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { searchIdirEmail } from '@app/utils/ms-graph-idir';
+import { searchIdirEmail } from '@app/utils/graph-api';
 import { handleError } from '@app/utils/helpers';
 import { authenticate } from '@app/utils/authenticate';
 

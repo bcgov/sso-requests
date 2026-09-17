@@ -1,6 +1,7 @@
 import { instance } from './axios';
 import { orderBy, isString, omit } from 'lodash';
 import { Integration } from 'interfaces/Request';
+import { RequestWorkflowProgress } from '@app/interfaces/WorkflowProgress';
 import { processRequest } from 'utils/helpers';
 import { handleAxiosError } from 'services/axios';
 import { AxiosError } from 'axios';
@@ -51,6 +52,19 @@ export const resubmitRequest = async (requestId: number): Promise<[Integration, 
   try {
     const result: Integration = await instance.get(`requests/${requestId}/resubmit`).then((res) => res.data);
     return [processRequest(result), null];
+  } catch (err: any) {
+    return handleAxiosError(err);
+  }
+};
+
+export const getIntegrationProgress = async (
+  requestId: number,
+): Promise<[RequestWorkflowProgress | null, null] | [null, AxiosError]> => {
+  try {
+    const result: RequestWorkflowProgress | null = await instance
+      .get(`requests/${requestId}/progress`)
+      .then((res) => res.data);
+    return [result, null];
   } catch (err: any) {
     return handleAxiosError(err);
   }

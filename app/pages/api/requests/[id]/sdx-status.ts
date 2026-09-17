@@ -12,6 +12,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!userSession) return res.status(401).json({ success: false, message: 'not authorized' });
       await processUserSession(userSession as Session);
 
+      if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES !== 'true') {
+        return res.status(403).json({ success: false, message: 'SDX services not enabled' });
+      }
+
       const { id } = req.query || {};
       const data = await getSdxSubsystemStatus(Number(id));
       return res.status(200).json(data);

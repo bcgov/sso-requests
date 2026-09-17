@@ -1,4 +1,4 @@
-import { errorMessages, environmentOptions } from '@app/utils/constants';
+import { errorMessages, environmentOptions, KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 import { LoggedInUser, Team, User } from '@app/interfaces/team';
 import { Integration, Option, GoldIDPOption } from '@app/interfaces/Request';
 import { getStatusDisplayName } from '@app/utils/status';
@@ -270,6 +270,7 @@ export const hasAnyPendingStatus = (requests: Integration[]) => {
       'pr',
       'prFailed',
       'planned',
+      'processing',
       'planFailed',
       'approved',
       // 'applied',
@@ -448,10 +449,11 @@ export const validateIDPs = ({
   // Exclude admin-only options
   const addingGithubPublic = updatedIdps.includes('githubpublic') && !currentIdps.includes('githubpublic');
   const addingOTP = updatedIdps.includes('otp') && !currentIdps.includes('otp');
+  const addingBcgovidir = updatedIdps.includes(KC_ENTRA_IDP_REALM) && !currentIdps.includes(KC_ENTRA_IDP_REALM);
 
   if (
     !hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS) &&
-    (addingGithubPublic || addingOTP)
+    (addingGithubPublic || addingOTP || addingBcgovidir)
   ) {
     return false;
   }
@@ -785,3 +787,10 @@ export const containsPrefix = (csvString: string | string[], prefix: string) => 
 
 export const allBceidEnvsApproved = (integration: Integration) =>
   Boolean(integration.devBceidApproved && integration.testBceidApproved && integration.bceidApproved);
+
+export const getKeycloakBaseUrlByEnvironment = (environment: string) => {
+  if (environment === 'dev') return process.env.KEYCLOAK_V2_DEV_URL;
+  if (environment === 'test') return process.env.KEYCLOAK_V2_TEST_URL;
+  if (environment === 'prod') return process.env.KEYCLOAK_V2_PROD_URL;
+  return '';
+};

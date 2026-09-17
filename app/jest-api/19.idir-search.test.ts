@@ -7,19 +7,33 @@ import {
   searchAzureIdirUsersByEmail,
   searchIdirUsers,
 } from './helpers/modules/users';
-import { searchIdirEmail } from '@app/utils/ms-graph-idir';
-import * as graphApiModule from '@app/utils/graph-api';
+import { searchIdirEmail } from '@app/utils/graph-api';
+import axios from 'axios';
 
 const AZURE_RESPONSE = ['some.user@email.com'];
 
-jest.mock('@app/utils/ms-graph-idir', () => {
-  const originalModule = jest.requireActual('@app/utils/ms-graph-idir');
+jest.mock('@app/utils/graph-api', () => {
+  const originalModule = jest.requireActual('@app/utils/graph-api');
   return {
     __esModule: true,
     ...originalModule,
+    getAzureAccessToken: jest.fn(() => Promise.resolve('mocked-access-token')),
     searchIdirEmail: jest.fn(() => Promise.resolve(AZURE_RESPONSE)),
   };
 });
+
+// callAzureGraphApi and getAzureAccessToken call each other from within the same module, so
+// mocking their exports (above/via spyOn) can't intercept those internal calls. Mock the actual
+// dependencies they use (axios and MSAL) instead.
+jest.mock('axios');
+
+jest.mock('@azure/msal-node', () => ({
+  ConfidentialClientApplication: jest.fn().mockImplementation(() => ({
+    acquireTokenByClientCredential: jest.fn(() =>
+      Promise.resolve({ accessToken: 'mocked-access-token', expiresOn: new Date(Date.now() + 3600_000) }),
+    ),
+  })),
+}));
 
 // mock easy-soap-request to send back a xml response that contains 2 users for the searchIdirUsers test
 jest.mock('easy-soap-request', () => {
@@ -147,8 +161,8 @@ describe('should allow searching and importing azure idir users', () => {
 
   it('should return idir search results', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-    jest.spyOn(graphApiModule, 'callAzureGraphApi').mockImplementationOnce(() =>
-      Promise.resolve({
+    (axios.request as jest.Mock).mockResolvedValueOnce({
+      data: {
         value: [
           {
             onPremisesExtensionAttributes: { extensionAttribute12: '1234' },
@@ -177,8 +191,8 @@ describe('should allow searching and importing azure idir users', () => {
             userPrincipalName: 'IDIRUSER2',
           },
         ],
-      } as any),
-    );
+      },
+    });
     const result = await searchAzureIdirUsers('mail', 'search');
     expect(result.status).toBe(200);
     expect(result.body.length).toEqual(2);
@@ -192,8 +206,8 @@ describe('should allow searching and importing azure idir users', () => {
 
   it('should import user successfully', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-    jest.spyOn(graphApiModule, 'callAzureGraphApi').mockImplementationOnce(() =>
-      Promise.resolve({
+    (axios.request as jest.Mock).mockResolvedValueOnce({
+      data: {
         value: [
           {
             onPremisesExtensionAttributes: { extensionAttribute12: '1234' },
@@ -209,8 +223,8 @@ describe('should allow searching and importing azure idir users', () => {
             userPrincipalName: 'IDIRUSER1',
           },
         ],
-      } as any),
-    );
+      },
+    });
     const userData = {
       guid: '1234',
       userId: 'idirUser1',

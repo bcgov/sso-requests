@@ -154,6 +154,8 @@ class Request {
     }
 
     approvalButtons.forEach((btnText) => {
+      // ensure the btn is not disabled before clicking
+      cy.contains(btnText).should('not.be.disabled', { timeout: 10000 });
       cy.contains(btnText).click();
       cy.get(confirmSelector).trigger('click');
 
@@ -299,6 +301,13 @@ class Request {
 
     cy.contains('td', id, { timeout: 10000 })
       .parent()
+      .scrollIntoView()
+      .within(() => {
+        cy.contains('td', 'Completed', { timeout: 10000 });
+      });
+
+    cy.contains('td', id, { timeout: 10000 })
+      .parent()
       .click()
       .scrollIntoView()
       .within(() => {
@@ -417,6 +426,13 @@ class Request {
   updateRequest(id: string): boolean {
     cy.log('Update Request: ' + id);
     this.navigation.goToMyDashboard();
+
+    cy.contains('td', id, { timeout: 10000 })
+      .parent()
+      .scrollIntoView()
+      .within(() => {
+        cy.contains('td', 'Completed', { timeout: 10000 });
+      });
 
     cy.contains('td', id, { timeout: 10000 })
       .parent()

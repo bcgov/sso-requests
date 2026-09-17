@@ -25,7 +25,7 @@ import { buildIntegration } from './helpers/modules/common';
 import { models } from '@app/shared/sequelize/models/models';
 import { EVENTS } from '@app/shared/enums';
 import { keycloakClient } from '@app/keycloak/integration';
-import { validateIdirEmail } from '@app/utils/ms-graph-idir';
+import { validateIdirEmail } from '@app/utils/graph-api';
 import { createMockAuth } from './mocks/authenticate';
 
 const integrationRoles = [
@@ -65,7 +65,7 @@ const AZURE_EMAIL_RESPONSE = {
   family_name: 'Doe',
 };
 
-jest.mock('@app/utils/ms-graph-idir', () => {
+jest.mock('@app/utils/graph-api', () => {
   return {
     searchIdirEmail: jest.fn(() => Promise.resolve(AZURE_FUZZY_SEARCH_RESPONSE)),
     validateIdirEmail: jest.fn(() => Promise.resolve(AZURE_EMAIL_RESPONSE)),

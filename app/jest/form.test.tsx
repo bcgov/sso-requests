@@ -407,8 +407,6 @@ describe('Client Sessions', () => {
 
     const updateRequestCalls = (updateRequest as jest.Mock).mock.calls;
 
-    console.log('🚀 ~ updateRequestCalls:', updateRequestCalls);
-
     expect(updateRequestCalls[updateRequestCalls.length - 1][0].devSessionIdleTimeout).toBe(idleTimeout * 60);
     expect(updateRequestCalls[updateRequestCalls.length - 1][0].devSessionMaxLifespan).toBe(maxLifespan * 60);
     expect(updateRequest).toHaveBeenCalled();
