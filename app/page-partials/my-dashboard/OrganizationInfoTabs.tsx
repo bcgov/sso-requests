@@ -82,6 +82,20 @@ const Pill = styled.span<{ pending: boolean }>`
   background: ${(props) => (props.pending ? '#fff4d6' : '#dff0d8')};
 `;
 
+// One entry per team, each carrying its own list of levels. The team entries
+// are not bulleted: they read as headings over the levels beneath them.
+const PermissionsList = styled.ul`
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+
+  ul {
+    margin: 0;
+    padding-left: 1.2em;
+    list-style: disc;
+  }
+`;
+
 const describeLink = (link: OrganizationTeamLink, integrations: TeamIntegration[]): string[] => {
   const nameFor = (id: number) => integrations.find((integration) => integration.id === id)?.projectName;
   const parts = [`All integrations: ${describePermissions(link.permissions)}`];
@@ -122,6 +136,7 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
   const [inviteTeamId, setInviteTeamId] = useState<number | undefined>(undefined);
   const [proposed, setProposed] = useState<Permission[]>([...PRESETS.viewer]);
 
+  const [openRequestAccountModal, setOpenRequestAccountModal] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState<OrganizationApiAccount | null>(null);
   const [linkToRemove, setLinkToRemove] = useState<OrganizationTeamLink | null>(null);
 
@@ -210,6 +225,34 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
     setLinkToRemove(null);
     reload();
   };
+
+  const handleRequestAccount = async () => {
+    const [, err] = await createOrganizationApiAccount(organization.id);
+    if (err) return fail('Could not create the API account.');
+    setOpenRequestAccountModal(false);
+    reload();
+  };
+
+  // What any API account of the organization can reach: one entry per joined
+  // team, at the level that team consented to. Shown both on the accounts
+  // table and in the request confirmation, so the two never disagree.
+  const permissionsSummary =
+    activeLinks.length === 0 ? (
+      <em>no teams have joined yet</em>
+    ) : (
+      <PermissionsList>
+        {activeLinks.map((link) => (
+          <li key={link.id}>
+            <strong>{link.team?.name}:</strong>
+            <ul>
+              {describeLink(link, integrationsFor(link.teamId)).map((part) => (
+                <li key={part}>{part}</li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </PermissionsList>
+    );
 
   const handleDeleteAccount = async () => {
     if (!accountToDelete) return;
@@ -343,15 +386,7 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
 
   const apiAccountsTab = (
     <Panel>
-      <button
-        className="primary"
-        disabled={!canManageApiAccounts}
-        onClick={async () => {
-          const [, err] = await createOrganizationApiAccount(organization.id);
-          if (err) return fail('Could not create the API account.');
-          reload();
-        }}
-      >
+      <button className="primary" disabled={!canManageApiAccounts} onClick={() => setOpenRequestAccountModal(true)}>
         + Request CSS API Account
       </button>
       <p>
@@ -369,21 +404,7 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
           {
             accessorKey: 'permissions',
             header: 'Permissions',
-            cell: () => (
-              <>
-                {activeLinks.length === 0 && <em>no teams have joined yet</em>}
-                {activeLinks.map((link) => (
-                  <div key={link.id}>
-                    <strong>{link.team?.name}:</strong>
-                    <ul>
-                      {describeLink(link, integrationsFor(link.teamId)).map((part) => (
-                        <li key={part}>{part}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </>
-            ),
+            cell: () => permissionsSummary,
           },
           {
             accessorKey: 'actions',
@@ -585,6 +606,31 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
             }?`}
             content={`Removing this team will immediately revoke access to its integrations from organization members and API accounts.`}
           />
+        }
+      />
+
+      <CenteredModal
+        id="request-organization-api-account-modal"
+        openModal={openRequestAccountModal}
+        handleClose={() => setOpenRequestAccountModal(false)}
+        title="Request CSS API Account"
+        icon={false}
+        closable
+        confirmText="Request Account"
+        skipCloseOnConfirm
+        onConfirm={handleRequestAccount}
+        content={
+          <div>
+            <p>
+              A new CSS API account for {organization.name} will be able to act on the integrations of every team that
+              has joined, at the level each team consented to:
+            </p>
+            {permissionsSummary}
+            <p>
+              Permissions are read at the moment of each request, so the account follows any later change to a
+              team&apos;s membership or consent.
+            </p>
+          </div>
         }
       />
 

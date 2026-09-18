@@ -3,6 +3,7 @@ import OrganizationList from '@app/page-partials/my-dashboard/OrganizationList';
 import OrganizationInfoTabs from '@app/page-partials/my-dashboard/OrganizationInfoTabs';
 import { PRESETS } from '@sso/authz';
 import {
+  createOrganizationApiAccount,
   deleteOrganization,
   deleteOrganizationApiAccount,
   getOrganizationApiAccounts,
@@ -35,6 +36,7 @@ const organization = { id: 1, name: 'Alpha', description: 'Alpha organization', 
 const cssAdmin = { email: 'admin@gov.bc.ca', isAdmin: true, client_roles: ['sso-admin'] };
 const organizationAdmin = { email: 'org-admin@gov.bc.ca', isAdmin: false, client_roles: ['user'] };
 
+const mockedCreateOrganizationApiAccount = jest.mocked(createOrganizationApiAccount);
 const mockedDeleteOrganization = jest.mocked(deleteOrganization);
 const mockedDeleteOrganizationApiAccount = jest.mocked(deleteOrganizationApiAccount);
 const mockedGetOrganizationApiAccounts = jest.mocked(getOrganizationApiAccounts);
@@ -154,6 +156,31 @@ describe('Organization deletion', () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Delete Organization' })).toBeInTheDocument();
+  });
+
+  it('summarizes the permissions an API account will receive before requesting it', async () => {
+    mockedCreateOrganizationApiAccount.mockResolvedValue([{ id: 12 } as any, null]);
+    mockedGetOrganizationTeams.mockResolvedValue([[teamLink()], null]);
+    mockedGetTeamIntegrationsForOrganization.mockResolvedValue([[], null]);
+    render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Accounts' }));
+    fireEvent.click(await screen.findByRole('button', { name: '+ Request CSS API Account' }));
+
+    const modal = (await screen.findByText(/A new CSS API account for Alpha/)).closest(
+      '#request-organization-api-account-modal',
+    )!;
+    expect(modal).toBeInTheDocument();
+    expect(modal.querySelector('ul')).toHaveTextContent('Payments Team');
+    expect(modal.querySelector('ul')).toHaveTextContent('All integrations: Editor');
+    expect(mockedCreateOrganizationApiAccount).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Request Account' }));
+
+    await waitFor(() => {
+      expect(mockedCreateOrganizationApiAccount).toHaveBeenCalledWith(organization.id);
+      expect(mockedGetOrganizationApiAccounts).toHaveBeenCalledTimes(2);
+    });
   });
 
   it('deletes an active organization API account and reloads the account list', async () => {
