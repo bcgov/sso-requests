@@ -282,20 +282,9 @@ describe('field constraints', () => {
 describe('transitions', () => {
   it('partitions every status into in flight or resting', () => {
     expect([...IN_FLIGHT, ...RESTING].sort()).toEqual(
-      [
-        'draft',
-        'submitted',
-        'pr',
-        'prFailed',
-        'planned',
-        'processing',
-        'compensating',
-        'planFailed',
-        'applied',
-        'applyFailed',
-      ].sort(),
+      ['draft', 'submitted', 'pr', 'prFailed', 'planned', 'planFailed', 'applied', 'applyFailed'].sort(),
     );
-    expect(IN_FLIGHT).toEqual(['submitted', 'planned', 'processing', 'compensating']);
+    expect(IN_FLIGHT).toEqual(['submitted', 'planned']);
   });
 
   it('picks the delete transition from the status', () => {
@@ -303,8 +292,6 @@ describe('transitions', () => {
     expect(deleteIntentFor('applied')).toEqual('requestDelete');
     expect(deleteIntentFor('applyFailed')).toEqual('requestDelete');
     expect(deleteIntentFor('planned')).toEqual('forceDelete');
-    expect(deleteIntentFor('processing')).toEqual('forceDelete');
-    expect(deleteIntentFor('compensating')).toEqual('forceDelete');
     expect(deleteIntentFor('submitted')).toEqual('forceDelete');
   });
 
@@ -323,6 +310,25 @@ describe('transitions', () => {
     expect(transitionRefusal('draft', 'save', approver.permissions)).toEqual({
       reason: 'permission',
       needs: ['integrations:write'],
+    });
+  });
+
+  // Pins dev behaviour: resubmit is "retry the workflow", so it is open from anything in
+  // flight or that ended badly, to anyone who could have submitted it — team members and
+  // approvers included, not only admins.
+  it('lets a retry through from every in-flight or failed status, for submitters and approvers alike', () => {
+    expect(TRANSITIONS.resubmit.from).toEqual(['submitted', 'planned', 'planFailed', 'applyFailed']);
+    expect(TRANSITIONS.resubmit.anyOf).toEqual(TRANSITIONS.submit.anyOf);
+    for (const status of TRANSITIONS.resubmit.from) {
+      expect(transitionRefusal(status, 'resubmit', PRESETS['team-member'])).toBeNull();
+      expect(transitionRefusal(status, 'resubmit', approver.permissions)).toBeNull();
+    }
+    for (const status of ['draft', 'applied', 'pr', 'prFailed'] as const) {
+      expect(transitionRefusal(status, 'resubmit', PRESETS['team-admin'])).toEqual({ reason: 'status', from: status });
+    }
+    expect(transitionRefusal('planFailed', 'resubmit', PRESETS.viewer)).toEqual({
+      reason: 'permission',
+      needs: TRANSITIONS.submit.anyOf,
     });
   });
 

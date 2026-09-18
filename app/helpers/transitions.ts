@@ -2,8 +2,8 @@ import type { Permission } from '@sso/authz';
 import type { Status } from '@app/interfaces/types';
 
 // A workflow owns the row in every one of these: submitted before it is claimed,
-// then planned, processing, and compensating while it rolls back.
-export const IN_FLIGHT: readonly Status[] = ['submitted', 'planned', 'processing', 'compensating'];
+// then planned while it applies.
+export const IN_FLIGHT: readonly Status[] = ['submitted', 'planned'];
 export const RESTING: readonly Status[] = ['draft', 'applied', 'planFailed', 'applyFailed', 'pr', 'prFailed'];
 
 export const SETTLED: readonly Status[] = ['draft', 'applied'];
@@ -28,7 +28,13 @@ const APPROVALS: readonly Permission[] = [
 export const TRANSITIONS: Record<Intent, Transition> = {
   save: { from: ['draft'], to: 'draft', anyOf: ['integrations:write'] },
   submit: { from: RESTING, to: 'submitted', anyOf: ['integrations:write', ...APPROVALS] },
-  resubmit: { from: ['submitted'], to: 'submitted', anyOf: ['integrations:write'] },
+  // Resubmit is "retry the workflow": anything in flight or that ended badly
+  // qualifies, for anyone who could have submitted it.
+  resubmit: {
+    from: ['submitted', 'planned', 'planFailed', 'applyFailed'],
+    to: 'submitted',
+    anyOf: ['integrations:write', ...APPROVALS],
+  },
   // Deleting a draft archives it in place; deleting anything that reached
   // Keycloak is itself a submission, so the clients get torn down.
   deleteDraft: { from: ['draft'], to: 'draft', anyOf: ['integrations:delete'] },
