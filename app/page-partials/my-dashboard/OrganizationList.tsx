@@ -87,6 +87,7 @@ function OrganizationList({
 
   const showDeleteModal = (event: MouseEvent, organization: Organization) => {
     event.stopPropagation();
+    if (!canManageOrganizations) return;
     setDeleteError(null);
     setOrganizationToDelete(organization);
   };
@@ -121,7 +122,7 @@ function OrganizationList({
           <tr>
             <th>Organization</th>
             <th>Description</th>
-            {canManageOrganizations && <th aria-label="Actions" />}
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -134,22 +135,21 @@ function OrganizationList({
             >
               <td>{organization.name}</td>
               <td>{organization.description}</td>
-              {canManageOrganizations && (
-                <Actions>
-                  <ActionButtonContainer>
-                    <ActionButton
-                      icon={faTrash}
-                      role="button"
-                      aria-label={`delete-${organization.name}`}
-                      data-testid={`delete-organization-${organization.id}`}
-                      title="Delete organization"
-                      size="lg"
-                      activeColor={PRIMARY_RED}
-                      onClick={(event) => showDeleteModal(event, organization)}
-                    />
-                  </ActionButtonContainer>
-                </Actions>
-              )}
+              <Actions>
+                <ActionButtonContainer>
+                  <ActionButton
+                    icon={faTrash}
+                    role="button"
+                    disabled={!canManageOrganizations}
+                    aria-label={`delete-${organization.name}`}
+                    data-testid={`delete-organization-${organization.id}`}
+                    title={canManageOrganizations ? 'Delete organization' : 'Only CSS admins can delete organizations'}
+                    size="lg"
+                    activeColor={PRIMARY_RED}
+                    onClick={(event) => showDeleteModal(event, organization)}
+                  />
+                </ActionButtonContainer>
+              </Actions>
             </tr>
           ))}
         </tbody>
@@ -175,11 +175,13 @@ function OrganizationList({
               id="organization-name"
               label={'Name'}
               value={name}
+              maxLength={255}
               onChange={(event) => setName(event.target.value)}
             />
             <Input
               id="organization-description"
               value={description}
+              maxLength={255}
               onChange={(event) => setDescription(event.target.value)}
               label="Description"
             />

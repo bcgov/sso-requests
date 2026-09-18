@@ -132,7 +132,10 @@ describe('Organization deletion', () => {
       />,
     );
 
-    expect(screen.queryByRole('button', { name: 'delete-Alpha' })).not.toBeInTheDocument();
+    const disabledDelete = screen.getByRole('button', { name: 'delete-Alpha' });
+    expect(disabledDelete).toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(disabledDelete);
+    expect(screen.queryByText(/Are you sure that you want to delete Alpha/)).not.toBeInTheDocument();
   });
 
   it('keeps the modal open and explains how to resolve an active API account conflict', async () => {

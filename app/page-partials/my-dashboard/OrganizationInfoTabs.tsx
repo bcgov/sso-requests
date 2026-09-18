@@ -499,7 +499,8 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
                     <strong>Role Manager:</strong> Allows viewing and editing integration roles and role assignments.
                   </li>
                   <li>
-                    <strong>Admin:</strong> Full write access to integrations, including their client secrets.
+                    <strong>Admin:</strong> Full write access to integrations and their roles, including their client
+                    secrets.
                   </li>
                 </ul>
               </div>
