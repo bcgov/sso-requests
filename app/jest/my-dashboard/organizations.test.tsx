@@ -237,7 +237,9 @@ describe('Organization management', () => {
     expect(
       await screen.findByText('Are you sure that you want to remove Payments Team from Alpha?'),
     ).toBeInTheDocument();
-    expect(screen.getByText(/loses access to this team’s integrations/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/revoke access to its integrations from organization members and API accounts/),
+    ).toBeInTheDocument();
     expect(mockedRemoveTeamFromOrganization).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Remove Team' }));

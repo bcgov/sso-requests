@@ -29,6 +29,9 @@ export const canEditIntegration = (integration: Integration) => {
 export const canManageUserRoleMappings = (integration: Integration) =>
   isLive(integration) && (permits(integration, 'user-role-mappings:write') ?? true);
 
+export const canChangeClientSecret = (integration: Integration) =>
+  isLive(integration) && (permits(integration, 'integrations:write') ?? true);
+
 export const canDeleteTeam = (team: Team) => {
   if (!team || Number(team.integrationCount) > 0) {
     return false;
