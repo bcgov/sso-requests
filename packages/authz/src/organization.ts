@@ -1,4 +1,4 @@
-import { Permission } from './permissions';
+import { ORG_CONSENTABLE_PERMISSIONS, Permission } from './permissions';
 import { intersect } from './sets';
 
 /**
@@ -37,5 +37,9 @@ export const organizationPermissions = (
   override: readonly Permission[] | null | undefined,
 ): Permission[] => {
   if (!link) return [];
-  return override ? intersect(link.permissions, override) : [...link.permissions];
+  const granted = override ? intersect(link.permissions, override) : link.permissions;
+  // Bounded again at resolution, not only where a consent is written: a stored
+  // row is data, and the one rule an organization can never hold whatever the
+  // row says is the one that would take an integration out of its team.
+  return intersect(granted, ORG_CONSENTABLE_PERMISSIONS);
 };

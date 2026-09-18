@@ -67,12 +67,8 @@ export const getIntegrationByIdAndTeam = (integrationId: number, teamId: number,
   });
 };
 
-export const getIntegrationByClientId = (clientId: string, options = { raw: true }) => {
-  return models.request.findOne({
-    where: { clientId, apiServiceAccount: false, archived: false },
-    ...options,
-  });
-};
+export const getAnyIntegrationByClientId = (clientId: string) =>
+  models.request.findOne({ where: { clientId, archived: false }, attributes: ['id'], raw: true });
 
 export const getWhereClauseForAllRequests = (data: {
   searchField: string[];

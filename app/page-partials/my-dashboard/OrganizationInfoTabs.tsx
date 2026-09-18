@@ -163,6 +163,8 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
     };
   }, [openInviteModal, teamQuery, organization.id]);
 
+  // Joined teams only: the server refuses the rest, and the names are only
+  // needed to describe the per-integration limits under a live consent.
   const loadIntegrations = async (teamId: number) => {
     if (integrationsByTeam[teamId]) return;
     const [result] = await getTeamIntegrationsForOrganization(organization.id, teamId);
@@ -522,11 +524,9 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
               onInputChange={(value, action) => {
                 if (action.action === 'input-change') setTeamQuery(value);
               }}
-              onChange={async (option: any) => {
-                const teamId = option?.value as number | undefined;
-                setInviteTeamId(teamId);
-                if (teamId) await loadIntegrations(teamId);
-              }}
+              // A team's integrations are not the organization's to see until
+              // the team has joined, so nothing is loaded for one being invited.
+              onChange={(option: any) => setInviteTeamId(option?.value as number | undefined)}
               isClearable
             />
             {inviteTeamId && (
@@ -551,13 +551,14 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
                     <strong>Viewer:</strong> Allows viewing integration data, roles, and role assignments.
                   </li>
                   <li>
-                    <strong>Editor:</strong> Allows editing integration data.
+                    <strong>Editor:</strong> Allows editing integration data, and reading or rotating the integration’s
+                    client secrets.
                   </li>
                   <li>
                     <strong>Role Manager:</strong> Allows viewing and editing integration roles and role assignments.
                   </li>
                   <li>
-                    <strong>Admin:</strong> Full write access to integrations.
+                    <strong>Admin:</strong> Full write access to integrations, including their client secrets.
                   </li>
                 </ul>
               </div>

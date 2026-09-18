@@ -8,7 +8,7 @@ import {
   deleteBCSCIntegration,
   deleteEntraIntegration,
 } from '@app/controllers/requests';
-import { usesBcgovIdir, usesBcServicesCard, usesOTP } from '@app/helpers/integration';
+import { isApiAccountClientId, usesBcgovIdir, usesBcServicesCard, usesOTP } from '@app/helpers/integration';
 import axios from 'axios';
 import createHttpError from 'http-errors';
 import { getByRequestId } from '@app/queries/bcsc-client';
@@ -180,6 +180,10 @@ export const keycloakClient = async (
   integration: IntegrationData,
   existingClientId: string = '',
 ) => {
+  if (!integration.apiServiceAccount && isApiAccountClientId(integration.clientId)) {
+    throw new createHttpError.BadRequest(`${integration.clientId} is reserved for CSS API accounts`);
+  }
+
   try {
     let client;
     const offlineAccessEnabled = integration[`${environment}OfflineAccessEnabled` as keyof IntegrationData] || false;

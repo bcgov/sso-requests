@@ -1,6 +1,6 @@
 import createHttpError from 'http-errors';
 import { Op } from 'sequelize';
-import { Permission, TEAM_SCOPED_PERMISSIONS, isSubset, isValidPermissionSet, sortPermissions } from '@sso/authz';
+import { ORG_CONSENTABLE_PERMISSIONS, Permission, isSubset, isValidPermissionSet, sortPermissions } from '@sso/authz';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session } from '@app/shared/interfaces';
 import { EVENTS } from '@app/shared/enums';
@@ -52,8 +52,10 @@ const validateConsent = (permissions: unknown): Permission[] => {
   if (!isValidPermissionSet(permissions)) {
     throw new createHttpError.BadRequest(`unknown permission in ${JSON.stringify(permissions)}`);
   }
-  if (!isSubset(permissions, TEAM_SCOPED_PERMISSIONS)) {
-    throw new createHttpError.BadRequest('a team cannot consent to an administrative permission');
+  if (!isSubset(permissions, ORG_CONSENTABLE_PERMISSIONS)) {
+    // Administrative permissions resolve from an app role and reassign-team
+    // stays with the team, so neither is a team's to give away.
+    throw new createHttpError.BadRequest('a team cannot consent to that permission');
   }
   return sortPermissions(permissions);
 };
@@ -516,8 +518,19 @@ export const searchTeams = async (session: Session, organizationId: number, quer
   });
 };
 
+/**
+ * The integrations of a team that has joined this organization — what the
+ * consent actually reaches, named rather than numbered.
+ *
+ * Only a joined team's: an organization may look teams up to invite them
+ * (searchTeams), but a team's integrations are the team's until it says
+ * otherwise, and a pending invitation says nothing yet.
+ */
 export const listTeamIntegrations = async (session: Session, organizationId: number, teamId: number) => {
-  await assertOrganization(session, organizationId, organizationPermissions.INVITE_TEAM);
+  await assertOrganization(session, organizationId, organizationPermissions.VIEW_ORGANIZATION);
+
+  const link = await getOrganizationTeamLink(organizationId, teamId);
+  if (!link || link.pending) throw new createHttpError.NotFound(`team #${teamId} is not in this organization`);
 
   return models.request.findAll({
     where: { teamId, apiServiceAccount: false, archived: false },

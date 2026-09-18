@@ -18,7 +18,7 @@ import { sendTemplate } from '@app/shared/templates';
 import { getAllowedTeams, getTeamById } from '@app/queries/team';
 import {
   getIntegrationsByUserTeam,
-  getIntegrationByClientId,
+  getAnyIntegrationByClientId,
   getIntegrationById,
   getWhereClauseForAllRequests,
   getAllActiveRequests,
@@ -40,6 +40,7 @@ import {
   usesOTP,
   usesSdxServices,
   usesBcgovIdir,
+  isReservedClientId,
 } from '@app/helpers/integration';
 import { getAccountableEntity } from '@app/shared/templates/helpers';
 import {
@@ -89,7 +90,7 @@ import { TRANSITIONS, deleteIntentFor } from '@app/helpers/transitions';
 import { actorPayload, authorizeChanges, authorizeTransition } from '@app/utils/requestPolicy';
 import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
-import { hasAppPermission, appPermissions } from '@app/utils/authorize';
+import { hasAppPermission, appPermissions, commonPermissionsForAppRoles } from '@app/utils/authorize';
 import { Event } from '@app/interfaces/Event';
 import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
 import { createSdxRequest } from './sdx-services';
@@ -182,6 +183,23 @@ export const checkIfRequestMerged = async (id: number) => {
   return !!request;
 };
 
+const authorizeClientId = (session: Session, clientId?: string | null) => {
+  const proposed = clientId?.trim();
+  if (!proposed) return undefined;
+
+  if (!commonPermissionsForAppRoles(session?.client_roles).includes('integrations:write-client-id')) {
+    throw new createHttpError.Forbidden('not allowed to choose a client id');
+  }
+  assertClientIdNotReserved(proposed);
+  return proposed;
+};
+
+const assertClientIdNotReserved = (clientId: string) => {
+  if (isReservedClientId(clientId)) {
+    throw new createHttpError.BadRequest(`${clientId} is reserved for CSS API accounts, please choose another`);
+  }
+};
+
 export const createRequest = async (session: Session, data: IntegrationData) => {
   // let's skip this logic for now and see if we might need it back later
   // await checkIfHasFailedRequests();
@@ -230,9 +248,10 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     prodSamlSignAssertions,
     primaryEndUsers,
     primaryEndUsersOther,
-    clientId,
   } = data;
   if (!serviceType) serviceType = 'gold';
+
+  const clientId = authorizeClientId(session, data.clientId);
 
   let result = null;
 
@@ -565,8 +584,10 @@ export const updateRequest = async (
       }
 
       // keycloak related operations
-      // when it is submitted for the first time.
-      if (!isMerged && !current.clientId) {
+      // when it is submitted for the first time. A generated id ends in the
+      // row's own id, so it cannot collide with another row's.
+      const generatedClientId = !isMerged && !current.clientId;
+      if (generatedClientId) {
         current.clientId = `${kebabCase(current.projectName)}-${id}`;
       }
 
@@ -575,20 +596,27 @@ export const updateRequest = async (
         await createSdxRequest(session, current);
       }
 
-      // If custom client id is provided, check if that client id is already used
-      if (current.protocol === 'saml') {
-        if ((current.status === 'draft' && current.clientId) || current.clientId !== originalData.clientId) {
+      // Ensures requested client ID is not reserved
+      if (!generatedClientId && (current.status === 'draft' || current.clientId !== originalData.clientId)) {
+        assertClientIdNotReserved(current.clientId);
+
+        const refuse = () => {
+          throw new createHttpError.BadRequest(
+            `${current.clientId} already exists, please choose a different client id`,
+          );
+        };
+
+        const holder = await getAnyIntegrationByClientId(current.clientId);
+        if (holder && holder.id !== current.id) refuse();
+
+        for (const environment of current.environments) {
           const existingKeycloakClient = await fetchClient({
             serviceType: 'gold',
             realmName: 'standard',
-            environment: 'dev',
+            environment,
             clientId: current.clientId,
           });
-          const existingIntegration = await getIntegrationByClientId(current.clientId);
-          if (existingKeycloakClient || (existingIntegration !== null && current.id !== existingIntegration.id))
-            throw new createHttpError.BadRequest(
-              `${current.clientId} already exists, please choose a different client id`,
-            );
+          if (existingKeycloakClient) refuse();
         }
       }
       current.status = TRANSITIONS.submit.to;

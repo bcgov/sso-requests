@@ -26,8 +26,10 @@ import {
   inviteTeam,
   leaveOrganization,
   listOrganizations,
+  listTeamIntegrations,
   listTeamOrganizationLinks,
   removeTeamFromOrganization,
+  searchTeams,
   respondToOrganizationInvitation,
   updateIntegrationOverrides,
   updateTeamConsent,
@@ -176,7 +178,41 @@ describe('organizations', () => {
           teamId,
           permissions: ['integrations:read', 'integrations:approve-bceid'] as Permission[],
         }),
-      ).rejects.toThrow(/administrative permission/);
+      ).rejects.toThrow(/cannot consent/);
+    });
+
+    /**
+     * Ownership stays the team's however broad the consent. Presets never offer
+     * reassign-team, so this is about a consent that names permissions
+     * directly: an organization able to move an integration could move it out
+     * of reach of the consent that granted it, into a team of its own.
+     */
+    it('refuses a consent naming reassign-team, on every path that writes one', async () => {
+      const withReassign = [...PRESETS.editor, 'integrations:reassign-team'] as Permission[];
+
+      await expect(
+        inviteTeam(await asOrgAdmin(), organizationId, { teamId, permissions: withReassign }),
+      ).rejects.toThrow(/cannot consent/);
+
+      await inviteTeam(await asOrgAdmin(), organizationId, { teamId, permissions: [...PRESETS.editor] });
+      await expect(
+        respondToOrganizationInvitation(await asTeamAdmin(), teamId, organizationId, {
+          accept: true,
+          permissions: withReassign,
+        }),
+      ).rejects.toThrow(/cannot consent/);
+
+      await respondToOrganizationInvitation(await asTeamAdmin(), teamId, organizationId, { accept: true });
+      await expect(updateTeamConsent(await asTeamAdmin(), teamId, organizationId, withReassign)).rejects.toThrow(
+        /cannot consent/,
+      );
+      await expect(
+        updateIntegrationOverrides(await asTeamAdmin(), teamId, organizationId, [
+          { requestId: teamIntegrationId, permissions: withReassign },
+        ]),
+      ).rejects.toThrow(/cannot consent/);
+
+      expect(await resolvedOn(await asOrgAdmin(), teamIntegrationId)).not.toContain('integrations:reassign-team');
     });
 
     it('lets a team admin accept, and only a team admin', async () => {
@@ -378,6 +414,20 @@ describe('organizations', () => {
       } finally {
         await updateTeamConsent(await asTeamAdmin(), teamId, organizationId, [...PRESETS.editor]);
       }
+    });
+
+    it('names a joined team’s integrations, and no other team’s', async () => {
+      const session = await asOrgAdmin();
+      expect(ids(await listTeamIntegrations(session, organizationId, teamId))).toEqual(
+        ids([{ id: teamIntegrationId }, { id: cappedIntegrationId }]),
+      );
+
+      // A team an organization may search for, and may invite, is still not one
+      // whose integrations it may read.
+      await expect(listTeamIntegrations(session, organizationId, otherTeamId)).rejects.toThrow(/not in this/);
+      expect((await searchTeams(session, organizationId, 'unconsenting')).map((team: any) => team.id)).toEqual([
+        otherTeamId,
+      ]);
     });
 
     it('lists the consenting team’s integrations to an organization member', async () => {

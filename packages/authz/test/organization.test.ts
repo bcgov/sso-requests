@@ -1,4 +1,4 @@
-import { PRESETS, Permission, organizationPermissions } from '../src';
+import { ORG_CONSENTABLE_PERMISSIONS, PRESETS, Permission, organizationPermissions } from '../src';
 
 const READ: Permission[] = ['integrations:read'];
 
@@ -30,6 +30,19 @@ describe('organizationPermissions', () => {
     it('treats an empty override as no access to that integration', () => {
       expect(organizationPermissions({ permissions: PRESETS.admin }, [])).toEqual([]);
     });
+  });
+
+  /**
+   * A stored consent is data, and the one thing an organization may never hold
+   * is the permission that would take an integration out of the team that
+   * granted it — so the ceiling is applied again here rather than only where a
+   * consent is written.
+   */
+  it('drops reassign-team however the row was written', () => {
+    const link = { permissions: ['integrations:read', 'integrations:reassign-team'] as Permission[] };
+    expect(organizationPermissions(link, undefined)).toEqual(['integrations:read']);
+    expect(organizationPermissions(link, ['integrations:reassign-team'])).toEqual([]);
+    expect(ORG_CONSENTABLE_PERMISSIONS).not.toContain('integrations:reassign-team');
   });
 
   it('returns a copy rather than the link array itself', () => {

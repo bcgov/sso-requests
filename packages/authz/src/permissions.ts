@@ -85,6 +85,16 @@ export const TEAM_SCOPED_PERMISSIONS: readonly Permission[] = [
   'idp-users:read',
 ];
 
+// What a team may consent to an organization holding: everything a team role
+// can confer except reassign-team. Ownership of an integration stays the team's
+// to change, however broad the organization's access — an organization that
+// could move an integration to another team could move it out of reach of the
+// consent that granted it. The org-facing presets are all subsets of this, and
+// it bounds a consent that names permissions directly rather than a preset.
+export const ORG_CONSENTABLE_PERMISSIONS: readonly Permission[] = TEAM_SCOPED_PERMISSIONS.filter(
+  (permission) => permission !== 'integrations:reassign-team',
+);
+
 export const isValidPermission = (value: unknown): value is Permission =>
   typeof value === 'string' && (PERMISSIONS as readonly string[]).includes(value);
 

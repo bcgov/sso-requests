@@ -64,8 +64,9 @@ export const PRESET_DESCRIPTIONS: Record<PresetName, string> = {
   none: 'Cannot see or change anything.',
   viewer: 'Can view roles, role assignments and integration details.',
   'role-manager': 'Everything a Viewer can do, plus creating roles and assigning them to users.',
-  editor: 'Everything a Viewer can do, plus updating and deleting the integration itself.',
-  admin: 'Everything a Role Manager and an Editor can do.',
+  editor:
+    'Everything a Viewer can do, plus updating and deleting the integration itself, and reading or rotating its client secrets.',
+  admin: 'Everything a Role Manager and an Editor can do, including rotating client secrets.',
   'team-member': 'Can update the integration and assign roles, but not create them.',
   'team-admin': 'Full control of the integration.',
 };

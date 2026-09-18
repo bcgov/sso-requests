@@ -5,6 +5,7 @@ import {
   PRESET_DESCRIPTIONS,
   PRESET_LABELS,
   Permission,
+  ORG_CONSENTABLE_PERMISSIONS,
   PresetName,
   TEAM_SCOPED_PERMISSIONS,
   describePermissions,
@@ -25,6 +26,18 @@ describe('preset invariants', () => {
   // No preset — and so no team role, team API account or organization link —
   // can confer an admin-scoped permission. Those reach an actor only through
   // an app role.
+  // Reassigning a team is a team role's to confer and never an organization's:
+  // an organization that could move an integration could move it out of reach
+  // of the consent that granted it.
+  it('keeps every organization-facing preset within what a team may consent to', () => {
+    for (const name of ORG_FACING_PRESETS) {
+      expect(isSubset(PRESETS[name], [...ORG_CONSENTABLE_PERMISSIONS])).toBe(true);
+    }
+    expect(ORG_CONSENTABLE_PERMISSIONS).not.toContain('integrations:reassign-team');
+    expect(TEAM_SCOPED_PERMISSIONS).toContain('integrations:reassign-team');
+    expect(PRESETS['team-member']).toContain('integrations:reassign-team');
+  });
+
   it('keeps every preset within the team-scoped half of the vocabulary', () => {
     for (const permissions of Object.values(PRESETS)) {
       expect(isSubset(permissions, [...TEAM_SCOPED_PERMISSIONS])).toBe(true);
