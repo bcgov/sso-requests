@@ -7,6 +7,7 @@ import PageLoader from 'components/PageLoader';
 import WarningModalContents from 'components/WarningModalContents';
 import ErrorText from 'components/ErrorText';
 import ActionButton from 'components/ActionButton';
+import { ActionButtonContainer } from 'components/ActionButtons';
 import { createOrganization, deleteOrganization } from 'services/organization';
 import { SystemUnavailableMessage, NoEntitiesMessage } from './Messages';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
@@ -135,16 +136,18 @@ function OrganizationList({
               <td>{organization.description}</td>
               {canManageOrganizations && (
                 <Actions>
-                  <ActionButton
-                    icon={faTrash}
-                    role="button"
-                    aria-label={`delete-${organization.name}`}
-                    data-testid={`delete-organization-${organization.id}`}
-                    title="Delete organization"
-                    size="lg"
-                    activeColor={PRIMARY_RED}
-                    onClick={(event) => showDeleteModal(event, organization)}
-                  />
+                  <ActionButtonContainer>
+                    <ActionButton
+                      icon={faTrash}
+                      role="button"
+                      aria-label={`delete-${organization.name}`}
+                      data-testid={`delete-organization-${organization.id}`}
+                      title="Delete organization"
+                      size="lg"
+                      activeColor={PRIMARY_RED}
+                      onClick={(event) => showDeleteModal(event, organization)}
+                    />
+                  </ActionButtonContainer>
                 </Actions>
               )}
             </tr>

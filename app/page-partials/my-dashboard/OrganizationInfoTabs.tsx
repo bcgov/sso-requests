@@ -8,6 +8,7 @@ import Dropdown from 'components/Dropdown';
 import PresetPicker from 'components/PresetPicker';
 import WarningModalContents from 'components/WarningModalContents';
 import ActionButton from 'components/ActionButton';
+import { ActionButtonContainer, VerticalLine } from 'components/ActionButtons';
 import TableNew from 'components/TableNew';
 import {
   Organization,
@@ -112,8 +113,10 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
   const [proposed, setProposed] = useState<Permission[]>([...PRESETS.viewer]);
 
   const [accountToDelete, setAccountToDelete] = useState<OrganizationApiAccount | null>(null);
+  const [linkToRemove, setLinkToRemove] = useState<OrganizationTeamLink | null>(null);
 
   const activeLinks = links.filter((link) => !link.pending);
+  const admins = members.filter((member) => member.role === 'admin');
   const activeAccounts = accounts.filter((account) => !account.archived);
   // sso-admins can manage any organization regardless of their membership role in it.
   const isSsoAdmin = hasAppPermission(currentUser?.client_roles, appPermissions.MANAGE_ORGANIZATIONS);
@@ -188,6 +191,14 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
     reload();
   };
 
+  const handleRemoveTeam = async () => {
+    if (!linkToRemove) return;
+    const [, err] = await removeTeamFromOrganization(organization.id, linkToRemove.teamId);
+    if (err) return fail('Could not remove that team.');
+    setLinkToRemove(null);
+    reload();
+  };
+
   const handleDeleteAccount = async () => {
     if (!accountToDelete) return;
     const [, err] = await deleteOrganizationApiAccount(organization.id, accountToDelete.id);
@@ -214,21 +225,26 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
             header: 'Actions',
             cell: (props) => {
               const member = props.row.original as OrganizationMember;
+              const lastAdmin = member.role === 'admin' && admins.length === 1;
               return (
-                <ActionButton
-                  icon={faTrash}
-                  role="button"
-                  disabled={!canRemoveMember}
-                  aria-label={`remove-organization-member-${member.userId}`}
-                  data-testid={`remove-organization-member-${member.userId}`}
-                  title="Remove organization member"
-                  size="lg"
-                  activeColor={PRIMARY_RED}
-                  onClick={async () => {
-                    await removeOrganizationMember(organization.id, member.userId);
-                    reload();
-                  }}
-                />
+                <ActionButtonContainer>
+                  <ActionButton
+                    icon={faTrash}
+                    role="button"
+                    disabled={!canRemoveMember || lastAdmin}
+                    aria-label={`remove-organization-member-${member.userId}`}
+                    data-testid={`remove-organization-member-${member.userId}`}
+                    title={lastAdmin ? 'Add a second admin before removing this one' : 'Remove organization member'}
+                    size="lg"
+                    activeColor={PRIMARY_RED}
+                    onClick={async () => {
+                      if (!canRemoveMember || lastAdmin) return;
+                      const [, err] = await removeOrganizationMember(organization.id, member.userId);
+                      if (err) return fail('Could not remove that member.');
+                      reload();
+                    }}
+                  />
+                </ActionButtonContainer>
               );
             },
           },
@@ -282,24 +298,25 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
           },
           {
             accessorKey: 'actions',
-            header: '',
+            header: 'Actions',
             cell: (props) => {
               const link = props.row.original as OrganizationTeamLink;
               return (
-                <ActionButton
-                  icon={faTrash}
-                  role="button"
-                  disabled={!canRemoveTeam}
-                  aria-label={`remove-organization-team-${link.teamId}`}
-                  data-testid={`remove-organization-team-${link.teamId}`}
-                  title="Remove team from organization"
-                  size="lg"
-                  activeColor={PRIMARY_RED}
-                  onClick={async () => {
-                    await removeTeamFromOrganization(organization.id, link.teamId);
-                    reload();
-                  }}
-                />
+                <ActionButtonContainer>
+                  <ActionButton
+                    icon={faTrash}
+                    role="button"
+                    disabled={!canRemoveTeam}
+                    aria-label={`remove-organization-team-${link.teamId}`}
+                    data-testid={`remove-organization-team-${link.teamId}`}
+                    title="Remove team from organization"
+                    size="lg"
+                    activeColor={PRIMARY_RED}
+                    onClick={() => {
+                      if (canRemoveTeam) setLinkToRemove(link);
+                    }}
+                  />
+                </ActionButtonContainer>
               );
             },
           },
@@ -362,7 +379,7 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
             cell: (props) => {
               const account = props.row.original as OrganizationApiAccount;
               return (
-                <>
+                <ActionButtonContainer>
                   <ActionButton
                     icon={faCopy}
                     role="button"
@@ -380,22 +397,24 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
                     }}
                   />
                   {canManageApiAccounts && (
-                    <ActionButton
-                      icon={faTrash}
-                      role="button"
-                      aria-label={`delete-api-account-${account.id}`}
-                      data-testid={`delete-organization-api-account-${account.id}`}
-                      title="Delete CSS API account"
-                      size="lg"
-                      activeColor={PRIMARY_RED}
-                      disabled={account.status !== 'applied'}
-                      onClick={() => {
-                        if (account.status === 'applied') setAccountToDelete(account);
-                      }}
-                      style={{ marginLeft: '12px' }}
-                    />
+                    <>
+                      <VerticalLine />
+                      <ActionButton
+                        icon={faTrash}
+                        role="button"
+                        aria-label={`delete-api-account-${account.id}`}
+                        data-testid={`delete-organization-api-account-${account.id}`}
+                        title="Delete CSS API account"
+                        size="lg"
+                        activeColor={PRIMARY_RED}
+                        disabled={account.status !== 'applied'}
+                        onClick={() => {
+                          if (account.status === 'applied') setAccountToDelete(account);
+                        }}
+                      />
+                    </>
                   )}
-                </>
+                </ActionButtonContainer>
               );
             },
           },
@@ -534,6 +553,27 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
               </div>
             )}
           </div>
+        }
+      />
+
+      <CenteredModal
+        id="remove-organization-team-modal"
+        openModal={Boolean(linkToRemove)}
+        handleClose={() => setLinkToRemove(null)}
+        title="Remove Team"
+        icon={null}
+        closable
+        confirmText="Remove Team"
+        buttonStyle="danger"
+        skipCloseOnConfirm
+        onConfirm={handleRemoveTeam}
+        content={
+          <WarningModalContents
+            title={`Are you sure that you want to remove ${linkToRemove?.team?.name ?? 'this team'} from ${
+              organization.name
+            }?`}
+            content={`Removing this team will immediately revoke access to its integrations from organization members and API accounts.`}
+          />
         }
       />
 

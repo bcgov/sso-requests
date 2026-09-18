@@ -1,12 +1,17 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import OrganizationList from '@app/page-partials/my-dashboard/OrganizationList';
 import OrganizationInfoTabs from '@app/page-partials/my-dashboard/OrganizationInfoTabs';
+import { PRESETS } from '@sso/authz';
 import {
   deleteOrganization,
   deleteOrganizationApiAccount,
   getOrganizationApiAccounts,
   getOrganizationMembers,
   getOrganizationTeams,
+  removeOrganizationMember,
+  removeTeamFromOrganization,
+  searchTeamsForOrganization,
+  getTeamIntegrationsForOrganization,
 } from '@app/services/organization';
 
 jest.mock('@app/services/organization', () => ({
@@ -35,6 +40,28 @@ const mockedDeleteOrganizationApiAccount = jest.mocked(deleteOrganizationApiAcco
 const mockedGetOrganizationApiAccounts = jest.mocked(getOrganizationApiAccounts);
 const mockedGetOrganizationMembers = jest.mocked(getOrganizationMembers);
 const mockedGetOrganizationTeams = jest.mocked(getOrganizationTeams);
+const mockedRemoveOrganizationMember = jest.mocked(removeOrganizationMember);
+const mockedRemoveTeamFromOrganization = jest.mocked(removeTeamFromOrganization);
+const mockedSearchTeams = jest.mocked(searchTeamsForOrganization);
+const mockedGetTeamIntegrationsForOrganization = jest.mocked(getTeamIntegrationsForOrganization);
+
+const member = (userId: number, role: string) => ({
+  organizationId: 1,
+  userId,
+  role,
+  user: { id: userId, idirEmail: `member-${userId}@gov.bc.ca` },
+});
+
+const teamLink = (overrides: any = {}) => ({
+  id: 3,
+  organizationId: 1,
+  teamId: 7,
+  permissions: [...PRESETS.editor],
+  pending: false,
+  team: { id: 7, name: 'Payments Team' },
+  overrides: [],
+  ...overrides,
+});
 
 describe('Organization deletion', () => {
   beforeEach(() => {
@@ -178,5 +205,86 @@ describe('Organization deletion', () => {
     fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Accounts' }));
     expect(await screen.findByText('service-account-org-1-11')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'delete-api-account-11' })).not.toBeInTheDocument();
+  });
+});
+
+/**
+ * Managing an organization: what an admin is offered, and the two places the
+ * screen holds them back — the team whose removal takes an API account's
+ * access with it, and the admin who is the only one left.
+ */
+describe('Organization management', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedGetOrganizationMembers.mockResolvedValue([[member(11, 'admin'), member(12, 'member')], null]);
+    mockedGetOrganizationTeams.mockResolvedValue([[teamLink()] as any, null]);
+    mockedGetOrganizationApiAccounts.mockResolvedValue([[], null]);
+    mockedGetTeamIntegrationsForOrganization.mockResolvedValue([[], null]);
+    mockedRemoveOrganizationMember.mockResolvedValue([{ success: true } as any, null]);
+    mockedRemoveTeamFromOrganization.mockResolvedValue([{ success: true } as any, null]);
+    mockedSearchTeams.mockResolvedValue([[], null]);
+  });
+
+  it('warns that API access is lost before a team is removed', async () => {
+    render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Teams' }));
+    await screen.findByRole('button', { name: 'remove-organization-team-7' });
+    // The table re-renders as each team's integrations arrive, so the button is
+    // read again rather than held across that.
+    fireEvent.click(screen.getByRole('button', { name: 'remove-organization-team-7' }));
+
+    expect(
+      await screen.findByText('Are you sure that you want to remove Payments Team from Alpha?'),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/loses access to this team’s integrations/)).toBeInTheDocument();
+    expect(mockedRemoveTeamFromOrganization).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Team' }));
+    await waitFor(() => expect(mockedRemoveTeamFromOrganization).toHaveBeenCalledWith(organization.id, 7));
+  });
+
+  it('will not remove the only admin an organization has', async () => {
+    render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
+
+    // ActionButton renders an icon, so "disabled" is the aria state.
+    expect(await screen.findByRole('button', { name: 'remove-organization-member-11' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+    expect(screen.getByRole('button', { name: 'remove-organization-member-12' })).toHaveAttribute(
+      'aria-disabled',
+      'false',
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'remove-organization-member-11' }));
+    expect(mockedRemoveOrganizationMember).not.toHaveBeenCalled();
+  });
+
+  it('removes an admin once a second one is there', async () => {
+    mockedGetOrganizationMembers.mockResolvedValue([[member(11, 'admin'), member(12, 'admin')], null]);
+    render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
+
+    await screen.findByRole('button', { name: 'remove-organization-member-11' });
+    fireEvent.click(screen.getByRole('button', { name: 'remove-organization-member-11' }));
+
+    await waitFor(() => expect(mockedRemoveOrganizationMember).toHaveBeenCalledWith(organization.id, 11));
+  });
+
+  it('does not offer "No access" as the level asked of a team', async () => {
+    mockedSearchTeams.mockResolvedValue([[{ id: 7, name: 'Payments Team', available: true }] as any, null]);
+    render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Teams' }));
+    fireEvent.click(screen.getByRole('button', { name: '+ Invite a Team' }));
+
+    const teamSelect = document.getElementById('invite-team-select') as HTMLElement;
+    fireEvent.keyDown(teamSelect, { keyCode: 40 });
+    fireEvent.click(await screen.findByRole('option', { name: 'Payments Team (#7)' }));
+
+    const levels = document.getElementById('invite-permissions') as HTMLElement;
+    fireEvent.keyDown(levels, { keyCode: 40 });
+    expect(await screen.findByRole('option', { name: 'Viewer' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'No access' })).not.toBeInTheDocument();
   });
 });

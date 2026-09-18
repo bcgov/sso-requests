@@ -1,3 +1,4 @@
+import { Permission } from '@sso/authz';
 import { Integration } from '@app/interfaces/Request';
 import { Team } from '@app/interfaces/team';
 import { checkBceidGroup, checkBcServicesCard, checkGithubGroup, checkOTP, checkSocial } from './integration';
@@ -7,15 +8,26 @@ import { isInFlight, isResting } from './transitions';
 const isLive = (integration: Integration) =>
   Boolean(integration) && !integration.apiServiceAccount && !integration.archived;
 
+const permits = (integration: Integration, permission: Permission): boolean | undefined =>
+  integration?.permissions ? integration.permissions.includes(permission) : undefined;
+
 export const canDeleteIntegration = (integration: Integration) => {
   if (!isLive(integration) || !isResting(integration.status)) return false;
+  const permitted = permits(integration, 'integrations:delete');
+  if (permitted !== undefined) return permitted;
   if (integration.usesTeam && integration.teamId) {
     return hasTeamPermission(integration.userTeamRole, teamPermissions.DELETE_REQUEST);
   }
   return true;
 };
 
-export const canEditIntegration = (integration: Integration) => isLive(integration) && isResting(integration.status);
+export const canEditIntegration = (integration: Integration) => {
+  if (!isLive(integration) || !isResting(integration.status)) return false;
+  return permits(integration, 'integrations:write') ?? true;
+};
+
+export const canManageUserRoleMappings = (integration: Integration) =>
+  isLive(integration) && (permits(integration, 'user-role-mappings:write') ?? true);
 
 export const canDeleteTeam = (team: Team) => {
   if (!team || Number(team.integrationCount) > 0) {
@@ -33,6 +45,8 @@ export const canEditTeam = (team: Team) => {
 
 export const canCreateOrDeleteRoles = (integration: Integration) => {
   if (!isLive(integration) || isInFlight(integration.status)) return false;
+  const permitted = permits(integration, 'roles:write');
+  if (permitted !== undefined) return permitted;
   if (integration.usesTeam) {
     if (hasTeamPermission(integration.userTeamRole, teamPermissions.MANAGE_ROLES)) return true;
   } else return true;

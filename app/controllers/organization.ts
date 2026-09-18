@@ -107,6 +107,12 @@ export const createOrganization = async (session: Session, data: { name: string;
     description: data.description?.trim() || null,
   });
 
+  const userId = session?.user?.id as number;
+  if (userId) {
+    await models.organizationMember.create({ organizationId: organization.id, userId, role: 'admin' });
+    orgEvent(session, organization.id, EVENTS.ORGANIZATION_MEMBER_ADDED, { userId, role: 'admin' });
+  }
+
   orgEvent(session, organization.id, EVENTS.ORGANIZATION_CREATE_SUCCESS, { name: organization.name });
   return organization;
 };
@@ -180,6 +186,16 @@ export const addOrganizationMember = async (
   return member;
 };
 
+const assertNotLastAdmin = async (organizationId: number, userId: number) => {
+  const member = await models.organizationMember.findOne({ where: { organizationId, userId } });
+  if (member?.role !== 'admin') return;
+
+  const admins = await models.organizationMember.count({ where: { organizationId, role: 'admin' } });
+  if (admins <= 1) {
+    throw new createHttpError.Conflict('an organization must keep at least one admin; add another one first');
+  }
+};
+
 export const updateOrganizationMemberRole = async (
   session: Session,
   organizationId: number,
@@ -192,6 +208,8 @@ export const updateOrganizationMemberRole = async (
   const member = await models.organizationMember.findOne({ where: { organizationId, userId } });
   if (!member) throw new createHttpError.NotFound('member not found');
 
+  if (role !== 'admin') await assertNotLastAdmin(organizationId, userId);
+
   member.role = role;
   const saved = await member.save();
   orgEvent(session, organizationId, EVENTS.ORGANIZATION_MEMBER_ROLE_UPDATED, { userId, role });
@@ -200,6 +218,7 @@ export const updateOrganizationMemberRole = async (
 
 export const removeOrganizationMember = async (session: Session, organizationId: number, userId: number) => {
   await assertOrganization(session, organizationId, organizationPermissions.REMOVE_ORG_MEMBER);
+  await assertNotLastAdmin(organizationId, userId);
   await models.organizationMember.destroy({ where: { organizationId, userId } });
   orgEvent(session, organizationId, EVENTS.ORGANIZATION_MEMBER_REMOVED, { userId });
   return { success: true };

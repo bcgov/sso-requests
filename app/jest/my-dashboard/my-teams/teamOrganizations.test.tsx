@@ -79,6 +79,37 @@ describe('a team reviewing an organization', () => {
     expect(screen.getByText(/All integrations: Editor/)).toBeInTheDocument();
   });
 
+  it('lists each thing granted on its own line', async () => {
+    mockedGetTeamOrganizations.mockResolvedValue([
+      [link({ pending: false, overrides: [{ requestId: 21, permissions: [] }] })] as any,
+      null,
+    ]);
+    render(<TeamOrganizations teamId={TEAM_ID} />);
+
+    const items = await screen.findAllByRole('listitem');
+    expect(items.map((item) => item.textContent)).toEqual(['All integrations: Editor', 'Payments: No access']);
+  });
+
+  /**
+   * "No access" is what a per-integration limit is for — holding one
+   * integration out of what the team granted. As the level for the whole team
+   * it would be a link that reaches nothing, which is what declining is for.
+   */
+  it('offers no access per integration, and never as the team-wide level', async () => {
+    mockedGetTeamOrganizations.mockResolvedValue([[link()] as any, null]);
+    render(<TeamOrganizations teamId={TEAM_ID} />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
+    await screen.findByText('Access level for all integrations');
+
+    openLevels('team-consent-level');
+    expect(await screen.findByRole('option', { name: 'Viewer' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'No access' })).not.toBeInTheDocument();
+
+    openLevels('team-override-21');
+    expect(await screen.findByRole('option', { name: 'No access' })).toBeInTheDocument();
+  });
+
   it('offers nothing above what was proposed', async () => {
     mockedGetTeamOrganizations.mockResolvedValue([[link()] as any, null]);
     render(<TeamOrganizations teamId={TEAM_ID} />);

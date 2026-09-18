@@ -329,6 +329,16 @@ const init = (sequelize: any, DataTypes: any) => {
           return this.getDataValue('userTeamRole');
         },
       },
+      // The authority the actor holds over this row, resolved by
+      // queries/integrationAccess and attached by whatever loaded it. Virtual
+      // like userTeamRole: it is per-actor, so it is never stored.
+      permissions: {
+        type: DataTypes.VIRTUAL,
+        get(): string[] {
+          //@ts-ignore
+          return this.getDataValue('permissions');
+        },
+      },
       devDisplayHeaderTitle: {
         type: DataTypes.BOOLEAN,
         allowNull: false,

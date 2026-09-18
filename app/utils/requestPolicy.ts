@@ -49,6 +49,7 @@ const SYSTEM_FIELDS = new Set([
   'hasUnreadNotifications',
   'browserFlowOverride',
   'userTeamRole',
+  'permissions',
 ]);
 
 // Not a column, but the SDX request pipeline reads it off the payload, so it

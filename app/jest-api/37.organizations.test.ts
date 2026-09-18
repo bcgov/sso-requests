@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { Permission, PRESETS } from '@sso/authz';
 import {
   TEAM_ADMIN_IDIR_USERID_01,
@@ -19,7 +20,7 @@ import { Session, User } from '@app/shared/interfaces';
 import { accessibleIntegrationsWhere, resolveAccessScope } from '@app/queries/accessScope';
 import { resolveAccessForIntegrations } from '@app/queries/integrationAccess';
 import { getIntegrations, getRequests } from '@app/controllers/requests';
-import { processUserSession } from '@app/controllers/user';
+import { isAllowedToManageRoles, processUserSession } from '@app/controllers/user';
 import {
   createOrganization,
   inviteTeam,
@@ -31,6 +32,9 @@ import {
   updateIntegrationOverrides,
   updateTeamConsent,
   addOrganizationMember,
+  listOrganizationMembers,
+  removeOrganizationMember,
+  updateOrganizationMemberRole,
 } from '@app/controllers/organization';
 
 jest.mock('@app/keycloak/integration', () => {
@@ -264,6 +268,57 @@ describe('organizations', () => {
     });
   });
 
+  describe('membership', () => {
+    const throwaway = async (name: string) => {
+      const organization = await createOrganization(await asSsoAdmin(), { name });
+      return organization.id as number;
+    };
+
+    afterEach(async () => {
+      await models.organization.destroy({ where: { name: { [Op.like]: 'Ministry of Membership%' } } });
+    });
+
+    it('makes the creator an admin of what they created', async () => {
+      const ssoAdmin = await asSsoAdmin();
+      const id = await throwaway('Ministry of Membership');
+
+      const members = await listOrganizationMembers(ssoAdmin, id);
+      expect(members.map((member: any) => [member.userId, member.role])).toEqual([[ssoAdmin.user!.id, 'admin']]);
+    });
+
+    it('will not let the last admin go, and lets a second one in first', async () => {
+      const ssoAdmin = await asSsoAdmin();
+      const creatorId = ssoAdmin.user!.id as number;
+      const id = await throwaway('Ministry of Membership Two');
+
+      await expect(removeOrganizationMember(ssoAdmin, id, creatorId)).rejects.toThrow(/at least one admin/);
+      await expect(updateOrganizationMemberRole(ssoAdmin, id, creatorId, 'member')).rejects.toThrow(
+        /at least one admin/,
+      );
+
+      await addOrganizationMember(ssoAdmin, id, { idirEmail: ORG_ADMIN_EMAIL, role: 'admin' });
+      await removeOrganizationMember(ssoAdmin, id, creatorId);
+
+      const members = await listOrganizationMembers(ssoAdmin, id);
+      expect(members.map((member: any) => member.role)).toEqual(['admin']);
+    });
+
+    it('lets an ordinary member be removed, and an admin be demoted while another remains', async () => {
+      const ssoAdmin = await asSsoAdmin();
+      const id = await throwaway('Ministry of Membership Three');
+      const orgAdmin = await asOrgAdmin();
+
+      await addOrganizationMember(ssoAdmin, id, { idirEmail: ORG_MEMBER_EMAIL, role: 'member' });
+      await addOrganizationMember(ssoAdmin, id, { idirEmail: ORG_ADMIN_EMAIL, role: 'admin' });
+
+      await removeOrganizationMember(ssoAdmin, id, (await asOrgMember()).user!.id as number);
+      await updateOrganizationMemberRole(ssoAdmin, id, orgAdmin.user!.id as number, 'member');
+
+      const members = await listOrganizationMembers(ssoAdmin, id);
+      expect(members.map((member: any) => member.role).sort()).toEqual(['admin', 'member']);
+    });
+  });
+
   describe('what a consent reaches', () => {
     beforeAll(async () => {
       await inviteTeam(await asOrgAdmin(), organizationId, { teamId, permissions: [...PRESETS.editor] });
@@ -295,6 +350,34 @@ describe('organizations', () => {
       const requests = await getRequests(session, session.user as User);
       expect(ids(requests)).toEqual(ids([{ id: teamIntegrationId }, { id: cappedIntegrationId }]));
       expect(requests.every((row: any) => row.get({ plain: true }).userTeamRole === null)).toBe(true);
+    });
+
+    /**
+     * The row carries the authority it was admitted on, not only the team role
+     * — which is null for everyone here. Without it the dashboard's guards
+     * would read an organization member as having no say over a row it just
+     * listed, and offer them every button.
+     */
+    it('hands the dashboard the authority each row was admitted on', async () => {
+      const session = await asOrgMember();
+      const requests = await getRequests(session, session.user as User);
+      expect(requests.map((row: any) => row.get({ plain: true }).permissions)).toEqual([
+        [...PRESETS.editor],
+        [...PRESETS.editor],
+      ]);
+    });
+
+    it('answers the role-management guard from the consent, not from a team role', async () => {
+      // Editor reaches the integration but not its roles.
+      expect(await isAllowedToManageRoles(await asOrgAdmin(), teamIntegrationId)).toBe(false);
+
+      await updateTeamConsent(await asTeamAdmin(), teamId, organizationId, [...PRESETS['role-manager']]);
+      try {
+        expect(await isAllowedToManageRoles(await asOrgAdmin(), teamIntegrationId)).toBe(true);
+        expect(await isAllowedToManageRoles(await asOrgMember(), teamIntegrationId)).toBe(true);
+      } finally {
+        await updateTeamConsent(await asTeamAdmin(), teamId, organizationId, [...PRESETS.editor]);
+      }
     });
 
     it('lists the consenting team’s integrations to an organization member', async () => {

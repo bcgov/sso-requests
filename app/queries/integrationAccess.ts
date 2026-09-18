@@ -140,8 +140,9 @@ export const authorizeIntegration = async (
   const access = await resolveAccessForIntegration(session, integration);
   if (!access.permissions.includes(permission)) return null;
 
-  // The client-side guards read the role off the row, as they did when the
-  // predicate selected it as a literal column.
+  // The client-side guards read the role and the resolved permissions off the
+  // row, as they did when the role was selected as a literal column.
   integration.setDataValue('userTeamRole', access.userTeamRole);
+  integration.setDataValue('permissions', access.permissions);
   return { integration, access };
 };

@@ -155,13 +155,16 @@ export const getRequester = (session: Session, access: IntegrationAccess) => {
 };
 
 // The client-side guards (canDeleteIntegration, canCreateOrDeleteRoles) read
-// the role off each row. It comes from the resolver rather than a SQL literal,
-// so a list row reports the role it was admitted on.
-const attachUserTeamRole = async (session: Session, integrations: any[], scope: AccessScope) => {
+// the role and the merged permissions off each row. Both come from the
+// resolver rather than a SQL literal, so a list row reports the authority it
+// was admitted on — including the authority an organization confers, which no
+// team role describes.
+const attachAccess = async (session: Session, integrations: any[], scope?: AccessScope) => {
   const access = await resolveAccessForIntegrations(session, integrations, scope);
-  integrations.forEach((integration) =>
-    integration.setDataValue('userTeamRole', access.get(integration.id)?.userTeamRole ?? null),
-  );
+  integrations.forEach((integration) => {
+    integration.setDataValue('userTeamRole', access.get(integration.id)?.userTeamRole ?? null);
+    integration.setDataValue('permissions', access.get(integration.id)?.permissions ?? []);
+  });
   return integrations;
 };
 
@@ -856,13 +859,13 @@ export const getRequests = async (session: Session, user: User, include: string 
     ],
   });
 
-  return attachUserTeamRole(session, requests, scope);
+  return attachAccess(session, requests, scope);
 };
 
 export const getIntegrations = async (session: Session, teamId: number, user: User, include: string = 'active') => {
   const scope = await resolveAccessScope(session?.user?.id as number);
   const integrations = await getIntegrationsByUserTeam(scope, teamId);
-  return attachUserTeamRole(session, integrations, scope);
+  return attachAccess(session, integrations, scope);
 };
 
 export const deleteRequest = async (session: Session, user: User, id: number) => {

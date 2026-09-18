@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import CenteredModal from 'components/CenteredModal';
 import PresetPicker from 'components/PresetPicker';
+import { ActionButtonContainer, VerticalLine } from 'components/ActionButtons';
 import { IntegrationOverride, OrganizationTeamLink, TeamIntegration } from 'interfaces/organization';
 import { Permission, describePermissions } from '@sso/authz';
 import { getTeamIntegrations } from 'services/request';
@@ -27,6 +28,23 @@ const Panel = styled.div`
     text-align: left;
     vertical-align: top;
   }
+
+  td ul {
+    margin: 0;
+    padding-left: 1.2em;
+  }
+`;
+
+// The dashboard's own action spacing: an even gap and a divider between the
+// buttons, rather than two buttons touching.
+const Actions = styled(ActionButtonContainer)`
+  justify-content: start;
+  padding-right: 0;
+
+  & > * {
+    margin-left: 0;
+    margin-right: 15px;
+  }
 `;
 
 const Grid = styled.table`
@@ -38,7 +56,10 @@ const Grid = styled.table`
   }
 `;
 
-const describeLink = (link: OrganizationTeamLink, integrations: TeamIntegration[]) => {
+// One line per thing granted: the team-wide level first, then the integrations
+// held below it. A list rather than a sentence, because a link with several
+// limits reads as a list wherever it is shown.
+const describeLink = (link: OrganizationTeamLink, integrations: TeamIntegration[]): string[] => {
   const nameFor = (id: number) => integrations.find((integration) => integration.id === id)?.projectName;
   const parts = [`All integrations: ${describePermissions(link.permissions)}`];
 
@@ -53,7 +74,7 @@ const describeLink = (link: OrganizationTeamLink, integrations: TeamIntegration[
     parts.push(`${link.overrides.length} integrations capped below it`);
   }
 
-  return parts.join('; ');
+  return parts;
 };
 
 interface Props {
@@ -140,24 +161,31 @@ function TeamOrganizations({ teamId, alert }: Readonly<Props>) {
               <td>{link.pending ? 'invitation pending' : 'joined'}</td>
               <td>
                 {link.pending && <em>requested: </em>}
-                {describeLink(link, integrations)}
+                <ul>
+                  {describeLink(link, integrations).map((part) => (
+                    <li key={part}>{part}</li>
+                  ))}
+                </ul>
               </td>
               <td>
-                <button className="primary" onClick={() => review(link)}>
-                  {link.pending ? 'Review' : 'Change'}
-                </button>
-                <button
-                  className="secondary"
-                  onClick={async () => {
-                    const [, err] = link.pending
-                      ? await respondToOrganizationInvitation(teamId, link.organizationId, { accept: false })
-                      : await leaveOrganization(teamId, link.organizationId);
-                    if (err) return fail('Could not complete that action.');
-                    reload();
-                  }}
-                >
-                  {link.pending ? 'Decline' : 'Leave'}
-                </button>
+                <Actions>
+                  <button className="primary" onClick={() => review(link)}>
+                    {link.pending ? 'Review' : 'Change'}
+                  </button>
+                  <VerticalLine />
+                  <button
+                    className="secondary"
+                    onClick={async () => {
+                      const [, err] = link.pending
+                        ? await respondToOrganizationInvitation(teamId, link.organizationId, { accept: false })
+                        : await leaveOrganization(teamId, link.organizationId);
+                      if (err) return fail('Could not complete that action.');
+                      reload();
+                    }}
+                  >
+                    {link.pending ? 'Decline' : 'Leave'}
+                  </button>
+                </Actions>
               </td>
             </tr>
           ))}
@@ -218,6 +246,7 @@ function TeamOrganizations({ teamId, alert }: Readonly<Props>) {
                             onChange={(permissions) => setOverride(integration.id, permissions)}
                             boundedBy={consent}
                             allowInherit
+                            allowNoAccess
                             inheritedFrom={consent}
                           />
                         </td>

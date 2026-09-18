@@ -27,6 +27,7 @@ interface Props {
   /** Offers "same as the whole team", which is how an override is removed. */
   allowInherit?: boolean;
   inheritedFrom?: Permission[];
+  allowNoAccess?: boolean;
   disabled?: boolean;
   id: string;
   ariaLabel: string;
@@ -38,12 +39,16 @@ function PresetPicker({
   boundedBy,
   allowInherit = false,
   inheritedFrom = [],
+  allowNoAccess = false,
   disabled = false,
   id,
   ariaLabel,
 }: Readonly<Props>) {
-  const available = ORG_FACING_PRESETS.filter((name) => !boundedBy || isSubset(PRESETS[name], boundedBy));
   const currentPreset = value ? presetFor(value) : null;
+  const offersNoAccess = allowNoAccess || currentPreset === 'none';
+  const available = ORG_FACING_PRESETS.filter(
+    (name) => (name !== 'none' || offersNoAccess) && (!boundedBy || isSubset(PRESETS[name], boundedBy)),
+  );
 
   const options: Option[] = [
     ...(allowInherit
@@ -53,7 +58,7 @@ function PresetPicker({
     ...available.map((name) => ({ value: name, label: PRESET_LABELS[name] })),
   ];
 
-  const selected = currentPreset ?? (value ? CUSTOM : allowInherit ? INHERIT : 'none');
+  const selected = currentPreset ?? (value ? CUSTOM : allowInherit ? INHERIT : null);
 
   return (
     <Dropdown
