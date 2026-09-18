@@ -65,6 +65,16 @@ const Panel = styled.div`
   }
 `;
 
+// The sso-dashboard's actions column: a centred header over evenly spaced
+// icons divided by a rule. Centred rather than right-aligned because these
+// columns hold one or two icons rather than four.
+const ActionsHeader = () => <div style={{ display: 'flex', justifyContent: 'center' }}>Actions</div>;
+
+const Actions = styled(ActionButtonContainer)`
+  justify-content: center;
+  padding-right: 0;
+`;
+
 const Pill = styled.span<{ pending: boolean }>`
   padding: 2px 8px;
   border-radius: 10px;
@@ -222,12 +232,12 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
           { accessorKey: 'role', header: 'Role' },
           {
             accessorKey: 'actions',
-            header: 'Actions',
+            header: () => <ActionsHeader />,
             cell: (props) => {
               const member = props.row.original as OrganizationMember;
               const lastAdmin = member.role === 'admin' && admins.length === 1;
               return (
-                <ActionButtonContainer>
+                <Actions>
                   <ActionButton
                     icon={faTrash}
                     role="button"
@@ -244,7 +254,7 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
                       reload();
                     }}
                   />
-                </ActionButtonContainer>
+                </Actions>
               );
             },
           },
@@ -298,11 +308,11 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
           },
           {
             accessorKey: 'actions',
-            header: 'Actions',
+            header: () => <ActionsHeader />,
             cell: (props) => {
               const link = props.row.original as OrganizationTeamLink;
               return (
-                <ActionButtonContainer>
+                <Actions>
                   <ActionButton
                     icon={faTrash}
                     role="button"
@@ -316,7 +326,7 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
                       if (canRemoveTeam) setLinkToRemove(link);
                     }}
                   />
-                </ActionButtonContainer>
+                </Actions>
               );
             },
           },
@@ -375,11 +385,11 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
           },
           {
             accessorKey: 'actions',
-            header: 'Actions',
+            header: () => <ActionsHeader />,
             cell: (props) => {
               const account = props.row.original as OrganizationApiAccount;
               return (
-                <ActionButtonContainer>
+                <Actions>
                   <ActionButton
                     icon={faCopy}
                     role="button"
@@ -414,7 +424,7 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
                       />
                     </>
                   )}
-                </ActionButtonContainer>
+                </Actions>
               );
             },
           },
