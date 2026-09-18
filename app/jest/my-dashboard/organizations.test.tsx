@@ -107,7 +107,6 @@ describe('Organization deletion', () => {
         loading={false}
         hasError={false}
         setOrganization={jest.fn()}
-        activeOrganizationId={organization.id}
         reload={reload}
       />,
     );
@@ -127,7 +126,6 @@ describe('Organization deletion', () => {
         loading={false}
         hasError={false}
         setOrganization={jest.fn()}
-        activeOrganizationId={organization.id}
         reload={reload}
       />,
     );
@@ -148,7 +146,6 @@ describe('Organization deletion', () => {
         loading={false}
         hasError={false}
         setOrganization={jest.fn()}
-        activeOrganizationId={organization.id}
         reload={jest.fn()}
       />,
     );

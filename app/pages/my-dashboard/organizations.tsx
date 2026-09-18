@@ -41,7 +41,6 @@ function MyOrganizations({ session }: PageProps) {
           loading={loading}
           hasError={hasError}
           setOrganization={setOrganization}
-          activeOrganizationId={organization?.id}
           reload={loadOrganizations}
         />
       )}

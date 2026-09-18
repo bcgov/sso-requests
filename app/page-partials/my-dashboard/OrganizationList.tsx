@@ -14,6 +14,7 @@ import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { PRIMARY_RED } from '@app/styles/theme';
 import Input from '@app/components/Input';
+import TableNew from '@app/components/TableNew';
 
 const Container = styled.div`
   * {
@@ -21,28 +22,14 @@ const Container = styled.div`
   }
 `;
 
-const List = styled.table`
-  width: 100%;
-
-  th,
-  td {
-    padding: 0.5em;
-    text-align: left;
-  }
-
-  tr.active {
-    background: #f1f8ff;
-    font-weight: bold;
-  }
-
-  tr.selectable {
-    cursor: pointer;
-  }
+const RightFloatButtons = styled.div`
+  float: right;
+  padding-right: 0.5em;
 `;
 
-const Actions = styled.td`
-  text-align: right !important;
-`;
+function OrganizationListActionsHeader() {
+  return <span style={{ float: 'right', paddingRight: '1em' }}>Actions</span>;
+}
 
 interface Props {
   currentUser: UserSession;
@@ -50,19 +37,10 @@ interface Props {
   loading: boolean;
   hasError: boolean;
   setOrganization: (organization: Organization) => void;
-  activeOrganizationId?: number;
   reload: () => void;
 }
 
-function OrganizationList({
-  currentUser,
-  organizations,
-  loading,
-  hasError,
-  setOrganization,
-  activeOrganizationId,
-  reload,
-}: Readonly<Props>) {
+function OrganizationList({ currentUser, organizations, loading, hasError, setOrganization, reload }: Readonly<Props>) {
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -117,43 +95,49 @@ function OrganizationList({
     }
 
     return (
-      <List data-testid="organization-list-table">
-        <thead>
-          <tr>
-            <th>Organization</th>
-            <th>Description</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {organizations.map((organization) => (
-            <tr
-              key={organization.id}
-              data-testid={`organization-row-${organization.id}`}
-              className={`selectable ${organization.id === activeOrganizationId ? 'active' : ''}`}
-              onClick={() => setOrganization(organization)}
-            >
-              <td>{organization.name}</td>
-              <td>{organization.description}</td>
-              <Actions>
-                <ActionButtonContainer>
-                  <ActionButton
-                    icon={faTrash}
-                    role="button"
-                    disabled={!canManageOrganizations}
-                    aria-label={`delete-${organization.name}`}
-                    data-testid={`delete-organization-${organization.id}`}
-                    title={canManageOrganizations ? 'Delete organization' : 'Only CSS admins can delete organizations'}
-                    size="lg"
-                    activeColor={PRIMARY_RED}
-                    onClick={(event) => showDeleteModal(event, organization)}
-                  />
-                </ActionButtonContainer>
-              </Actions>
-            </tr>
-          ))}
-        </tbody>
-      </List>
+      <TableNew
+        dataTestId="organization-list-table"
+        columns={[
+          {
+            accessorKey: 'name',
+            header: 'Organization',
+          },
+          {
+            accessorKey: 'description',
+            header: 'Description',
+          },
+          {
+            accessorKey: 'actions',
+            header: () => <OrganizationListActionsHeader />,
+            cell: (props) => {
+              const organization = props.row.original as Organization;
+              return (
+                <RightFloatButtons>
+                  <ActionButtonContainer>
+                    <ActionButton
+                      icon={faTrash}
+                      role="button"
+                      disabled={!canManageOrganizations}
+                      aria-label={`delete-${organization.name}`}
+                      data-testid={`delete-organization-${organization.id}`}
+                      title={
+                        canManageOrganizations ? 'Delete organization' : 'Only CSS admins can delete organizations'
+                      }
+                      size="lg"
+                      activeColor={PRIMARY_RED}
+                      onClick={(event) => showDeleteModal(event, organization)}
+                    />
+                  </ActionButtonContainer>
+                </RightFloatButtons>
+              );
+            },
+          },
+        ]}
+        data={organizations}
+        enableGlobalSearch={false}
+        enablePagination={false}
+        onRowSelect={setOrganization}
+      />
     );
   };
 
