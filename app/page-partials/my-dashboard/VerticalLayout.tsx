@@ -14,6 +14,9 @@ const InnerResizable = styled.div`
   overflow: auto;
 `;
 
+// Remembered across client-side navigations so the tab doesn't disappear and reappear while re-checking.
+let cachedHasOrganizations = false;
+
 interface Props {
   tab: 'integrations' | 'teams' | 'organizations';
   leftPanel?: () => React.ReactNode;
@@ -26,13 +29,15 @@ function VerticalLayout({ tab, leftPanel, rightPanel, showResizable = true, chil
   const router = useRouter();
   const sessionContext = useContext(SessionContext);
   const isCssAdmin = hasAppPermission(sessionContext?.session?.client_roles, appPermissions.MANAGE_ORGANIZATIONS);
-  const [hasOrganizations, setHasOrganizations] = useState(false);
+  const [hasOrganizations, setHasOrganizations] = useState(cachedHasOrganizations);
 
   useEffect(() => {
     if (isCssAdmin) return;
 
     getOrganizations().then(([organizations, error]) => {
-      setHasOrganizations(!error && (organizations?.length ?? 0) > 0);
+      if (error) return;
+      cachedHasOrganizations = (organizations?.length ?? 0) > 0;
+      setHasOrganizations(cachedHasOrganizations);
     });
   }, [isCssAdmin]);
 
