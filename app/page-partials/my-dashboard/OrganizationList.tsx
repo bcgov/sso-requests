@@ -17,14 +17,7 @@ import Input from '@app/components/Input';
 import TableNew from '@app/components/TableNew';
 
 const Container = styled.div`
-  * {
-    padding-top: 0.5em;
-  }
-`;
-
-const RightFloatButtons = styled.div`
-  float: right;
-  padding-right: 0.5em;
+  padding-top: 0.5em;
 `;
 
 function OrganizationListActionsHeader() {
@@ -112,7 +105,7 @@ function OrganizationList({ currentUser, organizations, loading, hasError, setOr
             cell: (props) => {
               const organization = props.row.original as Organization;
               return (
-                <RightFloatButtons>
+                <div>
                   <ActionButtonContainer>
                     <ActionButton
                       icon={faTrash}
@@ -128,7 +121,7 @@ function OrganizationList({ currentUser, organizations, loading, hasError, setOr
                       onClick={(event) => showDeleteModal(event, organization)}
                     />
                   </ActionButtonContainer>
-                </RightFloatButtons>
+                </div>
               );
             },
           },
