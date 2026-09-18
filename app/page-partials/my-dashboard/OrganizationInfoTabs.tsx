@@ -246,10 +246,8 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
       <button className="primary" onClick={() => setOpenInviteModal(true)} disabled={!canInviteTeam}>
         + Invite a Team
       </button>
-      <p>
-        A team decides what this organization may do to its integrations, and may narrow it at any time. Everyone in the
-        organization, and its CSS API accounts, hold exactly what the teams have consented to.
-      </p>
+      <br />
+      <p>You can invite teams to your organization to have access to their integrations.</p>
       <TableNew
         dataTestId="organization-teams-table"
         readOnly
@@ -512,9 +510,27 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
                   onChange={(permissions) => setProposed(permissions ?? [])}
                 />
                 <p>
-                  {integrationsFor(inviteTeamId).length} integration(s) would be covered, including any the team creates
-                  later. The team can cap individual integrations below this.
+                  Default permission level organization members and API Accounts will have over the teams integrations.
+                  Teams may choose to restrict access further on accepting the invitation. Newly added integrations to
+                  the team will default to this level.
                 </p>
+                <p>
+                  <strong>Role Description:</strong>
+                </p>
+                <ul>
+                  <li>
+                    <strong>Viewer:</strong> Allows viewing integration data, roles, and role assignments.
+                  </li>
+                  <li>
+                    <strong>Editor:</strong> Allows editing integration data.
+                  </li>
+                  <li>
+                    <strong>Role Manager:</strong> Allows viewing and editing integration roles and role assignments.
+                  </li>
+                  <li>
+                    <strong>Admin:</strong> Full write access to integrations.
+                  </li>
+                </ul>
               </div>
             )}
           </div>
