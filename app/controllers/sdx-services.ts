@@ -1,6 +1,7 @@
 import type { SDXAccessRequest, Session } from '@app/shared/interfaces';
 import { SDXResourceServer } from '@app/shared/interfaces';
-import { getAllowedRequest, getIntegrationById } from '@app/queries/request';
+import { getIntegrationById } from '@app/queries/request';
+import { authorizeIntegration } from '@app/queries/integrationAccess';
 import { EVENTS } from '@app/shared/enums';
 import { createEvent } from '@app/queries/event';
 import { getAdminClient } from '@app/keycloak/adminClient';
@@ -51,8 +52,9 @@ export const getSdxServicesForClient = async (
   requestId: number,
   status: string,
 ): Promise<{ clientId: string; resourceServers: SDXResourceServer[] }> => {
-  const current = await getAllowedRequest(session, requestId);
-  if (!current) throw new Error('Request not found');
+  const authorized = await authorizeIntegration(session, requestId, 'integrations:read');
+  if (!authorized) throw new Error('Request not found');
+  const { integration: current } = authorized;
 
   const envs = getSdxEnvironments();
 

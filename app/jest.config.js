@@ -3,6 +3,7 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
     '^@app/(.*)$': '<rootDir>/$1',
+    '^@sso/authz$': '<rootDir>/../packages/authz/src',
     '^@components(.*)$': '<rootDir>/components$1',
     '^@pages(.*)$': '<rootDir>/pages$1',
     '^@utils(.*)$': '<rootDir>/utils$1',
@@ -12,7 +13,9 @@ module.exports = {
     '^axios$': '<rootDir>/jest/mocks/axios.js',
     typography: 'typography/dist/index', // prevent jest `require` the base file itself in runtime
   },
-  transform: { '\\.[jt]sx?$': 'babel-jest' },
+  // configFile rather than the file-relative .babelrc, so files outside this
+  // directory — packages/authz — are transformed too.
+  transform: { '\\.[jt]sx?$': ['babel-jest', { configFile: require.resolve('./.babelrc') }] },
   transformIgnorePatterns: [
     '<rootDir>/node_modules/(?!(@rjsf|@keycloak|url-join|url-template|camelize-ts|keycloak-js)/)',
     '\\.pnp\\.[^\\/]+$',

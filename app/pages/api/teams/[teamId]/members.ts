@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else if (req.method === 'POST') {
       const { teamId } = req.query;
 
-      const result = await addUsersToTeam(Number(teamId), session?.user?.id!, req.body);
+      const result = await addUsersToTeam(session as Session, Number(teamId), req.body);
       return res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['GET', 'POST']);

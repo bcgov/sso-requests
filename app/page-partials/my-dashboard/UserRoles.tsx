@@ -11,6 +11,7 @@ import { ActionButtonContainer } from 'components/ActionButtons';
 import { ModalRef, emptyRef } from 'components/GenericModal';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles } from 'services/keycloak';
+import { canManageUserRoleMappings } from 'helpers/permissions';
 import InfoOverlay from 'components/InfoOverlay';
 import { idpMap } from 'helpers/meta';
 import { KeycloakUser } from 'interfaces/team';
@@ -49,6 +50,11 @@ const FlexItem = styled.div`
 
 const CenterAlign = styled.div`
   text-align: center;
+`;
+
+const ReadOnlyNote = styled.p`
+  margin-top: 0.5rem;
+  font-style: italic;
 `;
 
 const Loading = () => (
@@ -260,6 +266,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [selectedUser, setSelectedUser] = useState<(KeycloakUser & { source: string }) | undefined>(undefined);
   const [userAssignmentError, setUserAssignmentError] = useState(false);
   const surveyContext = useContext(SurveyContext);
+
+  const canAssignRoles = canManageUserRoleMappings(selectedRequest);
 
   const sliceRows = (page: number, rows: any[]) => rows.slice((page - 1) * limit, page * limit);
 
@@ -547,7 +555,11 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
           placeholder="Select..."
           noOptionsMessage={() => 'No roles'}
           onChange={handleRoleChange}
+          inputId="user-role-assignment"
+          aria-label="Assign User to a Role"
+          isDisabled={!canAssignRoles}
         />
+        {!canAssignRoles && <ReadOnlyNote>You can view this user’s roles, but not change them.</ReadOnlyNote>}
         <LastSavedMessage saving={saving} content={savingMessage} variant={userAssignmentError ? 'error' : 'success'} />
       </div>
     );

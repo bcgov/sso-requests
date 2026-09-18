@@ -6,7 +6,8 @@ export interface ApiUsageMetricsAttributes {
   timestamp: Date;
   method: string;
   endpoint: string;
-  teamId: number;
+  teamId: number | null;
+  apiClientId?: string | null;
   statusCode: number;
   responseTimeMs: number;
 }
@@ -16,7 +17,8 @@ export class ApiUsageMetrics extends Model<ApiUsageMetricsAttributes> implements
   timestamp!: Date;
   method!: string;
   endpoint!: string;
-  teamId!: number;
+  teamId!: number | null;
+  apiClientId!: string | null;
   statusCode!: number;
   responseTimeMs!: number;
 
@@ -45,8 +47,13 @@ export class ApiUsageMetrics extends Model<ApiUsageMetricsAttributes> implements
         },
         teamId: {
           type: DataTypes.INTEGER,
-          allowNull: false,
+          allowNull: true,
           field: 'team_id',
+        },
+        apiClientId: {
+          type: DataTypes.STRING,
+          allowNull: true,
+          field: 'api_client_id',
         },
         statusCode: {
           type: DataTypes.INTEGER,

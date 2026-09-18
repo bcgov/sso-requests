@@ -4,7 +4,8 @@ import { models } from '@app/shared/sequelize/models/models';
 import { Session, User, UserTeam } from '@app/shared/interfaces';
 import { lowcase } from '@app/helpers/string';
 import { isAdmin } from '../utils/helpers';
-import { findAllowedIntegrationInfo, getIntegrationById } from '@app/queries/request';
+import { Permission } from '@sso/authz';
+import { authorizeIntegration } from '@app/queries/integrationAccess';
 import { listRoleUsers, listUserRoles, manageUserRole, manageUserRoles } from '@app/keycloak/users';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import { EMAILS, EVENTS } from '@app/shared/enums';
@@ -14,7 +15,6 @@ import { createEvent } from '@app/queries/event';
 import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
 import createHttpError from 'http-errors';
 import { compact } from 'lodash';
-import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
@@ -82,6 +82,13 @@ export const createSurvey = (session: Session, data: { message?: string; rating:
   });
 };
 
+// The integration a role-mapping operation targets, or 403.
+const authorizedIntegration = async (session: Session, integrationId: number, permission: Permission) => {
+  const authorized = await authorizeIntegration(session, integrationId, permission);
+  if (!authorized) throw new createHttpError.Forbidden('not allowed to access this integration');
+  return authorized.integration;
+};
+
 export const listUsersByRole = async (
   session: Session,
   {
@@ -98,9 +105,7 @@ export const listUsersByRole = async (
     max: number;
   },
 ) => {
-  const integration = hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_ROLES)
-    ? await getIntegrationById(integrationId)
-    : await findAllowedIntegrationInfo(session?.user?.id as number, integrationId);
+  const integration = await authorizedIntegration(session, integrationId, 'user-role-mappings:read');
   if (integration.authType === 'service-account') throw new createHttpError.BadRequest('invalid auth type');
   return await listRoleUsers(integration, {
     environment,
@@ -111,7 +116,7 @@ export const listUsersByRole = async (
 };
 
 export const updateUserRoleMapping = async (
-  sessionUserId: number,
+  session: Session,
   {
     environment,
     integrationId,
@@ -126,13 +131,13 @@ export const updateUserRoleMapping = async (
     mode: 'add' | 'del';
   },
 ) => {
-  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  const integration = await authorizedIntegration(session, integrationId, 'user-role-mappings:write');
   const roles = await manageUserRole(integration, { environment, username, roleName, mode });
   return roles.map((role) => role.name);
 };
 
 export const updateUserRoleMappings = async (
-  sessionUserId: number,
+  session: Session,
   {
     environment,
     integrationId,
@@ -145,12 +150,12 @@ export const updateUserRoleMappings = async (
     roleNames: string[];
   },
 ) => {
-  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  const integration = await authorizedIntegration(session, integrationId, 'user-role-mappings:write');
   return await manageUserRoles(integration, { environment, username, roleNames });
 };
 
 export const listClientRolesByUsers = async (
-  sessionUserId: number,
+  session: Session,
   {
     environment,
     integrationId,
@@ -161,7 +166,7 @@ export const listClientRolesByUsers = async (
     username: string;
   },
 ) => {
-  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  const integration = await authorizedIntegration(session, integrationId, 'user-role-mappings:read');
   const roles = await listUserRoles(integration, {
     environment,
     username,
@@ -170,8 +175,9 @@ export const listClientRolesByUsers = async (
 };
 
 export const isAllowedToManageRoles = async (session: Session, integrationId: number) => {
-  const integration = await findAllowedIntegrationInfo(session?.user?.id as number, integrationId);
-  return canCreateOrDeleteRoles(integration);
+  const authorized = await authorizeIntegration(session, integrationId, 'roles:write');
+  if (!authorized) return false;
+  return canCreateOrDeleteRoles(authorized.integration);
 };
 
 /*
