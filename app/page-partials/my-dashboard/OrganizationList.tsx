@@ -18,7 +18,7 @@ import TableNew from '@app/components/TableNew';
 
 const Container = styled.div`
   * {
-    margin: 0.5em 0;
+    padding-top: 0.5em;
   }
 `;
 
