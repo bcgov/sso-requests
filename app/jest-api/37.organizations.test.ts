@@ -37,6 +37,9 @@ import {
   listOrganizationMembers,
   removeOrganizationMember,
   updateOrganizationMemberRole,
+  createOrganizationApiAccount,
+  deleteOrganizationApiAccount,
+  listOrganizationApiAccounts,
 } from '@app/controllers/organization';
 
 jest.mock('@app/keycloak/integration', () => {
@@ -505,6 +508,23 @@ describe('organizations', () => {
       const session = await asTeamAdmin();
       expect(await admitted(session, 'integrations:read')).toContain(cappedIntegrationId);
       expect(await resolvedOn(session, cappedIntegrationId)).toEqual(PRESETS['team-admin']);
+    });
+  });
+
+  describe('the api account', () => {
+    it('is held once per organization, as a team holds one', async () => {
+      const session = await asOrgAdmin();
+      const account = await createOrganizationApiAccount(session, organizationId);
+      expect(account.clientId).toBe(`service-account-org-${organizationId}-${account.id}`);
+
+      await expect(createOrganizationApiAccount(session, organizationId)).rejects.toThrow(/already has api account/);
+      expect(ids(await listOrganizationApiAccounts(session, organizationId))).toEqual([account.id]);
+
+      // Deleting it archives the row, which frees the slot again.
+      await deleteOrganizationApiAccount(session, organizationId, account.id);
+      expect(await listOrganizationApiAccounts(session, organizationId)).toEqual([]);
+      const replacement = await createOrganizationApiAccount(session, organizationId);
+      expect(replacement.id).not.toBe(account.id);
     });
   });
 });

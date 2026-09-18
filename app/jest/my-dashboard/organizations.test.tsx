@@ -13,6 +13,7 @@ import {
   removeTeamFromOrganization,
   searchTeamsForOrganization,
   getTeamIntegrationsForOrganization,
+  updateOrganizationApiAccountSecret,
 } from '@app/services/organization';
 
 jest.mock('@app/services/organization', () => ({
@@ -30,6 +31,7 @@ jest.mock('@app/services/organization', () => ({
   removeOrganizationMember: jest.fn(),
   removeTeamFromOrganization: jest.fn(),
   searchTeamsForOrganization: jest.fn(),
+  updateOrganizationApiAccountSecret: jest.fn(),
 }));
 
 const organization = { id: 1, name: 'Alpha', description: 'Alpha organization', role: 'admin' };
@@ -45,6 +47,7 @@ const mockedGetOrganizationTeams = jest.mocked(getOrganizationTeams);
 const mockedRemoveOrganizationMember = jest.mocked(removeOrganizationMember);
 const mockedRemoveTeamFromOrganization = jest.mocked(removeTeamFromOrganization);
 const mockedSearchTeams = jest.mocked(searchTeamsForOrganization);
+const mockedUpdateOrganizationApiAccountSecret = jest.mocked(updateOrganizationApiAccountSecret);
 const mockedGetTeamIntegrationsForOrganization = jest.mocked(getTeamIntegrationsForOrganization);
 
 const member = (userId: number, role: string) => ({
@@ -159,12 +162,13 @@ describe('Organization deletion', () => {
   });
 
   it('summarizes the permissions an API account will receive before requesting it', async () => {
+    mockedGetOrganizationApiAccounts.mockResolvedValue([[], null]);
     mockedCreateOrganizationApiAccount.mockResolvedValue([{ id: 12 } as any, null]);
     mockedGetOrganizationTeams.mockResolvedValue([[teamLink()], null]);
     mockedGetTeamIntegrationsForOrganization.mockResolvedValue([[], null]);
     render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
 
-    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Accounts' }));
+    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
     fireEvent.click(await screen.findByRole('button', { name: '+ Request CSS API Account' }));
 
     const modal = (await screen.findByText(/A new CSS API account for Alpha/)).closest(
@@ -183,16 +187,43 @@ describe('Organization deletion', () => {
     });
   });
 
-  it('deletes an active organization API account and reloads the account list', async () => {
+  it('offers no second account once the organization holds one', async () => {
     render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
 
-    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Accounts' }));
-    fireEvent.click(await screen.findByRole('button', { name: 'delete-api-account-11' }));
+    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
+    expect(await screen.findByText('service-account-org-1-11')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '+ Request CSS API Account' })).not.toBeInTheDocument();
+    ['copy-credentials', 'download-credentials', 'update-secret', 'delete-api-account'].forEach((name) => {
+      expect(screen.getByRole('button', { name })).toHaveAttribute('aria-disabled', 'false');
+    });
+  });
+
+  it('deletes the organization API account and reloads the account list', async () => {
+    render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'delete-api-account' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Delete' }));
 
     await waitFor(() => {
       expect(mockedDeleteOrganizationApiAccount).toHaveBeenCalledWith(organization.id, 11);
       expect(mockedGetOrganizationApiAccounts).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('rotates the organization API account secret after confirmation', async () => {
+    mockedUpdateOrganizationApiAccountSecret.mockResolvedValue([{}, null]);
+    render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'update-secret' }));
+    expect(await screen.findByText(/You are about to request a new secret/)).toBeInTheDocument();
+    expect(mockedUpdateOrganizationApiAccountSecret).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+
+    await waitFor(() => {
+      expect(mockedUpdateOrganizationApiAccountSecret).toHaveBeenCalledWith(organization.id, 11);
     });
   });
 
@@ -219,19 +250,23 @@ describe('Organization deletion', () => {
 
     render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
 
-    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Accounts' }));
+    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
     expect(await screen.findByText('active-service-account')).toBeInTheDocument();
     expect(screen.queryByText('archived-service-account')).not.toBeInTheDocument();
-    expect(screen.getByTestId('copy-organization-api-account-12-credentials')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'delete-api-account-11' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'copy-credentials' })).toHaveAttribute('aria-disabled', 'false');
   });
 
-  it('does not offer API account deletion to an ordinary organization member', async () => {
+  it('holds the API account actions back from an ordinary organization member', async () => {
     render(<OrganizationInfoTabs organization={{ ...organization, role: 'member' }} currentUser={organizationAdmin} />);
 
-    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Accounts' }));
+    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
     expect(await screen.findByText('service-account-org-1-11')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'delete-api-account-11' })).not.toBeInTheDocument();
+    ['copy-credentials', 'download-credentials', 'update-secret', 'delete-api-account'].forEach((name) => {
+      expect(screen.getByRole('button', { name })).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'delete-api-account' }));
+    expect(screen.queryByText(/Are you sure that you want to delete this CSS API Account/)).not.toBeInTheDocument();
   });
 });
 

@@ -8,8 +8,9 @@ import Dropdown from 'components/Dropdown';
 import PresetPicker from 'components/PresetPicker';
 import WarningModalContents from 'components/WarningModalContents';
 import ActionButton from 'components/ActionButton';
-import { ActionButtonContainer, VerticalLine } from 'components/ActionButtons';
+import { ActionButtonContainer } from 'components/ActionButtons';
 import TableNew from 'components/TableNew';
+import OrganizationApiAccountPanel from './OrganizationApiAccountPanel';
 import {
   Organization,
   OrganizationApiAccount,
@@ -21,9 +22,6 @@ import { UserSession } from 'interfaces/props';
 import { Permission, PRESETS, describePermissions } from '@sso/authz';
 import {
   addOrganizationMember,
-  createOrganizationApiAccount,
-  deleteOrganizationApiAccount,
-  getOrganizationApiAccountCredentials,
   getOrganizationApiAccounts,
   getOrganizationMembers,
   getOrganizationTeams,
@@ -34,15 +32,14 @@ import {
   getTeamIntegrationsForOrganization,
 } from 'services/organization';
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
-import { faCopy, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { PRIMARY_BUTTON_HOVER_COLOR, PRIMARY_RED } from '@app/styles/theme';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { PRIMARY_RED } from '@app/styles/theme';
 import {
   appPermissions,
   hasAppPermission,
   hasOrganizationPermission,
   organizationPermissions,
 } from '@app/utils/authorize';
-import { copyTextToClipboard, prettyJSON } from '@app/utils/text';
 import { throttledIdirSearch } from '@app/utils/users';
 
 const Panel = styled.div`
@@ -136,13 +133,12 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
   const [inviteTeamId, setInviteTeamId] = useState<number | undefined>(undefined);
   const [proposed, setProposed] = useState<Permission[]>([...PRESETS.viewer]);
 
-  const [openRequestAccountModal, setOpenRequestAccountModal] = useState(false);
-  const [accountToDelete, setAccountToDelete] = useState<OrganizationApiAccount | null>(null);
   const [linkToRemove, setLinkToRemove] = useState<OrganizationTeamLink | null>(null);
 
   const activeLinks = links.filter((link) => !link.pending);
   const admins = members.filter((member) => member.role === 'admin');
-  const activeAccounts = accounts.filter((account) => !account.archived);
+  // An organization holds one account at most; the server refuses a second.
+  const activeAccount = accounts.find((account) => !account.archived) ?? null;
   // sso-admins can manage any organization regardless of their membership role in it.
   const isSsoAdmin = hasAppPermission(currentUser?.client_roles, appPermissions.MANAGE_ORGANIZATIONS);
   const canManage = (permission: string) => isSsoAdmin || hasOrganizationPermission(organization.role, permission);
@@ -226,16 +222,9 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
     reload();
   };
 
-  const handleRequestAccount = async () => {
-    const [, err] = await createOrganizationApiAccount(organization.id);
-    if (err) return fail('Could not create the API account.');
-    setOpenRequestAccountModal(false);
-    reload();
-  };
-
-  // What any API account of the organization can reach: one entry per joined
-  // team, at the level that team consented to. Shown both on the accounts
-  // table and in the request confirmation, so the two never disagree.
+  // What the organization's API account can reach: one entry per joined team,
+  // at the level that team consented to. Shown both on the accounts tab and in
+  // the request confirmation, so the two never disagree.
   const permissionsSummary =
     activeLinks.length === 0 ? (
       <em>no teams have joined yet</em>
@@ -253,14 +242,6 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
         ))}
       </PermissionsList>
     );
-
-  const handleDeleteAccount = async () => {
-    if (!accountToDelete) return;
-    const [, err] = await deleteOrganizationApiAccount(organization.id, accountToDelete.id);
-    if (err) return fail('Could not delete the CSS API account. Please try again.');
-    setAccountToDelete(null);
-    reload();
-  };
 
   const membersTab = (
     <Panel>
@@ -386,73 +367,12 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
 
   const apiAccountsTab = (
     <Panel>
-      <button className="primary" disabled={!canManageApiAccounts} onClick={() => setOpenRequestAccountModal(true)}>
-        + Request CSS API Account
-      </button>
-      <p>
-        An account holds whatever the organization holds, read at the moment of each request. A team joining, leaving or
-        narrowing its consent reaches every account at once — there is nothing to keep in step.
-      </p>
-      <TableNew
-        dataTestId="organization-api-accounts-table"
-        readOnly
-        enableGlobalSearch={false}
-        enablePagination={false}
-        columns={[
-          { accessorKey: 'clientId', header: 'Client ID' },
-          { accessorKey: 'status', header: 'Status' },
-          {
-            accessorKey: 'permissions',
-            header: 'Permissions',
-            cell: () => permissionsSummary,
-          },
-          {
-            accessorKey: 'actions',
-            header: () => <ActionsHeader />,
-            cell: (props) => {
-              const account = props.row.original as OrganizationApiAccount;
-              return (
-                <Actions>
-                  <ActionButton
-                    icon={faCopy}
-                    role="button"
-                    aria-label={`copy-api-account-${account.id}-credentials`}
-                    data-testid={`copy-organization-api-account-${account.id}-credentials`}
-                    title="Copy CSS API account Credentials"
-                    size="lg"
-                    activeColor={PRIMARY_BUTTON_HOVER_COLOR}
-                    disabled={!canManageApiAccounts || account.status !== 'applied'}
-                    onClick={async () => {
-                      const [result, err] = await getOrganizationApiAccountCredentials(organization.id, account.id);
-                      if (err) return fail('Could not fetch credentials.');
-                      copyTextToClipboard(prettyJSON(result));
-                      alert.show({ variant: 'success', fadeOut: 3000, content: 'Credentials copied to clipboard' });
-                    }}
-                  />
-                  {canManageApiAccounts && (
-                    <>
-                      <VerticalLine />
-                      <ActionButton
-                        icon={faTrash}
-                        role="button"
-                        aria-label={`delete-api-account-${account.id}`}
-                        data-testid={`delete-organization-api-account-${account.id}`}
-                        title="Delete CSS API account"
-                        size="lg"
-                        activeColor={PRIMARY_RED}
-                        disabled={account.status !== 'applied'}
-                        onClick={() => {
-                          if (account.status === 'applied') setAccountToDelete(account);
-                        }}
-                      />
-                    </>
-                  )}
-                </Actions>
-              );
-            },
-          },
-        ]}
-        data={activeAccounts}
+      <OrganizationApiAccountPanel
+        organization={organization}
+        account={activeAccount}
+        permissionsSummary={permissionsSummary}
+        canManage={canManageApiAccounts}
+        reload={reload}
       />
     </Panel>
   );
@@ -466,7 +386,7 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
         items={[
           { key: 'members', label: 'Members', children: membersTab },
           { key: 'teams', label: 'Teams', children: teamsTab },
-          { key: 'api-accounts', label: 'CSS API Accounts', children: apiAccountsTab },
+          { key: 'api-accounts', label: 'CSS API Account', children: apiAccountsTab },
         ]}
       />
 
@@ -605,50 +525,6 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
               organization.name
             }?`}
             content={`Removing this team will immediately revoke access to its integrations from organization members and API accounts.`}
-          />
-        }
-      />
-
-      <CenteredModal
-        id="request-organization-api-account-modal"
-        openModal={openRequestAccountModal}
-        handleClose={() => setOpenRequestAccountModal(false)}
-        title="Request CSS API Account"
-        icon={false}
-        closable
-        confirmText="Request Account"
-        skipCloseOnConfirm
-        onConfirm={handleRequestAccount}
-        content={
-          <div>
-            <p>
-              A new CSS API account for {organization.name} will be able to act on the integrations of every team that
-              has joined, at the level each team consented to:
-            </p>
-            {permissionsSummary}
-            <p>
-              Permissions are read at the moment of each request, so the account follows any later change to a
-              team&apos;s membership or consent.
-            </p>
-          </div>
-        }
-      />
-
-      <CenteredModal
-        id="delete-organization-api-account-modal"
-        openModal={Boolean(accountToDelete)}
-        handleClose={() => setAccountToDelete(null)}
-        title="Delete CSS API Account"
-        icon={null}
-        closable
-        confirmText="Delete"
-        buttonStyle="danger"
-        skipCloseOnConfirm
-        onConfirm={handleDeleteAccount}
-        content={
-          <WarningModalContents
-            title="Are you sure that you want to delete this CSS API Account?"
-            content="Once you delete this CSS API Account, this action cannot be undone."
           />
         }
       />

@@ -399,6 +399,10 @@ const getOrganizationApiAccount = async (organizationId: number, accountId: numb
 export const createOrganizationApiAccount = async (session: Session, organizationId: number) => {
   await assertOrganization(session, organizationId, organizationPermissions.MANAGE_ORG_API_ACCOUNTS);
 
+  // One account per organization, as for a team.
+  const existing = await models.request.count({ where: { organizationId, apiServiceAccount: true, archived: false } });
+  if (existing > 0) throw new createHttpError.Conflict('organization already has api account');
+
   const requester = getDisplayName(session);
   const account = await models.request.create({
     projectName: `Service Account for organization #${organizationId}`,
