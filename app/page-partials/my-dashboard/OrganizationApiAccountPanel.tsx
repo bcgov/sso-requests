@@ -176,14 +176,7 @@ function OrganizationApiAccountPanel({
         </Failed>
       )}
 
-      <p>
-        The account holds whatever the organization holds, read at the moment of each request. A team joining, leaving
-        or narrowing its consent reaches it at once — there is nothing to keep in step.
-      </p>
-      <p>
-        <strong>{account ? 'What this account can reach' : 'What the account will be able to reach'}:</strong>
-      </p>
-      {permissionsSummary}
+      <p>The created account will hold the same permissions as your organization</p>
 
       {account && (
         <InfoMessage>
@@ -208,13 +201,14 @@ function OrganizationApiAccountPanel({
         content={
           <div>
             <p>
-              A new CSS API account for {organization.name} will be able to act on the integrations of every team that
-              has joined, at the level each team consented to:
+              A new CSS API account for {organization.name} will be able to act on the integrations your organization
+              has access to, summarized below:
             </p>
             {permissionsSummary}
+            <br />
             <p>
-              Permissions are read at the moment of each request, so the account follows any later change to a
-              team&apos;s membership or consent.
+              <strong>Note:</strong> Account permissions will match the organizations, and update as the organizations
+              do.
             </p>
           </div>
         }
