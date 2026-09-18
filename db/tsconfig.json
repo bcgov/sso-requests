@@ -4,7 +4,8 @@
     "rootDir": "../",
     "baseUrl": "./",
     "paths": {
-      "@app/*": ["../app/*"]
+      "@app/*": ["../app/*"],
+      "@sso/authz": ["../packages/authz/src"]
     },
     "outDir": "./dist"
   },
