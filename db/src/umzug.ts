@@ -68,7 +68,6 @@ export const createMigrator = async () => {
       await import('./migrations/2026.08.07T14.00.00.create-sdx-requests-table'),
       await import('./migrations/2026.09.08T13.50.00.add-entra-table'),
       await import('./migrations/2026.09.15T10.00.00.create-request-workflows-tables'),
-      await import('./migrations/2026.09.15T10.10.00.drop-request-queues-table'),
     ],
     context: sequelize,
     storage: new SequelizeStorage({

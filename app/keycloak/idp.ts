@@ -16,6 +16,9 @@ interface IdpConfig {
   syncMode?: string;
   disableUserInfo?: boolean;
   validateSignature?: boolean;
+  jwtX509HeadersEnabled?: boolean;
+  clientAssertionSigningAlg?: string;
+  clientAssertionAudience?: string;
 }
 
 export interface IdpMapperConfig {

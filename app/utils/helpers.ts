@@ -15,7 +15,7 @@ import {
   usesOTP,
   checkNotOTP,
 } from '@app/helpers/integration';
-import { Session } from '@app/shared/interfaces';
+import { IntegrationData, Session } from '@app/shared/interfaces';
 import { sortBy, compact, omit, isString } from 'lodash';
 import { getSchemas, oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 import { diff } from 'deep-diff';
@@ -791,5 +791,12 @@ export const getKeycloakBaseUrlByEnvironment = (environment: string) => {
   if (environment === 'dev') return process.env.KEYCLOAK_V2_DEV_URL;
   if (environment === 'test') return process.env.KEYCLOAK_V2_TEST_URL;
   if (environment === 'prod') return process.env.KEYCLOAK_V2_PROD_URL;
+  return '';
+};
+
+export const getHomePageUrlByEnvironment = (environment: string, request: IntegrationData) => {
+  if (environment === 'dev') return request.devHomePageUri;
+  if (environment === 'test') return request.testHomePageUri;
+  if (environment === 'prod') return request.prodHomePageUri;
   return '';
 };

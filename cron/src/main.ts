@@ -55,11 +55,11 @@ export default function main() {
   });
 
   console.info(
-    'Task 4: Refresh entra app registration client secrets daily at 6 am',
+    'Task 4: Rotate entra app registration key credentials every six months',
   );
-  nodeCron.schedule('0 6 * * *', async () => {
+  nodeCron.schedule('0 6 1 1,7 *', async () => {
     fetch(
-      `${process.env.APP_URL}/api/ms-graph/refreshApplicationSecrets?daysUntilExpiry=21`,
+      `${process.env.APP_URL}/api/ms-graph/refreshApplicationKeyCredentials`,
       {
         method: 'GET',
         headers: {
@@ -69,7 +69,7 @@ export default function main() {
       },
     ).catch((error) => {
       console.error(
-        `Error calling ${process.env.APP_URL}/api/ms-graph/refreshApplicationSecrets`,
+        `Error calling ${process.env.APP_URL}/api/ms-graph/refreshApplicationKeyCredentials`,
         error,
       );
     });

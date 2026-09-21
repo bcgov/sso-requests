@@ -15,7 +15,6 @@ jest.mock('@app/utils/graph-api', () => ({
   setupEntraIntegration: jest.fn(),
   deleteServicePrincipal: jest.fn(),
   deleteAppRegistration: jest.fn(),
-  refreshAppRegistrationSecret: jest.fn(),
   validateIdirEmail: jest.fn(),
 }));
 jest.mock('@app/keycloak/idp', () => ({
@@ -24,6 +23,10 @@ jest.mock('@app/keycloak/idp', () => ({
   deleteIdp: jest.fn(),
   getIdp: jest.fn(),
   getIdpMappers: jest.fn(),
+}));
+jest.mock('@app/keycloak/keys', () => ({
+  createPS256Key: jest.fn(),
+  getActivePS256KeyCert: jest.fn(),
 }));
 jest.mock('@app/controllers/requests', () => ({
   createBCSCIntegration: jest.fn(),
@@ -48,6 +51,7 @@ jest.mock('@app/queries/custom-requests', () => ({
 const requests = jest.requireActual('@app/controllers/requests') as typeof import('@app/controllers/requests');
 const graphApi = jest.requireMock('@app/utils/graph-api') as jest.Mocked<typeof import('@app/utils/graph-api')>;
 const idp = jest.requireMock('@app/keycloak/idp') as jest.Mocked<typeof import('@app/keycloak/idp')>;
+const keys = jest.requireMock('@app/keycloak/keys') as jest.Mocked<typeof import('@app/keycloak/keys')>;
 const keycloakRequests = jest.requireMock('@app/controllers/requests') as jest.Mocked<
   Pick<typeof import('@app/controllers/requests'), 'createEntraIntegration' | 'deleteEntraIntegration'>
 >;
@@ -69,10 +73,8 @@ const createPersistedEntraClient = (request: typeof integration) =>
   saveEntraClient({
     appName: 'entra-project-1-dev',
     appId: 'app-id',
-    secret: 'client-secret',
-    secretKeyId: 'secret-key-id',
+    keyThumbprint: 'key-thumbprint',
     servicePrincipalId: 'service-principal-id',
-    secretExpiryDate: new Date('2028-01-01T00:00:00.000Z'),
     environment: 'dev',
     requestId: request.id!,
   });
@@ -110,16 +112,16 @@ beforeEach(() => {
   jest.clearAllMocks();
   idp.getIdp.mockResolvedValue(undefined);
   idp.getIdpMappers.mockResolvedValue([]);
+  keys.getActivePS256KeyCert.mockResolvedValue({
+    kid: 'kc-key-id',
+    certificatePem: '-----BEGIN CERTIFICATE-----\nkc-cert\n-----END CERTIFICATE-----',
+    certificateRawBase64: 'kc-cert',
+  });
   graphApi.setupEntraIntegration.mockResolvedValue({
     appId: 'app-id',
     servicePrincipalId: 'service-principal-id',
-    secret: { secretText: 'client-secret', keyId: 'secret-key-id', endDateTime: '2028-01-01T00:00:00.000Z' },
+    secret: { customKeyIdentifier: 'key-thumbprint' },
   });
-  graphApi.refreshAppRegistrationSecret.mockResolvedValue({
-    secretText: 'refreshed-client-secret',
-    keyId: 'refreshed-secret-key-id',
-    endDateTime: '2029-01-01T00:00:00.000Z',
-  } as never);
 });
 
 describe('bcgovidir idp permissions', () => {
@@ -138,12 +140,17 @@ describe('createEntraIntegration', () => {
   it('provisions, persists, and configures a new Entra integration', async () => {
     await requests.createEntraIntegration('dev', integration);
 
-    expect(graphApi.setupEntraIntegration).toHaveBeenCalledWith('entra-project-1-dev', 'dev', integration);
+    expect(graphApi.setupEntraIntegration).toHaveBeenCalledWith(
+      'entra-project-1-dev',
+      'dev',
+      integration,
+      expect.anything(),
+    );
     await expect(getEntraClientByRequestId({ integrationId: integration.id!, environment: 'dev' })).resolves.toEqual([
       expect.objectContaining({
         appName: 'entra-project-1-dev',
         appId: 'app-id',
-        secret: 'client-secret',
+        keyThumbprint: 'key-thumbprint',
         servicePrincipalId: 'service-principal-id',
       }),
     ]);
@@ -152,7 +159,7 @@ describe('createEntraIntegration', () => {
         alias: 'entra-client',
         displayName: 'Entra Project',
         realm: KC_ENTRA_IDP_REALM,
-        config: expect.objectContaining({ clientId: 'app-id', clientSecret: 'client-secret' }),
+        config: expect.objectContaining({ clientId: 'app-id' }),
       }),
       'dev',
     );
@@ -178,34 +185,13 @@ describe('createEntraIntegration', () => {
     expect(idp.createIdpMapper).not.toHaveBeenCalled();
   });
 
-  it('refreshes and persists the secret when Entra does not return one', async () => {
-    const missingSecretIntegration = integrationForRequest(8);
-    graphApi.setupEntraIntegration.mockResolvedValue({
-      appId: 'app-id',
-      servicePrincipalId: 'service-principal-id',
-      secret: { secretText: '', keyId: '', endDateTime: '' },
-    });
-
-    await requests.createEntraIntegration('dev', missingSecretIntegration);
-
-    expect(graphApi.refreshAppRegistrationSecret).toHaveBeenCalledWith('app-id');
-    await expect(
-      getEntraClientByRequestId({ integrationId: missingSecretIntegration.id!, environment: 'dev' }),
-    ).resolves.toEqual([
-      expect.objectContaining({
-        secret: 'refreshed-client-secret',
-        secretExpiryDate: new Date('2029-01-01T00:00:00.000Z'),
-      }),
-    ]);
-  });
-
-  it('logs and absorbs an Entra provisioning failure', async () => {
+  it('logs and rethrows an Entra provisioning failure', async () => {
     const failedIntegration = integrationForRequest(3);
     const error = new Error('invalid Entra response');
     const consoleError = jest.spyOn(console, 'error').mockImplementation();
     graphApi.setupEntraIntegration.mockRejectedValue(error);
 
-    await expect(requests.createEntraIntegration('dev', failedIntegration)).resolves.toBeUndefined();
+    await expect(requests.createEntraIntegration('dev', failedIntegration)).rejects.toThrow(error);
 
     expect(consoleError).toHaveBeenCalledWith('could not create Entra integration', error);
     expect(idp.createIdp).not.toHaveBeenCalled();
@@ -253,14 +239,14 @@ describe('deleteEntraIntegration', () => {
     ).resolves.toEqual([]);
   });
 
-  it('logs and absorbs invalid Entra delete responses', async () => {
+  it('logs and rethrows invalid Entra delete responses', async () => {
     const failedDeleteIntegration = integrationForRequest(7);
     const error = new Error('invalid Entra response');
     const consoleError = jest.spyOn(console, 'error').mockImplementation();
     await createPersistedEntraClient(failedDeleteIntegration);
     graphApi.deleteServicePrincipal.mockRejectedValue(error);
 
-    await expect(requests.deleteEntraIntegration('dev', failedDeleteIntegration)).resolves.toBeUndefined();
+    await expect(requests.deleteEntraIntegration('dev', failedDeleteIntegration)).rejects.toThrow(error);
 
     expect(consoleError).toHaveBeenCalledWith('could not delete Entra integration', error);
     expect(graphApi.deleteAppRegistration).not.toHaveBeenCalled();

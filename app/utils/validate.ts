@@ -179,7 +179,10 @@ export const customValidate = (formData: any, errors: any, uiSchema: any, fields
 
   ['dev', 'test', 'prod'].map((env) => {
     fieldMap[`${env}HomePageUri`] = () => {
-      if (devIdps.includes('bcservicescard') && !isValidKeycloakURIProd(formData[`${env}HomePageUri`])) {
+      if (
+        devIdps.some((idp: string) => ['bcservicescard', 'bcgovidir'].includes(idp)) &&
+        !isValidKeycloakURIProd(formData[`${env}HomePageUri`])
+      ) {
         errors[`${env}HomePageUri`]?.addError(validationMessage);
       } else if (devIdps.includes('otp') && !devIdps.includes('bcservicescard')) {
         const val = formData[`${env}HomePageUri`];

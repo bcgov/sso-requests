@@ -110,6 +110,7 @@ export type QUEUE_ACTION = 'create' | 'update' | 'delete';
 export type Status = 'draft' | 'submitted' | 'pr' | 'prFailed' | 'planned' | 'planFailed' | 'applied' | 'applyFailed';
 
 export interface MsGraphUserValue {
+  id: string;
   mailNickname: string;
   displayName: string;
   mail: string;

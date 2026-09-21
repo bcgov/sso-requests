@@ -9,14 +9,10 @@ import axios, { AxiosRequestConfig, AxiosResponse, Method, ResponseType } from '
 import { createAzureIdirUser } from '@app/keycloak/users';
 import { MsGraphUserValue, MsGraphUserResponse, IntegrationData } from '@app/shared/interfaces';
 import { IConfidentialClientApplication, ConfidentialClientApplication } from '@azure/msal-node';
-import {
-  Application,
-  ClaimsMappingPolicy,
-  PasswordCredential,
-  ServicePrincipal,
-} from '@microsoft/microsoft-graph-types';
-import { getKeycloakBaseUrlByEnvironment } from './helpers';
-import { randomInt } from 'node:crypto';
+import { Application, ClaimsMappingPolicy, KeyCredential, ServicePrincipal } from '@microsoft/microsoft-graph-types';
+import { getHomePageUrlByEnvironment, getKeycloakBaseUrlByEnvironment } from './helpers';
+import { randomInt, createHash } from 'node:crypto';
+import { computeThumbprint, extractCertDates, buildKeyCredential, getApplicationNotes } from './entra-helpers';
 
 const GRAPH_API_MAX_RETRIES = 5;
 const GRAPH_API_RETRY_INTERVAL_MS = 1500;
@@ -257,6 +253,7 @@ export const validateIdirEmail = async (email: string) => {
 };
 
 const formatUser = (data: MsGraphUserValue) => {
+  const id = data.id;
   const userId = data.mailNickname;
   const guid = data.onPremisesExtensionAttributes.extensionAttribute12;
   const email = data.mail;
@@ -269,6 +266,7 @@ const formatUser = (data: MsGraphUserValue) => {
   const jobTitle = data.jobTitle;
   const userPrincipalName = data.userPrincipalName;
   return {
+    id,
     guid,
     userId,
     email,
@@ -289,7 +287,7 @@ export const searchIdirUsers = async ({ field, search }: { field: string; search
     throw new Error('Allowed search fields are givenName, surname, mail, mailNickname');
   }
   try {
-    const url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=startswith(${field},'${search}')&$top=100&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName`;
+    const url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=startswith(${field},'${search}')&$top=100&$select=id,onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName`;
     const response = (await callAzureGraphApi(url)) as MsGraphUserResponse;
     const formattedUsers = response.value.map(formatUser);
     return formattedUsers;
@@ -362,19 +360,45 @@ export const setupEntraIntegration = async (
   appName: string,
   environment: string,
   request: IntegrationData,
-): Promise<{ appId: string; servicePrincipalId: string; secret: PasswordCredential | null }> => {
+  kcCert: {
+    kid: string;
+    certificateRawBase64: string;
+    certificatePem: string;
+  },
+): Promise<{ appId: string; servicePrincipalId: string; secret: KeyCredential | null }> => {
+  let newCredential: KeyCredential | null = null;
   let appReg = await getAppRegistration(appName as string);
   if (!appReg) {
     const kcBaseUrl = getKeycloakBaseUrlByEnvironment(environment);
-    appReg = await createAppRegistration(appName, [
-      `${kcBaseUrl}/auth/realms/bcgovidir/broker/${request.clientId}/endpoint`,
-    ]);
+    appReg = await createAppRegistration(
+      appName,
+      getHomePageUrlByEnvironment(environment, request) as string,
+      getApplicationNotes(environment, request),
+      [`${kcBaseUrl}/auth/realms/bcgovidir/broker/${request.clientId}/endpoint`],
+    );
   }
+
+  const keyCredThumbprint = computeThumbprint(kcCert.certificateRawBase64);
+
+  const keyCredExists = appReg.keyCredentials?.some((kc) => kc.customKeyIdentifier === keyCredThumbprint) || false;
+
+  if (!keyCredExists) {
+    newCredential = await addKeyCredential(
+      appReg,
+      kcCert.certificatePem,
+      kcCert.certificateRawBase64,
+      keyCredThumbprint,
+    );
+  } else newCredential = appReg.keyCredentials?.find((kc) => kc.customKeyIdentifier === keyCredThumbprint) || null;
 
   let servicePrincipal = await getServicePrincipal(appReg.appId as string);
 
   if (!servicePrincipal) {
-    servicePrincipal = await createServicePrincipal(appReg.appId as string);
+    servicePrincipal = await createServicePrincipal(
+      appReg.appId as string,
+      getApplicationNotes(environment, request),
+      getHomePageUrlByEnvironment(environment, request) as string,
+    );
   }
 
   if (servicePrincipal?.id) {
@@ -396,7 +420,7 @@ export const setupEntraIntegration = async (
   return {
     appId: appReg?.appId!,
     servicePrincipalId: servicePrincipal.id!,
-    secret: appReg?.passwordCredentials?.[0]!,
+    secret: newCredential,
   };
 };
 
@@ -412,7 +436,12 @@ export const updateAppRegistration = async (id: string, application: Application
   }
 };
 
-export const createAppRegistration = async (appName: string, redirectUris: string[] = []): Promise<Application> => {
+export const createAppRegistration = async (
+  appName: string,
+  homePageUrl: string,
+  notes: string,
+  redirectUris: string[] = [],
+): Promise<Application> => {
   if (!appName.trim()) {
     throw new createHttpError.BadRequest('Application name is required');
   }
@@ -422,19 +451,15 @@ export const createAppRegistration = async (appName: string, redirectUris: strin
       method: 'POST',
       data: {
         displayName: appName,
+        notes: notes,
         signInAudience: 'AzureADMyOrg',
         web: {
+          homePageUrl,
           redirectUris,
         },
         optionalClaims: {
           idToken: [...['email', 'family_name', 'given_name', 'upn'].map((claim) => ({ name: claim }))],
         },
-        passwordCredentials: [
-          {
-            displayName: `${appName} Password Credential`,
-            endDateTime: new Date(new Date().setMonth(new Date().getMonth() + 24)).toISOString(),
-          },
-        ],
       },
     });
   } catch (error) {
@@ -482,12 +507,19 @@ export const getAppRegistrationByAppId = async (appId: string): Promise<Applicat
   }
 };
 
-export const createServicePrincipal = async (appId: string): Promise<ServicePrincipal> => {
+export const createServicePrincipal = async (
+  appId: string,
+  notes: string,
+  homepage: string,
+): Promise<ServicePrincipal> => {
   try {
     return await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/servicePrincipals`, {
       method: 'POST',
       data: {
         appId,
+        notes,
+        homepage,
+        tags: ['WindowsAzureActiveDirectoryIntegratedApp'],
       },
     });
   } catch (error) {
@@ -540,6 +572,25 @@ export const deleteServicePrincipal = async (servicePrincipalId: string): Promis
   }
 };
 
+export const addServicePrincipalOwners = async (servicePrincipalId: string, ownerIds: string[]): Promise<void> => {
+  try {
+    for (const ownerId of ownerIds) {
+      await callAzureGraphApi(
+        `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/servicePrincipals/${servicePrincipalId}/owners/$ref`,
+        {
+          method: 'POST',
+          data: {
+            '@odata.id': `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/directoryObjects/${ownerId}`,
+          },
+        },
+      );
+    }
+  } catch (error) {
+    console.error(error);
+    throw new Error(`Unable to add owners to the service principal with ID: ${servicePrincipalId}`);
+  }
+};
+
 export const getAssignedClaimMappingPolicies = async (servicePrincipalId: string): Promise<ClaimsMappingPolicy[]> => {
   try {
     const response = await callAzureGraphApi(
@@ -576,37 +627,66 @@ export const assignClaimMappingPolicy = async (servicePrincipalId: string, polic
   }
 };
 
-export const refreshAppRegistrationSecret = async (appId: string): Promise<PasswordCredential | null> => {
+export async function addKeyCredential(
+  appReg: Application,
+  certPem: string,
+  certRawBase64: string,
+  keycloakKid: string,
+): Promise<KeyCredential> {
+  if (!appReg) {
+    throw new Error(`Application registration object is required`);
+  }
   try {
-    const newSecret = await callAzureGraphApi(
-      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications(appId='${appId}')/addPassword`,
-      {
-        method: 'POST',
-        data: {
-          passwordCredential: {
-            displayName: `Secret for ${appId}`,
-            endDateTime: new Date(new Date().setFullYear(new Date().getFullYear() + 2)).toISOString(),
-          },
-        },
-      },
+    const newCredential = buildKeyCredential(appReg.displayName as string, certPem, certRawBase64, keycloakKid);
+
+    // Graph replaces the whole collection, so existing credentials have to be sent back with it.
+    const existingCreds: KeyCredential[] = (appReg.keyCredentials ?? []).filter(
+      (kc: any) => kc.customKeyIdentifier !== newCredential.customKeyIdentifier,
     );
-    return newSecret;
+    existingCreds.push(newCredential);
+
+    await updateAppRegistration(appReg.id!, {
+      keyCredentials: existingCreds,
+    });
+    return newCredential;
   } catch (error) {
     console.error(error);
-    throw new Error(`Unable to refresh the secret for the application with appId: ${appId}`);
+    throw new Error(`Unable to upload the certificate to the application with objectId: ${appReg.id}`);
+  }
+}
+
+/**
+ * Overwrites the key credential collection outright. Graph returns `key: null` for existing credentials,
+ * so callers that hold the certificate bytes must send the full desired state rather than round-trip a GET.
+ */
+export const replaceKeyCredentials = async (appReg: Application, credentials: KeyCredential[]): Promise<void> => {
+  if (!appReg) {
+    throw new Error(`Application registration object is required`);
+  }
+  try {
+    await updateAppRegistration(appReg.id!, { keyCredentials: credentials });
+  } catch (error) {
+    console.error(error);
+    throw new Error(`Unable to replace the key credentials on the application with objectId: ${appReg.id}`);
   }
 };
 
-export const deleteAppRegistrationSecret = async (appId: string, keyId: string): Promise<void> => {
+export const removeKeyCredential = async (appReg: Application, thumbprint: string): Promise<void> => {
+  if (!appReg) {
+    throw new Error(`Application registration object is required`);
+  }
   try {
-    await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications(appId='${appId}')/removePassword`, {
-      method: 'POST',
-      data: {
-        keyId,
-      },
+    const existingCreds: KeyCredential[] = (appReg.keyCredentials ?? []).filter(
+      (kc: any) => kc.customKeyIdentifier !== thumbprint,
+    );
+
+    await updateAppRegistration(appReg.id!, {
+      keyCredentials: existingCreds,
     });
   } catch (error) {
     console.error(error);
-    throw new Error(`Unable to remove the secret with keyId: ${keyId} for the application with appId: ${appId}`);
+    throw new Error(
+      `Unable to remove the key credential with thumbprint: ${thumbprint} from the application with objectId: ${appReg.id}`,
+    );
   }
 };

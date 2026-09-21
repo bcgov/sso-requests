@@ -20,20 +20,12 @@ export const up = async ({ context: sequelize }) => {
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    secret: {
+    key_thumbprint: {
       type: DataTypes.TEXT,
       allowNull: true,
     },
     service_principal_id: {
       type: DataTypes.TEXT,
-      allowNull: true,
-    },
-    secret_key_id: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-    secret_expiry_date: {
-      type: DataTypes.DATE,
       allowNull: true,
     },
     environment: {

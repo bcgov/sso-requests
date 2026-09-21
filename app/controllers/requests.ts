@@ -62,7 +62,6 @@ import {
   validateIdirEmail,
   deleteServicePrincipal,
   deleteAppRegistration,
-  refreshAppRegistrationSecret,
 } from '@app/utils/graph-api';
 import {
   BCSCClientParameters,
@@ -88,7 +87,13 @@ import {
   getClientScopeMapper,
   updateClientScopeMapper,
 } from '@app/keycloak/clientScopes';
-import { bcgovIdirIdpMappers, bcscClientScopeMappers, bcscIdpMappers, KC_ENTRA_IDP_REALM } from '@app/utils/constants';
+import {
+  bcgovIdirIdpMappers,
+  bcscClientScopeMappers,
+  bcscIdpMappers,
+  KC_ENTRA_IDP_REALM,
+  KC_PS256_KEY_PROVIDER_ID,
+} from '@app/utils/constants';
 import createHttpError from 'http-errors';
 import { isSocialApprover, validateIDPs } from '@app/utils/helpers';
 import { getIdpApprovalStatus, canDeleteIntegration } from '@app/helpers/permissions';
@@ -101,7 +106,8 @@ import { createSdxRequest } from './sdx-services';
 import { getEntraClientByRequestId, saveEntraClient } from '@app/queries/entra-client';
 import { createEvent } from '@app/queries/event';
 import { enqueueRequestWorkflow } from '@app/workflow/request-workflow';
-import { PasswordCredential } from '@microsoft/microsoft-graph-types';
+import { KeyCredential } from '@microsoft/microsoft-graph-types';
+import { createPS256Key, getActivePS256KeyCert } from '@app/keycloak/keys';
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
@@ -1139,6 +1145,17 @@ export const getListOfDescrepencies = async () => {
 
 export const createEntraIntegration = async (environment: string, request: IntegrationData) => {
   try {
+    // Resolved by priority rather than by name, because key rotation creates suffixed providers.
+    let kcCert = await getActivePS256KeyCert(environment, KC_ENTRA_IDP_REALM, KC_PS256_KEY_PROVIDER_ID);
+
+    if (!kcCert) {
+      await createPS256Key(KC_PS256_KEY_PROVIDER_ID, environment, KC_ENTRA_IDP_REALM);
+      kcCert = await getActivePS256KeyCert(environment, KC_ENTRA_IDP_REALM, KC_PS256_KEY_PROVIDER_ID);
+      if (!kcCert) {
+        throw new Error('Failed to create PS256 key and retrieve its certificate.');
+      }
+    }
+
     const getCurrentEntraClient = async () => {
       return (await getEntraClientByRequestId({ integrationId: request.id!, environment }))?.[0] || null;
     };
@@ -1148,7 +1165,7 @@ export const createEntraIntegration = async (environment: string, request: Integ
 
     let application: {
       appId: string;
-      secret?: PasswordCredential | null;
+      secret?: KeyCredential | null;
       servicePrincipalId: string;
     } = {
       appId: '',
@@ -1158,20 +1175,12 @@ export const createEntraIntegration = async (environment: string, request: Integ
 
     const appName = kebabCase(`${request.projectName}-${request.id}-${environment}`);
     if (!entraClient) {
-      application = await setupEntraIntegration(appName, environment, request);
+      application = await setupEntraIntegration(appName, environment, request, kcCert);
       if (application) {
-        // refresh the application secret if it does not exist
-        if (!application?.secret?.secretText) {
-          const refreshPwdCred = await refreshAppRegistrationSecret(application.appId);
-          application.secret = refreshPwdCred;
-        }
-
         entraClient = await saveEntraClient({
           appName,
           appId: application.appId,
-          secret: application?.secret?.secretText!,
-          secretKeyId: application?.secret?.keyId!,
-          secretExpiryDate: new Date(application?.secret?.endDateTime!),
+          keyThumbprint: application?.secret?.customKeyIdentifier || null,
           servicePrincipalId: application.servicePrincipalId,
           environment,
           requestId: request.id!,
@@ -1196,7 +1205,6 @@ export const createEntraIntegration = async (environment: string, request: Integ
           postBrokerLoginFlowAlias: '',
           config: {
             clientId: entraClient.appId,
-            clientSecret: entraClient.secret,
             authorizationUrl: `${msGraphApiAuthority}/authorize`,
             tokenUrl: `${msGraphApiAuthority}/token`,
             logoutUrl: `${msGraphApiAuthority}/logout`,
@@ -1204,10 +1212,13 @@ export const createEntraIntegration = async (environment: string, request: Integ
             jwksUrl: `${process.env.MS_GRAPH_API_AUTHORITY}/discovery/v2.0/keys`,
             syncMode: 'IMPORT',
             disableUserInfo: true,
-            clientAuthMethod: 'client_secret_post',
             validateSignature: true,
             useJwksUrl: true,
             defaultScope: 'openid profile email',
+            clientAuthMethod: 'private_key_jwt',
+            jwtX509HeadersEnabled: true,
+            clientAssertionSigningAlg: 'PS256',
+            clientAssertionAudience: `${msGraphApiAuthority}/token`,
           },
         },
         environment,
@@ -1242,6 +1253,7 @@ export const createEntraIntegration = async (environment: string, request: Integ
     await Promise.all(createIdpMapperPromises);
   } catch (err) {
     console.error('could not create Entra integration', err);
+    throw err;
   }
 };
 
@@ -1258,5 +1270,6 @@ export const deleteEntraIntegration = async (environment: string, request: Integ
     await entraClient.destroy();
   } catch (err) {
     console.error('could not delete Entra integration', err);
+    throw err;
   }
 };

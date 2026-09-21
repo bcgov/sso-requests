@@ -1,5 +1,6 @@
 import { Op } from 'sequelize';
 import { models } from '@app/shared/sequelize/models/models';
+import { KeyCredential } from '@microsoft/microsoft-graph-types';
 
 export const getEntraClientByRequestId = async (
   data: { integrationId: number; environment: string },
@@ -18,10 +19,8 @@ export const saveEntraClient = async (
   data: {
     appName: string;
     appId: string;
-    secret: string;
+    keyThumbprint: string | null;
     servicePrincipalId: string;
-    secretKeyId: string;
-    secretExpiryDate: Date | null;
     environment: string;
     requestId: number;
   },
@@ -30,18 +29,10 @@ export const saveEntraClient = async (
   return await models.entraClient.create(data, options);
 };
 
-export const fetchAllEntraClients = async (options: { plain?: boolean } = {}) => {
-  return await models.entraClient.findAll({
-    ...(options.plain ? { plain: true } : {}),
-  });
-};
-
-export const fetchAllEntraClientsWithExpiringSecrets = async (days: number, options: { plain?: boolean } = {}) => {
+export const fetchAllEntraClients = async (environment: string, options: { plain?: boolean } = {}) => {
   return await models.entraClient.findAll({
     where: {
-      secretExpiryDate: {
-        [Op.lte]: new Date(Date.now() + days * 24 * 60 * 60 * 1000),
-      },
+      environment,
     },
     ...(options.plain ? { plain: true } : {}),
   });
