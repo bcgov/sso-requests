@@ -12,7 +12,6 @@ const CONSENTABLE_PERMISSIONS = [
   'integrations:read',
   'integrations:write',
   'integrations:delete',
-  'integrations:reassign-team',
   'roles:read',
   'roles:write',
   'user-role-mappings:read',

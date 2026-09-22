@@ -23,6 +23,7 @@ import { getIntegrations, getRequests } from '@app/controllers/requests';
 import { isAllowedToManageRoles, processUserSession } from '@app/controllers/user';
 import {
   createOrganization,
+  updateOrganization,
   inviteTeam,
   leaveOrganization,
   listOrganizations,
@@ -38,6 +39,8 @@ import {
   removeOrganizationMember,
   updateOrganizationMemberRole,
   createOrganizationApiAccount,
+  getOrganizationApiAccountCredentials,
+  updateOrganizationApiAccountSecret,
   deleteOrganizationApiAccount,
   listOrganizationApiAccounts,
 } from '@app/controllers/organization';
@@ -325,6 +328,14 @@ describe('organizations', () => {
       expect(members.map((member: any) => [member.userId, member.role])).toEqual([[ssoAdmin.user!.id, 'admin']]);
     });
 
+    it('refuses to update an organization to a blank name', async () => {
+      const ssoAdmin = await asSsoAdmin();
+      const id = await throwaway('Ministry of Membership Name');
+
+      await expect(updateOrganization(ssoAdmin, id, { name: '   ' })).rejects.toThrow(/organization name is required/);
+      expect((await models.organization.findByPk(id))!.name).toBe('Ministry of Membership Name');
+    });
+
     it('will not let the last admin go, and lets a second one in first', async () => {
       const ssoAdmin = await asSsoAdmin();
       const creatorId = ssoAdmin.user!.id as number;
@@ -523,6 +534,16 @@ describe('organizations', () => {
       // Deleting it archives the row, which frees the slot again.
       await deleteOrganizationApiAccount(session, organizationId, account.id);
       expect(await listOrganizationApiAccounts(session, organizationId)).toEqual([]);
+      await expect(getOrganizationApiAccountCredentials(session, organizationId, account.id)).rejects.toThrow(
+        /could not find api account/,
+      );
+      await expect(updateOrganizationApiAccountSecret(session, organizationId, account.id)).rejects.toThrow(
+        /could not find api account/,
+      );
+      await expect(deleteOrganizationApiAccount(session, organizationId, account.id)).rejects.toThrow(
+        /could not find api account/,
+      );
+
       const replacement = await createOrganizationApiAccount(session, organizationId);
       expect(replacement.id).not.toBe(account.id);
     });

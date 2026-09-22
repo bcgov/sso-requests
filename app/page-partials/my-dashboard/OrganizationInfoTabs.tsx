@@ -379,7 +379,6 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
 
   return (
     <>
-      <h2>{organization.name}</h2>
       <Tabs
         defaultActiveKey="members"
         tabBarGutter={30}

@@ -29,18 +29,6 @@ contains one, and `team-admin` is an enumerated list rather than
 a team admin. `TEAM_SCOPED_PERMISSIONS` names the split and the preset tests hold
 it.
 
-## Two halves of the vocabulary
-
-The first nine permissions are team-scoped: what a team role confers, what a
-team API account resolves to, and the only permissions an organization-facing
-preset may contain. The rest are admin-scoped — the IdP approval flags,
-lifespans, a custom client id, restricted IdPs, the in-flight delete — and reach
-an actor only through a Keycloak client role, converted by the app. No preset
-contains one, and `team-admin` is an enumerated list rather than
-`[...PERMISSIONS]` so that adding an admin-scoped permission changes nothing for
-a team admin. `TEAM_SCOPED_PERMISSIONS` names the split and the preset tests hold
-it.
-
 ## What deliberately lives elsewhere
 
 - **Session RBAC** (`appPermissions`, `teamPermissions` in

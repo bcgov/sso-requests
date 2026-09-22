@@ -128,6 +128,9 @@ export const updateOrganization = async (
   data: { name?: string; description?: string },
 ) => {
   const organization = await assertOrganization(session, organizationId, organizationPermissions.UPDATE_ORGANIZATION);
+  if (data.name !== undefined && !data.name.trim()) {
+    throw new createHttpError.BadRequest('organization name is required');
+  }
   if (data.name !== undefined) organization.name = data.name.trim();
   if (data.description !== undefined) organization.description = data.description?.trim() || null;
   const saved = await organization.save();
@@ -390,7 +393,7 @@ export const listOrganizationApiAccounts = async (session: Session, organization
 
 const getOrganizationApiAccount = async (organizationId: number, accountId: number) => {
   const account = await models.request.findOne({
-    where: { id: accountId, organizationId, apiServiceAccount: true },
+    where: { id: accountId, organizationId, apiServiceAccount: true, archived: false },
   });
   if (!account) throw new createHttpError.NotFound('could not find api account');
   return account;
