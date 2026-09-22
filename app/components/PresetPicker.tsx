@@ -58,7 +58,8 @@ function PresetPicker({
     ...available.map((name) => ({ value: name, label: PRESET_LABELS[name] })),
   ];
 
-  const selected = currentPreset ?? (value ? CUSTOM : allowInherit ? INHERIT : null);
+  const fallbackSelected = allowInherit ? INHERIT : null;
+  const selected = currentPreset ?? (value ? CUSTOM : fallbackSelected);
 
   return (
     <Dropdown

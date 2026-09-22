@@ -300,7 +300,7 @@ export const respondToOrganizationInvitation = async (
   await assertTeamAdmin(session, teamId);
 
   const link = await getOrganizationTeamLink(organizationId, teamId);
-  if (!link || !link.pending) throw new createHttpError.NotFound('no pending invitation');
+  if (!link?.pending) throw new createHttpError.NotFound('no pending invitation');
 
   if (!data.accept) {
     await link.destroy();

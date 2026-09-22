@@ -65,10 +65,10 @@ const describeLink = (link: OrganizationTeamLink, integrations: TeamIntegration[
 
   if (link.overrides.length > 0 && link.overrides.length <= 3) {
     parts.push(
-      ...link.overrides.map(
-        (override) =>
-          `${nameFor(override.requestId) ?? `#${override.requestId}`}: ${describePermissions(override.permissions)}`,
-      ),
+      ...link.overrides.map((override) => {
+        const label = nameFor(override.requestId) ?? `#${override.requestId}`;
+        return `${label}: ${describePermissions(override.permissions)}`;
+      }),
     );
   } else if (link.overrides.length > 0) {
     parts.push(`${link.overrides.length} integrations capped below it`);

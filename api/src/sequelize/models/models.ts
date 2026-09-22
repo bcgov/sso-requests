@@ -17,9 +17,9 @@ import { UsersTeams as _UsersTeams } from '@/sequelize/models/UsersTeams';
 import type { UsersTeamsAttributes, UsersTeamsCreationAttributes } from '@/sequelize/models/UsersTeams';
 import sequelize from '@/sequelize/config';
 import { OrganizationTeams as _OrganizationTeams } from '@/sequelize/models/OrganizationTeams';
-import type { OrganizationTeamsAttributes } from '@/sequelize/models/OrganizationTeams';
+export type { OrganizationTeamsAttributes } from '@/sequelize/models/OrganizationTeams';
 import { OrganizationIntegrationOverrides as _OrganizationIntegrationOverrides } from '@/sequelize/models/OrganizationIntegrationOverrides';
-import type { OrganizationIntegrationOverridesAttributes } from '@/sequelize/models/OrganizationIntegrationOverrides';
+export type { OrganizationIntegrationOverridesAttributes } from '@/sequelize/models/OrganizationIntegrationOverrides';
 import { ApiUsageMetrics as _ApiUsageMetrics } from '@/sequelize/models/ApiUsageMetrics';
 import type { ApiUsageMetricsAttributes } from '@/sequelize/models/ApiUsageMetrics';
 
@@ -54,8 +54,6 @@ export type {
   UsersTeamsAttributes,
   UsersTeamsCreationAttributes,
   ApiUsageMetricsAttributes,
-  OrganizationTeamsAttributes,
-  OrganizationIntegrationOverridesAttributes,
 };
 
 export function models(sequelize: Sequelize) {

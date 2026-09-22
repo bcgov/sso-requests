@@ -20,9 +20,11 @@ const CONSENTABLE_PERMISSIONS = [
   'idp-users:read',
 ];
 
-const permissionsSubsetOf = (table: string) =>
-  `ALTER TABLE ${table} ADD CONSTRAINT ${table}_permissions_valid
-     CHECK (permissions <@ ARRAY[${CONSENTABLE_PERMISSIONS.map((permission) => `'${permission}'`).join(',')}]::text[])`;
+const permissionsSubsetOf = (table: string) => {
+  const allowedPermissions = CONSENTABLE_PERMISSIONS.map((permission) => `'${permission}'`).join(',');
+  return `ALTER TABLE ${table} ADD CONSTRAINT ${table}_permissions_valid
+     CHECK (permissions <@ ARRAY[${allowedPermissions}]::text[])`;
+};
 
 const timestamps = {
   createdAt: {

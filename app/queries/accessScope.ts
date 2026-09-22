@@ -63,8 +63,10 @@ export const accessibleIntegrationsWhere = (scope: AccessScope, permission: Perm
 
   // If the user directly owns the integration, they have 'team-admin' permissions over it
   if (PRESETS['team-admin'].includes(permission)) {
-    clauses.push({ usesTeam: false, userId: scope.userId });
-    clauses.push({ usesTeam: true, teamId: null, status: 'draft', userId: scope.userId });
+    clauses.push(
+      { usesTeam: false, userId: scope.userId },
+      { usesTeam: true, teamId: null, status: 'draft', userId: scope.userId },
+    );
   }
 
   Array.from(scope.organizationTeams.entries()).forEach(([teamId, link]) => {

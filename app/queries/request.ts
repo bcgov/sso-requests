@@ -2,7 +2,9 @@ import { Op } from 'sequelize';
 import { models } from '@app/shared/sequelize/models/models';
 import { AccessScope, accessibleIntegrationsWhere, scopedTeamIds } from '@app/queries/accessScope';
 
-export const findMyOrTeamIntegrationsByService = async (scope: AccessScope, options = { raw: true }) => {
+const RAW_QUERY_OPTIONS = { raw: true };
+
+export const findMyOrTeamIntegrationsByService = async (scope: AccessScope, options = RAW_QUERY_OPTIONS) => {
   const where = accessibleIntegrationsWhere(scope, 'integrations:read');
   if (!where) return [];
 
@@ -51,7 +53,7 @@ export const getIntegrationsByUserTeam = async (
 export const getIntegrationById = async (
   integrationId: number,
   attributes: string[] = ['id', 'clientId', 'environments', 'teamId', 'devIdps', 'lastChanges', 'status'],
-  options = { raw: true },
+  options = RAW_QUERY_OPTIONS,
 ) => {
   return await models.request.findOne({
     where: { id: integrationId, apiServiceAccount: false, archived: false },
@@ -60,7 +62,7 @@ export const getIntegrationById = async (
   });
 };
 
-export const getIntegrationByIdAndTeam = (integrationId: number, teamId: number, options = { raw: true }) => {
+export const getIntegrationByIdAndTeam = (integrationId: number, teamId: number, options = RAW_QUERY_OPTIONS) => {
   return models.request.findOne({
     where: { id: integrationId, teamId, apiServiceAccount: false, archived: false },
     ...options,

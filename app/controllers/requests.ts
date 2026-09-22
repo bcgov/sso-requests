@@ -1,5 +1,5 @@
 import { Op, Model } from 'sequelize';
-import { assign, isEmpty, isString, kebabCase } from 'lodash';
+import { isEmpty, isString, kebabCase } from 'lodash';
 import {
   validateRequest,
   getDifferences,
@@ -10,6 +10,7 @@ import {
   getAllowedIdpsForApprover,
   normalizeRequest,
   isAdmin,
+  validateIDPs,
 } from '@app/utils/helpers';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@app/shared/interfaces';
@@ -84,7 +85,6 @@ import {
 } from '@app/keycloak/clientScopes';
 import { bcgovIdirIdpMappers, bcscClientScopeMappers, bcscIdpMappers, KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 import createHttpError from 'http-errors';
-import { validateIDPs } from '@app/utils/helpers';
 import { approvalResetsForRemovedIdps } from '@app/helpers/permissions';
 import { TRANSITIONS, deleteIntentFor } from '@app/helpers/transitions';
 import { actorPayload, authorizeChanges, authorizeTransition } from '@app/utils/requestPolicy';
@@ -535,14 +535,14 @@ export const updateRequest = async (
 
     const submitted = normalizeRequest(rest, isMerged);
     const changed = authorizeChanges(originalData, submitted, access, { merged: isMerged });
-    assign(current, actorPayload(submitted));
+    Object.assign(current, actorPayload(submitted));
 
     // A renamed client on an applied integration has its old client torn down.
     if (current.status === 'applied' && changed.includes('clientId')) existingClientId = originalData.clientId;
 
     const mergedData = getCurrentValue();
 
-    assign(current, approvalResetsForRemovedIdps(originalData, current));
+    Object.assign(current, approvalResetsForRemovedIdps(originalData, current));
 
     const validIDPSelection = validateIDPs({
       currentIdps: originalData.devIdps,
@@ -779,7 +779,6 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
       throw new createHttpError.BadRequest('Request not found or in invalid state');
     }
     const { integration: current } = authorized;
-    const getCurrentValue = () => current.get({ plain: true, clone: true });
     if (current.usesTeam) {
       const teamExists = await getTeamById(current.teamId);
       if (!teamExists) {

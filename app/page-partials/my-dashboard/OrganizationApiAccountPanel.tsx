@@ -71,7 +71,7 @@ function OrganizationApiAccountPanel({
 
   // Creation is synchronous on the server, so anything short of applied is a
   // request that did not complete rather than one still in flight.
-  const actionsDisabled = !canManage || !account || account.status !== 'applied';
+  const actionsDisabled = !canManage || account?.status !== 'applied';
 
   const fail = (content: string) => alert.show({ variant: 'danger', fadeOut: 10000, closable: true, content });
 

@@ -1,9 +1,11 @@
 import models from '@/sequelize/models/models';
 
+const RAW_QUERY_OPTIONS = { raw: true };
+
 export const getIntegrationById = async (
   integrationId: number,
   attributes: string[] = ['id', 'clientId', 'environments', 'teamId', 'devIdps', 'lastChanges'],
-  options = { raw: true },
+  options = RAW_QUERY_OPTIONS,
 ) => {
   return await models.request.findOne({
     where: { id: integrationId, apiServiceAccount: false, archived: false },
@@ -20,7 +22,7 @@ export const getIntegrationById = async (
  * `IntegrationService.getById`, which fetches here and then asserts the permission —
  * never this function directly.
  */
-export const getUnscopedIntegrationById = (integrationId: number, options = { raw: true }) => {
+export const getUnscopedIntegrationById = (integrationId: number, options = RAW_QUERY_OPTIONS) => {
   return models.request.findOne({
     where: { id: integrationId, apiServiceAccount: false, archived: false },
     ...options,

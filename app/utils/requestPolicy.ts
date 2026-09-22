@@ -54,7 +54,7 @@ const SYSTEM_FIELDS = new Set([
 
 // Not a column, but the SDX request pipeline reads it off the payload, so it
 // is the one non-attribute an actor may set. Plain write.
-const ACTOR_EXTRAS = ['sdxServices'];
+const ACTOR_EXTRAS = new Set(['sdxServices']);
 
 const LIFESPAN_FIELDS = [
   ...oidcDurationAdditionalFields, // AccessTokenLifespan, Session*, OfflineSession*
@@ -117,7 +117,7 @@ const normalize = (value: any): any => {
 };
 
 const isActorField = (field: string) =>
-  !SYSTEM_FIELDS.has(field) && (field in models.request.rawAttributes || ACTOR_EXTRAS.includes(field));
+  !SYSTEM_FIELDS.has(field) && (field in models.request.rawAttributes || ACTOR_EXTRAS.has(field));
 
 export const changedFields = (original: Record<string, any>, submitted: Record<string, any>): string[] =>
   Object.keys(submitted).filter(

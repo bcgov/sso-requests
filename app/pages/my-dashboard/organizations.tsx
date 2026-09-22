@@ -6,7 +6,7 @@ import { getOrganizations } from 'services/organization';
 import { PageProps } from 'interfaces/props';
 import { Organization } from 'interfaces/organization';
 
-function MyOrganizations({ session }: PageProps) {
+function MyOrganizations({ session }: Readonly<PageProps>) {
   const [loading, setLoading] = useState<boolean>(true);
   const [hasError, setHasError] = useState<boolean>(false);
   const [organization, setOrganization] = useState<Organization | null>(null);
@@ -26,7 +26,7 @@ function MyOrganizations({ session }: PageProps) {
 
   useEffect(() => {
     if (organizations.length === 0) setOrganization(null);
-    else if (!organization || !organizations.find((org) => org.id === organization.id)) {
+    else if (!organization || !organizations.some((org) => org.id === organization.id)) {
       setOrganization(organizations[0]);
     }
   }, [organizations]);

@@ -61,7 +61,7 @@ export const getLinksForOrganization = async (organizationId: number) =>
   });
 
 export const findActiveLinks = async (userId: number, teamIds?: number[]) => {
-  if (teamIds && teamIds.length === 0) return [];
+  if (teamIds?.length === 0) return [];
 
   const roleByOrganization = await getOrganizationRolesForUser(userId);
   if (roleByOrganization.size === 0) return [];

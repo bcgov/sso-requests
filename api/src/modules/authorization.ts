@@ -40,7 +40,7 @@ interface IntegrationRef {
 // the token, so a team leaving an organization or narrowing a link takes effect
 // within one TTL instead of requiring the account's Keycloak client to be
 // re-provisioned.
-const CACHE_TTL_MS = parseInt(process.env.API_AUTHZ_CACHE_TTL_MS || '10000', 10);
+const CACHE_TTL_MS = Number.parseInt(process.env.API_AUTHZ_CACHE_TTL_MS || '10000', 10);
 
 const cache = new Map<string, { expiresAt: number; context: AuthContext | null }>();
 
