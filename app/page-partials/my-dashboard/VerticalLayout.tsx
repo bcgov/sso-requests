@@ -1,18 +1,24 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Resizable } from 're-resizable';
 import styled from 'styled-components';
 import { Tabs } from '@bcgov-sso/common-react-components';
 import ResponsiveContainer from 'components/ResponsiveContainer';
 import { mediaRules } from 'page-partials/admin-dashboard/VerticalLayout';
+import { getOrganizations } from '@app/services/organization';
+import { appPermissions, hasAppPermission } from '@app/utils/authorize';
+import { SessionContext } from '@app/utils/context';
 
 const InnerResizable = styled.div`
   height: 100%;
   overflow: auto;
 `;
 
+// Remembered across client-side navigations so the tab doesn't disappear and reappear while re-checking.
+let cachedHasOrganizations = false;
+
 interface Props {
-  tab: 'integrations' | 'teams';
+  tab: 'integrations' | 'teams' | 'organizations';
   leftPanel?: () => React.ReactNode;
   rightPanel?: () => React.ReactNode;
   showResizable?: boolean;
@@ -21,6 +27,19 @@ interface Props {
 
 function VerticalLayout({ tab, leftPanel, rightPanel, showResizable = true, children }: Props) {
   const router = useRouter();
+  const sessionContext = useContext(SessionContext);
+  const isCssAdmin = hasAppPermission(sessionContext?.session?.client_roles, appPermissions.MANAGE_ORGANIZATIONS);
+  const [hasOrganizations, setHasOrganizations] = useState(cachedHasOrganizations);
+
+  useEffect(() => {
+    if (isCssAdmin) return;
+
+    getOrganizations().then(([organizations, error]) => {
+      if (error) return;
+      cachedHasOrganizations = (organizations?.length ?? 0) > 0;
+      setHasOrganizations(cachedHasOrganizations);
+    });
+  }, [isCssAdmin]);
 
   const navigateTab = (key: any) => {
     router.replace(`/my-dashboard/${key}`);
@@ -35,6 +54,14 @@ function VerticalLayout({ tab, leftPanel, rightPanel, showResizable = true, chil
       key: 'teams',
       label: 'My Teams',
     },
+    ...(isCssAdmin || hasOrganizations
+      ? [
+          {
+            key: 'organizations',
+            label: 'My Organizations',
+          },
+        ]
+      : []),
   ];
 
   const tabs = <Tabs onChange={navigateTab} activeKey={tab} tabBarGutter={30} items={tabItems} />;

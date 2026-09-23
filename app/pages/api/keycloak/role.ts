@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { session } = await processUserSession(userSession as Session);
 
     if (req.method === 'POST') {
-      const result = await getClientRole(session?.user?.id!, req.body);
+      const result = await getClientRole(session as Session, req.body);
       return res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['POST']);

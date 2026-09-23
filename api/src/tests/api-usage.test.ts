@@ -7,7 +7,7 @@ import {
   TEAM_MEMBER_IDIR_USERID_01,
   TEAM_MEMBER_IDIR_EMAIL_01,
 } from './helpers/fixtures';
-import { seedTeamAndMembers, seedIntergrations } from './helpers/seeder';
+import { seedTeamAndMembers, seedIntergrations, seedApiAccount } from './helpers/seeder';
 import supertest from 'supertest';
 import app from '@/tests/helpers/server';
 import models from '@/sequelize/models/models';
@@ -15,7 +15,17 @@ import * as authenticateModule from '@/modules/authenticate';
 
 let team;
 let integration;
+let apiAccount;
 const API_BASE_PATH = '/api/v1';
+
+const waitForRows = async (read: () => Promise<any[]>, attempts = 20): Promise<any[]> => {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const rows = await read();
+    if (rows.length > 0) return rows;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  return read();
+};
 
 describe('API Usage', () => {
   beforeAll(async () => {
@@ -42,6 +52,9 @@ describe('API Usage', () => {
       },
     ]);
 
+    // The API account whose grants authorize every request below.
+    apiAccount = await seedApiAccount(team.id);
+
     integration = await seedIntergrations({
       integrationName: 'Test Integration',
       teamId: team?.id,
@@ -58,15 +71,17 @@ describe('API Usage', () => {
     jest.spyOn(authenticateModule, 'authenticate').mockImplementationOnce(() => {
       return Promise.resolve({
         success: true,
-        data: { teamId: team.id as any },
+        data: { teamId: team.id, apiClientId: apiAccount.clientId } as any,
         err: null,
       });
     });
     await supertest(app).get(`${API_BASE_PATH}/integrations`).expect(200);
-    const rows = await models.apiUsageMetrics.findAll({
-      where: { teamId: team.id },
-    });
+
+    // The row is written from the response's `finish` handler, which the client
+    // does not wait for, so the read is retried rather than raced.
+    const rows = await waitForRows(() => models.apiUsageMetrics.findAll({ where: { teamId: team.id } }));
     expect(rows.length).toBe(1);
     expect(rows[0].teamId).toBe(team.id);
+    expect(rows[0].apiClientId).toBe(apiAccount.clientId);
   });
 });

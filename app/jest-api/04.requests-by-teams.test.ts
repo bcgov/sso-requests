@@ -142,7 +142,8 @@ describe('create/manage integrations by authenticated user', () => {
   it('should not allow team members to delete a request belonging to a team', async () => {
     createMockAuth(TEAM_MEMBER_IDIR_USERID_01, TEAM_MEMBER_IDIR_EMAIL_01);
     const result = await deleteIntegration(integrationId);
-    expect(result.status).toEqual(401);
+    // A member may read the row but holds no integrations:delete on it.
+    expect(result.status).toEqual(403);
   });
 
   it('should allow to create a successful saml integration', async () => {

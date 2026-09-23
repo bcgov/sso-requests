@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { findMyOrTeamIntegrationsByService } from '@app/queries/request';
+import { resolveAccessScope } from '@app/queries/accessScope';
 import { updateProfile } from '@app/controllers/user';
 import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
@@ -13,7 +14,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { session } = await processUserSession(userSession as Session);
 
     if (req.method === 'GET') {
-      const integrations = await findMyOrTeamIntegrationsByService(Number(session?.user?.id));
+      const scope = await resolveAccessScope(Number(session?.user?.id));
+      const integrations = await findMyOrTeamIntegrationsByService(scope);
       return res.status(200).json({ ...session?.user, integrations });
     } else if (req.method === 'POST') {
       const result = await updateProfile(session, req.body);

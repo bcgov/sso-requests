@@ -1,9 +1,12 @@
 import { Session, User } from '@app/shared/interfaces';
 import { generateInstallation, updateClientSecret } from '@app/keycloak/installation';
-import { getMyOrTeamRequest } from '@app/queries/request';
+import { authorizeIntegration } from '@app/queries/integrationAccess';
+import createHttpError from 'http-errors';
 
 export const getInstallation = async (session: Session, data: { requestId: number; environment: string }) => {
-  const request = await getMyOrTeamRequest(session?.user?.id!, data.requestId);
+  const authorized = await authorizeIntegration(session, data.requestId, 'integrations:write');
+  if (!authorized) throw new createHttpError.Forbidden('not allowed to access this integration');
+  const { integration: request } = authorized;
 
   const installation = await generateInstallation({
     serviceType: request.serviceType,
@@ -17,7 +20,9 @@ export const getInstallation = async (session: Session, data: { requestId: numbe
 };
 
 export const changeSecret = async (session: Session, data: { requestId: number; environment: string }) => {
-  const request = await getMyOrTeamRequest(session?.user?.id!, data.requestId);
+  const authorized = await authorizeIntegration(session, data.requestId, 'integrations:write');
+  if (!authorized) throw new createHttpError.Forbidden('not allowed to access this integration');
+  const { integration: request } = authorized;
 
   await updateClientSecret({
     serviceType: request.serviceType,

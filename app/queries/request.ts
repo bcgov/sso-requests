@@ -1,142 +1,18 @@
 import { Op } from 'sequelize';
-import { sequelize, models } from '@app/shared/sequelize/models/models';
-import { Session, User } from '@app/shared/interfaces';
-import { getAllowedIdpsForApprover } from '@app/utils/helpers';
-import { getMyTeamsLiteral, getUserTeamRole } from '@app/queries/literals';
-import { hasAppPermission, appPermissions } from '@app/utils/authorize';
+import { models } from '@app/shared/sequelize/models/models';
+import { AccessScope, accessibleIntegrationsWhere, scopedTeamIds } from '@app/queries/accessScope';
 
-const commonPopulation = [
-  {
-    model: models.user,
-    required: false,
-  },
-  {
-    model: models.team,
-    required: false,
-  },
-];
+const RAW_QUERY_OPTIONS = { raw: true };
 
-export const getBaseWhereForMyOrTeamIntegrations = (userId: number, roles?: string[]) => {
-  const where: any = { apiServiceAccount: false };
-
-  const teamIdsLiteral = getMyTeamsLiteral(userId, roles);
-
-  where[Op.or] = [
-    {
-      usesTeam: true,
-      teamId: {
-        [Op.in]: sequelize.literal(`(${teamIdsLiteral})`),
-      },
-    },
-    {
-      usesTeam: false,
-      userId,
-    },
-    // Cover case that users switched to team but have not selected one yet. This only applies in draft since
-    // request cannot be submitted until a team is selected.
-    {
-      usesTeam: true,
-      teamId: null,
-      status: 'draft',
-      userId,
-    },
-  ];
-
-  return where;
-};
-
-export const findMyOrTeamIntegrationsByService = async (userId: number, options = { raw: true }) => {
-  const where = getBaseWhereForMyOrTeamIntegrations(userId);
-  where.archived = false;
+export const findMyOrTeamIntegrationsByService = async (scope: AccessScope, options = RAW_QUERY_OPTIONS) => {
+  const where = accessibleIntegrationsWhere(scope, 'integrations:read');
+  if (!where) return [];
 
   return models.request.findAll({
-    where,
+    where: { ...where, archived: false },
     attributes: ['id', 'serviceType'],
     ...options,
   });
-};
-
-export const getMyOrTeamRequest = async (userId: number, requestId: number, roles: string[] = ['member', 'admin']) => {
-  const where = getBaseWhereForMyOrTeamIntegrations(userId, roles);
-  where.id = requestId;
-
-  return models.request.findOne({
-    where,
-    include: commonPopulation,
-    attributes: {
-      include: [[sequelize.literal(getUserTeamRole(userId)), 'userTeamRole']],
-    },
-  });
-};
-
-export const findAllowedIntegrationInfo = async (
-  userId: number,
-  integrationId: number,
-  roles: string[] = ['member', 'admin'],
-  options = { raw: true },
-) => {
-  const where = getBaseWhereForMyOrTeamIntegrations(userId, roles);
-  where.id = integrationId;
-
-  return models.request.findOne({
-    where,
-    attributes: [
-      'id',
-      'clientId',
-      'devIdps',
-      'apiServiceAccount',
-      'status',
-      'archived',
-      'usesTeam',
-      [sequelize.literal(getUserTeamRole(userId)), 'userTeamRole'],
-    ],
-    ...options,
-  });
-};
-
-export const getAllowedRequest = async (session: Session, requestId: number, roles?: string[]) => {
-  if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST)) {
-    return models.request.findOne({
-      where: { id: requestId, apiServiceAccount: false },
-      include: commonPopulation,
-    });
-  } else if (getAllowedIdpsForApprover(session).length > 0) {
-    const teamIdsLiteral = getMyTeamsLiteral(session?.user?.id as number);
-    return await models.request.findOne({
-      where: {
-        id: requestId,
-        apiServiceAccount: false,
-        [Op.or]: [
-          {
-            [Op.or]: [
-              {
-                usesTeam: true,
-                teamId: {
-                  [Op.in]: sequelize.literal(`(${teamIdsLiteral})`),
-                },
-              },
-              {
-                usesTeam: false,
-                userId: session?.user?.id as number,
-              },
-              {
-                usesTeam: true,
-                teamId: null,
-                status: 'draft',
-                userId: session?.user?.id as number,
-              },
-            ],
-          },
-          {
-            devIdps: { [Op.overlap]: getAllowedIdpsForApprover(session) },
-          },
-        ],
-      },
-      include: commonPopulation,
-    });
-  }
-
-  return getMyOrTeamRequest(session?.user?.id as number, requestId, roles);
 };
 
 export const getIntegrationsByTeam = async (
@@ -155,30 +31,21 @@ export const getIntegrationsByTeam = async (
 };
 
 export const getIntegrationsByUserTeam = async (
-  user: User,
+  scope: AccessScope,
   teamId: number,
   serviceType?: string,
   options?: { raw: boolean },
 ) => {
-  const where: any = { apiServiceAccount: false, archived: false };
-  const teamIdsLiteral = getMyTeamsLiteral(user.id);
+  if (!scopedTeamIds(scope, 'integrations:read').includes(teamId)) return [];
 
+  const accessible = accessibleIntegrationsWhere(scope, 'integrations:read');
+  if (!accessible) return [];
+
+  const where: any = { ...accessible, archived: false, teamId };
   if (serviceType) where.serviceType = serviceType;
-
-  where[Op.and] = [
-    {
-      teamId,
-    },
-    {
-      teamId: { [Op.in]: sequelize.literal(`(${teamIdsLiteral})`) },
-    },
-  ];
 
   return models.request.findAll({
     where,
-    attributes: {
-      include: [[sequelize.literal(getUserTeamRole(user.id)), 'userTeamRole']],
-    },
     ...options,
   });
 };
@@ -186,7 +53,7 @@ export const getIntegrationsByUserTeam = async (
 export const getIntegrationById = async (
   integrationId: number,
   attributes: string[] = ['id', 'clientId', 'environments', 'teamId', 'devIdps', 'lastChanges', 'status'],
-  options = { raw: true },
+  options = RAW_QUERY_OPTIONS,
 ) => {
   return await models.request.findOne({
     where: { id: integrationId, apiServiceAccount: false, archived: false },
@@ -195,31 +62,15 @@ export const getIntegrationById = async (
   });
 };
 
-export const getIntegrationByIdAndTeam = (integrationId: number, teamId: number, options = { raw: true }) => {
+export const getIntegrationByIdAndTeam = (integrationId: number, teamId: number, options = RAW_QUERY_OPTIONS) => {
   return models.request.findOne({
     where: { id: integrationId, teamId, apiServiceAccount: false, archived: false },
     ...options,
   });
 };
 
-export const getIntegrationByClientId = (clientId: string, options = { raw: true }) => {
-  return models.request.findOne({
-    where: { clientId, apiServiceAccount: false, archived: false },
-    ...options,
-  });
-};
-
-export const canUpdateRequestByUserId = async (userId: number, requestId: number) => {
-  const where = getBaseWhereForMyOrTeamIntegrations(userId, ['admin', 'member']);
-  where.id = requestId;
-  const editableRequest = await models.request.findOne({
-    where,
-    archived: false,
-    apiServiceAccount: false,
-  });
-  if (!editableRequest) return false;
-  return true;
-};
+export const getAnyIntegrationByClientId = (clientId: string) =>
+  models.request.findOne({ where: { clientId, archived: false }, attributes: ['id'], raw: true });
 
 export const getWhereClauseForAllRequests = (data: {
   searchField: string[];

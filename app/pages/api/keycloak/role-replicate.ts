@@ -14,8 +14,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method === 'POST') {
       const { environment, integrationId, roleName, dryRun } = req.body;
       const result = dryRun
-        ? await previewRoleMfaReplication(session?.user?.id!, { environment, integrationId, roleName })
-        : await replicateRoleMfa(session?.user?.id!, { environment, integrationId, roleName });
+        ? await previewRoleMfaReplication(session as Session, { environment, integrationId, roleName })
+        : await replicateRoleMfa(session as Session, { environment, integrationId, roleName });
       return res.status(200).json({ data: result });
     } else {
       res.setHeader('Allow', ['POST']);

@@ -14,6 +14,10 @@ import EntraClient from './EntraClient';
 import RequestWorkflow from './requestWorkflow';
 import RequestWorkflowStep from './requestWorkflowStep';
 import RequestWorkflowFailures from './requestWorkflowFailure';
+import Organization from './Organization';
+import OrganizationMember from './OrganizationMember';
+import OrganizationTeam from './OrganizationTeam';
+import OrganizationIntegrationOverride from './OrganizationIntegrationOverride';
 
 const config: any = configs[`${process.env.NODE_ENV || 'development'}`];
 
@@ -46,6 +50,10 @@ console.log('sequelize initialized', !!sequelize);
   RequestWorkflow,
   RequestWorkflowStep,
   RequestWorkflowFailures,
+  Organization,
+  OrganizationMember,
+  OrganizationTeam,
+  OrganizationIntegrationOverride,
 ].forEach((init) => {
   const model = init(sequelize, DataTypes);
   models[model.name] = model;

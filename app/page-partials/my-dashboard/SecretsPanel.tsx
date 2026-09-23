@@ -8,6 +8,7 @@ import CenteredModal from 'components/CenteredModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { changeClientSecret } from 'services/keycloak';
+import { canChangeClientSecret } from 'helpers/permissions';
 
 const TopMargin = styled.div`
   height: var(--field-top-spacing);
@@ -42,8 +43,10 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
   const [activeEnv, setActiveEnv] = useState<EnvironmentOption | null>(null);
   const requestedEnvironments = getRequestedEnvironments(selectedRequest);
   const [openChangeSecretModal, setOpenChangeSecretModal] = useState(false);
+  const canChangeSecret = canChangeClientSecret(selectedRequest);
 
   const openModal = (env: EnvironmentOption) => {
+    if (!canChangeSecret) return;
     setActiveEnv(env);
     setOpenChangeSecretModal(true);
   };
@@ -82,13 +85,16 @@ const ConfigurationUrlPanel = ({ selectedRequest, alert }: Props) => {
     <>
       <>
         <TopMargin />
+        {!canChangeSecret && !selectedRequest.publicAccess && (
+          <p>Changing a client secret needs access to the integration itself.</p>
+        )}
         {requestedEnvironments.map((env) => (
           <React.Fragment key={env.name}>
             <LeftTitle>{env.display}: </LeftTitle>
             {!selectedRequest.publicAccess && (
               <>
                 <br />
-                <button className="primary" type="button" onClick={() => openModal(env)}>
+                <button className="primary" type="button" disabled={!canChangeSecret} onClick={() => openModal(env)}>
                   {`Change your client secret`}
                 </button>
               </>
