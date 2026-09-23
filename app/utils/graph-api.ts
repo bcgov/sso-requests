@@ -11,8 +11,8 @@ import { MsGraphUserValue, MsGraphUserResponse, IntegrationData } from '@app/sha
 import { IConfidentialClientApplication, ConfidentialClientApplication } from '@azure/msal-node';
 import { Application, ClaimsMappingPolicy, KeyCredential, ServicePrincipal } from '@microsoft/microsoft-graph-types';
 import { getHomePageUrlByEnvironment, getKeycloakBaseUrlByEnvironment } from './helpers';
-import { randomInt, createHash } from 'node:crypto';
-import { computeThumbprint, extractCertDates, buildKeyCredential, getApplicationNotes } from './entra-helpers';
+import { randomInt } from 'node:crypto';
+import { computeThumbprint, buildKeyCredential, getApplicationNotes } from './entra-helpers';
 
 const GRAPH_API_MAX_RETRIES = 5;
 const GRAPH_API_RETRY_INTERVAL_MS = 1500;
@@ -253,7 +253,6 @@ export const validateIdirEmail = async (email: string) => {
 };
 
 const formatUser = (data: MsGraphUserValue) => {
-  const id = data.id;
   const userId = data.mailNickname;
   const guid = data.onPremisesExtensionAttributes.extensionAttribute12;
   const email = data.mail;
@@ -266,7 +265,6 @@ const formatUser = (data: MsGraphUserValue) => {
   const jobTitle = data.jobTitle;
   const userPrincipalName = data.userPrincipalName;
   return {
-    id,
     guid,
     userId,
     email,
@@ -287,7 +285,7 @@ export const searchIdirUsers = async ({ field, search }: { field: string; search
     throw new Error('Allowed search fields are givenName, surname, mail, mailNickname');
   }
   try {
-    const url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=startswith(${field},'${search}')&$top=100&$select=id,onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName`;
+    const url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=startswith(${field},'${search}')&$top=100&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName`;
     const response = (await callAzureGraphApi(url)) as MsGraphUserResponse;
     const formattedUsers = response.value.map(formatUser);
     return formattedUsers;
@@ -365,15 +363,24 @@ export const setupEntraIntegration = async (
     certificateRawBase64: string;
     certificatePem: string;
   },
+  bcgovUnitName: string,
+  divisionName: string,
 ): Promise<{ appId: string; servicePrincipalId: string; secret: KeyCredential | null }> => {
   let newCredential: KeyCredential | null = null;
+
   let appReg = await getAppRegistration(appName as string);
   if (!appReg) {
     const kcBaseUrl = getKeycloakBaseUrlByEnvironment(environment);
     appReg = await createAppRegistration(
       appName,
       getHomePageUrlByEnvironment(environment, request) as string,
-      getApplicationNotes(environment, request),
+      getApplicationNotes({
+        environment,
+        requester: request.requester || '',
+        bcgovUnitName,
+        divisionName: divisionName,
+        description: request.description || '<no description provided>',
+      }),
       [`${kcBaseUrl}/auth/realms/bcgovidir/broker/${request.clientId}/endpoint`],
     );
   }
@@ -396,7 +403,13 @@ export const setupEntraIntegration = async (
   if (!servicePrincipal) {
     servicePrincipal = await createServicePrincipal(
       appReg.appId as string,
-      getApplicationNotes(environment, request),
+      getApplicationNotes({
+        environment,
+        requester: request.requester || '',
+        bcgovUnitName,
+        divisionName: divisionName,
+        description: request.description || '<no description provided>',
+      }),
       getHomePageUrlByEnvironment(environment, request) as string,
     );
   }
@@ -460,6 +473,7 @@ export const createAppRegistration = async (
         optionalClaims: {
           idToken: [...['email', 'family_name', 'given_name', 'upn'].map((claim) => ({ name: claim }))],
         },
+        tags: ['WindowsAzureActiveDirectoryIntegratedApp'],
       },
     });
   } catch (error) {
@@ -689,4 +703,56 @@ export const removeKeyCredential = async (appReg: Application, thumbprint: strin
       `Unable to remove the key credential with thumbprint: ${thumbprint} from the application with objectId: ${appReg.id}`,
     );
   }
+};
+
+export const addApplicationOwner = async (id: string, owner: { id: string }): Promise<void> => {
+  try {
+    await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications/${id}/owners/$ref`, {
+      method: 'POST',
+      data: {
+        '@odata.id': `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/directoryObjects/${owner.id}`,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    throw new Error(`Unable to add application owner to the application with objectId: ${id}`);
+  }
+};
+
+export const getApplicationOwners = async (id: string): Promise<{ id: string }[]> => {
+  try {
+    const response = await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications/${id}/owners`);
+    return response.value;
+  } catch (error) {
+    console.error(error);
+    throw new Error(`Unable to get application owners for the application with objectId: ${id}`);
+  }
+};
+
+export const ensureOutput = async (url: string, resourceIds: any, exist: boolean = true): Promise<boolean> => {
+  let attempts = 5;
+  const minDelayMs = 500;
+  const maxDelayMs = 10000;
+  while (attempts > 0) {
+    try {
+      const response = await callAzureGraphApi(url);
+      const resultIds = response.value.map((item: any) => item.id);
+      if (exist) {
+        if (resourceIds?.value.every((id: string) => resultIds.includes(id))) {
+          return true;
+        }
+      } else {
+        if (resourceIds?.value.every((id: string) => !resultIds.includes(id))) {
+          return true;
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    attempts--;
+    const exponentialDelay = Math.min(maxDelayMs, minDelayMs * 2 ** (5 - attempts));
+    const delay = Math.floor(exponentialDelay / 2 + Math.random() * (exponentialDelay / 2));
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
+  throw new Error(`Unable to ensure output for URL: ${url}`);
 };

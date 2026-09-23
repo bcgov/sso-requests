@@ -14,6 +14,8 @@ import EntraClient from './EntraClient';
 import RequestWorkflow from './requestWorkflow';
 import RequestWorkflowStep from './requestWorkflowStep';
 import RequestWorkflowFailures from './requestWorkflowFailure';
+import Division from './Division';
+import BcgovUnit from './BcgovUnit';
 
 const config: any = configs[`${process.env.NODE_ENV || 'development'}`];
 
@@ -46,6 +48,8 @@ console.log('sequelize initialized', !!sequelize);
   RequestWorkflow,
   RequestWorkflowStep,
   RequestWorkflowFailures,
+  BcgovUnit,
+  Division,
 ].forEach((init) => {
   const model = init(sequelize, DataTypes);
   models[model.name] = model;

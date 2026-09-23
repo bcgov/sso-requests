@@ -99,6 +99,9 @@ export interface Integration {
   socialApproved?: boolean;
   sdxEnabled?: boolean;
   sdxServices?: SDXAccessRequest | null;
+  bcgovUnitId?: number;
+  divisionId?: number;
+  description?: string;
 }
 
 export interface Option {
@@ -128,4 +131,21 @@ export interface ClientRole {
 export interface EventCountMetric {
   event: string;
   count: number;
+}
+
+export interface BcgovUnit {
+  id: number;
+  name: string;
+  code?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Division {
+  id: number;
+  name: string;
+  code?: string;
+  bcgovUnitId?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }

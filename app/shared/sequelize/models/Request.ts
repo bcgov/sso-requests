@@ -1,3 +1,5 @@
+import { or } from 'sequelize';
+
 const init = (sequelize: any, DataTypes: any) => {
   const Request = sequelize.define(
     'request',
@@ -419,6 +421,18 @@ const init = (sequelize: any, DataTypes: any) => {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,
+      },
+      bcgovUnitId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      divisionId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      description: {
+        type: DataTypes.TEXT,
+        allowNull: true,
       },
     },
     {

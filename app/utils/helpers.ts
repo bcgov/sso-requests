@@ -1,6 +1,6 @@
 import { errorMessages, environmentOptions, KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 import { LoggedInUser, Team, User } from '@app/interfaces/team';
-import { Integration, Option, GoldIDPOption } from '@app/interfaces/Request';
+import { Integration, Option, GoldIDPOption, Division, BcgovUnit } from '@app/interfaces/Request';
 import { getStatusDisplayName } from '@app/utils/status';
 import {
   usesBceid,
@@ -14,6 +14,7 @@ import {
   checkNotSocial,
   usesOTP,
   checkNotOTP,
+  usesBcgovIdir,
 } from '@app/helpers/integration';
 import { IntegrationData, Session } from '@app/shared/interfaces';
 import { sortBy, compact, omit, isString } from 'lodash';
@@ -256,6 +257,9 @@ export const transformErrors = (errors: any) => {
       if (error.message === 'should be string') error.message = '';
       else if (error.message === 'should NOT have fewer than 1 items') error.message = '';
       else error.message = errorMessages.redirectUris;
+    } else if (error.property.includes('bcgovUnitId') || error.property.includes('divisionId')) {
+      if (error.message === 'must be number') error.message = '';
+      if (error.message === 'must be equal to one of the allowed values') error.message = '';
     }
 
     return error;
@@ -587,7 +591,14 @@ export const getDifferences = (newData: any, originalData: Integration) => {
   return diff(omitNonFormFields(originalData), omitNonFormFields(newData));
 };
 
-export const validateRequest = async (formData: any, original: Integration, teams: any[], isUpdate = false) => {
+export const validateRequest = async (
+  formData: any,
+  original: Integration,
+  teams: any[],
+  isUpdate = false,
+  bcgovUnits: BcgovUnit[],
+  divisions: Division[],
+) => {
   const validationArgs: any = { formData, teams };
 
   if (usesBcServicesCard(formData) || usesOTP(formData)) {
@@ -599,6 +610,13 @@ export const validateRequest = async (formData: any, original: Integration, team
     const validAttributes = await getAttributes();
     validationArgs.bcscAttributes = validAttributes;
   }
+
+  if (usesBcgovIdir(formData)) {
+    validationArgs.bcgovUnits = bcgovUnits;
+
+    validationArgs.divisions = divisions;
+  }
+
   const schemas = getSchemas(validationArgs);
   return validateForm(formData, schemas);
 };

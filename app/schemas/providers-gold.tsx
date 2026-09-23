@@ -1,8 +1,8 @@
-import { Integration } from '../interfaces/Request';
+import { Integration, BcgovUnit, Division } from '../interfaces/Request';
 import { Schema } from './index';
 import { docusaurusURL, KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
-import { usesBcServicesCard, usesOTP, usesSocial } from '@app/helpers/integration';
+import { usesBcServicesCard, usesOTP, usesSocial, usesBcgovIdir } from '@app/helpers/integration';
 import { allBceidEnvsApproved, getDiscontinuedIdps } from '@app/utils/helpers';
 import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 import { LoggedInUser } from '@app/interfaces/team';
@@ -26,8 +26,10 @@ export default function getSchema(
   session: LoggedInUser | null,
   bcscPrivacyZones?: BcscPrivacyZone[],
   bcscAttributes?: BcscAttribute[],
+  bcgovUnits?: BcgovUnit[],
+  divisions?: Division[],
 ) {
-  const { protocol, authType, status, devIdps } = integration;
+  const { protocol, authType, status, devIdps, bcgovUnitId } = integration;
   const applied = status === 'applied';
 
   const allow_bcsc_prod =
@@ -45,6 +47,7 @@ export default function getSchema(
   const bcscSelected = usesBcServicesCard(integration);
   const otpSelected = usesOTP(integration);
   const socialSelected = usesSocial(integration);
+  const bcgovIdirSelected = usesBcgovIdir(integration);
 
   const protocolSchema = {
     type: 'string',
@@ -65,7 +68,7 @@ export default function getSchema(
 
   const privacyZonesSchema = {
     type: 'string',
-    title: 'Please select privacy zone',
+    title: 'Select Privacy Zone',
     enum: bcscPrivacyZones?.map((zone) => zone.privacy_zone_name || []),
   };
 
@@ -233,7 +236,7 @@ export default function getSchema(
   if (bcscSelected && include_bcsc) {
     properties.bcscAttributes = {
       type: 'array',
-      title: 'Please select attribute(s)',
+      title: 'Select Attribute(s)',
       items: {
         type: 'string',
         enum: bcscAttributes?.map((attribute) => attribute.name),
@@ -241,6 +244,30 @@ export default function getSchema(
       uniqueItems: true,
       tooltip: {
         content: `We will provide a separate client for each attribute you can select. Select the attributes required for your project.`,
+      },
+    };
+  }
+
+  if (bcgovIdirSelected && includeBcgovidir) {
+    properties.bcgovUnitId = {
+      type: 'number',
+      title: 'Select BC Government Unit',
+      enum: [0].concat(bcgovUnits?.map((org) => org?.id) ?? []),
+    };
+
+    properties.divisionId = {
+      type: 'number',
+      title: 'Select Division',
+      enum: [0].concat(
+        divisions?.flatMap((division) => (bcgovUnitId === division?.bcgovUnitId ? division?.id : [])) ?? [],
+      ),
+    };
+
+    properties.description = {
+      type: 'string',
+      title: 'Project Description',
+      tooltip: {
+        content: `Provide a brief description about your project`,
       },
     };
   }
@@ -311,6 +338,9 @@ export default function getSchema(
       'authType',
       'bcscPrivacyZone',
       'bcscAttributes',
+      'bcgovUnitId',
+      'divisionId',
+      'description',
     ],
     headerText: 'Choose providers',
     stepText: 'Basic Info',

@@ -2,6 +2,7 @@ import { IntegrationData } from '@app/shared/interfaces';
 import { KeyCredential } from '@microsoft/microsoft-graph-types';
 import { createHash } from 'node:crypto';
 import crypto from 'node:crypto';
+import { MS_GRAPH_API_VERSION, MS_GRAPH_URL } from './constants';
 
 export function extractCertDates(pem: string): { startDateTime: string; endDateTime: string } {
   const cert = new crypto.X509Certificate(pem);
@@ -37,11 +38,37 @@ export function buildKeyCredential(
   };
 }
 
-export const getApplicationNotes = (environment: string, request: IntegrationData) => {
+export const getApplicationNotes = (data: {
+  environment: string;
+  requester: string;
+  bcgovUnitName: string;
+  divisionName: string;
+  description: string;
+}) => {
   const appEnv = process.env.APP_ENV === 'production' ? 'PROD' : 'SANDBOX';
   return [
-    `Created by: ${request.requester}`,
+    `Created by: ${data.requester}`,
     `On: ${new Date().toISOString()}`,
-    `Authentication to this app is brokered by ${appEnv} - ${environment}`,
+    `On behalf of: ${data.bcgovUnitName} - ${data.divisionName}`,
+    `Description: ${data.description}`,
+    `Authentication to this app is brokered by ${appEnv} - ${data.environment}`,
   ].join('\n');
+};
+
+export const buildMultiUserSearch = ({
+  field,
+  search,
+  attributes,
+}: {
+  field: string;
+  search: string[];
+  attributes: string[];
+}) => {
+  let url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=`;
+  for (const s of search) {
+    url += `startswith(${field},'${s}') or `;
+  }
+  url = url.slice(0, -4); // Remove the trailing ' or '
+  url += `&$top=100&$select=${attributes.join(',')}`;
+  return decodeURIComponent(url);
 };

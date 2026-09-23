@@ -1,7 +1,8 @@
 import { isNil } from 'lodash';
 import getGoldUISchema from '@app/schemas-ui/ui-gold';
-import { Integration } from '@app/interfaces/Request';
+import { BcgovUnit, Integration } from '@app/interfaces/Request';
 import { LoggedInUser, Team } from '@app/interfaces/team';
+import { Division } from '@app/interfaces/Request';
 import { GetStandardSettingsResponse } from '@app/interfaces/api';
 
 interface Props {
@@ -12,6 +13,8 @@ interface Props {
   schemas: any;
   defaultSessionSettings: GetStandardSettingsResponse;
   bcscExcluded: boolean;
+  bcgovUnits: BcgovUnit[];
+  divisions: Division[];
 }
 
 export const getUISchema = (props: Props) => {

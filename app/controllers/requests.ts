@@ -1,5 +1,5 @@
 import { Op, Model } from 'sequelize';
-import { assign, isEmpty, isString, kebabCase } from 'lodash';
+import { assign, camelCase, isEmpty, isString, kebabCase, upperFirst } from 'lodash';
 import {
   validateRequest,
   getDifferences,
@@ -54,7 +54,6 @@ import {
   samlDurationAdditionalFields,
   samlFineGrainEndpointConfig,
   samlSignedAssertions,
-  test,
 } from '@app/schemas';
 import { pick } from 'lodash';
 import {
@@ -108,7 +107,8 @@ import { createEvent } from '@app/queries/event';
 import { enqueueRequestWorkflow } from '@app/workflow/request-workflow';
 import { KeyCredential } from '@microsoft/microsoft-graph-types';
 import { createPS256Key, getActivePS256KeyCert } from '@app/keycloak/keys';
-
+import { getByBcgovUnitAndDivision, getDivisionById, listDivisions } from '@app/queries/division';
+import { getBcgovUnitById, listBcgovUnits } from '@app/queries/bcgov-unit';
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
 const APP_ENV = app_env || 'development';
@@ -155,6 +155,9 @@ const allowedFieldsForGithub = [
   'prodHomePageUri',
   'bcscPrivacyZone',
   'usesTeam',
+  'bcgovUnitId',
+  'divisionId',
+  'description',
   ...envFieldsAll,
 ];
 
@@ -597,13 +600,28 @@ export const updateRequest = async (
     let changes = null;
 
     if (submit) {
-      const validationErrors = await validateRequest(mergedData, originalData, allowedTeams, isMerged);
+      const validationErrors = await validateRequest(
+        mergedData,
+        originalData,
+        allowedTeams,
+        isMerged,
+        usesBcgovIdir(current) ? await listBcgovUnits() : [],
+        usesBcgovIdir(current) ? await listDivisions() : [],
+      );
       if (!isEmpty(validationErrors)) {
         if (isString(validationErrors)) throw new createHttpError.BadRequest(validationErrors);
         else
           throw new createHttpError.BadRequest(
             JSON.stringify({ validationError: true, errors: validationErrors, prepared: mergedData }),
           );
+      }
+
+      // Validate BC Government Unit and division selection for bcgovidir IDP
+      if (usesBcgovIdir(current)) {
+        const division = await getByBcgovUnitAndDivision(current.bcgovUnitId, current.divisionId);
+        if (!division) {
+          throw new createHttpError.BadRequest('Please select a valid division for the selected BC Gov Unit');
+        }
       }
 
       // keycloak related operations
@@ -701,7 +719,7 @@ export const updateRequest = async (
 
     return updated.get({ plain: true });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     if (submit) {
       const eventData = {
         eventCode: isMerged ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
@@ -746,7 +764,7 @@ export const resubmitRequest = async (session: Session, id: number) => {
 
     return updated.get({ plain: true });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };
@@ -820,7 +838,7 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
 
     return updated.get({ plain: true });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };
@@ -947,7 +965,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     return integration;
   } catch (err) {
-    console.log(err);
+    console.error(err);
 
     createEvent({
       eventCode: EVENTS.REQUEST_DELETE_FAILURE,
@@ -1173,9 +1191,15 @@ export const createEntraIntegration = async (environment: string, request: Integ
       secret: undefined,
     };
 
-    const appName = kebabCase(`${request.projectName}-${request.id}-${environment}`);
+    const bcgovUnit = await getBcgovUnitById(request.bcgovUnitId!);
+
+    const division = await getDivisionById(request.divisionId!);
+
+    const appName = `${bcgovUnit?.code.toUpperCase()}-${division?.code.toUpperCase()}-${upperFirst(
+      camelCase(request.projectName),
+    )}-${request.id}-${upperFirst(environment)}`;
     if (!entraClient) {
-      application = await setupEntraIntegration(appName, environment, request, kcCert);
+      application = await setupEntraIntegration(appName, environment, request, kcCert, bcgovUnit.name, division.name);
       if (application) {
         entraClient = await saveEntraClient({
           appName,

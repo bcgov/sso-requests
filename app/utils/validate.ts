@@ -62,6 +62,9 @@ export const customValidate = (formData: any, errors: any, uiSchema: any, fields
     publicAccess,
     bcscPrivacyZone,
     bcscAttributes = [],
+    bcgovUnitId,
+    divisionId,
+    description,
   } = formData;
   const sessionIdleTimeout = (value: number, key: string) => {
     return () => {
@@ -173,6 +176,21 @@ export const customValidate = (formData: any, errors: any, uiSchema: any, fields
         (!formData['sdxServices'] || (formData['sdxServices'] && formData['sdxServices'].resourceServers?.length === 0))
       ) {
         errors['sdxServices']?.addError('Please select at least one scope');
+      }
+    },
+    description: () => {
+      if (devIdps.some((idp: string) => ['bcgovidir'].includes(idp)) && (!description || description.trim() === '')) {
+        errors['description']?.addError('Project description is required');
+      }
+    },
+    bcgovUnitId: () => {
+      if (devIdps.some((idp: string) => ['bcgovidir'].includes(idp)) && (!bcgovUnitId || bcgovUnitId === 0)) {
+        errors['bcgovUnitId']?.addError('BC Government Unit is required');
+      }
+    },
+    divisionId: () => {
+      if (devIdps.some((idp: string) => ['bcgovidir'].includes(idp)) && (!divisionId || divisionId === 0)) {
+        errors['divisionId']?.addError('Division is required');
       }
     },
   };
