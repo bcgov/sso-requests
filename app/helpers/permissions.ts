@@ -1,41 +1,36 @@
+import { Permission } from '@sso/authz';
 import { Integration } from '@app/interfaces/Request';
 import { Team } from '@app/interfaces/team';
-import { Session } from '@app/shared/interfaces';
-import createHttpError from 'http-errors';
 import { checkBceidGroup, checkBcServicesCard, checkGithubGroup, checkOTP, checkSocial } from './integration';
-import { isEqual } from 'lodash';
-import { hasAppPermission, hasTeamPermission, teamPermissions, appPermissions } from '@app/utils/authorize';
+import { hasTeamPermission, teamPermissions } from '@app/utils/authorize';
+import { isInFlight, isResting } from './transitions';
 
-/**
- * For an integration the user has access to, determine delete permissions.
- */
+const isLive = (integration: Integration) =>
+  Boolean(integration) && !integration.apiServiceAccount && !integration.archived;
+
+const permits = (integration: Integration, permission: Permission): boolean | undefined =>
+  integration?.permissions ? integration.permissions.includes(permission) : undefined;
+
 export const canDeleteIntegration = (integration: Integration) => {
-  if (
-    !integration ||
-    integration.apiServiceAccount ||
-    integration.archived ||
-    ['planFailed', 'planned', 'applyFailed', 'submitted'].includes(integration?.status || '')
-  ) {
-    return false;
-  }
-
+  if (!isLive(integration) || !isResting(integration.status)) return false;
+  const permitted = permits(integration, 'integrations:delete');
+  if (permitted !== undefined) return permitted;
   if (integration.usesTeam && integration.teamId) {
-    if (hasTeamPermission(integration.userTeamRole, teamPermissions.DELETE_REQUEST)) return true;
-  } else return true;
-
-  return false;
+    return hasTeamPermission(integration.userTeamRole, teamPermissions.DELETE_REQUEST);
+  }
+  return true;
 };
 
 export const canEditIntegration = (integration: Integration) => {
-  if (
-    !integration ||
-    integration.apiServiceAccount ||
-    integration.archived ||
-    !['draft', 'applied'].includes(integration.status || '')
-  ) {
-    return false;
-  } else return true;
+  if (!isLive(integration) || !isResting(integration.status)) return false;
+  return permits(integration, 'integrations:write') ?? true;
 };
+
+export const canManageUserRoleMappings = (integration: Integration) =>
+  isLive(integration) && (permits(integration, 'user-role-mappings:write') ?? true);
+
+export const canChangeClientSecret = (integration: Integration) =>
+  isLive(integration) && (permits(integration, 'integrations:write') ?? true);
 
 export const canDeleteTeam = (team: Team) => {
   if (!team || Number(team.integrationCount) > 0) {
@@ -52,14 +47,9 @@ export const canEditTeam = (team: Team) => {
 };
 
 export const canCreateOrDeleteRoles = (integration: Integration) => {
-  if (
-    !integration ||
-    integration.apiServiceAccount ||
-    integration.archived ||
-    ['pr', 'planned', 'submitted'].includes(integration?.status || '')
-  ) {
-    return false;
-  }
+  if (!isLive(integration) || isInFlight(integration.status)) return false;
+  const permitted = permits(integration, 'roles:write');
+  if (permitted !== undefined) return permitted;
   if (integration.usesTeam) {
     if (hasTeamPermission(integration.userTeamRole, teamPermissions.MANAGE_ROLES)) return true;
   } else return true;
@@ -74,38 +64,13 @@ export const checkRole = (roles: string[], role: string) => roles.includes(role)
 // };
 
 /**
- * Throws forbidden error if not an allowed approver, or updating bcsc attributes post approval. Resets approval if previously approved idp is remove.
+ * System derivation, not authorization: an approval is void once the IdP it
+ * approved is gone. Who may set or clear a flag directly is decided per field
+ * by FIELD_AUTHORITY; whether the BCSC attributes may move after approval by
+ * FIELD_CONSTRAINTS.
  */
-export const getIdpApprovalStatus = ({ session, originalData, updatedData }: any) => {
+export const approvalResetsForRemovedIdps = (originalData: any, updatedData: any) => {
   const changedAttrs: any = {};
-
-  const isApprovingBceid = !originalData.bceidApproved && updatedData.bceidApproved;
-  if (isApprovingBceid && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_BCEID))
-    throw new createHttpError.Forbidden('not allowed to approve bceid');
-
-  const isApprovingDevBceid = !originalData.devBceidApproved && updatedData.devBceidApproved;
-  if (isApprovingDevBceid && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_BCEID))
-    throw new createHttpError.Forbidden('not allowed to approve bceid');
-
-  const isApprovingTestBceid = !originalData.testBceidApproved && updatedData.testBceidApproved;
-  if (isApprovingTestBceid && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_BCEID))
-    throw new createHttpError.Forbidden('not allowed to approve bceid');
-
-  const isApprovingGithub = !originalData.githubApproved && updatedData.githubApproved;
-  if (isApprovingGithub && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_GITHUB))
-    throw new createHttpError.Forbidden('not allowed to approve github');
-
-  const isApprovingBCSC = !originalData.bcServicesCardApproved && updatedData.bcServicesCardApproved;
-  if (isApprovingBCSC && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_BC_SERVICES_CARD))
-    throw new createHttpError.Forbidden('not allowed to approve bc services card');
-
-  const isApprovingSocial = !originalData.socialApproved && updatedData.socialApproved;
-  if (isApprovingSocial && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_SOCIAL))
-    throw new createHttpError.Forbidden('not allowed to approve social');
-
-  const isApprovingOTP = !originalData.otpApproved && updatedData.otpApproved;
-  if (isApprovingOTP && !hasAppPermission(session?.client_roles, appPermissions.APPROVE_OTP))
-    throw new createHttpError.Forbidden('not allowed to approve otp');
 
   if (originalData.otpApproved && !updatedData.devIdps.some(checkOTP)) {
     changedAttrs.otpApproved = false;
@@ -130,15 +95,6 @@ export const getIdpApprovalStatus = ({ session, originalData, updatedData }: any
 
   if (originalData.socialApproved && !updatedData.devIdps.some(checkSocial)) {
     changedAttrs.socialApproved = false;
-  }
-
-  if (originalData.bcServicesCardApproved) {
-    if (
-      !isEqual(updatedData.bcscAttributes, originalData.bcscAttributes) ||
-      !isEqual(updatedData.bcscPrivacyZone, originalData.bcscPrivacyZone)
-    ) {
-      throw new Error('Forbidden');
-    }
   }
 
   return changedAttrs;

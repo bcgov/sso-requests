@@ -1,6 +1,7 @@
 import sequelize from '@/sequelize/config';
 import models from '@/sequelize/models/models';
 import { camelCase } from 'lodash';
+import { Permission } from '@sso/authz';
 
 export const seedTeamAndMembers = async (
   teamName: string,
@@ -72,3 +73,69 @@ export const seedIntergrations = async (data: {
     serviceType: 'gold',
   });
 };
+
+/**
+ * Mirrors what the portal creates for a team API account. Nothing about
+ * authority is written: the account is owned by its team, and the api resolves
+ * what it may do from that ownership on every request. `null` asks for an
+ * account with no owner, which the database refuses.
+ */
+export const seedApiAccount = async (teamId: number | null) => {
+  const account = await models.request.create({
+    projectName: `Service Account for team #${teamId ?? 'none'}`,
+    serviceType: 'gold',
+    usesTeam: teamId !== null,
+    teamId,
+    apiServiceAccount: true,
+    authType: 'service-account',
+    status: 'applied',
+    environments: ['prod'],
+  });
+
+  account.clientId = `service-account-team-${teamId ?? 'none'}-${account.id}`;
+  await account.save();
+
+  return account;
+};
+
+/** An organization row, for the links an organization account resolves through. */
+export const seedOrganization = async (name: string) => {
+  const [rows]: any = await sequelize.query(
+    `INSERT INTO organizations (name, created_at, updated_at) VALUES (:name, NOW(), NOW()) RETURNING id`,
+    { replacements: { name } },
+  );
+  return rows[0];
+};
+
+export const seedOrganizationApiAccount = async (organizationId: number) => {
+  const account = await models.request.create({
+    projectName: `Service Account for organization #${organizationId}`,
+    serviceType: 'gold',
+    usesTeam: false,
+    organizationId,
+    apiServiceAccount: true,
+    authType: 'service-account',
+    status: 'applied',
+    environments: ['prod'],
+  });
+
+  account.clientId = `service-account-org-${organizationId}-${account.id}`;
+  await account.save();
+
+  return account;
+};
+
+/** A team's consent to an organization. Only an accepted link is in force. */
+export const seedOrganizationLink = async (
+  organizationId: number,
+  teamId: number,
+  permissions: Permission[],
+  pending = false,
+) => models.organizationTeam.create({ organizationId, teamId, permissions, pending });
+
+/** A per-integration cap under one link. */
+export const seedOrganizationOverride = async (
+  organizationTeamId: number,
+  requestId: number,
+  permissions: Permission[],
+) => models.organizationIntegrationOverride.create({ organizationTeamId, requestId, permissions });

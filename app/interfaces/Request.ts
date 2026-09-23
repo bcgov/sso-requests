@@ -1,3 +1,4 @@
+import { Permission } from '@sso/authz';
 import { SDXAccessRequest } from '@app/shared/interfaces';
 import type { Status } from './types';
 
@@ -77,6 +78,10 @@ export interface Integration {
   createdAt?: string;
   updatedAt?: string;
   userTeamRole?: string;
+  // What this actor may do to this integration: their team role, whatever
+  // organization the owning team belongs to, and their app roles, merged by
+  // the server. Absent on rows that never passed through the resolver.
+  permissions?: Permission[];
   devDisplayHeaderTitle?: boolean;
   testDisplayHeaderTitle?: boolean;
   prodDisplayHeaderTitle?: boolean;

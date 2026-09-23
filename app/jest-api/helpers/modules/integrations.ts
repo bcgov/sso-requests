@@ -130,9 +130,13 @@ export const submitNewIntegration = async (integration: IntegrationData) => {
     })
     .set('Accept', 'application/json');
 
+  // The shared fixtures carry a clientId for the tests that write rows directly. A new
+  // integration's client id is generated on submission, and setting one needs
+  // integrations:write-client-id, so it is not part of what a user submits.
+  const { clientId, ...payload } = integration;
   return testClient(requestsHandler)
     .put(`${API_BASE_PATH}/requests?submit=true`)
-    .send({ ...integration, id })
+    .send({ ...payload, id })
     .set('Accept', 'application/json');
 };
 

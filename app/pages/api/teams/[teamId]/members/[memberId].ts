@@ -13,11 +13,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'PUT') {
       const { teamId, memberId } = req.query;
-      const result = await updateMemberInTeam(session?.user?.id!, Number(teamId), Number(memberId), req.body);
+      const result = await updateMemberInTeam(session as Session, Number(teamId), Number(memberId), req.body);
       return res.status(200).json(result);
     } else if (req.method === 'DELETE') {
       const { teamId, memberId } = req.query;
-      const result = await removeUserFromTeam(session?.user?.id!, Number(memberId), Number(teamId));
+      const result = await removeUserFromTeam(session as Session, Number(memberId), Number(teamId));
       return res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['PUT', 'DELETE']);

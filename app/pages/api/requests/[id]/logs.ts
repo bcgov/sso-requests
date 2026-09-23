@@ -3,7 +3,7 @@ import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
 import { handleError } from '@app/utils/helpers';
 import { processUserSession } from '@app/controllers/user';
-import { getAllowedRequest } from '@app/queries/request';
+import { authorizeIntegration } from '@app/queries/integrationAccess';
 import { fetchLogs } from '@app/controllers/logs';
 import { logsRateLimiter } from '@app/utils/rate-limiters';
 
@@ -18,10 +18,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const { id } = req.query || {};
       const { start, end, env } = req.query || {};
-      const userRequest = await getAllowedRequest(session, Number(id));
-      if (!userRequest) {
+      const authorized = await authorizeIntegration(session, Number(id), 'integrations:read');
+      if (!authorized) {
         return res.status(403).send('forbidden');
       }
+      const userRequest = authorized.integration;
       const { status, message, data } = await fetchLogs(
         env as string,
         userRequest.clientId,

@@ -67,6 +67,10 @@ COPY app/ ./app/
 
 COPY db/ ./db/
 
+# The app imports @sso/authz from source; next.config's experimental.externalDir
+# lets it compile from outside the app directory.
+COPY packages/ ./packages/
+
 COPY --from=deps /app/app/node_modules ./app/node_modules
 
 COPY --from=deps /app/db/node_modules ./db/node_modules
@@ -82,7 +86,10 @@ ENV HOSTNAME=0.0.0.0
 WORKDIR /app
 
 COPY app/public ./public
-COPY --from=build /app/app/.next/standalone ./
+# Next's tracing root expands to the monorepo root because next.config.js's
+# externalDir imports @sso/authz from ../packages, so standalone output nests
+# everything under an `app/` subdirectory instead of at its own root.
+COPY --from=build /app/app/.next/standalone/app ./
 COPY --from=build /app/app/.next/static ./.next/static
 COPY --from=build /app/db ./db
 

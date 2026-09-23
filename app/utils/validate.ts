@@ -1,6 +1,6 @@
 import { Integration } from '@app/interfaces/Request';
 import { preservedClaims } from './constants';
-import { usesDigitalCredential } from '@app/helpers/integration';
+import { isReservedClientId, usesDigitalCredential } from '@app/helpers/integration';
 import validator from '@rjsf/validator-ajv8';
 
 const isValidKeycloakURI = (isProd: boolean, uri: string) => {
@@ -144,6 +144,9 @@ export const customValidate = (formData: any, errors: any, uiSchema: any, fields
     clientId: () => {
       if (clientId !== '' && clientId !== null && (clientId !== clientId.trim() || clientId.match(/\s/))) {
         errors['clientId'].addError('Client id is not valid');
+      }
+      if (isReservedClientId(clientId)) {
+        errors['clientId'].addError('Invalid client ID');
       }
     },
     devIdps: () => {

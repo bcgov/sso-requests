@@ -4,6 +4,8 @@ export interface Event {
   eventCode?: string;
   idirUserid?: string;
   idirUserDisplayName?: string;
+  // Organization events have no request to hang from.
+  organizationId?: number;
   details?: any;
   createdAt?: string;
   updatedAt?: string;

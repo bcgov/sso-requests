@@ -124,15 +124,27 @@ beforeEach(() => {
   });
 });
 
+// validateIDPs no longer reads the session: the caller says whether the actor
+// may add a restricted IdP. bcgovidir is one of them.
 describe('bcgovidir idp permissions', () => {
   it('does not allow regular users to add the bcgovidir identity provider', () => {
     const isValid = validateIDPs({
       currentIdps: ['azureidir'],
       updatedIdps: ['azureidir', KC_ENTRA_IDP_REALM],
-      session: { client_roles: ['user'] } as never,
+      canAddRestrictedIdps: false,
     });
 
     expect(isValid).toBe(false);
+  });
+
+  it('allows an actor who may add restricted idps to add the bcgovidir identity provider', () => {
+    const isValid = validateIDPs({
+      currentIdps: ['azureidir'],
+      updatedIdps: ['azureidir', KC_ENTRA_IDP_REALM],
+      canAddRestrictedIdps: true,
+    });
+
+    expect(isValid).toBe(true);
   });
 });
 

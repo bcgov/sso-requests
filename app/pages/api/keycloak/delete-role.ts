@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to delete role' });
 
-      const result = await deleteRoles(session?.user?.id!, req.body);
+      const result = await deleteRoles(session as Session, req.body);
       return res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['POST']);

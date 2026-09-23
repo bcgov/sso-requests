@@ -14,6 +14,7 @@ import {
 } from './helpers/fixtures';
 import { buildIntegration } from './helpers/modules/common';
 import {
+  getIntegration,
   createIntegration,
   deleteIntegration,
   getEvents,
@@ -142,10 +143,10 @@ describe('IDP Approver', () => {
       teamId: undefined,
     });
 
-    // Attempt to delete as approver, expect failure
+    // Attempt to delete as approver, expect failure: a draft with no bceid IdP is not theirs to see
     createMockAuth(BCEID_ADMIN_IDIR_USERID_01, BCEID_ADMIN_IDIR_EMAIL_01, ['bceid-approver']);
     const deleteResponse = await deleteIntegration(unassignedTeamIntegration.body.id);
-    expect(deleteResponse.status).toBe(401);
+    expect(deleteResponse.status).toBe(404);
   });
 
   it('BCeID approver can view and approve any bceid integration but cannot edit/delete/restore', async () => {
@@ -157,17 +158,23 @@ describe('IDP Approver', () => {
     expect(requests.body.rows[0].projectName).toEqual('bceid');
     expect(requests.body.rows[0].bceidApproved).toEqual(false);
 
-    const approveRes = await updateIntegration(
+    // An edit alongside the approval is refused naming the field — nothing is silently reverted.
+    const editRes = await updateIntegration(
       { ...requests.body.rows[0], bceidApproved: true, devValidRedirectUris: ['https://other-application-route'] },
       true,
     );
+    expect(editRes.status).toEqual(422);
+    expect(editRes.body.message).toEqual('not allowed to change: devValidRedirectUris');
+
+    const approveRes = await updateIntegration({ ...requests.body.rows[0], bceidApproved: true }, true);
 
     expect(approveRes.status).toEqual(200);
     expect(approveRes.body.bceidApproved).toEqual(true);
     expect(approveRes.body.devValidRedirectUris).not.toEqual(['https://other-application-route']);
 
+    // Read, but no integrations:delete.
     const deleteRes = await deleteIntegration(requests.body.rows[0].id);
-    expect(deleteRes.status).toEqual(401);
+    expect(deleteRes.status).toEqual(403);
 
     const eventsRes = await getEvents(requests.body.rows[0].id);
     expect(eventsRes.status).toEqual(200);
@@ -238,17 +245,23 @@ describe('IDP Approver', () => {
     expect(requests.body.rows[0].projectName).toEqual('social');
     expect(requests.body.rows[0].socialApproved).toEqual(false);
 
-    const approveRes = await updateIntegration(
+    // An edit alongside the approval is refused naming the field — nothing is silently reverted.
+    const editRes = await updateIntegration(
       { ...requests.body.rows[0], socialApproved: true, devValidRedirectUris: ['https://other-application-route'] },
       true,
     );
+    expect(editRes.status).toEqual(422);
+    expect(editRes.body.message).toEqual('not allowed to change: devValidRedirectUris');
+
+    const approveRes = await updateIntegration({ ...requests.body.rows[0], socialApproved: true }, true);
 
     expect(approveRes.status).toEqual(200);
     expect(approveRes.body.socialApproved).toEqual(true);
     expect(approveRes.body.devValidRedirectUris).not.toEqual(['https://other-application-route']);
 
+    // Read, but no integrations:delete.
     const deleteRes = await deleteIntegration(requests.body.rows[0].id);
-    expect(deleteRes.status).toEqual(401);
+    expect(deleteRes.status).toEqual(403);
 
     const eventsRes = await getEvents(requests.body.rows[0].id);
     expect(eventsRes.status).toEqual(200);
@@ -298,17 +311,23 @@ describe('IDP Approver', () => {
     expect(requests.body.rows[0].projectName).toEqual('otp');
     expect(requests.body.rows[0].otpApproved).toEqual(false);
 
-    const approveRes = await updateIntegration(
+    // An edit alongside the approval is refused naming the field — nothing is silently reverted.
+    const editRes = await updateIntegration(
       { ...requests.body.rows[0], otpApproved: true, devValidRedirectUris: ['https://other-application-route'] },
       true,
     );
+    expect(editRes.status).toEqual(422);
+    expect(editRes.body.message).toEqual('not allowed to change: devValidRedirectUris');
+
+    const approveRes = await updateIntegration({ ...requests.body.rows[0], otpApproved: true }, true);
 
     expect(approveRes.status).toEqual(200);
     expect(approveRes.body.otpApproved).toEqual(true);
     expect(approveRes.body.devValidRedirectUris).not.toEqual(['https://other-application-route']);
 
+    // Read, but no integrations:delete.
     const deleteRes = await deleteIntegration(requests.body.rows[0].id);
-    expect(deleteRes.status).toEqual(401);
+    expect(deleteRes.status).toEqual(403);
 
     const eventsRes = await getEvents(requests.body.rows[0].id);
     expect(eventsRes.status).toEqual(200);
@@ -358,17 +377,23 @@ describe('IDP Approver', () => {
     expect(requests.body.rows[0].projectName).toEqual('github');
     expect(requests.body.rows[0].githubApproved).toEqual(false);
 
-    const approveRes = await updateIntegration(
+    // An edit alongside the approval is refused naming the field — nothing is silently reverted.
+    const editRes = await updateIntegration(
       { ...requests.body.rows[0], githubApproved: true, devValidRedirectUris: ['https://other-application-route'] },
       true,
     );
+    expect(editRes.status).toEqual(422);
+    expect(editRes.body.message).toEqual('not allowed to change: devValidRedirectUris');
+
+    const approveRes = await updateIntegration({ ...requests.body.rows[0], githubApproved: true }, true);
 
     expect(approveRes.status).toEqual(200);
     expect(approveRes.body.githubApproved).toEqual(true);
     expect(approveRes.body.devValidRedirectUris).not.toEqual(['https://other-application-route']);
 
+    // Read, but no integrations:delete.
     const deleteRes = await deleteIntegration(requests.body.rows[0].id);
-    expect(deleteRes.status).toEqual(401);
+    expect(deleteRes.status).toEqual(403);
 
     const eventsRes = await getEvents(requests.body.rows[0].id);
     expect(eventsRes.status).toEqual(200);
@@ -387,9 +412,10 @@ describe('IDP Approver', () => {
     expect(requests.status).toEqual(200);
     expect(requests.body.count).toEqual(1);
     expect(requests.body.rows[0].projectName).toEqual('bc-services-card');
-    expect(requests.body.rows[0].bcServicesCardApproved).toEqual(null);
+    expect(requests.body.rows[0].bcServicesCardApproved).toBeFalsy();
 
-    const approveRes = await updateIntegration(
+    // An edit alongside the approval is refused naming the field — nothing is silently reverted.
+    const editRes = await updateIntegration(
       {
         ...requests.body.rows[0],
         bcServicesCardApproved: true,
@@ -397,13 +423,18 @@ describe('IDP Approver', () => {
       },
       true,
     );
+    expect(editRes.status).toEqual(422);
+    expect(editRes.body.message).toEqual('not allowed to change: devValidRedirectUris');
+
+    const approveRes = await updateIntegration({ ...requests.body.rows[0], bcServicesCardApproved: true }, true);
 
     expect(approveRes.status).toEqual(200);
     expect(approveRes.body.bcServicesCardApproved).toEqual(true);
     expect(approveRes.body.devValidRedirectUris).not.toEqual(['https://other-application-route']);
 
+    // Read, but no integrations:delete.
     const deleteRes = await deleteIntegration(requests.body.rows[0].id);
-    expect(deleteRes.status).toEqual(401);
+    expect(deleteRes.status).toEqual(403);
 
     const eventsRes = await getEvents(requests.body.rows[0].id);
     expect(eventsRes.status).toEqual(200);
@@ -432,7 +463,10 @@ describe('Approval Permissions', () => {
       },
       true,
     );
-    expect(approveRes.body.bceidApproved).toBeFalsy();
+    expect(approveRes.status).toEqual(422);
+    expect(approveRes.body.message).toEqual('not allowed to change: bceidApproved');
+    const stored = await getIntegration(bceidIntegration.body.id);
+    expect(stored.body.bceidApproved).toBeFalsy();
   });
 
   it('Prevents regular users from setting bceid approved to false', async () => {
@@ -451,7 +485,8 @@ describe('Approval Permissions', () => {
     expect(bceidIntegration.body.devBceidApproved).toBe(true);
     expect(bceidIntegration.body.testBceidApproved).toBe(true);
 
-    // Remove role, assert user cannot set approval false directly
+    // Remove role, assert user cannot set approval false directly: the diff catches revoking as
+    // well as approving, and the refusal names every flag.
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
     const approveRes = await updateIntegration(
       {
@@ -462,9 +497,14 @@ describe('Approval Permissions', () => {
       },
       true,
     );
-    expect(approveRes.body.bceidApproved).toBe(true);
-    expect(approveRes.body.devBceidApproved).toBe(true);
-    expect(approveRes.body.testBceidApproved).toBe(true);
+    expect(approveRes.status).toEqual(422);
+    expect(approveRes.body.message).toEqual(
+      'not allowed to change: bceidApproved, devBceidApproved, testBceidApproved',
+    );
+    const stored = await getIntegration(bceidIntegration.body.id);
+    expect(stored.body.bceidApproved).toBe(true);
+    expect(stored.body.devBceidApproved).toBe(true);
+    expect(stored.body.testBceidApproved).toBe(true);
   });
 
   it('Keeps github approval flag immutable for regular users', async () => {
@@ -482,7 +522,10 @@ describe('Approval Permissions', () => {
       },
       true,
     );
-    expect(approveRes.body.githubApproved).toBeFalsy();
+    expect(approveRes.status).toEqual(422);
+    expect(approveRes.body.message).toEqual('not allowed to change: githubApproved');
+    const stored = await getIntegration(githubIntegration.body.id);
+    expect(stored.body.githubApproved).toBeFalsy();
   });
 
   it('Keeps bcsc approval flag immutable for regular users', async () => {
@@ -500,7 +543,10 @@ describe('Approval Permissions', () => {
       },
       true,
     );
-    expect(approveRes.body.bcServicesCardApproved).toBeFalsy();
+    expect(approveRes.status).toEqual(422);
+    expect(approveRes.body.message).toEqual('not allowed to change: bcServicesCardApproved');
+    const stored = await getIntegration(bcServicesCardIntegration.body.id);
+    expect(stored.body.bcServicesCardApproved).toBeFalsy();
   });
 
   it('Keeps devBceidApproved flag immutable for regular users', async () => {
@@ -517,7 +563,10 @@ describe('Approval Permissions', () => {
       },
       true,
     );
-    expect(approveRes.body.devBceidApproved).toBeFalsy();
+    expect(approveRes.status).toEqual(422);
+    expect(approveRes.body.message).toEqual('not allowed to change: devBceidApproved');
+    const stored = await getIntegration(bceidIntegration.body.id);
+    expect(stored.body.devBceidApproved).toBeFalsy();
   });
 
   it('Keeps testBceidApproved flag immutable for regular users', async () => {
@@ -534,7 +583,10 @@ describe('Approval Permissions', () => {
       },
       true,
     );
-    expect(approveRes.body.testBceidApproved).toBeFalsy();
+    expect(approveRes.status).toEqual(422);
+    expect(approveRes.body.message).toEqual('not allowed to change: testBceidApproved');
+    const stored = await getIntegration(bceidIntegration.body.id);
+    expect(stored.body.testBceidApproved).toBeFalsy();
   });
 
   it('BCeID approver can set devBceidApproved and testBceidApproved flags', async () => {

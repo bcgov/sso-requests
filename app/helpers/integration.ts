@@ -122,3 +122,10 @@ export const usesBcgovIdir = (integration: Integration) => {
 
   return devIdps.some(checkBcgovIdir);
 };
+
+export const isApiAccountClientId = (clientId?: string | null) =>
+  /^service-account-(org|team)-\d+-\d+$/.test((clientId ?? '').trim());
+
+// Block attempts to mock service accounts via client id
+export const isReservedClientId = (clientId?: string | null) =>
+  (clientId ?? '').trim().toLowerCase().startsWith('service-account-');

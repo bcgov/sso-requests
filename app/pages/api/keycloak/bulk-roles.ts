@@ -18,7 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!authorized)
         return res.status(401).json({ success: false, message: 'You are not authorized to create role' });
 
-      const result = await bulkCreateClientRoles(session?.user?.id as number, req.body);
+      const result = await bulkCreateClientRoles(session as Session, req.body);
       return res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['POST']);

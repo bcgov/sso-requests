@@ -1,4 +1,4 @@
-import { getAllowedRequest } from '@app/queries/request';
+import { authorizeIntegration } from '@app/queries/integrationAccess';
 import { Session } from '@app/shared/interfaces';
 import { clientEventsAggregationQuery, queryGrafana } from '@app/utils/grafana';
 import { createEvent } from '@app/queries/event';
@@ -89,11 +89,10 @@ export const fetchMetrics = async (
 ) => {
   try {
     let result = [];
-    // Check user owns requested logs
-    const userRequest = await getAllowedRequest(session, id);
-    if (!userRequest) return { status: 401, message: "You are not authorized to view this integration's metrics" };
+    const authorized = await authorizeIntegration(session, id, 'integrations:read');
+    if (!authorized) return { status: 401, message: "You are not authorized to view this integration's metrics" };
 
-    const { clientId } = userRequest;
+    const { clientId } = authorized.integration;
 
     if (!allowedEnvs.includes(environment)) {
       return { status: 400, message: `The env query param must be one of ${allowedEnvs.join(', ')}.` };
