@@ -616,6 +616,9 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           setFormData,
           loadTeams,
           bcscPrivacyZones,
+          sdxResourceServers,
+          sdxServicesApprovedForClient,
+          sdxServicesPendingForClient,
         }}
         templates={{ FieldTemplate, ArrayFieldTemplate }}
         liveValidate={visited[formStage] || isApplied}
