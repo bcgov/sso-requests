@@ -6,7 +6,7 @@ import getEnvironmentGoldSchemas from '@app/schemas/environment-gold';
 import getSdxServicesSchema from '@app/schemas/sdx-services';
 import getReviewSubmitSchema from '@app/schemas/review-submit';
 import { LoggedInUser, Team } from '@app/interfaces/team';
-import { Integration } from '@app/interfaces/Request';
+import { Integration, BcgovUnit, Division } from '@app/interfaces/Request';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { RJSFSchema } from '@rjsf/utils';
 
@@ -23,6 +23,8 @@ export const getSchemas = ({
   teams = [],
   bcscPrivacyZones = [],
   bcscAttributes = [],
+  bcgovUnits = [],
+  divisions = [],
 }: {
   integration?: Integration | undefined;
   formData: Integration;
@@ -30,6 +32,8 @@ export const getSchemas = ({
   teams: Team[];
   bcscPrivacyZones?: BcscPrivacyZone[];
   bcscAttributes?: BcscAttribute[];
+  bcgovUnits?: BcgovUnit[];
+  divisions?: Division[];
 }) => {
   if (!integration) integration = formData;
 
@@ -41,14 +45,14 @@ export const getSchemas = ({
   if (isNew) {
     schemas.push(
       getRequesterInfoSchema(teams, formData),
-      getProvidersGoldSchema(formData, session, bcscPrivacyZones, bcscAttributes),
+      getProvidersGoldSchema(formData, session, bcscPrivacyZones, bcscAttributes, bcgovUnits, divisions),
       ...environmentSchemas,
       termsAndConditionsSchema,
     );
   } else {
     schemas.push(
       getRequesterInfoSchema(teams, formData),
-      getProvidersGoldSchema(formData, session, bcscPrivacyZones, bcscAttributes),
+      getProvidersGoldSchema(formData, session, bcscPrivacyZones, bcscAttributes, bcgovUnits, divisions),
       ...environmentSchemas,
     );
 
@@ -71,8 +75,6 @@ export const oidcDurationAdditionalFields = [
   'SessionIdleTimeout',
   'SessionMaxLifespan',
 ];
-
-export const test = 'sadasdfasd';
 
 export const samlDurationAdditionalFields = ['AssertionLifespan'];
 

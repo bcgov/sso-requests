@@ -14,6 +14,8 @@ import EntraClient from './EntraClient';
 import RequestWorkflow from './requestWorkflow';
 import RequestWorkflowStep from './requestWorkflowStep';
 import RequestWorkflowFailures from './requestWorkflowFailure';
+import Division from './Division';
+import BcgovUnit from './BcgovUnit';
 import Organization from './Organization';
 import OrganizationMember from './OrganizationMember';
 import OrganizationTeam from './OrganizationTeam';
@@ -50,6 +52,8 @@ console.log('sequelize initialized', !!sequelize);
   RequestWorkflow,
   RequestWorkflowStep,
   RequestWorkflowFailures,
+  BcgovUnit,
+  Division,
   Organization,
   OrganizationMember,
   OrganizationTeam,

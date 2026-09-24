@@ -8,7 +8,7 @@ import FieldTermsAndConditions from '@app/form-components/FieldTermsAndCondition
 import FieldRequesterInfo from '@app/form-components/FieldRequesterInfo';
 import FieldReviewAndSubmit from '@app/form-components/FieldReviewAndSubmit';
 import FieldInlineGrid from '@app/form-components/FieldInlineGrid';
-import { Integration } from '@app/interfaces/Request';
+import { Integration, BcgovUnit, Division } from '@app/interfaces/Request';
 import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 import MinutesToSeconds from '@app/form-components/widgets/MinutesToSeconds';
 import SwitchWidget from '@app/form-components/widgets/SwitchWidget';
@@ -30,6 +30,8 @@ interface Props {
   schemas: any;
   defaultSessionSettings: GetStandardSettingsResponse;
   bcscExcluded: boolean;
+  bcgovUnits: BcgovUnit[];
+  divisions: Division[];
 }
 
 const envs = environments as Environment[];
@@ -42,6 +44,8 @@ const getUISchema = ({
   schemas,
   defaultSessionSettings,
   bcscExcluded,
+  bcgovUnits,
+  divisions,
 }: Props) => {
   const {
     status,
@@ -54,6 +58,7 @@ const getUISchema = ({
     githubApproved = false,
     otpApproved = false,
   } = integration || {};
+  const { bcgovUnitId = null } = formData || {};
   const isApplied = status === 'applied';
   const canReassignTeam =
     integration?.id === null ||
@@ -350,6 +355,19 @@ const getUISchema = ({
     },
     sdxEnabled: {
       'ui:widget': SwitchWidget,
+    },
+    bcgovUnitId: {
+      'ui:classNames': 'short-field-string',
+      'ui:enumNames': ['Select...'].concat(bcgovUnits?.map((bcgovUnit) => bcgovUnit.name) ?? []),
+    },
+    divisionId: {
+      'ui:classNames': 'short-field-string',
+      'ui:enumNames': ['Select...'].concat(
+        divisions?.flatMap((division) => (bcgovUnitId === division.bcgovUnitId ? division.name : [])) ?? [],
+      ),
+    },
+    description: {
+      'ui:widget': 'textarea',
     },
     ...bcServicesCardFields,
     ...tokenFields,

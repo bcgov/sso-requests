@@ -239,6 +239,8 @@ export const keycloakClient = async (
 
     if (usesBcgovIdir(integration)) {
       await createEntraIntegration(environment, integration);
+    } else {
+      await deleteEntraIntegration(environment, integration);
     }
 
     const authenticationFlows = await axios.get(`${kcAdminClient.baseUrl}/admin/realms/standard/authentication/flows`, {

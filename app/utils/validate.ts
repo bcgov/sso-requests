@@ -62,6 +62,9 @@ export const customValidate = (formData: any, errors: any, uiSchema: any, fields
     publicAccess,
     bcscPrivacyZone,
     bcscAttributes = [],
+    bcgovUnitId,
+    divisionId,
+    description,
   } = formData;
   const sessionIdleTimeout = (value: number, key: string) => {
     return () => {
@@ -178,11 +181,29 @@ export const customValidate = (formData: any, errors: any, uiSchema: any, fields
         errors['sdxServices']?.addError('Please select at least one scope');
       }
     },
+    description: () => {
+      if (devIdps.some((idp: string) => ['bcgovidir'].includes(idp)) && (!description || description.trim() === '')) {
+        errors['description']?.addError('Project description is required');
+      }
+    },
+    bcgovUnitId: () => {
+      if (devIdps.some((idp: string) => ['bcgovidir'].includes(idp)) && (!bcgovUnitId || bcgovUnitId === 0)) {
+        errors['bcgovUnitId']?.addError('BC Government Unit is required');
+      }
+    },
+    divisionId: () => {
+      if (devIdps.some((idp: string) => ['bcgovidir'].includes(idp)) && (!divisionId || divisionId === 0)) {
+        errors['divisionId']?.addError('Division is required');
+      }
+    },
   };
 
   ['dev', 'test', 'prod'].map((env) => {
     fieldMap[`${env}HomePageUri`] = () => {
-      if (devIdps.includes('bcservicescard') && !isValidKeycloakURIProd(formData[`${env}HomePageUri`])) {
+      if (
+        devIdps.some((idp: string) => ['bcservicescard', 'bcgovidir'].includes(idp)) &&
+        !isValidKeycloakURIProd(formData[`${env}HomePageUri`])
+      ) {
         errors[`${env}HomePageUri`]?.addError(validationMessage);
       } else if (devIdps.includes('otp') && !devIdps.includes('bcservicescard')) {
         const val = formData[`${env}HomePageUri`];

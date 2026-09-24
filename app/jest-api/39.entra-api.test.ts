@@ -4,8 +4,10 @@ import { formDataDev } from './helpers/fixtures';
 import { bcgovIdirIdpMappers } from '@app/utils/constants';
 import { cleanUpDatabaseTables } from './helpers/utils';
 import { getEntraClientByRequestId, saveEntraClient } from '@app/queries/entra-client';
+import { getByBcgovUnitAndDivision } from '@app/queries/division';
 import { validateIDPs } from '@app/utils/helpers';
 import { ConfidentialClientApplication } from '@azure/msal-node';
+import { models } from '@app/shared/sequelize/models/models';
 
 jest.mock('axios');
 jest.mock('@azure/msal-node', () => ({
@@ -15,7 +17,6 @@ jest.mock('@app/utils/graph-api', () => ({
   setupEntraIntegration: jest.fn(),
   deleteServicePrincipal: jest.fn(),
   deleteAppRegistration: jest.fn(),
-  refreshAppRegistrationSecret: jest.fn(),
   validateIdirEmail: jest.fn(),
 }));
 jest.mock('@app/keycloak/idp', () => ({
@@ -24,6 +25,10 @@ jest.mock('@app/keycloak/idp', () => ({
   deleteIdp: jest.fn(),
   getIdp: jest.fn(),
   getIdpMappers: jest.fn(),
+}));
+jest.mock('@app/keycloak/keys', () => ({
+  createPS256Key: jest.fn(),
+  getActivePS256KeyCert: jest.fn(),
 }));
 jest.mock('@app/controllers/requests', () => ({
   createBCSCIntegration: jest.fn(),
@@ -48,6 +53,7 @@ jest.mock('@app/queries/custom-requests', () => ({
 const requests = jest.requireActual('@app/controllers/requests') as typeof import('@app/controllers/requests');
 const graphApi = jest.requireMock('@app/utils/graph-api') as jest.Mocked<typeof import('@app/utils/graph-api')>;
 const idp = jest.requireMock('@app/keycloak/idp') as jest.Mocked<typeof import('@app/keycloak/idp')>;
+const keys = jest.requireMock('@app/keycloak/keys') as jest.Mocked<typeof import('@app/keycloak/keys')>;
 const keycloakRequests = jest.requireMock('@app/controllers/requests') as jest.Mocked<
   Pick<typeof import('@app/controllers/requests'), 'createEntraIntegration' | 'deleteEntraIntegration'>
 >;
@@ -65,14 +71,17 @@ const integration = {
 
 const integrationForRequest = (id: number) => ({ ...integration, id });
 
+// Matches formDataDev.bcgovUnitId / divisionId so getBcgovUnitById / getDivisionById resolve.
+const bcgovUnit = { name: 'Citizens Services', code: 'CITZ' };
+const division = { name: 'Technology Division', code: 'TD' };
+const appNameFor = (id: number) => `${bcgovUnit.code}-${division.code}-EntraProject-${id}-Dev`;
+
 const createPersistedEntraClient = (request: typeof integration) =>
   saveEntraClient({
     appName: 'entra-project-1-dev',
     appId: 'app-id',
-    secret: 'client-secret',
-    secretKeyId: 'secret-key-id',
+    keyThumbprint: 'key-thumbprint',
     servicePrincipalId: 'service-principal-id',
-    secretExpiryDate: new Date('2028-01-01T00:00:00.000Z'),
     environment: 'dev',
     requestId: request.id!,
   });
@@ -104,22 +113,26 @@ const setupKeycloakClient = (archived = false) => {
 
 beforeAll(async () => {
   await cleanUpDatabaseTables();
+  const createdBcgovUnit = await models.bcgovUnit.create(bcgovUnit);
+  const createdDivision = await models.division.create({ ...division, bcgovUnitId: createdBcgovUnit.id });
+  integration.bcgovUnitId = createdBcgovUnit.id;
+  integration.divisionId = createdDivision.id;
 });
 
 beforeEach(() => {
   jest.clearAllMocks();
   idp.getIdp.mockResolvedValue(undefined);
   idp.getIdpMappers.mockResolvedValue([]);
+  keys.getActivePS256KeyCert.mockResolvedValue({
+    kid: 'kc-key-id',
+    certificatePem: '-----BEGIN CERTIFICATE-----\nkc-cert\n-----END CERTIFICATE-----',
+    certificateRawBase64: 'kc-cert',
+  });
   graphApi.setupEntraIntegration.mockResolvedValue({
     appId: 'app-id',
     servicePrincipalId: 'service-principal-id',
-    secret: { secretText: 'client-secret', keyId: 'secret-key-id', endDateTime: '2028-01-01T00:00:00.000Z' },
+    secret: { customKeyIdentifier: 'key-thumbprint' },
   });
-  graphApi.refreshAppRegistrationSecret.mockResolvedValue({
-    secretText: 'refreshed-client-secret',
-    keyId: 'refreshed-secret-key-id',
-    endDateTime: '2029-01-01T00:00:00.000Z',
-  } as never);
 });
 
 // validateIDPs no longer reads the session: the caller says whether the actor
@@ -150,12 +163,19 @@ describe('createEntraIntegration', () => {
   it('provisions, persists, and configures a new Entra integration', async () => {
     await requests.createEntraIntegration('dev', integration);
 
-    expect(graphApi.setupEntraIntegration).toHaveBeenCalledWith('entra-project-1-dev', 'dev', integration);
+    expect(graphApi.setupEntraIntegration).toHaveBeenCalledWith(
+      appNameFor(integration.id!),
+      'dev',
+      integration,
+      expect.anything(),
+      bcgovUnit.name,
+      division.name,
+    );
     await expect(getEntraClientByRequestId({ integrationId: integration.id!, environment: 'dev' })).resolves.toEqual([
       expect.objectContaining({
-        appName: 'entra-project-1-dev',
+        appName: appNameFor(integration.id!),
         appId: 'app-id',
-        secret: 'client-secret',
+        keyThumbprint: 'key-thumbprint',
         servicePrincipalId: 'service-principal-id',
       }),
     ]);
@@ -164,7 +184,7 @@ describe('createEntraIntegration', () => {
         alias: 'entra-client',
         displayName: 'Entra Project',
         realm: KC_ENTRA_IDP_REALM,
-        config: expect.objectContaining({ clientId: 'app-id', clientSecret: 'client-secret' }),
+        config: expect.objectContaining({ clientId: 'app-id' }),
       }),
       'dev',
     );
@@ -190,38 +210,98 @@ describe('createEntraIntegration', () => {
     expect(idp.createIdpMapper).not.toHaveBeenCalled();
   });
 
-  it('refreshes and persists the secret when Entra does not return one', async () => {
-    const missingSecretIntegration = integrationForRequest(8);
-    graphApi.setupEntraIntegration.mockResolvedValue({
-      appId: 'app-id',
-      servicePrincipalId: 'service-principal-id',
-      secret: { secretText: '', keyId: '', endDateTime: '' },
-    });
-
-    await requests.createEntraIntegration('dev', missingSecretIntegration);
-
-    expect(graphApi.refreshAppRegistrationSecret).toHaveBeenCalledWith('app-id');
-    await expect(
-      getEntraClientByRequestId({ integrationId: missingSecretIntegration.id!, environment: 'dev' }),
-    ).resolves.toEqual([
-      expect.objectContaining({
-        secret: 'refreshed-client-secret',
-        secretExpiryDate: new Date('2029-01-01T00:00:00.000Z'),
-      }),
-    ]);
-  });
-
-  it('logs and absorbs an Entra provisioning failure', async () => {
+  it('logs and rethrows an Entra provisioning failure', async () => {
     const failedIntegration = integrationForRequest(3);
     const error = new Error('invalid Entra response');
     const consoleError = jest.spyOn(console, 'error').mockImplementation();
     graphApi.setupEntraIntegration.mockRejectedValue(error);
 
-    await expect(requests.createEntraIntegration('dev', failedIntegration)).resolves.toBeUndefined();
+    await expect(requests.createEntraIntegration('dev', failedIntegration)).rejects.toThrow(error);
 
     expect(consoleError).toHaveBeenCalledWith('could not create Entra integration', error);
     expect(idp.createIdp).not.toHaveBeenCalled();
     consoleError.mockRestore();
+  });
+
+  it('throws a clear error instead of crashing when bcgovUnitId/divisionId are missing', async () => {
+    const missingUnitIntegration = { ...integrationForRequest(8), bcgovUnitId: undefined, divisionId: undefined };
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+
+    await expect(requests.createEntraIntegration('dev', missingUnitIntegration)).rejects.toThrow(
+      'BC Government Unit and division are required to create an Entra integration',
+    );
+
+    expect(graphApi.setupEntraIntegration).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  it('throws a clear error when bcgovUnitId does not reference an existing unit', async () => {
+    const badUnitIntegration = { ...integrationForRequest(9), bcgovUnitId: 999999 };
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+
+    await expect(requests.createEntraIntegration('dev', badUnitIntegration)).rejects.toThrow(
+      'No BC Government Unit found for bcgovUnitId 999999',
+    );
+
+    expect(graphApi.setupEntraIntegration).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  it('throws a clear error when divisionId does not reference an existing division', async () => {
+    const badDivisionIntegration = { ...integrationForRequest(10), divisionId: 999999 };
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+
+    await expect(requests.createEntraIntegration('dev', badDivisionIntegration)).rejects.toThrow(
+      'No division found for divisionId 999999',
+    );
+
+    expect(graphApi.setupEntraIntegration).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  it('folds the bcgov unit and division codes into the generated appName so different units cannot collide', async () => {
+    const otherUnit = await models.bcgovUnit.create({ name: 'Health', code: 'HLTH' });
+    const otherDivision = await models.division.create({
+      name: 'Data Division',
+      code: 'DD',
+      bcgovUnitId: otherUnit.id,
+    });
+    const otherIntegration = {
+      ...integrationForRequest(11),
+      bcgovUnitId: otherUnit.id,
+      divisionId: otherDivision.id,
+    };
+
+    await requests.createEntraIntegration('dev', otherIntegration);
+
+    expect(graphApi.setupEntraIntegration).toHaveBeenCalledWith(
+      'HLTH-DD-EntraProject-11-Dev',
+      'dev',
+      otherIntegration,
+      expect.anything(),
+      otherUnit.name,
+      otherDivision.name,
+    );
+  });
+});
+
+// updateRequest rejects a submission when the division doesn't belong to the chosen
+// bcgov unit; this pins the query that decision is built on.
+describe('getByBcgovUnitAndDivision', () => {
+  it('resolves the division when it belongs to the given bcgov unit', async () => {
+    await expect(getByBcgovUnitAndDivision(integration.bcgovUnitId!, integration.divisionId!)).resolves.toEqual(
+      expect.objectContaining({ id: integration.divisionId, bcgovUnitId: integration.bcgovUnitId }),
+    );
+  });
+
+  it('resolves nothing when the division belongs to a different bcgov unit', async () => {
+    const otherUnit = await models.bcgovUnit.create({ name: 'Education', code: 'EDUC' });
+
+    await expect(getByBcgovUnitAndDivision(otherUnit.id, integration.divisionId!)).resolves.toBeNull();
+  });
+
+  it('resolves nothing for a divisionId that does not exist', async () => {
+    await expect(getByBcgovUnitAndDivision(integration.bcgovUnitId!, 999999)).resolves.toBeNull();
   });
 });
 
@@ -265,14 +345,14 @@ describe('deleteEntraIntegration', () => {
     ).resolves.toEqual([]);
   });
 
-  it('logs and absorbs invalid Entra delete responses', async () => {
+  it('logs and rethrows invalid Entra delete responses', async () => {
     const failedDeleteIntegration = integrationForRequest(7);
     const error = new Error('invalid Entra response');
     const consoleError = jest.spyOn(console, 'error').mockImplementation();
     await createPersistedEntraClient(failedDeleteIntegration);
     graphApi.deleteServicePrincipal.mockRejectedValue(error);
 
-    await expect(requests.deleteEntraIntegration('dev', failedDeleteIntegration)).resolves.toBeUndefined();
+    await expect(requests.deleteEntraIntegration('dev', failedDeleteIntegration)).rejects.toThrow(error);
 
     expect(consoleError).toHaveBeenCalledWith('could not delete Entra integration', error);
     expect(graphApi.deleteAppRegistration).not.toHaveBeenCalled();
