@@ -1,4 +1,3 @@
-import { IntegrationData } from '@app/shared/interfaces';
 import { KeyCredential } from '@microsoft/microsoft-graph-types';
 import { createHash } from 'node:crypto';
 import crypto from 'node:crypto';

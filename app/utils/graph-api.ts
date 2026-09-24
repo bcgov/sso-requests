@@ -728,31 +728,3 @@ export const getApplicationOwners = async (id: string): Promise<{ id: string }[]
     throw new Error(`Unable to get application owners for the application with objectId: ${id}`);
   }
 };
-
-export const ensureOutput = async (url: string, resourceIds: any, exist: boolean = true): Promise<boolean> => {
-  let attempts = 5;
-  const minDelayMs = 500;
-  const maxDelayMs = 10000;
-  while (attempts > 0) {
-    try {
-      const response = await callAzureGraphApi(url);
-      const resultIds = response.value.map((item: any) => item.id);
-      if (exist) {
-        if (resourceIds?.value.every((id: string) => resultIds.includes(id))) {
-          return true;
-        }
-      } else {
-        if (resourceIds?.value.every((id: string) => !resultIds.includes(id))) {
-          return true;
-        }
-      }
-    } catch (error) {
-      console.error(error);
-    }
-    attempts--;
-    const exponentialDelay = Math.min(maxDelayMs, minDelayMs * 2 ** (5 - attempts));
-    const delay = Math.floor(exponentialDelay / 2 + Math.random() * (exponentialDelay / 2));
-    await new Promise((resolve) => setTimeout(resolve, delay));
-  }
-  throw new Error(`Unable to ensure output for URL: ${url}`);
-};

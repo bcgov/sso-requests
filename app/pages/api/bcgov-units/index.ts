@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const userSession = await authenticate(req.headers);
     if (!userSession) return res.status(401).json({ success: false, message: 'not authorized' });
-    const { session } = await processUserSession(userSession as Session);
+    await processUserSession(userSession as Session);
 
     if (req.method === 'GET') {
       const result = await listBcgovUnits();

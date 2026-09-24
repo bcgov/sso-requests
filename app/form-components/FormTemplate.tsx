@@ -199,7 +199,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         if (isNew || isApplied) return;
         if (request) {
           setSaving(true);
-          const [updated, err] = await updateRequest({ ...data, id: request.id });
+          const [, err] = await updateRequest({ ...data, id: request.id });
           if (!err) setSaveMessage(`Last saved at ${new Date().toLocaleString()}`);
           setSaving(false);
         }

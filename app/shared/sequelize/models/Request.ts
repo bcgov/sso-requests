@@ -1,5 +1,3 @@
-import { or } from 'sequelize';
-
 const init = (sequelize: any, DataTypes: any) => {
   const Request = sequelize.define(
     'request',

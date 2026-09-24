@@ -1,6 +1,4 @@
-import { Op } from 'sequelize';
 import { models } from '@app/shared/sequelize/models/models';
-import { KeyCredential } from '@microsoft/microsoft-graph-types';
 
 export const getEntraClientByRequestId = async (
   data: { integrationId: number; environment: string },

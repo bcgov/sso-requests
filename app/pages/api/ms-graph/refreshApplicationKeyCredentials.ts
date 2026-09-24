@@ -194,7 +194,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       try {
         results.push(await rotateEnvironment(env));
       } catch (err) {
-        console.error(`Failed to rotate the Entra key credentials in ${env}`, err);
+        console.error('Failed to rotate the Entra key credentials in %s', env, err);
         results.push({ environment: env, rotated: false, clients: 0, message: errorMessage(err), cleanupFailures: [] });
       }
     }
