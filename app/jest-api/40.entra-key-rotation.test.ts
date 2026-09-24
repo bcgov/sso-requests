@@ -280,7 +280,7 @@ describe('refreshApplicationKeyCredentials rotation', () => {
   it('reclaims the canonical provider name after the previous provider is deleted', async () => {
     await rotate('?environment=dev');
 
-    expect(keys.removeRealmKey).toHaveBeenCalledWith('dev', KC_ENTRA_IDP_REALM, OLD_PROVIDER_ID);
+    expect(keys.removeRealmKey).toHaveBeenCalledWith('dev', OLD_PROVIDER_ID, KC_ENTRA_IDP_REALM);
     expect(keys.updateRealmKeyProvider).toHaveBeenLastCalledWith('dev', KC_ENTRA_IDP_REALM, NEW_PROVIDER_ID, {
       name: KC_PS256_KEY_PROVIDER_ID,
       priority: 100,
@@ -376,7 +376,7 @@ describe('refreshApplicationKeyCredentials rotation', () => {
       expect.objectContaining({ rotated: true, clients: 0, cleanupFailures: [] }),
     );
     expect(graphApi.replaceKeyCredentials).not.toHaveBeenCalled();
-    expect(keys.removeRealmKey).toHaveBeenCalledWith('dev', KC_ENTRA_IDP_REALM, OLD_PROVIDER_ID);
+    expect(keys.removeRealmKey).toHaveBeenCalledWith('dev', OLD_PROVIDER_ID, KC_ENTRA_IDP_REALM);
   });
 
   it('uploads only the new certificate when the previous provider exposes none', async () => {
@@ -426,7 +426,7 @@ describe('refreshApplicationKeyCredentials abort before cutover', () => {
     const response = await rotate('?environment=dev');
 
     expect(keys.removeRealmKey).toHaveBeenCalledTimes(1);
-    expect(keys.removeRealmKey).toHaveBeenCalledWith('dev', KC_ENTRA_IDP_REALM, NEW_PROVIDER_ID);
+    expect(keys.removeRealmKey).toHaveBeenCalledWith('dev', NEW_PROVIDER_ID, KC_ENTRA_IDP_REALM);
     expect(graphApi.replaceKeyCredentials).not.toHaveBeenCalled();
     expect(resultFor(response.body, 'dev').rotated).toBe(false);
   });
@@ -443,7 +443,7 @@ describe('refreshApplicationKeyCredentials abort before cutover', () => {
         message: 'Entra did not persist the new key credential for appId app-dev-1',
       }),
     );
-    expect(keys.removeRealmKey).toHaveBeenCalledWith('dev', KC_ENTRA_IDP_REALM, NEW_PROVIDER_ID);
+    expect(keys.removeRealmKey).toHaveBeenCalledWith('dev', NEW_PROVIDER_ID, KC_ENTRA_IDP_REALM);
     expect(keys.updateRealmKeyProvider).not.toHaveBeenCalledWith(
       'dev',
       KC_ENTRA_IDP_REALM,
@@ -474,8 +474,8 @@ describe('refreshApplicationKeyCredentials abort before cutover', () => {
     );
     expect(credentialCallsFor('app-dev-1')).toEqual([[OLD_THUMBPRINT, NEW_THUMBPRINT], [OLD_THUMBPRINT]]);
     expect(thumbprintsOn('app-dev-1')).toEqual([OLD_THUMBPRINT]);
-    expect(keys.removeRealmKey).toHaveBeenCalledWith('dev', KC_ENTRA_IDP_REALM, NEW_PROVIDER_ID);
-    expect(keys.removeRealmKey).not.toHaveBeenCalledWith('dev', KC_ENTRA_IDP_REALM, OLD_PROVIDER_ID);
+    expect(keys.removeRealmKey).toHaveBeenCalledWith('dev', NEW_PROVIDER_ID, KC_ENTRA_IDP_REALM);
+    expect(keys.removeRealmKey).not.toHaveBeenCalledWith('dev', OLD_PROVIDER_ID, KC_ENTRA_IDP_REALM);
     expect(keys.updateRealmKeyProvider).not.toHaveBeenCalledWith(
       'dev',
       KC_ENTRA_IDP_REALM,
@@ -639,7 +639,7 @@ describe('refreshApplicationKeyCredentials environment isolation', () => {
       expect(keys.updateRealmKeyProvider).toHaveBeenCalledWith(environment, KC_ENTRA_IDP_REALM, NEW_PROVIDER_ID, {
         priority: 200,
       });
-      expect(keys.removeRealmKey).toHaveBeenCalledWith(environment, KC_ENTRA_IDP_REALM, OLD_PROVIDER_ID);
+      expect(keys.removeRealmKey).toHaveBeenCalledWith(environment, OLD_PROVIDER_ID, KC_ENTRA_IDP_REALM);
       expect(keys.updateRealmKeyProvider).toHaveBeenCalledWith(environment, KC_ENTRA_IDP_REALM, NEW_PROVIDER_ID, {
         name: KC_PS256_KEY_PROVIDER_ID,
         priority: 100,

@@ -1,8 +1,7 @@
 import { isNil } from 'lodash';
 import getGoldUISchema from '@app/schemas-ui/ui-gold';
-import { BcgovUnit, Integration } from '@app/interfaces/Request';
+import { BcgovUnit, Integration, Division } from '@app/interfaces/Request';
 import { LoggedInUser, Team } from '@app/interfaces/team';
-import { Division } from '@app/interfaces/Request';
 import { GetStandardSettingsResponse } from '@app/interfaces/api';
 
 interface Props {

@@ -74,7 +74,7 @@ const rotateEnvironment = async (environment: string): Promise<RotationResult> =
   const newCert = await getKeyCertByProviderId(newProvider.id, environment, KC_ENTRA_IDP_REALM);
 
   if (!newCert) {
-    await removeRealmKey(environment, KC_ENTRA_IDP_REALM, newProvider.id);
+    await removeRealmKey(environment, newProvider.id, KC_ENTRA_IDP_REALM);
     throw new Error(`Keycloak did not expose a certificate for the new PS256 key in ${environment}`);
   }
 
@@ -126,7 +126,7 @@ const rotateEnvironment = async (environment: string): Promise<RotationResult> =
       }
     }
 
-    await removeRealmKey(environment, KC_ENTRA_IDP_REALM, newProvider.id).catch((removeErr) =>
+    await removeRealmKey(environment, newProvider.id, KC_ENTRA_IDP_REALM).catch((removeErr) =>
       console.error(`Failed to remove the standby PS256 key provider in ${environment}`, removeErr),
     );
 
@@ -155,7 +155,7 @@ const rotateEnvironment = async (environment: string): Promise<RotationResult> =
   }
 
   try {
-    await removeRealmKey(environment, KC_ENTRA_IDP_REALM, currentProvider.id);
+    await removeRealmKey(environment, currentProvider.id, KC_ENTRA_IDP_REALM);
     // Reclaim the canonical name only once the old provider is gone, so the two never collide.
     await updateRealmKeyProvider(environment, KC_ENTRA_IDP_REALM, newProvider.id, {
       name: KC_PS256_KEY_PROVIDER_ID,

@@ -594,9 +594,9 @@ export const validateRequest = async (
   formData: any,
   original: Integration,
   teams: any[],
-  isUpdate = false,
   bcgovUnits: BcgovUnit[],
   divisions: Division[],
+  isUpdate = false,
 ) => {
   const validationArgs: any = { formData, teams };
 

@@ -169,7 +169,7 @@ export async function getActivePS256KeyCert(
   return getKeyCertByProviderId(provider.id, environment, realm, 'PS256');
 }
 
-export const removeRealmKey = async (environment: string, realm: string = 'standard', kid: string) => {
+export const removeRealmKey = async (environment: string, kid: string, realm: string = 'standard') => {
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   await kcAdminClient.components.del({
     id: kid,

@@ -587,9 +587,9 @@ export const updateRequest = async (
         mergedData,
         originalData,
         allowedTeams,
-        isMerged,
         usesBcgovIdir(current) ? await listBcgovUnits() : [],
         usesBcgovIdir(current) ? await listDivisions() : [],
+        isMerged,
       );
       if (!isEmpty(validationErrors)) {
         if (isString(validationErrors)) throw new createHttpError.BadRequest(validationErrors);

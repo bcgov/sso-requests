@@ -1,6 +1,5 @@
 import { KeyCredential } from '@microsoft/microsoft-graph-types';
-import { createHash } from 'node:crypto';
-import crypto from 'node:crypto';
+import crypto, { createHash } from 'node:crypto';
 import { MS_GRAPH_API_VERSION, MS_GRAPH_URL } from './constants';
 
 export function extractCertDates(pem: string): { startDateTime: string; endDateTime: string } {
