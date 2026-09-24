@@ -592,7 +592,7 @@ export const updateRequest = async (
       const validationErrors = await validateRequest(
         mergedData,
         originalData,
-        allowedTeams,
+        validTeams,
         usesBcgovIdir(current) ? await listBcgovUnits() : [],
         usesBcgovIdir(current) ? await listDivisions() : [],
         isMerged,
