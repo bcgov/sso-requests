@@ -568,13 +568,19 @@ export const updateRequest = async (
     }
 
     const allowedTeams = await getAllowedTeams(session, { raw: true });
+    // If current team is not in allowed list, add it. Allows org editors who have write access but not reassign-team permission to maintain the current one only.
+    const originalTeamInAllowedList = allowedTeams.some((team: any) => String(team.id) === String(originalData.teamId));
+    const validTeams =
+      originalData.usesTeam && originalData.teamId && originalTeamInAllowedList
+        ? allowedTeams
+        : [...allowedTeams, { id: originalData.teamId }];
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     let finalData = getCurrentValue();
     let changes = null;
 
     if (submit) {
-      const validationErrors = await validateRequest(mergedData, originalData, allowedTeams, isMerged);
+      const validationErrors = await validateRequest(mergedData, originalData, validTeams, isMerged);
       if (!isEmpty(validationErrors)) {
         if (isString(validationErrors)) throw new createHttpError.BadRequest(validationErrors);
         else

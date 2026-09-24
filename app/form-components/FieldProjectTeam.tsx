@@ -29,14 +29,14 @@ const Description = styled.p`
 
 export default function FieldProjectTeam(props: FieldTemplateProps) {
   const { formContext } = props;
-  const { formData, setFormData, loadTeams } = formContext;
+  const { formData, setFormData, loadTeams, canReassignTeam } = formContext;
   const [openModal, setOpenModal] = React.useState(false);
 
   const handleClick = () => {
     setOpenModal(true);
   };
 
-  const bottom = (
+  const bottom = canReassignTeam ? (
     <>
       <Container onClick={handleClick}>
         <FontAwesomeIcon style={{ color: '#006fc4' }} icon={faPlusCircle} title="Add Team" />
@@ -65,7 +65,7 @@ export default function FieldProjectTeam(props: FieldTemplateProps) {
         closable
       />
     </>
-  );
+  ) : undefined;
 
   return <FieldTemplate {...props} bottom={bottom} />;
 }

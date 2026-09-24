@@ -55,6 +55,10 @@ const getUISchema = ({
     otpApproved = false,
   } = integration || {};
   const isApplied = status === 'applied';
+  const canReassignTeam =
+    integration?.id === null ||
+    integration?.id === undefined ||
+    integration.permissions?.includes('integrations:reassign-team');
   const disableBcscUpdateApproved = integration?.devIdps?.includes('bcservicescard') && bcServicesCardApproved;
   const disableOtpUpdateApproved = integration?.devIdps?.includes('otp') && otpApproved;
   const isSaml = integration?.protocol === 'saml';
@@ -204,6 +208,7 @@ const getUISchema = ({
     teamId: {
       'ui:classNames': 'short-field-string',
       'ui:enumNames': ['Select...'].concat(teams.map((team) => team.name) ?? []),
+      'ui:readonly': !canReassignTeam,
     },
     additionalRoleAttribute: {
       'ui:classNames': 'short-field-string',
@@ -244,7 +249,7 @@ const getUISchema = ({
     },
     usesTeam: {
       'ui:widget': SwitchWidget,
-      'ui:readonly': isApplied && integration?.usesTeam,
+      'ui:readonly': !canReassignTeam || (isApplied && integration?.usesTeam),
     },
     projectLead: {
       'ui:FieldTemplate': FieldRequesterInfo,
