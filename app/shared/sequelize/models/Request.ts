@@ -438,6 +438,18 @@ const init = (sequelize: any, DataTypes: any) => {
         allowNull: false,
         defaultValue: false,
       },
+      bcgovUnitId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      divisionId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      description: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
     },
     {
       underscored: true,

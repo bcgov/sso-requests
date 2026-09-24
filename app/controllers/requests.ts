@@ -1,5 +1,5 @@
 import { Op, Model } from 'sequelize';
-import { isEmpty, isString, kebabCase } from 'lodash';
+import { camelCase, isEmpty, isString, kebabCase, upperFirst } from 'lodash';
 import {
   validateRequest,
   getDifferences,
@@ -49,7 +49,6 @@ import {
   samlDurationAdditionalFields,
   samlFineGrainEndpointConfig,
   samlSignedAssertions,
-  test,
 } from '@app/schemas';
 import { pick } from 'lodash';
 import {
@@ -57,7 +56,6 @@ import {
   validateIdirEmail,
   deleteServicePrincipal,
   deleteAppRegistration,
-  refreshAppRegistrationSecret,
 } from '@app/utils/graph-api';
 import {
   BCSCClientParameters,
@@ -83,7 +81,13 @@ import {
   getClientScopeMapper,
   updateClientScopeMapper,
 } from '@app/keycloak/clientScopes';
-import { bcgovIdirIdpMappers, bcscClientScopeMappers, bcscIdpMappers, KC_ENTRA_IDP_REALM } from '@app/utils/constants';
+import {
+  bcgovIdirIdpMappers,
+  bcscClientScopeMappers,
+  bcscIdpMappers,
+  KC_ENTRA_IDP_REALM,
+  KC_PS256_KEY_PROVIDER_ID,
+} from '@app/utils/constants';
 import createHttpError from 'http-errors';
 import { approvalResetsForRemovedIdps } from '@app/helpers/permissions';
 import { TRANSITIONS, deleteIntentFor } from '@app/helpers/transitions';
@@ -97,8 +101,10 @@ import { createSdxRequest } from './sdx-services';
 import { getEntraClientByRequestId, saveEntraClient } from '@app/queries/entra-client';
 import { createEvent } from '@app/queries/event';
 import { enqueueRequestWorkflow } from '@app/workflow/request-workflow';
-import { PasswordCredential } from '@microsoft/microsoft-graph-types';
-
+import { KeyCredential } from '@microsoft/microsoft-graph-types';
+import { createPS256Key, getActivePS256KeyCert } from '@app/keycloak/keys';
+import { getByBcgovUnitAndDivision, getDivisionById, listDivisions } from '@app/queries/division';
+import { getBcgovUnitById, listBcgovUnits } from '@app/queries/bcgov-unit';
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
 const APP_ENV = app_env || 'development';
@@ -145,6 +151,9 @@ const allowedFieldsForGithub = [
   'prodHomePageUri',
   'bcscPrivacyZone',
   'usesTeam',
+  'bcgovUnitId',
+  'divisionId',
+  'description',
   ...envFieldsAll,
 ];
 
@@ -574,13 +583,28 @@ export const updateRequest = async (
     let changes = null;
 
     if (submit) {
-      const validationErrors = await validateRequest(mergedData, originalData, allowedTeams, isMerged);
+      const validationErrors = await validateRequest(
+        mergedData,
+        originalData,
+        allowedTeams,
+        usesBcgovIdir(current) ? await listBcgovUnits() : [],
+        usesBcgovIdir(current) ? await listDivisions() : [],
+        isMerged,
+      );
       if (!isEmpty(validationErrors)) {
         if (isString(validationErrors)) throw new createHttpError.BadRequest(validationErrors);
         else
           throw new createHttpError.BadRequest(
             JSON.stringify({ validationError: true, errors: validationErrors, prepared: mergedData }),
           );
+      }
+
+      // Validate BC Government Unit and division selection for bcgovidir IDP
+      if (usesBcgovIdir(current)) {
+        const division = await getByBcgovUnitAndDivision(current.bcgovUnitId, current.divisionId);
+        if (!division) {
+          throw new createHttpError.BadRequest('Please select a valid division for the selected BC Gov Unit');
+        }
       }
 
       // keycloak related operations
@@ -689,7 +713,7 @@ export const updateRequest = async (
 
     return updated.get({ plain: true });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     if (submit) {
       const eventData = {
         eventCode: isMerged ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
@@ -731,7 +755,7 @@ export const resubmitRequest = async (session: Session, id: number) => {
 
     return updated.get({ plain: true });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };
@@ -804,7 +828,7 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
 
     return updated.get({ plain: true });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };
@@ -932,7 +956,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     return integration;
   } catch (err) {
-    console.log(err);
+    console.error(err);
 
     createEvent({
       eventCode: EVENTS.REQUEST_DELETE_FAILURE,
@@ -1124,6 +1148,17 @@ export const getListOfDescrepencies = async () => {
 
 export const createEntraIntegration = async (environment: string, request: IntegrationData) => {
   try {
+    // Resolved by priority rather than by name, because key rotation creates suffixed providers.
+    let kcCert = await getActivePS256KeyCert(environment, KC_ENTRA_IDP_REALM, KC_PS256_KEY_PROVIDER_ID);
+
+    if (!kcCert) {
+      await createPS256Key(KC_PS256_KEY_PROVIDER_ID, environment, KC_ENTRA_IDP_REALM);
+      kcCert = await getActivePS256KeyCert(environment, KC_ENTRA_IDP_REALM, KC_PS256_KEY_PROVIDER_ID);
+      if (!kcCert) {
+        throw new Error('Failed to create PS256 key and retrieve its certificate.');
+      }
+    }
+
     const getCurrentEntraClient = async () => {
       return (await getEntraClientByRequestId({ integrationId: request.id!, environment }))?.[0] || null;
     };
@@ -1133,7 +1168,7 @@ export const createEntraIntegration = async (environment: string, request: Integ
 
     let application: {
       appId: string;
-      secret?: PasswordCredential | null;
+      secret?: KeyCredential | null;
       servicePrincipalId: string;
     } = {
       appId: '',
@@ -1141,22 +1176,30 @@ export const createEntraIntegration = async (environment: string, request: Integ
       secret: undefined,
     };
 
-    const appName = kebabCase(`${request.projectName}-${request.id}-${environment}`);
-    if (!entraClient) {
-      application = await setupEntraIntegration(appName, environment, request);
-      if (application) {
-        // refresh the application secret if it does not exist
-        if (!application?.secret?.secretText) {
-          const refreshPwdCred = await refreshAppRegistrationSecret(application.appId);
-          application.secret = refreshPwdCred;
-        }
+    if (!request.bcgovUnitId || !request.divisionId) {
+      throw new Error('BC Government Unit and division are required to create an Entra integration');
+    }
 
+    const bcgovUnit = await getBcgovUnitById(request.bcgovUnitId);
+    if (!bcgovUnit) {
+      throw new Error(`No BC Government Unit found for bcgovUnitId ${request.bcgovUnitId}`);
+    }
+
+    const division = await getDivisionById(request.divisionId);
+    if (!division) {
+      throw new Error(`No division found for divisionId ${request.divisionId}`);
+    }
+
+    const appName = `${bcgovUnit.code.toUpperCase()}-${division.code.toUpperCase()}-${upperFirst(
+      camelCase(request.projectName),
+    )}-${request.id}-${upperFirst(environment)}`;
+    if (!entraClient) {
+      application = await setupEntraIntegration(appName, environment, request, kcCert, bcgovUnit.name, division.name);
+      if (application) {
         entraClient = await saveEntraClient({
           appName,
           appId: application.appId,
-          secret: application?.secret?.secretText!,
-          secretKeyId: application?.secret?.keyId!,
-          secretExpiryDate: new Date(application?.secret?.endDateTime!),
+          keyThumbprint: application?.secret?.customKeyIdentifier || null,
           servicePrincipalId: application.servicePrincipalId,
           environment,
           requestId: request.id!,
@@ -1181,7 +1224,6 @@ export const createEntraIntegration = async (environment: string, request: Integ
           postBrokerLoginFlowAlias: '',
           config: {
             clientId: entraClient.appId,
-            clientSecret: entraClient.secret,
             authorizationUrl: `${msGraphApiAuthority}/authorize`,
             tokenUrl: `${msGraphApiAuthority}/token`,
             logoutUrl: `${msGraphApiAuthority}/logout`,
@@ -1189,10 +1231,13 @@ export const createEntraIntegration = async (environment: string, request: Integ
             jwksUrl: `${process.env.MS_GRAPH_API_AUTHORITY}/discovery/v2.0/keys`,
             syncMode: 'IMPORT',
             disableUserInfo: true,
-            clientAuthMethod: 'client_secret_post',
             validateSignature: true,
             useJwksUrl: true,
             defaultScope: 'openid profile email',
+            clientAuthMethod: 'private_key_jwt',
+            jwtX509HeadersEnabled: true,
+            clientAssertionSigningAlg: 'PS256',
+            clientAssertionAudience: `${msGraphApiAuthority}/token`,
           },
         },
         environment,
@@ -1227,6 +1272,7 @@ export const createEntraIntegration = async (environment: string, request: Integ
     await Promise.all(createIdpMapperPromises);
   } catch (err) {
     console.error('could not create Entra integration', err);
+    throw err;
   }
 };
 
@@ -1243,5 +1289,6 @@ export const deleteEntraIntegration = async (environment: string, request: Integ
     await entraClient.destroy();
   } catch (err) {
     console.error('could not delete Entra integration', err);
+    throw err;
   }
 };
