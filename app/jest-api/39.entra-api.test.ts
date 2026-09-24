@@ -4,8 +4,10 @@ import { formDataDev } from './helpers/fixtures';
 import { bcgovIdirIdpMappers } from '@app/utils/constants';
 import { cleanUpDatabaseTables } from './helpers/utils';
 import { getEntraClientByRequestId, saveEntraClient } from '@app/queries/entra-client';
+import { getByBcgovUnitAndDivision } from '@app/queries/division';
 import { validateIDPs } from '@app/utils/helpers';
 import { ConfidentialClientApplication } from '@azure/msal-node';
+import { models } from '@app/shared/sequelize/models/models';
 
 jest.mock('axios');
 jest.mock('@azure/msal-node', () => ({
@@ -69,6 +71,11 @@ const integration = {
 
 const integrationForRequest = (id: number) => ({ ...integration, id });
 
+// Matches formDataDev.bcgovUnitId / divisionId so getBcgovUnitById / getDivisionById resolve.
+const bcgovUnit = { name: 'Citizens Services', code: 'CITZ' };
+const division = { name: 'Technology Division', code: 'TD' };
+const appNameFor = (id: number) => `${bcgovUnit.code}-${division.code}-EntraProject-${id}-Dev`;
+
 const createPersistedEntraClient = (request: typeof integration) =>
   saveEntraClient({
     appName: 'entra-project-1-dev',
@@ -106,6 +113,10 @@ const setupKeycloakClient = (archived = false) => {
 
 beforeAll(async () => {
   await cleanUpDatabaseTables();
+  const createdBcgovUnit = await models.bcgovUnit.create(bcgovUnit);
+  const createdDivision = await models.division.create({ ...division, bcgovUnitId: createdBcgovUnit.id });
+  integration.bcgovUnitId = createdBcgovUnit.id;
+  integration.divisionId = createdDivision.id;
 });
 
 beforeEach(() => {
@@ -153,14 +164,16 @@ describe('createEntraIntegration', () => {
     await requests.createEntraIntegration('dev', integration);
 
     expect(graphApi.setupEntraIntegration).toHaveBeenCalledWith(
-      'entra-project-1-dev',
+      appNameFor(integration.id!),
       'dev',
       integration,
       expect.anything(),
+      bcgovUnit.name,
+      division.name,
     );
     await expect(getEntraClientByRequestId({ integrationId: integration.id!, environment: 'dev' })).resolves.toEqual([
       expect.objectContaining({
-        appName: 'entra-project-1-dev',
+        appName: appNameFor(integration.id!),
         appId: 'app-id',
         keyThumbprint: 'key-thumbprint',
         servicePrincipalId: 'service-principal-id',
@@ -208,6 +221,87 @@ describe('createEntraIntegration', () => {
     expect(consoleError).toHaveBeenCalledWith('could not create Entra integration', error);
     expect(idp.createIdp).not.toHaveBeenCalled();
     consoleError.mockRestore();
+  });
+
+  it('throws a clear error instead of crashing when bcgovUnitId/divisionId are missing', async () => {
+    const missingUnitIntegration = { ...integrationForRequest(8), bcgovUnitId: undefined, divisionId: undefined };
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+
+    await expect(requests.createEntraIntegration('dev', missingUnitIntegration)).rejects.toThrow(
+      'BC Government Unit and division are required to create an Entra integration',
+    );
+
+    expect(graphApi.setupEntraIntegration).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  it('throws a clear error when bcgovUnitId does not reference an existing unit', async () => {
+    const badUnitIntegration = { ...integrationForRequest(9), bcgovUnitId: 999999 };
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+
+    await expect(requests.createEntraIntegration('dev', badUnitIntegration)).rejects.toThrow(
+      'No BC Government Unit found for bcgovUnitId 999999',
+    );
+
+    expect(graphApi.setupEntraIntegration).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  it('throws a clear error when divisionId does not reference an existing division', async () => {
+    const badDivisionIntegration = { ...integrationForRequest(10), divisionId: 999999 };
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+
+    await expect(requests.createEntraIntegration('dev', badDivisionIntegration)).rejects.toThrow(
+      'No division found for divisionId 999999',
+    );
+
+    expect(graphApi.setupEntraIntegration).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  it('folds the bcgov unit and division codes into the generated appName so different units cannot collide', async () => {
+    const otherUnit = await models.bcgovUnit.create({ name: 'Health', code: 'HLTH' });
+    const otherDivision = await models.division.create({
+      name: 'Data Division',
+      code: 'DD',
+      bcgovUnitId: otherUnit.id,
+    });
+    const otherIntegration = {
+      ...integrationForRequest(11),
+      bcgovUnitId: otherUnit.id,
+      divisionId: otherDivision.id,
+    };
+
+    await requests.createEntraIntegration('dev', otherIntegration);
+
+    expect(graphApi.setupEntraIntegration).toHaveBeenCalledWith(
+      'HLTH-DD-EntraProject-11-Dev',
+      'dev',
+      otherIntegration,
+      expect.anything(),
+      otherUnit.name,
+      otherDivision.name,
+    );
+  });
+});
+
+// updateRequest rejects a submission when the division doesn't belong to the chosen
+// bcgov unit; this pins the query that decision is built on.
+describe('getByBcgovUnitAndDivision', () => {
+  it('resolves the division when it belongs to the given bcgov unit', async () => {
+    await expect(getByBcgovUnitAndDivision(integration.bcgovUnitId!, integration.divisionId!)).resolves.toEqual(
+      expect.objectContaining({ id: integration.divisionId, bcgovUnitId: integration.bcgovUnitId }),
+    );
+  });
+
+  it('resolves nothing when the division belongs to a different bcgov unit', async () => {
+    const otherUnit = await models.bcgovUnit.create({ name: 'Education', code: 'EDUC' });
+
+    await expect(getByBcgovUnitAndDivision(otherUnit.id, integration.divisionId!)).resolves.toBeNull();
+  });
+
+  it('resolves nothing for a divisionId that does not exist', async () => {
+    await expect(getByBcgovUnitAndDivision(integration.bcgovUnitId!, 999999)).resolves.toBeNull();
   });
 });
 

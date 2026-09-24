@@ -1176,11 +1176,21 @@ export const createEntraIntegration = async (environment: string, request: Integ
       secret: undefined,
     };
 
-    const bcgovUnit = await getBcgovUnitById(request.bcgovUnitId!);
+    if (!request.bcgovUnitId || !request.divisionId) {
+      throw new Error('BC Government Unit and division are required to create an Entra integration');
+    }
 
-    const division = await getDivisionById(request.divisionId!);
+    const bcgovUnit = await getBcgovUnitById(request.bcgovUnitId);
+    if (!bcgovUnit) {
+      throw new Error(`No BC Government Unit found for bcgovUnitId ${request.bcgovUnitId}`);
+    }
 
-    const appName = `${bcgovUnit?.code.toUpperCase()}-${division?.code.toUpperCase()}-${upperFirst(
+    const division = await getDivisionById(request.divisionId);
+    if (!division) {
+      throw new Error(`No division found for divisionId ${request.divisionId}`);
+    }
+
+    const appName = `${bcgovUnit.code.toUpperCase()}-${division.code.toUpperCase()}-${upperFirst(
       camelCase(request.projectName),
     )}-${request.id}-${upperFirst(environment)}`;
     if (!entraClient) {
