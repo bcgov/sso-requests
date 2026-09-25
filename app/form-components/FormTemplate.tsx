@@ -165,7 +165,9 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<any>({});
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [teams, setTeams] = useState<Team[]>(
+    request?.teamId && request.team ? [{ id: Number(request.teamId), name: request.team.name }] : [],
+  );
   const [schemas, setSchemas] = useState<any[]>([]);
   const [bcscPrivacyZones, setBcscPrivacyZones] = useState<BcscPrivacyZone[]>(defaultBcscPrivacyZones());
   const [bcscAttributes, setBcscAttributes] = useState<BcscAttribute[]>(defaultBcscAttributes());
@@ -186,6 +188,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
   const isNew = isNil(request?.id);
   const isApplied = request?.status === 'applied';
+  const canReassignTeam = isNew || request?.permissions?.includes('integrations:reassign-team');
   //const isAdmin = currentUser?.isAdmin || false;
 
   const showFormButtons = formStage !== 0 || formData.usesTeam || formData.projectLead;
@@ -279,7 +282,15 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         content: 'Failed to load teams. Please refresh.',
       });
     } else {
-      setTeams(teams || []);
+      const availableTeams = teams || [];
+      const currentTeam = request?.team;
+      const includesCurrentTeam = availableTeams.some((team) => String(team.id) === String(request?.teamId));
+
+      setTeams(
+        !isNew && request?.teamId && currentTeam && !includesCurrentTeam
+          ? [...availableTeams, { id: Number(request.teamId), name: currentTeam.name }]
+          : availableTeams,
+      );
     }
   };
 
@@ -615,6 +626,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           formData,
           setFormData,
           loadTeams,
+          canReassignTeam,
           bcscPrivacyZones,
           sdxResourceServers,
           sdxServicesApprovedForClient,

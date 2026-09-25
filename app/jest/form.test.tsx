@@ -8,6 +8,7 @@ import { defaultStandardRealmSettings, errorMessages } from '../utils/constants'
 import { sampleRequest } from './samples/integrations';
 import { MAX_IDLE_SECONDS, MAX_LIFETIME_SECONDS } from '@app/utils/validate';
 import userEvent from '@testing-library/user-event';
+import { getAllowedTeams } from 'services/team';
 
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
@@ -260,6 +261,25 @@ describe('Form Template Saving and Navigation', () => {
     });
     usesTeamCheckbox = withoutTeamComponent.getByLabelText('Project Team') as HTMLInputElement;
     expect(usesTeamCheckbox.checked).toBe(false);
+  });
+
+  it('shows the current team but prevents reassignment without permission', async () => {
+    (getAllowedTeams as jest.Mock).mockResolvedValueOnce([[], null]);
+
+    setUpRender({
+      id: 1,
+      status: 'draft',
+      usesTeam: true,
+      teamId: '42',
+      team: { id: 42, name: 'Organization-owned team' },
+      permissions: ['integrations:read', 'integrations:write'],
+    });
+
+    await waitFor(() => expect(screen.getByText('Organization-owned team')).toBeInTheDocument());
+    const teamSelect = document.querySelector('#root_teamId') as HTMLInputElement;
+
+    expect(teamSelect).toBeDisabled();
+    expect(screen.queryByText('Create a New Team (optional)')).not.toBeInTheDocument();
   });
 });
 

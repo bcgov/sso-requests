@@ -25,6 +25,7 @@ const access = (permissions: Permission[], extra: Partial<IntegrationAccess> = {
 });
 
 const teamAdmin = access(PRESETS['team-admin']);
+const editor = access(PRESETS.editor);
 const approver = access(['integrations:read', 'integrations:approve-bceid']);
 const admin = access([
   ...PRESETS['team-admin'],
@@ -199,6 +200,11 @@ describe('field authority', () => {
     expect(() =>
       authorizeChanges(applied, { clientId: 'custom', devAccessTokenLifespan: 300 }, teamAdmin, merged),
     ).toThrow('not allowed to change: clientId, devAccessTokenLifespan');
+  });
+
+  it('requires reassign-team permission to change teamId', () => {
+    expect(editor.permissions).not.toContain('integrations:reassign-team');
+    expect(() => authorizeChanges(applied, { teamId: 6 }, editor, merged)).toThrow('not allowed to change: teamId');
   });
 
   it('catches revoking as well as approving', () => {

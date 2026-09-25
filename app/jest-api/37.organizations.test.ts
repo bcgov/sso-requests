@@ -10,8 +10,10 @@ import {
   SSO_ADMIN_USERID_01,
   SSO_ADMIN_EMAIL_01,
   postTeam,
+  getUpdateIntegrationData,
 } from './helpers/fixtures';
 import { buildIntegration } from './helpers/modules/common';
+import { getIntegration, updateIntegration } from './helpers/modules/integrations';
 import { createTeam } from './helpers/modules/teams';
 import { cleanUpDatabaseTables } from './helpers/utils';
 import { createMockAuth } from './mocks/authenticate';
@@ -519,6 +521,26 @@ describe('organizations', () => {
       const session = await asTeamAdmin();
       expect(await admitted(session, 'integrations:read')).toContain(cappedIntegrationId);
       expect(await resolvedOn(session, cappedIntegrationId)).toEqual(PRESETS['team-admin']);
+    });
+
+    it('lets an organization editor submit other changes while keeping the owning team', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      const draft = await buildIntegration({ projectName: 'org editable draft', teamId });
+
+      createMockAuth(ORG_MEMBER_USERID, ORG_MEMBER_EMAIL);
+      const current = await getIntegration(draft.body.id);
+      const response = await updateIntegration(
+        {
+          ...getUpdateIntegrationData({ integration: current.body }),
+          projectName: 'org edited draft',
+          teamId: String(teamId),
+        },
+        true,
+      );
+
+      expect(response.status).toEqual(200);
+      expect(response.body.projectName).toEqual('org edited draft');
+      expect(response.body.teamId).toEqual(teamId);
     });
   });
 

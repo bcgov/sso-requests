@@ -577,6 +577,12 @@ export const updateRequest = async (
     }
 
     const allowedTeams = await getAllowedTeams(session, { raw: true });
+    // If current team is not in allowed list, add it. Allows org editors who have write access but not reassign-team permission to maintain the current one only.
+    const originalTeamInAllowedList = allowedTeams.some((team: any) => String(team.id) === String(originalData.teamId));
+    const validTeams =
+      originalData.usesTeam && originalData.teamId && originalTeamInAllowedList
+        ? allowedTeams
+        : [...allowedTeams, { id: originalData.teamId }];
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     let finalData = getCurrentValue();
@@ -586,7 +592,7 @@ export const updateRequest = async (
       const validationErrors = await validateRequest(
         mergedData,
         originalData,
-        allowedTeams,
+        validTeams,
         usesBcgovIdir(current) ? await listBcgovUnits() : [],
         usesBcgovIdir(current) ? await listDivisions() : [],
         isMerged,
