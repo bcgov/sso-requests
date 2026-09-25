@@ -19,9 +19,11 @@ const allEnvironmentOptions = [
 describe('Format filters', () => {
   it('Should return the expected format', () => {
     const [devIdps, realms, environments] = formatFilters(allIdpOptions, allEnvironmentOptions);
+    console.log('🚀 ~ devIdps:', devIdps);
     expect(devIdps).toEqual([
       'idir',
       'azureidir',
+      'bcgovidir',
       'bceidbasic',
       'bceidbusiness',
       'bceidboth',
@@ -33,7 +35,7 @@ describe('Format filters', () => {
 
     let [filteredDevIdps, _, filteredEnvironments] = formatFilters([allIdpOptions[0]], [allEnvironmentOptions[0]]);
 
-    expect(filteredDevIdps).toEqual(['idir', 'azureidir']);
+    expect(filteredDevIdps).toEqual(['idir', 'azureidir', 'bcgovidir']);
     expect(filteredEnvironments).toEqual(['dev']);
 
     [filteredDevIdps] = formatFilters([allIdpOptions[3]], [allEnvironmentOptions[0]]);

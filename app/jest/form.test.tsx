@@ -1017,48 +1017,6 @@ describe('BC Services Card IDP and dependencies', () => {
     fireEvent.click(bcscCheckbox);
     expect(productionCheckbox).toBeInTheDocument();
   });
-
-  it('should show idir idp for existing integrations for regular users that already use it', async () => {
-    const { getByText } = setUpRender({
-      id: 0,
-      environments: ['dev'],
-      devIdps: ['idir', 'azureidir'],
-      projectName: 'test project3',
-    });
-    fireEvent.click(sandbox.basicInfoBox);
-    const idirCheckbox = getByText('IDIR')?.parentElement?.querySelector("input[type='checkbox']");
-    const azureIdirCheckbox = getByText('IDIR - MFA')?.parentElement?.querySelector("input[type='checkbox']");
-    expect(idirCheckbox).toBeVisible();
-    expect(idirCheckbox).toBeChecked();
-    expect(azureIdirCheckbox).toBeChecked();
-  });
-
-  it('should not show idir idp for regular users updating existing integrations without it', async () => {
-    const { getByText, queryByText } = setUpRender({
-      id: 0,
-      environments: ['dev'],
-      devIdps: ['azureidir'],
-      projectName: 'test project4',
-    });
-    fireEvent.click(sandbox.basicInfoBox);
-    const azureIdirCheckbox = getByText('IDIR - MFA')?.parentElement?.querySelector("input[type='checkbox']");
-    expect(queryByText('IDIR')).toBeNull();
-    expect(azureIdirCheckbox).toBeChecked();
-  });
-
-  it('should show idir idp for existing integrations without it for admin users', async () => {
-    const { queryByText } = setUpRender(
-      {
-        id: 0,
-        environments: ['dev'],
-        devIdps: [],
-        projectName: 'test project4',
-      },
-      { client_roles: ['sso-admin'], isAdmin: true },
-    );
-    fireEvent.click(sandbox.basicInfoBox);
-    expect(queryByText('IDIR')).not.toBeNull();
-  });
 });
 
 describe('Social IDP', () => {
@@ -1133,6 +1091,78 @@ describe('Social IDP', () => {
     const socialTermsAndConditionsCheckbox = document.querySelector('#root_confirmSocial') as HTMLInputElement;
     fireEvent.click(socialTermsAndConditionsCheckbox);
     expect(queryByText(expectedErrorText)).toBeFalsy();
+  });
+});
+
+describe('Discontinued IDPs', () => {
+  it('should show idir idp for existing integrations for regular users that already use it', async () => {
+    const { getByText } = setUpRender({
+      id: 0,
+      environments: ['dev'],
+      devIdps: ['idir', 'azureidir'],
+      projectName: 'test project3',
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    const idirCheckbox = getByText('IDIR')?.parentElement?.querySelector("input[type='checkbox']");
+    const azureIdirCheckbox = getByText('IDIR - MFA')?.parentElement?.querySelector("input[type='checkbox']");
+    expect(idirCheckbox).toBeVisible();
+    expect(idirCheckbox).toBeChecked();
+    expect(azureIdirCheckbox).toBeChecked();
+  });
+
+  it('should not show idir idp for regular users updating existing integrations without it', async () => {
+    const { getByText, queryByText } = setUpRender({
+      id: 0,
+      environments: ['dev'],
+      devIdps: ['azureidir'],
+      projectName: 'test project4',
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    const azureIdirCheckbox = getByText('IDIR - MFA')?.parentElement?.querySelector("input[type='checkbox']");
+    expect(queryByText('IDIR')).toBeNull();
+    expect(azureIdirCheckbox).toBeChecked();
+  });
+
+  it('should not show azureidir idp for regular users updating existing integrations without it', async () => {
+    const { getByText, queryByText } = setUpRender({
+      id: 0,
+      environments: ['dev'],
+      devIdps: ['digitalcredential'],
+      projectName: 'test project4',
+    });
+    fireEvent.click(sandbox.basicInfoBox);
+    const digitalCredentialCheckbox =
+      getByText('Digital Credential')?.parentElement?.querySelector("input[type='checkbox']");
+    expect(queryByText('IDIR - MFA')).toBeNull();
+    expect(digitalCredentialCheckbox).toBeChecked();
+  });
+
+  it('should show idir idp for existing integrations without it for admin users', async () => {
+    const { queryByText } = setUpRender(
+      {
+        id: 0,
+        environments: ['dev'],
+        devIdps: [],
+        projectName: 'test project4',
+      },
+      { client_roles: ['sso-admin'], isAdmin: true },
+    );
+    fireEvent.click(sandbox.basicInfoBox);
+    expect(queryByText('IDIR')).not.toBeNull();
+  });
+
+  it('should show azureidir idp for existing integrations without it for admin users', async () => {
+    const { queryByText } = setUpRender(
+      {
+        id: 0,
+        environments: ['dev'],
+        devIdps: [],
+        projectName: 'test project4',
+      },
+      { client_roles: ['sso-admin'], isAdmin: true },
+    );
+    fireEvent.click(sandbox.basicInfoBox);
+    expect(queryByText('IDIR')).not.toBeNull();
   });
 });
 
