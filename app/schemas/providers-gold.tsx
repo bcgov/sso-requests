@@ -1,9 +1,9 @@
 import { Integration, BcgovUnit, Division } from '../interfaces/Request';
 import { Schema } from './index';
-import { docusaurusURL, KC_ENTRA_IDP_REALM } from '@app/utils/constants';
+import { DISCONTINUED_IDPS, docusaurusURL, KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { usesBcServicesCard, usesOTP, usesSocial, usesBcgovIdir } from '@app/helpers/integration';
-import { allBceidEnvsApproved, getDiscontinuedIdps } from '@app/utils/helpers';
+import { allBceidEnvsApproved } from '@app/utils/helpers';
 import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 import { LoggedInUser } from '@app/interfaces/team';
 import BceidBanner from '@app/form-components/widgets/BceidBanner';
@@ -113,7 +113,7 @@ export default function getSchema(
   }
 
   if (authType !== 'service-account') {
-    const idpEnum = ['azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubpublic', 'githubbcgov'];
+    const idpEnum = ['bceidbasic', 'bceidbusiness', 'bceidboth', 'githubpublic', 'githubbcgov'];
 
     /*
       Schemas are shared between lambda functions and client app to keep validations in sync.
@@ -144,14 +144,18 @@ export default function getSchema(
     }
 
     // grandfather existing integrations and allow them to remove discontinued IDPs
-    getDiscontinuedIdps().forEach((idp) => {
+    DISCONTINUED_IDPS.forEach((idp) => {
       if (devIdps?.includes(idp) && !idpEnum.includes(idp)) {
         idpEnum.unshift(idp);
       }
     });
 
-    if (hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS) && !idpEnum?.includes('idir'))
-      idpEnum?.unshift('idir');
+    if (
+      hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS) &&
+      !idpEnum.some((idp) => DISCONTINUED_IDPS.includes(idp))
+    ) {
+      idpEnum.unshift(...DISCONTINUED_IDPS);
+    }
 
     properties.devIdps = {
       type: 'array',
