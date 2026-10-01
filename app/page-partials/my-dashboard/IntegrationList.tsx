@@ -165,14 +165,15 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
 
       interval = setInterval(async () => {
         const [data, err] = await getRequests();
-        // Ignore update if no data changed
-        if (isEqual(integrations, data)) return;
-
         if (err) {
           clearInterval(interval);
-        } else {
-          updateIntegrations(data || []);
+          return;
         }
+
+        // A poll with no changes may return no data; preserve the current table.
+        if (!data || isEqual(integrations, data)) return;
+
+        updateIntegrations(data);
       }, 1000 * 5);
     }
 

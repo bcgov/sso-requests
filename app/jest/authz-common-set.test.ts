@@ -18,6 +18,7 @@ describe('app roles in the common permission set', () => {
       'integrations:approve-bceid',
       'integrations:approve-github',
       'integrations:approve-bcsc',
+      'integrations:approve-bcgovidir',
       'integrations:approve-social',
       'integrations:approve-otp',
       'integrations:write-lifespans',
@@ -45,6 +46,7 @@ describe('app roles in the common permission set', () => {
     ['social-approver', 'integrations:approve-social'],
     ['otp-approver', 'integrations:approve-otp'],
     ['bc-services-card-approver', 'integrations:approve-bcsc'],
+    ['bcgovidir-approver', 'integrations:approve-bcgovidir'],
   ])('resolves %s to only %s', (role, permission) => {
     expect(commonPermissionsForAppRoles([role])).toEqual([permission]);
   });

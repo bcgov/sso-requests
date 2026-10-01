@@ -6,7 +6,14 @@ import { sendTemplate } from '@app/shared/templates';
 import { getTeamById } from '@app/queries/team';
 import { getRolesWithEnvironments } from '@app/queries/roles';
 import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@app/keycloak/users';
-import { usesBceid, usesBcServicesCard, usesGithub, usesOTP, usesSocial } from '@app/helpers/integration';
+import {
+  usesBceid,
+  usesBcgovIdir,
+  usesBcServicesCard,
+  usesGithub,
+  usesOTP,
+  usesSocial,
+} from '@app/helpers/integration';
 
 /**
  * Side effects invoked by workflow steps. These live outside the controller so the workflow module graph
@@ -50,9 +57,11 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
     const hasSocial = usesSocial(integration);
     const hasOTP = usesOTP(integration);
     const hasBcServicesCard = usesBcServicesCard(integration);
+    const hasBcgovIdir = usesBcgovIdir(integration);
     const waitingGithubProdApproval = hasGithub && hasProd && !integration.githubApproved;
     const waitingSocialProdApproval = hasSocial && hasProd && !integration.socialApproved;
     const waitingBcServicesCardProdApproval = hasBcServicesCard && hasProd && !integration.bcServicesCardApproved;
+    const waitingBcgovIdirProdApproval = hasBcgovIdir && hasProd && !integration.bcgovidirApproved;
     const waitingOTPProdApproval = hasOTP && hasProd && !integration.otpApproved;
 
     const approvals = {
@@ -61,6 +70,7 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
       testBceidApproved: { type: 'BCeID', environment: 'test', integration },
       githubApproved: { type: 'GitHub', environment: 'production', integration },
       bcServicesCardApproved: { type: 'BC Services Card', environment: 'production', integration },
+      bcgovidirApproved: { type: 'BCGOV IDIR', environment: 'production', integration },
       socialApproved: { type: 'Social', environment: 'production', integration },
       otpApproved: { type: 'One Time Passcode', environment: 'production', integration },
     };
@@ -84,6 +94,7 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
         hasBceid,
         waitingGithubProdApproval,
         waitingBcServicesCardProdApproval,
+        waitingBcgovIdirProdApproval,
         waitingSocialProdApproval,
         waitingOTPProdApproval,
         addingProd,

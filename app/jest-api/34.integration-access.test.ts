@@ -166,6 +166,7 @@ describe('integration access resolution', () => {
           'integrations:approve-bceid',
           'integrations:approve-github',
           'integrations:approve-bcsc',
+          'integrations:approve-bcgovidir',
           'integrations:approve-social',
           'integrations:approve-otp',
           'integrations:write-lifespans',

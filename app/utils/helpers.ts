@@ -15,6 +15,7 @@ import {
   usesOTP,
   checkNotOTP,
   usesBcgovIdir,
+  checkNotBcgovIdir,
 } from '@app/helpers/integration';
 import { IntegrationData, Session } from '@app/shared/interfaces';
 import { sortBy, compact, omit, isString } from 'lodash';
@@ -73,6 +74,7 @@ export const getRequestedEnvironments = (integration: Integration) => {
     bceidApproved,
     githubApproved,
     bcServicesCardApproved,
+    bcgovidirApproved,
     environments = [],
     serviceType,
     socialApproved,
@@ -84,6 +86,7 @@ export const getRequestedEnvironments = (integration: Integration) => {
   const hasBcServicesCard = usesBcServicesCard(integration);
   const hasSocial = usesSocial(integration);
   const hasOTP = usesOTP(integration);
+  const hasBcgovIdir = usesBcgovIdir(integration);
 
   const options = environmentOptions.map((option) => {
     const idps = integration.devIdps;
@@ -96,6 +99,7 @@ export const getRequestedEnvironments = (integration: Integration) => {
     const testBceidApplying = checkIfTargetValueUpdated(integration, 'testBceidApproved');
     const githubApplying = checkIfGithubProdApplying(integration);
     const bcServicesCardApplying = checkIfBcServicesCardProdApplying(integration);
+    const bcgovidirApplying = checkIfBcgovIdirProdApplying(integration);
     const socialApplying = checkIfSocialProdApplying(integration);
     const otpApplying = checkIfOTPProdApplying(integration);
 
@@ -119,6 +123,12 @@ export const getRequestedEnvironments = (integration: Integration) => {
     if (hasBcServicesCard && (!bcServicesCardApproved || bcServicesCardApplying))
       envs = envs.map((env) => {
         if (env.name === 'prod') env.idps = env.idps.filter(checkNotBcServicesCard);
+        return env;
+      });
+
+    if (hasBcgovIdir && (!bcgovidirApproved || bcgovidirApplying))
+      envs = envs.map((env) => {
+        if (env.name === 'prod') env.idps = env.idps.filter(checkNotBcgovIdir);
         return env;
       });
 
@@ -316,6 +326,10 @@ export const checkIfBcServicesCardProdApplying = (integration: Integration) => {
   return prodApplying;
 };
 
+export const checkIfBcgovIdirProdApplying = (integration: Integration) => {
+  return checkIfTargetValueUpdated(integration, 'bcgovidirApproved');
+};
+
 export const checkIfSocialProdApplying = (integration: Integration) => {
   const prodApplying = checkIfTargetValueUpdated(integration, 'socialApproved');
   return prodApplying;
@@ -352,11 +366,16 @@ export const isBcServicesCardApprover = (session: LoggedInUser | null) => {
   return hasAppPermission(session?.client_roles, appPermissions.APPROVE_BC_SERVICES_CARD);
 };
 
+export const isBcgovIdirApprover = (session: LoggedInUser | null) => {
+  return hasAppPermission(session?.client_roles, appPermissions.APPROVE_BCGOVIDIR);
+};
+
 export const isIdpApprover = (session: LoggedInUser | null) => {
   if (
     isBceidApprover(session) ||
     isGithubApprover(session) ||
     isBcServicesCardApprover(session) ||
+    isBcgovIdirApprover(session) ||
     isSocialApprover(session) ||
     isOTPApprover(session)
   )
@@ -634,6 +653,9 @@ export const getAllowedIdpsForApprover = (session: Session) => {
   }
   if (permissions.includes(appPermissions.APPROVE_BC_SERVICES_CARD)) {
     idps.push('bcservicescard');
+  }
+  if (permissions.includes(appPermissions.APPROVE_BCGOVIDIR)) {
+    idps.push(KC_ENTRA_IDP_REALM);
   }
   if (permissions.includes(appPermissions.APPROVE_SOCIAL)) {
     idps.push('social');

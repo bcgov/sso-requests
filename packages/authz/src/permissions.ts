@@ -24,6 +24,7 @@ export const PERMISSIONS = [
   'integrations:approve-bceid',
   'integrations:approve-github',
   'integrations:approve-bcsc',
+  'integrations:approve-bcgovidir',
   'integrations:approve-social',
   'integrations:approve-otp',
   // Session and token lifetimes, across every environment at once.
@@ -59,6 +60,7 @@ export const ACTIONS = {
   APPROVE_BCEID: 'approve-bceid',
   APPROVE_GITHUB: 'approve-github',
   APPROVE_BCSC: 'approve-bcsc',
+  APPROVE_BCGOVIDIR: 'approve-bcgovidir',
   APPROVE_SOCIAL: 'approve-social',
   APPROVE_OTP: 'approve-otp',
   WRITE_LIFESPANS: 'write-lifespans',

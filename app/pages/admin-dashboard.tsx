@@ -24,6 +24,7 @@ import TableNew from '@app/components/TableNew';
 import ActionButton from '@app/components/ActionButton';
 import { canEditIntegration } from '@app/helpers/permissions';
 import { isResting } from '@app/helpers/transitions';
+import { isEqual } from 'lodash';
 
 const idpOptions = [
   { value: 'idir', label: 'IDIR' },
@@ -257,16 +258,17 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
     });
   };
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     const [data, err] = await getData();
     if (err) {
       setHasError(true);
     } else if (data) {
-      setRows(data.rows);
-      setCount(data.count);
+      setHasError(false);
+      if (!isEqual(rows, data.rows)) setRows(data.rows);
+      if (count !== data.count) setCount(data.count);
     }
-    setLoading(false);
+    if (showLoading) setLoading(false);
   };
 
   useEffect(() => {
@@ -297,7 +299,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
     let interval: any;
     if (hasAnyPendingStatus(rows)) {
       interval = setTimeout(async () => {
-        await loadData();
+        await loadData(false);
       }, 2000); // Poll every 2 seconds
     }
     return () => {

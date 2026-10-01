@@ -41,6 +41,7 @@ import {
   usesOTP,
   usesSdxServices,
   usesBcgovIdir,
+  checkNotBcgovIdir,
   isReservedClientId,
 } from '@app/helpers/integration';
 import { getAccountableEntity } from '@app/shared/templates/helpers';
@@ -995,6 +996,7 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   const hasBCSC = usesBcServicesCard(baseData);
   const hasSocial = usesSocial(baseData);
   const hasOTP = usesOTP(baseData);
+  const hasBcgovIdir = usesBcgovIdir(baseData);
 
   // let's use dev's idps until having a env-specific idp selections
   if (baseData?.environments?.includes('test')) baseData.testIdps = baseData.devIdps;
@@ -1017,6 +1019,10 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
 
   if (!baseData.bcServicesCardApproved && hasBCSC) {
     baseData.prodIdps = baseData?.prodIdps?.filter((idp) => !checkBcServicesCard(idp));
+  }
+
+  if (!baseData.bcgovidirApproved && hasBcgovIdir) {
+    baseData.prodIdps = baseData?.prodIdps?.filter(checkNotBcgovIdir);
   }
 
   // prevent the TF from creating GitHub integration in prod environment if not approved

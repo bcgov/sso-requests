@@ -7,12 +7,18 @@ import ClientRoles from 'page-partials/my-dashboard/RoleManagement';
 import UserRoles from 'page-partials/my-dashboard/UserRoles';
 import { getStatusDisplayName } from 'utils/status';
 import UserEventPanel from 'components/UserEventPanel';
-import { checkIfBceidProdApplying, checkIfGithubProdApplying, checkIfBcServicesCardProdApplying } from 'utils/helpers';
+import {
+  checkIfBceidProdApplying,
+  checkIfBcgovIdirProdApplying,
+  checkIfGithubProdApplying,
+  checkIfBcServicesCardProdApplying,
+} from 'utils/helpers';
 import {
   usesBceid,
   usesGithub,
   usesDigitalCredential,
   usesBcServicesCard,
+  usesBcgovIdir,
   usesSocial,
   usesOTP,
 } from '@app/helpers/integration';
@@ -32,6 +38,7 @@ import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import LogsPanel from './LogsPanel';
 import { docusaurusURL } from 'utils/constants';
 import OTPStatusPanel from './OTPStatusPanel';
+import BcgovIdirStatusPanel from './BcgovIdirStatusPanel';
 import { Col, Row } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
@@ -117,6 +124,7 @@ const getInstallationTab = ({
             <BceidStatusPanel approvalContext={approvalContext} />
             <GithubStatusPanel approvalContext={approvalContext} />
             <BcServicesCardPanel approvalContext={approvalContext} />
+            <BcgovIdirStatusPanel approvalContext={approvalContext} />
             <SocialStatusPanel approvalContext={approvalContext} />
             <OTPStatusPanel approvalContext={approvalContext} />
           </Col>
@@ -303,6 +311,7 @@ function IntegrationInfoTabs({ integration }: Props) {
     githubApproved = false,
     digitalCredentialApproved = false,
     bcServicesCardApproved = false,
+    bcgovidirApproved = false,
     otpApproved = false,
     socialApproved = false,
   } = integration;
@@ -314,16 +323,19 @@ function IntegrationInfoTabs({ integration }: Props) {
   const hasGithub = usesGithub(integration);
   const hasDigitalCredential = usesDigitalCredential(integration);
   const hasBcServicesCard = usesBcServicesCard(integration);
+  const hasBcgovIdir = usesBcgovIdir(integration);
   const hasSocial = usesSocial(integration);
   const hasOTP = usesOTP(integration);
   const awaitingBceidProd = hasBceid && hasProd && !bceidApproved;
   const awaitingGithubProd = hasGithub && hasProd && !githubApproved;
   const awaitingBcServicesCardProd = hasBcServicesCard && hasProd && !bcServicesCardApproved;
+  const awaitingBcgovIdirProd = hasBcgovIdir && hasProd && !bcgovidirApproved;
   const awaitingSocialProd = hasSocial && hasProd && !socialApproved;
   const awaitingOTPProd = hasOTP && hasProd && !otpApproved;
   const bceidProdApplying = checkIfBceidProdApplying(integration);
   const githubProdApplying = checkIfGithubProdApplying(integration);
   const bcServicesCardProdApplying = checkIfBcServicesCardProdApplying(integration);
+  const bcgovIdirProdApplying = checkIfBcgovIdirProdApplying(integration);
 
   const approvalContext: ApprovalContext = {
     hasDev,
@@ -335,6 +347,7 @@ function IntegrationInfoTabs({ integration }: Props) {
     otpApproved,
     hasDigitalCredential,
     hasBcServicesCard,
+    hasBcgovIdir,
     hasOTP,
     devBceidApproved,
     testBceidApproved,
@@ -342,14 +355,17 @@ function IntegrationInfoTabs({ integration }: Props) {
     githubApproved,
     socialApproved,
     bcServicesCardApproved,
+    bcgovidirApproved,
     awaitingBceidProd,
     awaitingGithubProd,
     awaitingBcServicesCardProd,
+    awaitingBcgovIdirProd,
     awaitingSocialProd,
     awaitingOTPProd,
     bceidProdApplying,
     githubProdApplying,
     bcServicesCardProdApplying,
+    bcgovIdirProdApplying,
   };
 
   const isGold = integration.serviceType === 'gold';

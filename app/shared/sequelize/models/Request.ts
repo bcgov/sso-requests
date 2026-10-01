@@ -417,6 +417,11 @@ const init = (sequelize: any, DataTypes: any) => {
         type: DataTypes.BOOLEAN,
         allowNull: true,
       },
+      bcgovidirApproved: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
       otpApproved: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
