@@ -105,7 +105,7 @@ const RestoreModalContent = ({
     setError('');
     setSelectedEmail('');
     if (selectedIntegration?.usesTeam) {
-      checkTeamExistence();
+      void checkTeamExistence();
     }
   }, [selectedIntegration?.id]);
 
@@ -298,8 +298,8 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   useEffect(() => {
     let interval: any;
     if (hasAnyPendingStatus(rows)) {
-      interval = setTimeout(async () => {
-        await loadData(false);
+      interval = setTimeout(() => {
+        void loadData(false);
       }, 2000); // Poll every 2 seconds
     }
     return () => {
@@ -329,13 +329,13 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
     await router.push(`/request/${request.id}?status=${request.status}`);
   };
 
-  const handleDelete = async (request: Integration) => {
+  const handleDelete = (request: Integration) => {
     if (!request.id || !canDelete(request)) return;
     setSelectedId(request.id);
     setShowDeleteModal(true);
   };
 
-  const handleRestore = async (request: Integration) => {
+  const handleRestore = (request: Integration) => {
     if (!request.id || !canRestore(request)) return;
     setSelectedId(request.id);
     setShowRestoreModal(false);

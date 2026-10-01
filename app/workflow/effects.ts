@@ -21,7 +21,7 @@ import {
  */
 
 /** Reads the authoritative row so notifications never render a stale snapshot. */
-export const getFreshIntegration = async (integrationId: number) =>
+export const getFreshIntegration = (integrationId: number) =>
   models.request.findOne({ where: { id: integrationId }, raw: true });
 
 export const updatePlannedIntegration = async (integration: IntegrationData, addingProd: boolean = false) => {

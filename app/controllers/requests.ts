@@ -236,7 +236,7 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
       idirUserDisplayName: session?.user?.displayName || '',
     };
 
-    createEvent(eventData);
+    await createEvent(eventData);
     await sendTemplate(EMAILS.REQUEST_LIMIT_EXCEEDED, { user: session?.user?.displayName || '' });
     throw new createHttpError.TooManyRequests('reached the day limit');
   }
@@ -462,8 +462,8 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
       ...customConfig,
     };
 
-    if (!mapperExists) createClientScopeMapper({ ...clientScopeMapperPayload } as any);
-    else updateClientScopeMapper({ ...clientScopeMapperPayload, id: mapperExists?.id } as any);
+    if (!mapperExists) await createClientScopeMapper({ ...clientScopeMapperPayload } as any);
+    else await updateClientScopeMapper({ ...clientScopeMapperPayload, id: mapperExists?.id } as any);
   }
 };
 
@@ -948,7 +948,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     await sendTemplate(emailCode, emailData);
 
-    createEvent({
+    await createEvent({
       eventCode: EVENTS.REQUEST_DELETE_SUCCESS,
       requestId: id,
       idirUserid: session?.idir_userid,
@@ -959,7 +959,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
   } catch (err) {
     console.error(err);
 
-    createEvent({
+    await createEvent({
       eventCode: EVENTS.REQUEST_DELETE_FAILURE,
       requestId: id,
       idirUserid: session?.idir_userid,

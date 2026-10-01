@@ -68,7 +68,7 @@ function TabContent({ integration, type, canApproveProd, notApplied, onApproved 
   };
 
   useEffect(() => {
-    getApprovalEvents();
+    void getApprovalEvents();
   }, [
     integration?.id,
     integration?.bceidApproved,

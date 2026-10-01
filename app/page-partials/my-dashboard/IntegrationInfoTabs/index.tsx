@@ -284,7 +284,7 @@ function IntegrationInfoTabs({ integration }: Props) {
       if (data?.active) timer = setTimeout(poll, 3000);
     };
 
-    poll();
+    void poll();
 
     return () => {
       cancelled = true;

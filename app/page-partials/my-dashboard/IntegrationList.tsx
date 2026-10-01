@@ -124,8 +124,8 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
   const [activeIntegrationId, setActiveIntegrationId] = useState<number | undefined>(
     (integr && Number(integr)) || undefined,
   );
-  const handleNewIntegrationClick = async () => {
-    router.push('/request');
+  const handleNewIntegrationClick = () => {
+    void router.push('/request');
   };
 
   const updateActiveIntegration = (integration: Integration) => {
@@ -153,8 +153,8 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
   };
 
   useEffect(() => {
-    loadIntegrations();
-    router.replace('/my-dashboard/integrations');
+    void loadIntegrations();
+    void router.replace('/my-dashboard/integrations');
   }, []);
 
   let interval: any;
@@ -230,7 +230,7 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
                       content: `Failed to delete integration ${props.row.original.projectName}.`,
                     });
                   } else {
-                    loadIntegrations();
+                    void loadIntegrations();
                   }
                   setIntegration(null);
                 }}

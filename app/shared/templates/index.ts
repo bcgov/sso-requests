@@ -212,7 +212,7 @@ export const sendTemplate = async (code: string, data: any) => {
 };
 
 export const sendTemplates = async (emails: { code: string; data: any }[]) => {
-  await emails.map((email) => sendTemplate(email.code, email.data));
+  await Promise.all(emails.map((email) => sendTemplate(email.code, email.data)));
 };
 
 export default { renderTemplate, sendTemplate };
