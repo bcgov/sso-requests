@@ -131,9 +131,8 @@ describe('Email template snapshots', () => {
       waitingBcgovIdirProdApproval: true,
     });
 
-    expect(rendered.subject).toEqual('SSO integration request ready');
-    expect(rendered.body).toContain('Production access will become available after');
-    expect(rendered.body).toContain('BCGOV IDIR approver');
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
   });
 
   it('Should return the expected email for UPDATE_INTEGRATION_APPLIED', async () => {
