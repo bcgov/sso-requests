@@ -3,8 +3,10 @@ import FormTemplate from 'form-components/FormTemplate';
 import {
   buildSdxRequestPayloadFromSelectedScopes,
   getClientScopeState,
+  getClientServiceState,
   getResourceServersForEnvironment,
   getScopeId,
+  getServiceId,
   normalizeEnvironment,
   restoreSelectedScopesByTab,
   SelectedScopesByTab,
@@ -283,7 +285,7 @@ describe('SDX Services Form', () => {
   const activePanel = () => document.querySelector('.rc-tabs-tabpane-active') as HTMLElement;
 
   const selectedScopesSection = () =>
-    within(activePanel()).getByText('Selected Scopes').closest('section') as HTMLElement;
+    within(activePanel()).getByText('Selected Access').closest('section') as HTMLElement;
 
   const scopeCheckbox = (label: string) => screen.getByLabelText(label) as HTMLInputElement;
 
@@ -424,7 +426,7 @@ describe('SDX Services Form', () => {
     });
 
     expect(screen.getByRole('tab', { name: 'Non-Production (0)' })).toBeInTheDocument();
-    expect(within(selectedScopesSection()).getByText('No scopes selected yet.')).toBeInTheDocument();
+    expect(within(selectedScopesSection()).getByText('No services or scopes selected yet.')).toBeInTheDocument();
   });
 
   it('Updates the saved form data when scopes are selected and deselected', async () => {
@@ -508,7 +510,7 @@ describe('SDX Services Form', () => {
     fireEvent.click(scopeCheckbox('patient.write'));
     expect(within(selectedScopesSection()).getByText('3 selected')).toBeInTheDocument();
 
-    fireEvent.click(within(selectedScopesSection()).getByRole('button', { name: 'Remove all scopes' }));
+    fireEvent.click(within(selectedScopesSection()).getByRole('button', { name: 'Remove all' }));
 
     expect(scopeCheckbox('patient.read')).not.toBeChecked();
     expect(scopeCheckbox('patient.write')).not.toBeChecked();
@@ -523,17 +525,17 @@ describe('SDX Services Form', () => {
     mockSdxPendingAccessResponse = emptySdxAllowedAccess;
     await renderSdxForm();
 
-    expect(screen.queryByText('Please select at least one scope')).toBeNull();
+    expect(screen.queryByText('Please select at least one service or scope')).toBeNull();
 
     // Live validation only kicks in after the stage has been visited.
     fireEvent.click(screen.getByTestId('stage-development'));
     fireEvent.click(screen.getByTestId('stage-sdx-services'));
 
-    await screen.findByText('Please select at least one scope');
+    await screen.findByText('Please select at least one service or scope');
 
     fireEvent.click(scopeCheckbox('patient.read'));
 
-    await waitFor(() => expect(screen.queryByText('Please select at least one scope')).toBeNull());
+    await waitFor(() => expect(screen.queryByText('Please select at least one service or scope')).toBeNull());
   });
 
   it('Does not apply the access of one environment to the identical scopes of the other environment', async () => {
@@ -584,7 +586,7 @@ describe('SDX Services Form', () => {
     expect(screen.getByRole('tab', { name: 'Non-Production (2)' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Production (1)' })).toBeInTheDocument();
 
-    fireEvent.click(within(selectedScopesSection()).getByRole('button', { name: 'Remove all scopes' }));
+    fireEvent.click(within(selectedScopesSection()).getByRole('button', { name: 'Remove all' }));
 
     expect(screen.getByRole('tab', { name: 'Non-Production (2)' })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Production (0)' })).toBeInTheDocument();
@@ -695,7 +697,7 @@ describe('SDX Services Form', () => {
     mockSdxPendingAccessResponse = emptySdxAllowedAccess;
     await renderSdxForm();
 
-    const removeAll = () => within(selectedScopesSection()).getByRole('button', { name: 'Remove all scopes' });
+    const removeAll = () => within(selectedScopesSection()).getByRole('button', { name: 'Remove all' });
     expect(removeAll()).toBeDisabled();
 
     fireEvent.click(scopeCheckbox('patient.read'));
@@ -712,7 +714,7 @@ describe('SDX Services Form', () => {
     expect(within(panel).getByText('Organization Without Services')).toBeInTheDocument();
     // Falls back to the resource server name when the organization is missing.
     expect(within(panel).getByText('String Scopes Server')).toBeInTheDocument();
-    expect(within(panel).getByText('0 of 0 scopes')).toBeInTheDocument();
+    expect(within(panel).getByText('0 of 1 services')).toBeInTheDocument();
     // Unknown environments are shown in the non-production tab.
     expect(within(panel).getByText('Organization With Unknown Environment')).toBeInTheDocument();
 
@@ -723,7 +725,33 @@ describe('SDX Services Form', () => {
     openProductionTab();
     panel = activePanel();
     expect(within(panel).queryByText('Organization With Unknown Environment')).toBeNull();
-    expect(within(panel).getByText('No scopes selected yet.')).toBeInTheDocument();
+    expect(within(panel).getByText('No services or scopes selected yet.')).toBeInTheDocument();
+  });
+
+  it('Selects and submits a service that does not declare scopes', async () => {
+    mockSdxResourceServersResponse = incompleteSdxResourceServers;
+    mockSdxApprovedAccessResponse = emptySdxAllowedAccess;
+    mockSdxPendingAccessResponse = emptySdxAllowedAccess;
+    await renderSdxForm();
+
+    const requestAccess = screen.getByLabelText('Request access to Empty API v1') as HTMLInputElement;
+    expect(requestAccess).not.toBeChecked();
+
+    fireEvent.click(requestAccess);
+    expect(requestAccess).toBeChecked();
+
+    await waitFor(() => {
+      const resourceServer = lastSavedSdxServices().resourceServers.find(
+        (entry: SDXResourceServer) => entry.id === 'string-scope-rs',
+      );
+      expect(resourceServer.services).toContainEqual({ name: 'empty-api', version: 'v1', scopes: [] });
+    });
+
+    expect(screen.getByRole('tab', { name: 'Non-Production (1)' })).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('stage-review-submit'));
+    const preview = screen.getByTestId('sdx-services-non-production');
+    expect(within(preview).getByText('empty-api')).toBeInTheDocument();
+    expect(within(preview).getByText('No scopes required')).toBeInTheDocument();
   });
 
   it('Saves scope labels and service details instead of internal identifiers', async () => {
@@ -894,6 +922,29 @@ describe('SDX Services Selection Helpers', () => {
       expect(withoutCatalog.approvedScopeIds['non-production'].size).toBe(0);
     });
 
+    it('Matches a scope only to the authoritative service version when present', () => {
+      const versionedCatalog = [
+        {
+          ...sharedCatalog[0],
+          services: [
+            { name: 'patient-api', version: 'v1', scopes: [sdxScope('read')] },
+            { name: 'patient-api', version: 'v2', scopes: [sdxScope('read')] },
+          ],
+        },
+      ] as SDXResourceServer[];
+
+      const { approvedScopeIds } = getClientScopeState(
+        allowedAccess(SDX_ENVIRONMENTS['sandbox']['non-production'], ['read']),
+        null,
+        versionedCatalog,
+      );
+
+      expect(Array.from(approvedScopeIds['non-production'])).toEqual([readScopeId]);
+      expect(Array.from(approvedScopeIds['non-production'])).not.toContain(
+        getScopeId('health-rs', 'patient-api', 'v2', 'read'),
+      );
+    });
+
     it('Supports scopes provided as plain strings', () => {
       const catalog = [
         { ...sharedCatalog[0], services: [{ name: 'patient-api', version: 'v1', scopes: ['read', 'write'] }] },
@@ -906,6 +957,71 @@ describe('SDX Services Selection Helpers', () => {
       );
 
       expect(Array.from(approvedScopeIds['non-production'])).toEqual([readScopeId, writeScopeId]);
+    });
+  });
+
+  describe('getClientServiceState', () => {
+    it('Matches a scope-free grant to the exact catalog version', () => {
+      const catalog = [
+        {
+          ...sharedCatalog[0],
+          services: [
+            { name: 'status-api', title: 'Status API', version: 'v1', scopes: [] },
+            { name: 'status-api', title: 'Status API', version: 'v2', scopes: [] },
+          ],
+        },
+      ] as SDXResourceServer[];
+      const approved = {
+        clientId: 'sdx-client',
+        resourceServers: [
+          {
+            id: 'health-rs',
+            environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
+            services: [{ name: 'status-api', version: 'v1', scopes: [] }],
+          },
+        ],
+      };
+
+      const { approvedServiceIds } = getClientServiceState(approved, null, catalog);
+
+      expect(Array.from(approvedServiceIds['non-production'])).toEqual([
+        getServiceId('health-rs', 'status-api', 'v1'),
+      ]);
+    });
+
+    it('Keeps a scope-free grant in its authoritative environment', () => {
+      const service = { name: 'status-api', title: 'Status API', version: 'v1', scopes: [] };
+      const catalog = [
+        {
+          ...sharedCatalog[0],
+          id: 'shared-rs',
+          environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
+          services: [service],
+        },
+        {
+          ...sharedCatalog[0],
+          id: 'shared-rs',
+          environment: SDX_ENVIRONMENTS['sandbox']['production'],
+          services: [service],
+        },
+      ] as SDXResourceServer[];
+      const approved = {
+        clientId: 'sdx-client',
+        resourceServers: [
+          {
+            id: 'shared-rs',
+            environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
+            services: [{ name: 'status-api', version: 'v1', scopes: [] }],
+          },
+        ],
+      };
+
+      const { approvedServiceIds } = getClientServiceState(approved, null, catalog);
+
+      expect(Array.from(approvedServiceIds['non-production'])).toEqual([
+        getServiceId('shared-rs', 'status-api', 'v1'),
+      ]);
+      expect(approvedServiceIds.production.size).toBe(0);
     });
   });
 
@@ -989,6 +1105,30 @@ describe('SDX Services Selection Helpers', () => {
       ]);
       expect(resourceServers[0].services[0].scopes).toEqual(['read']);
       expect(resourceServers[1].services[0].scopes).toEqual(['write']);
+    });
+
+    it('Emits a selected service with an empty scope array', () => {
+      const catalog = [
+        {
+          id: 'no-scope-rs',
+          organization: 'No Scope Organization',
+          environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
+          services: [{ name: 'status-api', title: 'Status API', version: 'v1', scopes: [] }],
+        },
+      ] as SDXResourceServer[];
+      const serviceId = getServiceId('no-scope-rs', 'status-api', 'v1');
+      const selectedServices = byTab([serviceId]);
+
+      expect(buildSdxRequestPayloadFromSelectedScopes(emptyByTab(), catalog, selectedServices)).toEqual([
+        {
+          id: 'no-scope-rs',
+          name: undefined,
+          organization: 'No Scope Organization',
+          description: undefined,
+          environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
+          services: [{ name: 'status-api', version: 'v1', scopes: [] }],
+        },
+      ]);
     });
 
     it('Omits resource servers and services without any selected scope', () => {

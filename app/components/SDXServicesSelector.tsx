@@ -290,6 +290,12 @@ export type ScopeReference = {
   label: string;
 };
 
+type SelectedEntry = {
+  reference: ScopeReference;
+  id: string;
+  type: 'scope' | 'service';
+};
+
 type ServiceGroup = {
   key: string;
   title: string;
@@ -299,11 +305,15 @@ type ServiceGroup = {
 type Props = Readonly<{
   data: SDXResourceServer[];
   scopeReferences: Record<string, ScopeReference>;
+  serviceReferences: Record<string, ScopeReference>;
   pendingScopeIds: Set<string>;
+  pendingServiceIds: Set<string>;
   selectedScopes: Set<string>;
+  selectedServices: Set<string>;
   onToggleScope: (scopeId: string) => void;
+  onToggleService: (serviceId: string) => void;
   onToggleVersion: (scopeIds: string[]) => void;
-  onRemoveAllScopes: () => void;
+  onRemoveAllSelections: () => void;
 }>;
 
 function asArray<T>(value: T[] | undefined | null): T[] {
@@ -355,11 +365,13 @@ function getServiceGroups(resourceServer: SDXResourceServer): ServiceGroup[] {
 function ScopeChipButton({
   id,
   scope,
+  ariaLabel,
   disabled = false,
   selected,
   onClick,
 }: Readonly<{
   id: string;
+  ariaLabel?: string;
   scope: SDXServiceScope;
   disabled?: boolean;
   selected: boolean;
@@ -369,7 +381,14 @@ function ScopeChipButton({
     <ScopeCheckboxWrapper className="checkbox">
       <label htmlFor={id} title={scope.description}>
         <span>
-          <ScopeCheckbox id={id} type="checkbox" checked={selected} disabled={disabled} onChange={onClick} />
+          <ScopeCheckbox
+            id={id}
+            type="checkbox"
+            aria-label={ariaLabel}
+            checked={selected}
+            disabled={disabled}
+            onChange={onClick}
+          />
           <ScopeLabelText>{scope.label}</ScopeLabelText>
         </span>
       </label>
@@ -380,42 +399,48 @@ function ScopeChipButton({
 export default function SDXServicesSelector({
   data,
   scopeReferences,
+  serviceReferences,
   pendingScopeIds,
+  pendingServiceIds,
   selectedScopes,
+  selectedServices,
   onToggleScope,
+  onToggleService,
   onToggleVersion,
-  onRemoveAllScopes,
+  onRemoveAllSelections,
 }: Props) {
-  const selectedScopeEntries = Array.from(selectedScopes)
-    .map((scopeId) => scopeReferences[scopeId])
-    .filter((entry): entry is ScopeReference => !!entry)
-    .sort((a, b) => a.label.localeCompare(b.label));
+  const selectedEntries = [
+    ...Array.from(selectedScopes).map((id) => ({ reference: scopeReferences[id], id, type: 'scope' as const })),
+    ...Array.from(selectedServices).map((id) => ({ reference: serviceReferences[id], id, type: 'service' as const })),
+  ]
+    .filter((entry): entry is SelectedEntry => !!entry.reference)
+    .sort((a, b) => a.reference.label.localeCompare(b.reference.label));
 
   return (
     <>
       <SelectedScopesSection>
         <SelectedScopesHeader>
-          <SelectedScopesTitle>Selected Scopes</SelectedScopesTitle>
+          <SelectedScopesTitle>Selected Access</SelectedScopesTitle>
           <SelectedScopesHeaderActions>
-            <SelectedScopesCount>{selectedScopeEntries.length} selected</SelectedScopesCount>
-            <ClearAllButton type="button" disabled={selectedScopeEntries.length === 0} onClick={onRemoveAllScopes}>
-              Remove all scopes
+            <SelectedScopesCount>{selectedEntries.length} selected</SelectedScopesCount>
+            <ClearAllButton type="button" disabled={selectedEntries.length === 0} onClick={onRemoveAllSelections}>
+              Remove all
             </ClearAllButton>
           </SelectedScopesHeaderActions>
         </SelectedScopesHeader>
 
-        {selectedScopeEntries.length === 0 && <EmptyScopesText>No scopes selected yet.</EmptyScopesText>}
+        {selectedEntries.length === 0 && <EmptyScopesText>No services or scopes selected yet.</EmptyScopesText>}
 
-        {selectedScopeEntries.length > 0 && (
+        {selectedEntries.length > 0 && (
           <SelectedScopesList>
-            {selectedScopeEntries.map((scopeEntry) => (
-              <SelectedScopeTag key={scopeEntry.id}>
-                <SelectedScopeLabel>{scopeEntry.label}</SelectedScopeLabel>
+            {selectedEntries.map(({ reference, id, type }) => (
+              <SelectedScopeTag key={id}>
+                <SelectedScopeLabel>{reference.label}</SelectedScopeLabel>
                 <RemoveScopeButton
                   type="button"
-                  aria-label={`Remove ${scopeEntry.label}`}
-                  disabled={pendingScopeIds.has(scopeEntry.id)}
-                  onClick={() => onToggleScope(scopeEntry.id)}
+                  aria-label={`Remove ${reference.label}`}
+                  disabled={type === 'scope' ? pendingScopeIds.has(id) : pendingServiceIds.has(id)}
+                  onClick={() => (type === 'scope' ? onToggleScope(id) : onToggleService(id))}
                 >
                   x
                 </RemoveScopeButton>
@@ -429,7 +454,14 @@ export default function SDXServicesSelector({
         const organizationScopeIds = asArray(resourceServer?.services).flatMap((service) =>
           getServiceScopeIds(resourceServer, service),
         );
-        const selectedInOrganization = organizationScopeIds.filter((scopeId) => selectedScopes.has(scopeId)).length;
+        const organizationServiceIds = asArray(resourceServer?.services)
+          .filter((service) => getServiceScopes(service).length === 0)
+          .map((service) =>
+            [getResourceServerKey(resourceServer), getServiceKey(service), service.version].join('###'),
+          );
+        const selectedInOrganization =
+          organizationScopeIds.filter((scopeId) => selectedScopes.has(scopeId)).length +
+          organizationServiceIds.filter((serviceId) => selectedServices.has(serviceId)).length;
 
         return (
           <OrganizationSection key={getResourceServerKey(resourceServer)}>
@@ -443,20 +475,35 @@ export default function SDXServicesSelector({
             <SDXServiceGrid>
               {getServiceGroups(resourceServer).map((group) => {
                 const apiScopeIds = group.services.flatMap((service) => getServiceScopeIds(resourceServer, service));
+                const apiServiceIds = group.services
+                  .filter((service) => getServiceScopes(service).length === 0)
+                  .map((service) =>
+                    [getResourceServerKey(resourceServer), getServiceKey(service), service.version].join('###'),
+                  );
                 const selectedInApi = apiScopeIds.filter((scopeId) => selectedScopes.has(scopeId)).length;
+                const selectedServicesInApi = apiServiceIds.filter((serviceId) => selectedServices.has(serviceId)).length;
+                const apiSummary =
+                  apiScopeIds.length === 0
+                    ? `${selectedServicesInApi} of ${apiServiceIds.length} services`
+                    : apiServiceIds.length > 0
+                      ? `${selectedInApi} scopes, ${selectedServicesInApi} services`
+                      : `${selectedInApi} of ${apiScopeIds.length} scopes`;
 
                 return (
                   <SDXServiceCard key={group.key}>
                     <SDXServiceHeader>
                       <SDXServiceName>{group.title}</SDXServiceName>
-                      <ApiSummary>
-                        {selectedInApi} of {apiScopeIds.length} scopes
-                      </ApiSummary>
+                      <ApiSummary>{apiSummary}</ApiSummary>
                     </SDXServiceHeader>
 
                     <VersionsGrid>
                       {group.services.map((service) => {
                         const versionScopeIds = getServiceScopeIds(resourceServer, service);
+                        const serviceId = [
+                          getResourceServerKey(resourceServer),
+                          getServiceKey(service),
+                          service.version,
+                        ].join('###');
                         const toggleableVersionScopeIds = versionScopeIds.filter(
                           (scopeId) => !pendingScopeIds.has(scopeId),
                         );
@@ -466,16 +513,31 @@ export default function SDXServicesSelector({
                           <VersionRow key={service.version}>
                             <VersionMeta>
                               <VersionLabel>{service.version}</VersionLabel>
-                              <LinkButton
-                                type="button"
-                                disabled={toggleableVersionScopeIds.length === 0}
-                                onClick={() => onToggleVersion(versionScopeIds)}
-                              >
-                                {allSelected ? 'Clear all scopes' : 'Select all scopes'}
-                              </LinkButton>
+                              {versionScopeIds.length > 0 && (
+                                <LinkButton
+                                  type="button"
+                                  disabled={toggleableVersionScopeIds.length === 0}
+                                  onClick={() => onToggleVersion(versionScopeIds)}
+                                >
+                                  {allSelected ? 'Clear all scopes' : 'Select all scopes'}
+                                </LinkButton>
+                              )}
                             </VersionMeta>
 
                             <ScopeGrid>
+                              {versionScopeIds.length === 0 && (
+                                <ScopeChipButton
+                                  id={`service-${resourceServer.environment}-${serviceId}`}
+                                  ariaLabel={`Request access to ${service.title || service.name} ${service.version}`}
+                                  scope={{
+                                    label: 'Request access',
+                                    description: 'This service does not require an OAuth scope.',
+                                  }}
+                                  disabled={pendingServiceIds.has(serviceId)}
+                                  selected={selectedServices.has(serviceId)}
+                                  onClick={() => onToggleService(serviceId)}
+                                />
+                              )}
                               {getServiceScopes(service).map((scope) => {
                                 const scopeLabel = getScopeLabel(scope);
                                 const scopeId = getScopeId(

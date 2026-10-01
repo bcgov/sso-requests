@@ -178,7 +178,7 @@ export const customValidate = (formData: any, errors: any, uiSchema: any, fields
         formData['sdxEnabled'] &&
         (!formData['sdxServices'] || (formData['sdxServices'] && formData['sdxServices'].resourceServers?.length === 0))
       ) {
-        errors['sdxServices']?.addError('Please select at least one scope');
+        errors['sdxServices']?.addError('Please select at least one service or scope');
       }
     },
     description: () => {

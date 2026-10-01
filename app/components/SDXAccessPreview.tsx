@@ -62,9 +62,7 @@ interface SdxServicesTableProps {
 const SdxAccessPreview = ({ environment, resourceServers }: SdxServicesTableProps) => {
   const isProduction = environment === 'production';
   const selectedServices = resourceServers.flatMap((resourceServer) =>
-    resourceServer.services
-      .filter((service) => service.scopes.length > 0)
-      .map((service) => ({ resourceServer, service })),
+    resourceServer.services.map((service) => ({ resourceServer, service })),
   );
 
   const environmentSelectedServices = selectedServices.filter(
@@ -94,6 +92,7 @@ const SdxAccessPreview = ({ environment, resourceServers }: SdxServicesTableProp
                 <td>{service.version}</td>
                 <td>
                   <ScopeList>
+                    {service.scopes.length === 0 && <Scope>No scopes required</Scope>}
                     {service.scopes.map((scope, scopeIndex) => (
                       <Scope key={`${getScopeLabel(scope)}-${scopeIndex}`}>{getScopeLabel(scope)}</Scope>
                     ))}
