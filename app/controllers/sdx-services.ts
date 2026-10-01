@@ -24,6 +24,9 @@ const getSdxEnvironments = () => {
 
 const isProductionSdxEnvironment = (environment: string) => environment === getSdxEnvironments().production;
 
+const getKeycloakEnvironments = (sdxEnvironment: string) =>
+  isProductionSdxEnvironment(sdxEnvironment) ? ['prod'] : ['dev', 'test'];
+
 const getScopeLabel = (scope: SDXResourceServer['services'][number]['scopes'][number]) =>
   typeof scope === 'string' ? scope : scope.label;
 
@@ -154,13 +157,13 @@ const removeSdxAccessByScopes = async (clientId: string, environment: string, sc
 
   const client = result[0];
 
-  const existingScopes = await kcAdminClient.clients.listDefaultClientScopes({ id: client.id!, realm: 'standard' });
+  const existingScopes = await kcAdminClient.clients.listOptionalClientScopes({ id: client.id!, realm: 'standard' });
   const existingScopeNames = new Set(existingScopes.map((scope) => scope.name));
 
   const scopesToRemove = scopes.filter((scope) => existingScopeNames.has(scope));
 
   for (const scope of scopesToRemove) {
-    await kcAdminClient.clients.delDefaultClientScope({
+    await kcAdminClient.clients.delOptionalClientScope({
       id: client.id!,
       realm: 'standard',
       clientScopeId: existingScopes.find((s) => s.name === scope)?.id!,
@@ -169,9 +172,10 @@ const removeSdxAccessByScopes = async (clientId: string, environment: string, sc
 };
 
 const removeSdxAccessFromKeycloak = async (clientId: string, environment: string, scopes: string[]) => {
-  const keycloakEnvironments = isProductionSdxEnvironment(environment) ? ['prod'] : ['dev', 'test'];
   await Promise.all(
-    keycloakEnvironments.map((keycloakEnvironment) => removeSdxAccessByScopes(clientId, keycloakEnvironment, scopes)),
+    getKeycloakEnvironments(environment).map((keycloakEnvironment) =>
+      removeSdxAccessByScopes(clientId, keycloakEnvironment, scopes),
+    ),
   );
 };
 
@@ -325,22 +329,28 @@ export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAcce
     details: data,
   });
 
-  if (data.resourceServers && data.resourceServers.length > 0) {
-    for (const rs of data.resourceServers) {
-      for (const service of rs.services || []) {
-        if (service.scopes && service.scopes.length > 0) {
-          const scopes = service.scopes.map(getScopeLabel);
-          if (isProductionSdxEnvironment(rs.environment)) {
-            await manageKeycloakScopes(integrationData.clientId, 'prod', scopes);
-          } else {
-            await Promise.all(
-              ['dev', 'test'].map(async (env) => await manageKeycloakScopes(integrationData.clientId, env, scopes)),
-            );
-          }
+  const scopesByKeycloakEnvironment = new Map<string, Set<string>>();
+
+  for (const resourceServer of data.resourceServers || []) {
+    const keycloakEnvironments = getKeycloakEnvironments(resourceServer.environment);
+    for (const keycloakEnvironment of keycloakEnvironments) {
+      if (!scopesByKeycloakEnvironment.has(keycloakEnvironment)) {
+        scopesByKeycloakEnvironment.set(keycloakEnvironment, new Set<string>());
+      }
+      const environmentScopes = scopesByKeycloakEnvironment.get(keycloakEnvironment)!;
+      for (const service of resourceServer.services || []) {
+        for (const scope of service.scopes || []) {
+          environmentScopes.add(getScopeLabel(scope));
         }
       }
     }
   }
+
+  await Promise.all(
+    Array.from(scopesByKeycloakEnvironment, ([environment, scopes]) =>
+      manageKeycloakScopes(integrationData.clientId, environment, Array.from(scopes)),
+    ),
+  );
 };
 
 export const manageKeycloakScopes = async (clientId: string, environment: string, scopes: string[]) => {
@@ -363,7 +373,7 @@ export const manageKeycloakScopes = async (clientId: string, environment: string
 
   const client: ClientRepresentation = result[0];
 
-  const allAssignedScopes = await kcAdminClient.clients.listDefaultClientScopes({
+  const allAssignedScopes = await kcAdminClient.clients.listOptionalClientScopes({
     realm: 'standard',
     id: client.id!,
   });
@@ -377,7 +387,7 @@ export const manageKeycloakScopes = async (clientId: string, environment: string
 
   if (scopesToRemove.length > 0) {
     for (const scope of scopesToRemove) {
-      await kcAdminClient.clients.delDefaultClientScope({
+      await kcAdminClient.clients.delOptionalClientScope({
         id: client.id!,
         realm: 'standard',
         clientScopeId: allKeycloakScopes.find((s) => s.name === scope)?.id!,

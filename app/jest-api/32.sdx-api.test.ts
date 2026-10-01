@@ -145,9 +145,8 @@ const sdxApiCalls = (path: string) =>
 
 const keycloak = {
   clientsFind: jest.fn(),
-  listDefaultClientScopes: jest.fn(),
-  addDefaultClientScope: jest.fn(),
-  delDefaultClientScope: jest.fn(),
+  listOptionalClientScopes: jest.fn(),
+  delOptionalClientScope: jest.fn(),
   clientScopesFind: jest.fn(),
   clientScopesCreate: jest.fn(),
   clientScopesFindOneByName: jest.fn(),
@@ -158,7 +157,7 @@ const keycloak = {
 
 const setUpKeycloak = ({
   existingClientScopes = [] as string[],
-  existingDefaultClientScopes = [] as string[],
+  existingOptionalClientScopes = [] as string[],
   existingAudienceMapper = false,
   clients = [{ id: 'kc-client-uuid', clientId: 'test-client' }],
   kongClients = [{ id: 'kong-client-uuid', clientId: 'sdx-rg-pzgw' }],
@@ -167,9 +166,8 @@ const setUpKeycloak = ({
   keycloak.clientsFind.mockImplementation(async ({ clientId }: { clientId?: string }) =>
     clientId === 'sdx-rg-pzgw' ? kongClients : clients,
   );
-  keycloak.listDefaultClientScopes.mockResolvedValue(existingDefaultClientScopes.map((name) => ({ name, id: name })));
-  keycloak.addDefaultClientScope.mockResolvedValue(undefined);
-  keycloak.delDefaultClientScope.mockResolvedValue(undefined);
+  keycloak.listOptionalClientScopes.mockResolvedValue(existingOptionalClientScopes.map((name) => ({ name, id: name })));
+  keycloak.delOptionalClientScope.mockResolvedValue(undefined);
   // Keycloak scope ids differ from names in reality, but the name is a stable stand-in here.
   keycloak.clientScopesFind.mockResolvedValue(existingClientScopes.map((name) => ({ name, id: name })));
   keycloak.clientScopesCreate.mockImplementation(async ({ name }: { name: string }) => ({ id: name, name }));
@@ -183,10 +181,9 @@ const setUpKeycloak = ({
     kcAdminClient: {
       clients: {
         find: keycloak.clientsFind,
-        listDefaultClientScopes: keycloak.listDefaultClientScopes,
-        addDefaultClientScope: keycloak.addDefaultClientScope,
-        delDefaultClientScope: keycloak.delDefaultClientScope,
+        listOptionalClientScopes: keycloak.listOptionalClientScopes,
         addOptionalClientScope: keycloak.addOptionalClientScope,
+        delOptionalClientScope: keycloak.delOptionalClientScope,
       },
       clientScopes: {
         find: keycloak.clientScopesFind,
@@ -391,6 +388,10 @@ describe('SDX APIs', () => {
         'finance-rs',
         'health-rs',
       ]);
+      expect(
+        result.body.resourceServers.find((resourceServer: SDXResourceServer) => resourceServer.id === 'health-rs')
+          .services[0].version,
+      ).toBe('v1');
     });
 
     it('Defaults to the approved status and forwards the requested status', async () => {
@@ -518,7 +519,7 @@ describe('SDX APIs', () => {
       });
       setUpKeycloak({
         existingClientScopes: ['patient.read', 'patient.write'],
-        existingDefaultClientScopes: ['patient.read', 'patient.write'],
+        existingOptionalClientScopes: ['patient.read', 'patient.write'],
       });
 
       await createSdxRequest(
@@ -526,8 +527,8 @@ describe('SDX APIs', () => {
         withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])]),
       );
 
-      expect(keycloak.delDefaultClientScope).toHaveBeenCalledTimes(2);
-      expect(keycloak.delDefaultClientScope).toHaveBeenCalledWith({
+      expect(keycloak.delOptionalClientScope).toHaveBeenCalledTimes(2);
+      expect(keycloak.delOptionalClientScope).toHaveBeenCalledWith({
         id: 'kc-client-uuid',
         realm: 'standard',
         clientScopeId: 'patient.write',
@@ -543,14 +544,14 @@ describe('SDX APIs', () => {
           [`${NON_PRODUCTION_ENV}:approved`]: [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])],
         },
       });
-      setUpKeycloak({ existingDefaultClientScopes: ['patient.read'] });
+      setUpKeycloak({ existingOptionalClientScopes: ['patient.read'] });
 
       await createSdxRequest(
         adminSession,
         withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read', 'patient.write'])]),
       );
 
-      expect(keycloak.delDefaultClientScope).not.toHaveBeenCalled();
+      expect(keycloak.delOptionalClientScope).not.toHaveBeenCalled();
     });
 
     it('Creates the keycloak client scopes that do not exist yet', async () => {
@@ -717,7 +718,7 @@ describe('SDX APIs', () => {
 
       expect(fetchMock.mock.calls.some(([url]) => /\/integrations\/\d+$/.test(String(url)))).toBe(false);
       expect(sdxApiCalls('/allowed-services')).toHaveLength(0);
-      expect(keycloak.delDefaultClientScope).not.toHaveBeenCalled();
+      expect(keycloak.delOptionalClientScope).not.toHaveBeenCalled();
     });
 
     it('Skips removal reconciliation when the SDX subsystem is not registered', async () => {
@@ -730,7 +731,7 @@ describe('SDX APIs', () => {
       );
 
       expect(sdxApiCalls('/allowed-services')).toHaveLength(0);
-      expect(keycloak.delDefaultClientScope).not.toHaveBeenCalled();
+      expect(keycloak.delOptionalClientScope).not.toHaveBeenCalled();
     });
   });
 
@@ -956,6 +957,87 @@ describe('SDX APIs', () => {
       ]);
     });
 
+    it('Unions and deduplicates every approved scope before reconciling each Keycloak environment', async () => {
+      const integration = await buildSdxIntegration('sdx-approval-union');
+      const resourceServers = [
+        selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read', 'shared.read']),
+        selectedResourceServer(NON_PRODUCTION_ENV, ['lab.read', 'shared.read'], {
+          id: 'laboratory-rs',
+          services: [{ name: 'laboratory-api', version: 'v2', scopes: ['lab.read', 'shared.read'] }],
+        }),
+      ];
+      setUpSdxApi({
+        resourceServers: {
+          [NON_PRODUCTION_ENV]: [
+            selectedResourceServer(NON_PRODUCTION_ENV, [
+              'patient.read',
+              'shared.read',
+              'lab.read',
+              'obsolete.read',
+            ]),
+          ],
+        },
+      });
+      setUpKeycloak({
+        existingClientScopes: ['patient.read', 'shared.read', 'lab.read', 'obsolete.read'],
+        existingOptionalClientScopes: ['obsolete.read'],
+      });
+
+      const result = await putSdxAllowedAccess(
+        integration.id,
+        { integrationId: integration.id, resourceServers } as any,
+        signToken(),
+      );
+
+      expect(result.status).toBe(200);
+      expect(keycloak.listOptionalClientScopes).toHaveBeenCalledTimes(2);
+      expect(keycloak.delOptionalClientScope).toHaveBeenCalledTimes(2);
+      const addedScopeIds = keycloak.addOptionalClientScope.mock.calls.map(([args]) => args.clientScopeId).sort();
+      expect(addedScopeIds).toEqual([
+        'lab.read',
+        'lab.read',
+        'patient.read',
+        'patient.read',
+        'shared.read',
+        'shared.read',
+      ]);
+    });
+
+    it('Reconciles a selected scope-free service as an empty desired scope set', async () => {
+      const integration = await buildSdxIntegration('sdx-approval-no-scope-service');
+      setUpSdxApi({
+        resourceServers: {
+          [NON_PRODUCTION_ENV]: [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])],
+        },
+      });
+      setUpKeycloak({
+        existingClientScopes: ['patient.read'],
+        existingOptionalClientScopes: ['patient.read'],
+      });
+      const scopeFreeService = selectedResourceServer(NON_PRODUCTION_ENV, [], {
+        services: [{ name: 'status-api', version: 'v1', scopes: [] }],
+      });
+
+      const result = await putSdxAllowedAccess(
+        integration.id,
+        { integrationId: integration.id, resourceServers: [scopeFreeService] } as any,
+        signToken(),
+      );
+
+      expect(result.status).toBe(200);
+      expect(keycloak.listOptionalClientScopes).toHaveBeenCalledTimes(2);
+      expect(keycloak.delOptionalClientScope).toHaveBeenCalledTimes(2);
+      expect(keycloak.addOptionalClientScope).not.toHaveBeenCalled();
+      const event: any = await models.event.findOne({
+        where: { requestId: integration.id, eventCode: 'sdx-access-request-update' },
+      });
+      expect(event.details.resourceServers[0].services[0]).toEqual({
+        name: 'status-api',
+        version: 'v1',
+        scopes: [],
+      });
+    });
+
     it('Records the event before calling keycloak', async () => {
       const integration = await buildSdxIntegration('sdx-approval-order');
 
@@ -971,7 +1053,7 @@ describe('SDX APIs', () => {
       expect(keycloak.clientsFind.mock.invocationCallOrder[0]).toBeLessThan(
         keycloak.addOptionalClientScope.mock.invocationCallOrder[0],
       );
-      expect(keycloak.listDefaultClientScopes.mock.invocationCallOrder[0]).toBeLessThan(
+      expect(keycloak.listOptionalClientScopes.mock.invocationCallOrder[0]).toBeLessThan(
         keycloak.addOptionalClientScope.mock.invocationCallOrder[0],
       );
     });
@@ -1042,10 +1124,10 @@ describe('SDX APIs', () => {
 
     it('Does not grant a scope that is already assigned to the client', async () => {
       const integration = await buildSdxIntegration('sdx-approval-existing-scope');
-      setUpKeycloak({ existingDefaultClientScopes: ['patient.read'] });
+      setUpKeycloak({ existingOptionalClientScopes: ['patient.read'] });
 
       await putSdxAllowedAccess(integration.id, approvalPayload(NON_PRODUCTION_ENV, ['patient.read']), signToken());
-      expect(keycloak.addDefaultClientScope).not.toHaveBeenCalled();
+      expect(keycloak.addOptionalClientScope).not.toHaveBeenCalled();
     });
 
     it('Fails when the integration does not exist', async () => {
