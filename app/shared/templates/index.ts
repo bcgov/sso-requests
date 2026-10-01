@@ -202,7 +202,7 @@ export const sendTemplate = async (code: string, data: any) => {
     console.error(err);
 
     if (data.integration) {
-      createEvent({
+      await createEvent({
         eventCode: EVENTS.EMAIL_SUBMISSION_FAILURE,
         requestId: data.integration.id,
         details: { emailCode: code, error: (err as any).message || err },

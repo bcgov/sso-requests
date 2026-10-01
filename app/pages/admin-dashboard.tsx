@@ -291,7 +291,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
         ]);
       }
       setSelectedId(undefined);
-      loadData();
+      void loadData();
     }
   }, [searchKey, limit, page, workflowStatus, selectedIdp, selectedEnvironments, archiveStatus]);
 
