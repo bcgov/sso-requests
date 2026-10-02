@@ -7,6 +7,10 @@ import { Environment } from '@app/interfaces/types';
 import { defaultStandardRealmSettings, environments } from '@app/utils/constants';
 import { convertSeconds } from '@app/utils/helpers';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'controllers/keycloak' });
+
 export const searchKeycloakUsers = async (session: Session, data: any) => {
   const authorized = await authorizeIntegration(session, data.integrationId, 'idp-users:read', { archived: false });
   if (!authorized) throw new createHttpError.Forbidden('not allowed to search users for this integration');
@@ -67,7 +71,7 @@ export const getDefaultStandardRealmSessionSettings = async () => {
           }
         }
       } catch (err) {
-        console.error(`Error fetching standard realm settings: ${err}`);
+        log.error({ err }, 'Error fetching standard realm settings');
       }
     }),
   );

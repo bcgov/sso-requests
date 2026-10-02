@@ -5,7 +5,9 @@ import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import jws from 'jws';
 import jwkToPem from 'jwk-to-pem';
-import logger from '@/logger';
+import { logger } from '@/logger';
+
+const log = logger.child({ module: 'authenticate' });
 
 export interface Claims {
   teamId: number | null;
@@ -79,7 +81,8 @@ const validateJWTSignature = async (token) => {
 
     return { success: true, data: { teamId: team, apiClientId: azp }, err: null };
   } catch (err) {
-    logger.error(err);
+    // Expired or malformed tokens are the caller's problem, not ours.
+    log.warn({ err }, 'Token validation failed');
 
     if (err.name === 'TokenExpiredError') failedAuth.err = 'token expired';
     else if (err.name === 'JsonWebTokenError') failedAuth.err = 'invalid token';

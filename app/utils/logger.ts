@@ -1,8 +1,9 @@
 /**
- * Structured logger (pino).
+ * Server-side structured logger (pino).
  *
- * Emits one JSON object per line on stdout, which the platform log pipeline collects as-is, in every environment.
- * Set LOG_FORMAT=pretty for human-readable output while debugging locally.
+ * Server code only: it pulls in `node:async_hooks`, so never import it from a page, component or anything under
+ * `services/` (those run in the browser). Emits one JSON object per line on stdout, which the platform log
+ * pipeline collects as-is, in every environment. Set LOG_FORMAT=pretty for human-readable output while debugging locally.
  *
  * Env:
  *   LOG_LEVEL   trace | debug | info | warn | error | fatal | silent
@@ -10,13 +11,13 @@
  *   LOG_FORMAT  json | pretty (default: json)
  *
  * Usage:
- *   import { logger } from '@/logger';
+ *   import { logger } from '@app/utils/logger';
  *   const log = logger.child({ module: 'keycloak' });
  *   log.info({ clientId }, 'client created');
  *   log.error({ err }, 'failed to create client');   // always pass errors under `err`
  *
- * Inside a request handled after the `requestLogging` middleware, every line also carries the request's `reqId` (and
- * `apiClientId`/`teamId` once the caller is authenticated) without having to pass them along.
+ * Inside an API route wrapped with `withApiLogging`, every line also carries the request's `reqId` (and `userId`
+ * once the caller is authenticated) without having to pass them along.
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
 import os from 'node:os';
@@ -85,14 +86,12 @@ const serializeError = (err: any) => {
   return serialized;
 };
 
-const contextStore = new AsyncLocalStorage<LogContext>();
-
-const createRootLogger = (): Logger => {
+const createRootLogger = (store: AsyncLocalStorage<LogContext>): Logger => {
   const options: pino.LoggerOptions = {
     level: process.env.LOG_LEVEL || defaultLevel,
     base: {
-      service: 'sso-requests-api',
-      env: process.env.API_ENV,
+      service: 'sso-requests',
+      env: process.env.NEXT_PUBLIC_APP_ENV,
       pid: process.pid,
       hostname: os.hostname(),
     },
@@ -103,13 +102,13 @@ const createRootLogger = (): Logger => {
     redact: { paths: REDACT_PATHS, censor: '[REDACTED]' },
     // Must return a copy: pino merges each line's fields into the returned object, which would otherwise write them
     // into the request's context and repeat them on every later line.
-    mixin: () => ({ ...contextStore.getStore() }),
+    mixin: () => ({ ...store.getStore() }),
   };
 
   if (process.env.LOG_FORMAT === 'pretty') {
     try {
-      // A synchronous stream rather than a `transport`, matching the app; transports run in a worker thread.
-      // pino-pretty is a devDependency, so only load it here.
+      // A synchronous stream rather than a `transport`: transports run in a worker thread that resolves its target
+      // at runtime, which does not survive Next's bundling. pino-pretty is a devDependency, so only load it here.
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const pinoPretty = require('pino-pretty');
       return pino(options, pinoPretty({ sync: true, colorize: true, ignore: 'pid,hostname,service,env' }));
@@ -120,13 +119,26 @@ const createRootLogger = (): Logger => {
   return pino(options);
 };
 
-export const logger: Logger = createRootLogger();
+// Next may load this module more than once (HMR in dev, separate bundles per API route), so keep a single logger and
+// context store per process. Otherwise a reqId set in one module copy would be invisible to another.
+const GLOBAL_KEY = Symbol.for('sso-requests.logger');
+type LoggerGlobal = { logger: Logger; store: AsyncLocalStorage<LogContext> };
+const g = globalThis as unknown as Record<symbol, LoggerGlobal | undefined>;
+
+if (!g[GLOBAL_KEY]) {
+  const store = new AsyncLocalStorage<LogContext>();
+  g[GLOBAL_KEY] = { store, logger: createRootLogger(store) };
+}
+
+const { logger: rootLogger, store: contextStore } = g[GLOBAL_KEY]!;
+
+export const logger: Logger = rootLogger;
 
 /** Runs `fn` with `context` merged into every log line emitted inside it, including across awaits. */
 export const runWithLogContext = <T>(context: LogContext, fn: () => T): T =>
   contextStore.run({ ...contextStore.getStore(), ...context }, fn);
 
-/** Adds fields (e.g. the authenticated client) to the current request's log context. No-op outside one. */
+/** Adds fields (e.g. the authenticated user) to the current request's log context. No-op outside one. */
 export const addLogContext = (fields: LogContext) => {
   const current = contextStore.getStore();
   if (current) Object.assign(current, fields);

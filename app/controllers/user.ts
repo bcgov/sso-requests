@@ -16,6 +16,10 @@ import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRep
 import createHttpError from 'http-errors';
 import { compact } from 'lodash';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'controllers/user' });
+
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
   email = lowcase(email || '');
@@ -33,7 +37,7 @@ export const findOrCreateUser = async (session: Session) => {
     const existingUserWithGuidRow = users.find((user: User) => user.idirUserid && user.idirEmail);
     // Remove the duplicate row and continue with the correct one
     if (existingUserWithGuidRow && userWithoutGuidRow) {
-      console.info(`Duplicate user found for id ${idir_userid}. Removing duplicate record.`);
+      log.info({ idirUserid: idir_userid }, 'duplicate user found, removing duplicate record');
       await userWithoutGuidRow.destroy();
       user = existingUserWithGuidRow;
     }
@@ -352,7 +356,7 @@ export const deleteStaleUsers = async (
             });
           }
         } catch (err) {
-          console.log(err);
+          log.error({ err, requestId: rqst?.id }, 'failed to transfer integration to the SSO team');
           createEvent({
             eventCode: EVENTS.TRANSFER_OF_OWNERSHIP_FAILURE,
             requestId: rqst?.id,
@@ -366,7 +370,7 @@ export const deleteStaleUsers = async (
     await existingUser.destroy();
     return true;
   } catch (err) {
-    console.error(err);
+    log.error({ err }, 'deleteStaleUsers failed');
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };

@@ -1,11 +1,10 @@
 import { Op, Model } from 'sequelize';
+import { validateRequest, getRequiredBCSCScopes } from '@app/utils/server-helpers';
 import { camelCase, isEmpty, isString, kebabCase, upperFirst } from 'lodash';
 import {
-  validateRequest,
   getDifferences,
   getDisplayName,
   getBCSCEnvVars,
-  getRequiredBCSCScopes,
   compareTwoArrays as compareScopes,
   getAllowedIdpsForApprover,
   normalizeRequest,
@@ -106,6 +105,10 @@ import { KeyCredential } from '@microsoft/microsoft-graph-types';
 import { createPS256Key, getActivePS256KeyCert } from '@app/keycloak/keys';
 import { getByBcgovUnitAndDivision, getDivisionById, listDivisions } from '@app/queries/division';
 import { getBcgovUnitById, listBcgovUnits } from '@app/queries/bcgov-unit';
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'controllers/requests' });
+
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
 const APP_ENV = app_env || 'development';
@@ -720,7 +723,7 @@ export const updateRequest = async (
 
     return updated.get({ plain: true });
   } catch (err) {
-    console.error(err);
+    log.error({ err }, 'updateRequest failed');
     if (submit) {
       const eventData = {
         eventCode: isMerged ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
@@ -762,7 +765,7 @@ export const resubmitRequest = async (session: Session, id: number) => {
 
     return updated.get({ plain: true });
   } catch (err) {
-    console.error(err);
+    log.error({ err }, 'resubmitRequest failed');
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };
@@ -835,7 +838,7 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
 
     return updated.get({ plain: true });
   } catch (err) {
-    console.error(err);
+    log.error({ err }, 'restoreRequest failed');
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };
@@ -963,7 +966,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     return integration;
   } catch (err) {
-    console.error(err);
+    log.error({ err }, 'deleteRequest failed');
 
     await createEvent({
       eventCode: EVENTS.REQUEST_DELETE_FAILURE,
@@ -1149,7 +1152,7 @@ export const getListOfDescrepencies = async () => {
     }
     return data;
   } catch (err) {
-    console.error('could not get discrepancies', err);
+    log.error({ err }, 'could not get discrepancies');
     await axios.post(
       process.env.RC_SSO_OPS_WEBHOOK || '',
       { projectName: 'css-request-monitor', message: '**Failed to get discrepancies**\n\n', statusCode: 'ERROR' },
@@ -1283,7 +1286,7 @@ export const createEntraIntegration = async (environment: string, request: Integ
     });
     await Promise.all(createIdpMapperPromises);
   } catch (err) {
-    console.error('could not create Entra integration', err);
+    log.error({ err }, 'could not create Entra integration');
     throw err;
   }
 };
@@ -1300,7 +1303,7 @@ export const deleteEntraIntegration = async (environment: string, request: Integ
     }
     await entraClient.destroy();
   } catch (err) {
-    console.error('could not delete Entra integration', err);
+    log.error({ err }, 'could not delete Entra integration');
     throw err;
   }
 };

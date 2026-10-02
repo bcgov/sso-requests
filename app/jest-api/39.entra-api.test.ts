@@ -8,8 +8,15 @@ import { getByBcgovUnitAndDivision } from '@app/queries/division';
 import { validateIDPs } from '@app/utils/helpers';
 import { ConfidentialClientApplication } from '@azure/msal-node';
 import { models } from '@app/shared/sequelize/models/models';
+import { logger } from '@app/utils/logger';
 
 jest.mock('axios');
+// Every module logger is a child of the root logger; collapse them all into one mock so log calls can be asserted.
+jest.mock('@app/utils/logger', () => {
+  const log: any = { trace: jest.fn(), debug: jest.fn(), info: jest.fn(), warn: jest.fn(), error: jest.fn() };
+  log.child = () => log;
+  return { ...jest.requireActual('@app/utils/logger'), logger: log };
+});
 jest.mock('@azure/msal-node', () => ({
   ConfidentialClientApplication: jest.fn(),
 }));
@@ -264,14 +271,12 @@ describe('createEntraIntegration', () => {
   it('logs and rethrows an Entra provisioning failure', async () => {
     const failedIntegration = integrationForRequest(3);
     const error = new Error('invalid Entra response');
-    const consoleError = jest.spyOn(console, 'error').mockImplementation();
     graphApi.setupEntraIntegration.mockRejectedValue(error);
 
     await expect(requests.createEntraIntegration('dev', failedIntegration)).rejects.toThrow(error);
 
-    expect(consoleError).toHaveBeenCalledWith('could not create Entra integration', error);
+    expect(logger.error).toHaveBeenCalledWith({ err: error }, 'could not create Entra integration');
     expect(idp.createIdp).not.toHaveBeenCalled();
-    consoleError.mockRestore();
   });
 
   it('throws a clear error instead of crashing when bcgovUnitId/divisionId are missing', async () => {
@@ -399,15 +404,13 @@ describe('deleteEntraIntegration', () => {
   it('logs and rethrows invalid Entra delete responses', async () => {
     const failedDeleteIntegration = integrationForRequest(7);
     const error = new Error('invalid Entra response');
-    const consoleError = jest.spyOn(console, 'error').mockImplementation();
     await createPersistedEntraClient(failedDeleteIntegration);
     graphApi.deleteServicePrincipal.mockRejectedValue(error);
 
     await expect(requests.deleteEntraIntegration('dev', failedDeleteIntegration)).rejects.toThrow(error);
 
-    expect(consoleError).toHaveBeenCalledWith('could not delete Entra integration', error);
+    expect(logger.error).toHaveBeenCalledWith({ err: error }, 'could not delete Entra integration');
     expect(graphApi.deleteAppRegistration).not.toHaveBeenCalled();
-    consoleError.mockRestore();
   });
 });
 

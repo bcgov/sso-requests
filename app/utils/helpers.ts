@@ -26,11 +26,7 @@ import {
 } from '@app/helpers/integration';
 import { IntegrationData, Session } from '@app/shared/interfaces';
 import { sortBy, compact, omit, isString } from 'lodash';
-import { getSchemas } from '@app/schemas';
 import { diff } from 'deep-diff';
-import { validateForm } from './validate';
-import { getAttributes, getPrivacyZones } from '@app/controllers/bc-services-card';
-import { NextApiResponse } from 'next';
 import * as XLSX from '@e965/xlsx';
 import { hasAppPermission, appPermissions, getAllAppPermissions } from './authorize';
 import { isSettled } from '@app/helpers/transitions';
@@ -498,8 +494,6 @@ export const validateIDPs = ({
 export const errorMessage = 'No changes submitted. Please change your details to update your integration.';
 export const IDIM_EMAIL_ADDRESS = 'bcgov.sso@gov.bc.ca';
 
-let cachedClaims: any[] = [];
-
 export const omitNonFormFields = (data: Integration) =>
   omit(data, [
     'updatedAt',
@@ -608,36 +602,6 @@ export const getDifferences = (newData: any, originalData: Integration) => {
   return diff(omitNonFormFields(originalData), omitNonFormFields(newData));
 };
 
-export const validateRequest = async (
-  formData: any,
-  original: Integration,
-  teams: any[],
-  bcgovUnits: BcgovUnit[],
-  divisions: Division[],
-  isUpdate = false,
-) => {
-  const validationArgs: any = { formData, teams };
-
-  if (usesBcServicesCard(formData) || usesOTP(formData)) {
-    const validPrivacyZones = await getPrivacyZones();
-    validationArgs.bcscPrivacyZones = validPrivacyZones;
-  }
-
-  if (usesBcServicesCard(formData)) {
-    const validAttributes = await getAttributes();
-    validationArgs.bcscAttributes = validAttributes;
-  }
-
-  if (usesBcgovIdir(formData)) {
-    validationArgs.bcgovUnits = bcgovUnits;
-
-    validationArgs.divisions = divisions;
-  }
-
-  const schemas = getSchemas(validationArgs);
-  return validateForm(formData, schemas);
-};
-
 export const isAdmin = (session: Session) => session?.client_roles?.includes('sso-admin');
 
 export const getAllowedIdpsForApprover = (session: Session) => {
@@ -696,20 +660,6 @@ export const getBCSCEnvVars = (env: string) => {
   };
 };
 
-export const getRequiredBCSCScopes = async (claims: string[]) => {
-  if (cachedClaims.length === 0) {
-    cachedClaims = await getAttributes();
-  }
-  const allClaims = cachedClaims;
-  const requiredScopes = allClaims.filter((claim) => claims.includes(claim.name)).map((claim) => claim.scope);
-
-  // Profile will always be a required scope since the sub depends on it
-  if (!requiredScopes.includes('profile')) {
-    requiredScopes.push('profile');
-  }
-  return ['openid', ...Array.from(new Set(requiredScopes))];
-};
-
 export const compareTwoArrays = (arr1: string[], arr2: string[]) => {
   if (arr1.length !== arr2.length) {
     return false;
@@ -725,22 +675,12 @@ export const compareTwoArrays = (arr1: string[], arr2: string[]) => {
   return true;
 };
 
-const tryJSON = (str: string) => {
+export const tryJSON = (str: string) => {
   try {
     return JSON.parse(str);
   } catch {
     return str;
   }
-};
-
-export const handleError = (res: NextApiResponse, err: any) => {
-  let message = err.message || err;
-  if (isString(message)) {
-    message = tryJSON(message);
-  }
-  console.error('Error:', err);
-  console.log({ success: false, message });
-  return res.status(err?.status || 422).json({ success: false, message });
 };
 
 export const generateXlsx = (data: any[], workBookName: string, workSheetName: string) => {

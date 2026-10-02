@@ -3,8 +3,10 @@ import { parseString } from 'xml2js';
 import { get } from 'lodash';
 import util from 'node:util';
 import { injectable } from 'tsyringe';
-import logger from '@/logger';
+import { logger } from '@/logger';
 import { getBceidCredentials } from '@/utils';
+
+const log = logger.child({ module: 'services/bceid-webservice' });
 
 const parseStringSync = util.promisify(parseString);
 
@@ -100,7 +102,7 @@ async function extractAccount(body: string): Promise<BceidAccount | null> {
     const failureCode = get(data, 'failureCode.0');
     const message = get(data, 'message.0');
     // No matching account is a "failure" per this webservice, not an exception-worthy state.
-    logger.info(`BCeID webservice lookup returned no match: ${failureCode} ${message}`);
+    log.info({ failureCode, failureMessage: message }, 'BCeID webservice lookup returned no match');
     return null;
   }
 
@@ -128,7 +130,7 @@ export class BceidWebserviceService {
       }
       return null;
     } catch (err) {
-      logger.error('Failed to verify account with the BCeID webservice:', err);
+      log.error({ err, idp, environment }, 'Failed to verify account with the BCeID webservice');
       return null;
     }
   }

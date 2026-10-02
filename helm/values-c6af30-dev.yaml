@@ -44,12 +44,12 @@ env:
   BCSC_SIGNING_ALGORITHM: PS256
   UPTIME_STATUS_DOMAIN_NAME: status.sandbox.loginproxy.gov.bc.ca
   REDIS_RATE_LIMITER_LIMIT: 20
+  LOG_LEVEL: debug
 
 envVars: {}
 
 route:
   host: sso-requests-sandbox.apps.gold.devops.gov.bc.ca
-
 
 patroni:
   replicaCount: 1

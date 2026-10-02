@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { deleteStaleUsers } from '@app/controllers/user';
-import { handleError } from '@app/utils/helpers';
+import { handleError, withApiLogging } from '@app/utils/api';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method === 'POST') {
       const { Authorization, authorization } = req.headers || {};
@@ -21,3 +21,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     handleError(res, err);
   }
 }
+
+export default withApiLogging(handler);

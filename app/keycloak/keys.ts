@@ -1,6 +1,10 @@
 import { KeyMetadataRepresentation } from '@keycloak/keycloak-admin-client/lib/defs/keyMetadataRepresentation';
 import { getAdminClient } from './adminClient';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'keycloak/keys' });
+
 export interface RealmKeyProvider {
   id: string;
   name: string;
@@ -35,7 +39,7 @@ export async function createPS256Key(
       },
     });
   } catch (err) {
-    console.error('Error creating PS256 key:', err);
+    log.error({ err }, 'Error creating PS256 key');
     throw err;
   }
 }

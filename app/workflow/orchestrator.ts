@@ -38,6 +38,10 @@ import {
   WorkflowType,
 } from './types';
 
+import { logger } from '@app/utils/logger';
+
+const moduleLog = logger.child({ module: 'request-workflow' });
+
 const FINISHED_STEP_STATES = new Set([StepState.COMPLETED, StepState.SKIPPED]);
 
 /**
@@ -102,7 +106,7 @@ const alertOps = async (message: string) => {
       { headers: { Accept: 'application/json' } },
     );
   } catch (err) {
-    console.error('failed to publish workflow ops alert', err);
+    moduleLog.error({ err }, 'failed to publish workflow ops alert');
   }
 };
 
@@ -110,7 +114,7 @@ const scheduleInProcessRetry = (workflowId: string, delayMs: number) => {
   if (!backgroundExecutionEnabled() || delayMs > IN_PROCESS_RETRY_CEILING_MS) return;
 
   const timer = setTimeout(() => {
-    runWorkflow(workflowId).catch((err) => console.error('workflow retry failed', err));
+    runWorkflow(workflowId).catch((err) => moduleLog.error({ err }, 'workflow retry failed'));
   }, delayMs);
   timer.unref?.();
 };
@@ -378,7 +382,7 @@ export const runWorkflow = async (workflowId: string): Promise<WorkflowState | n
   } catch (err) {
     // Unexpected orchestrator error: drop the claim so the recovery tick can retry rather than
     // leaving the workflow wedged behind a stale lease.
-    console.error('workflow orchestration error', err);
+    moduleLog.error({ err }, 'workflow orchestration error');
     await releaseWorkflow(workflowId, { lastError: errorMessage(err) });
     return null;
   }
@@ -393,7 +397,7 @@ export const drainWorkflows = async (maxWorkflows: number = 25): Promise<{ proce
   let processed = 0;
 
   const promoted = await promoteOrphanedQueuedWorkflows(maxWorkflows);
-  if (promoted.length > 0) console.info(`promoted ${promoted.length} orphaned queued workflow(s)`);
+  if (promoted.length > 0) moduleLog.info({ promoted: promoted.length }, 'promoted orphaned queued workflows');
 
   for (let i = 0; i < maxWorkflows; i += 1) {
     const workflow = await claimWorkflow();
@@ -404,11 +408,11 @@ export const drainWorkflows = async (maxWorkflows: number = 25): Promise<{ proce
     try {
       await execute(workflow);
     } catch (err) {
-      console.error('workflow orchestration error', err);
+      moduleLog.error({ err }, 'workflow orchestration error');
       await releaseWorkflow(workflow.id, { lastError: errorMessage(err) });
     }
   }
 
-  if (processed > 0) console.info(`integration workflow tick processed ${processed} workflow(s)`);
+  if (processed > 0) moduleLog.info({ processed }, 'integration workflow tick processed workflows');
   return { processed };
 };

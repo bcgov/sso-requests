@@ -6,6 +6,10 @@ import { Session } from '@app/shared/interfaces';
 import { createIdirUser } from '@app/keycloak/users';
 import createHttpError from 'http-errors';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'idim-ws-idir' });
+
 export const parseStringSync = util.promisify(parseString);
 
 export const defaultHeaders = {
@@ -107,7 +111,7 @@ export const searchIdirUsers = async (userSession: Session, { field, search }: {
     const { response }: any = await makeSoapRequest(xml);
     return await getBceidAccounts(response);
   } catch (err) {
-    console.error('Failed searching IDIR users from BCEID webservice:', err);
+    log.error({ err }, 'Failed searching IDIR users from BCEID webservice');
     throw new createHttpError.UnprocessableEntity('Failed to search IDIR users');
   }
 };
@@ -141,13 +145,12 @@ export const importIdirUser = async (data: any) => {
     .filter(({ result }) => result.status === 'rejected');
 
   if (failures.length > 0) {
-    console.error(
-      'Failed environments:',
-      failures.map(({ env, result }) => ({
-        env,
-        error: (result as PromiseRejectedResult).reason,
-      })),
-    );
+    for (const { env, result } of failures) {
+      log.error(
+        { err: (result as PromiseRejectedResult).reason, environment: env },
+        'IDIR lookup failed for environment',
+      );
+    }
 
     throw new createHttpError.UnprocessableEntity(
       `Failed to import user into ${failures.map((f) => f.env).join(', ')}`,

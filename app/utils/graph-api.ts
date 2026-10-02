@@ -15,6 +15,10 @@ import { getHomePageUrlByEnvironment, getKeycloakBaseUrlByEnvironment } from './
 import { randomInt } from 'node:crypto';
 import { computeThumbprint, buildKeyCredential, getApplicationNotes } from './entra-helpers';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'graph-api' });
+
 const GRAPH_API_MAX_RETRIES = 5;
 const GRAPH_API_RETRY_INTERVAL_MS = 1500;
 const GRAPH_API_MAX_RETRY_DELAY_MS = 60_000;
@@ -217,7 +221,7 @@ export async function getAzureAccessToken() {
 
       return response.accessToken;
     } catch (error) {
-      console.error(error);
+      log.error({ err: error }, 'getAzureAccessToken failed');
       throw new createHttpError.Unauthorized('could not fetch access token');
     }
   })().finally(() => {
@@ -248,7 +252,7 @@ export const validateIdirEmail = async (email: string) => {
     const response = await callAzureGraphApi(url);
     return { given_name: response.givenName, family_name: response.surname };
   } catch (error) {
-    console.error('Failed to validate IDIR email via Graph API:', error);
+    log.error({ err: error }, 'Failed to validate IDIR email via Graph API');
     return false;
   }
 };
@@ -293,7 +297,7 @@ export const searchIdirUsers = async ({ field, search, idp }: { field: string; s
     const formattedUsers = response.value.map((user) => formatUser(user, idp));
     return formattedUsers;
   } catch (err) {
-    console.error('Failed searching Azure IDIR users from Graph API:', err);
+    log.error({ err }, 'Failed searching Azure IDIR users from Graph API');
     throw new createHttpError.UnprocessableEntity('Failed to search Azure IDIR users');
   }
 };
@@ -316,7 +320,7 @@ export const verifyAzureIdirAccountByGuid = async (guid: string) => {
     if (!match) return null;
     return formatUser(match);
   } catch (err) {
-    console.error('Failed to verify Azure IDIR account with the MS Graph API:', err);
+    log.error({ err }, 'Failed to verify Azure IDIR account with the MS Graph API');
     return null;
   }
 };
@@ -368,7 +372,7 @@ export const importIdirUser = async ({
       ),
     );
   } catch (err) {
-    console.error('Failed to import user from Graph API:', err);
+    log.error({ err }, 'Failed to import user from Graph API');
     throw new createHttpError.UnprocessableEntity('Failed to import user fromGraph API ');
   }
 };
@@ -463,7 +467,7 @@ export const updateAppRegistration = async (id: string, application: Application
       data: application,
     });
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'updateAppRegistration failed');
     throw new Error('Unable to update the Entra application registration');
   }
 };
@@ -496,7 +500,7 @@ export const createAppRegistration = async (
       },
     });
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'createAppRegistration failed');
     throw new Error('Unable to create the Entra application registration');
   }
 };
@@ -507,7 +511,7 @@ export const deleteAppRegistration = async (appId: string): Promise<void> => {
       method: 'DELETE',
     });
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'deleteAppRegistration failed');
     throw new Error('Unable to delete the Entra application registration');
   }
 };
@@ -522,7 +526,7 @@ export const getAppRegistration = async (appName: string): Promise<Application |
     );
     return response.value && response.value.length > 0 ? response.value[0] : null;
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'getAppRegistration failed');
     throw new Error('Unable to retrieve the Entra application registration');
   }
 };
@@ -535,7 +539,7 @@ export const getAppRegistrationByAppId = async (appId: string): Promise<Applicat
     });
     return response?.id ? response : null;
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'getAppRegistrationByAppId failed');
     throw new Error('Unable to retrieve the Entra application registration by appId ' + appId);
   }
 };
@@ -556,7 +560,7 @@ export const createServicePrincipal = async (
       },
     });
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'createServicePrincipal failed');
     throw new Error('Unable to create the Entra service principal');
   }
 };
@@ -574,7 +578,7 @@ export const updateServicePrincipal = async (
       data: servicePrincipal,
     });
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'updateServicePrincipal failed');
     throw new Error('Unable to update the Entra service principal');
   }
 };
@@ -589,7 +593,7 @@ export const getServicePrincipal = async (appId: string): Promise<ServicePrincip
     );
     return response.value && response.value.length > 0 ? response.value[0] : null;
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'getServicePrincipal failed');
     throw new Error('Unable to retrieve the Entra service principal');
   }
 };
@@ -600,7 +604,7 @@ export const deleteServicePrincipal = async (servicePrincipalId: string): Promis
       method: 'DELETE',
     });
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'deleteServicePrincipal failed');
     throw new Error('Unable to delete the Entra service principal with id ' + servicePrincipalId);
   }
 };
@@ -619,7 +623,7 @@ export const addServicePrincipalOwners = async (servicePrincipalId: string, owne
       );
     }
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'addServicePrincipalOwners failed');
     throw new Error(`Unable to add owners to the service principal with ID: ${servicePrincipalId}`);
   }
 };
@@ -634,7 +638,7 @@ export const getAssignedClaimMappingPolicies = async (servicePrincipalId: string
     );
     return response.value || [];
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'getAssignedClaimMappingPolicies failed');
     throw new Error(
       `Unable to retrieve the assigned claim mapping policies for the service principal with ID: ${servicePrincipalId}`,
     );
@@ -653,7 +657,7 @@ export const assignClaimMappingPolicy = async (servicePrincipalId: string, polic
       },
     );
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'assignClaimMappingPolicy failed');
     throw new Error(
       `Unable to assign the claim mapping policy with ID: ${policyId} to the service principal with ID: ${servicePrincipalId}`,
     );
@@ -683,7 +687,7 @@ export async function addKeyCredential(
     });
     return newCredential;
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'addKeyCredential failed');
     throw new Error(`Unable to upload the certificate to the application with objectId: ${appReg.id}`);
   }
 }
@@ -699,7 +703,7 @@ export const replaceKeyCredentials = async (appReg: Application, credentials: Ke
   try {
     await updateAppRegistration(appReg.id!, { keyCredentials: credentials });
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'replaceKeyCredentials failed');
     throw new Error(`Unable to replace the key credentials on the application with objectId: ${appReg.id}`);
   }
 };
@@ -717,7 +721,7 @@ export const removeKeyCredential = async (appReg: Application, thumbprint: strin
       keyCredentials: existingCreds,
     });
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'removeKeyCredential failed');
     throw new Error(
       `Unable to remove the key credential with thumbprint: ${thumbprint} from the application with objectId: ${appReg.id}`,
     );
@@ -733,7 +737,7 @@ export const addApplicationOwner = async (id: string, owner: { id: string }): Pr
       },
     });
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'addApplicationOwner failed');
     throw new Error(`Unable to add application owner to the application with objectId: ${id}`);
   }
 };
@@ -743,7 +747,7 @@ export const getApplicationOwners = async (id: string): Promise<{ id: string }[]
     const response = await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications/${id}/owners`);
     return response.value;
   } catch (error) {
-    console.error(error);
+    log.error({ err: error }, 'getApplicationOwners failed');
     throw new Error(`Unable to get application owners for the application with objectId: ${id}`);
   }
 };
