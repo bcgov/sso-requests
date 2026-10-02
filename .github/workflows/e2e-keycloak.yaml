@@ -50,7 +50,11 @@ jobs:
           node-version: 22
 
       - name: Install app dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile --ignore-scripts
+        working-directory: app
+
+      - name: Install Cypress binary
+        run: yarn cypress install
         working-directory: app
 
       - name: Pre-requisites for test run
@@ -106,7 +110,11 @@ jobs:
           node-version: 22
 
       - name: Install app dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile --ignore-scripts
+        working-directory: app
+
+      - name: Install Cypress binary
+        run: yarn cypress install
         working-directory: app
 
       - name: E2E Tests
