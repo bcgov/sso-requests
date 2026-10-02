@@ -840,6 +840,17 @@ describe('SDX Services Selection Helpers', () => {
     ],
   });
 
+  const scopeFreeAllowedAccess = (resourceServerId: string, environment: string) => ({
+    clientId: 'sdx-client',
+    resourceServers: [
+      {
+        id: resourceServerId,
+        environment,
+        services: [{ name: 'status-api', version: 'v1', scopes: [] }],
+      },
+    ],
+  });
+
   const readScopeId = getScopeId('health-rs', 'patient-api', 'v1', 'read');
   const writeScopeId = getScopeId('health-rs', 'patient-api', 'v1', 'write');
 
@@ -971,16 +982,7 @@ describe('SDX Services Selection Helpers', () => {
           ],
         },
       ] as SDXResourceServer[];
-      const approved = {
-        clientId: 'sdx-client',
-        resourceServers: [
-          {
-            id: 'health-rs',
-            environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
-            services: [{ name: 'status-api', version: 'v1', scopes: [] }],
-          },
-        ],
-      };
+      const approved = scopeFreeAllowedAccess('health-rs', SDX_ENVIRONMENTS['sandbox']['non-production']);
 
       const { approvedServiceIds } = getClientServiceState(approved, null, catalog);
 
@@ -1003,16 +1005,7 @@ describe('SDX Services Selection Helpers', () => {
           services: [service],
         },
       ] as SDXResourceServer[];
-      const approved = {
-        clientId: 'sdx-client',
-        resourceServers: [
-          {
-            id: 'shared-rs',
-            environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
-            services: [{ name: 'status-api', version: 'v1', scopes: [] }],
-          },
-        ],
-      };
+      const approved = scopeFreeAllowedAccess('shared-rs', SDX_ENVIRONMENTS['sandbox']['non-production']);
 
       const { approvedServiceIds } = getClientServiceState(approved, null, catalog);
 
