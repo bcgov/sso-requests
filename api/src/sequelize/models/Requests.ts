@@ -99,6 +99,7 @@ export interface RequestsAttributes {
   prodHomePageUri?: string;
   bcscAttributes: string[];
   bcServicesCardApproved?: boolean;
+  bcgovidirApproved: boolean;
   confirmSocial?: boolean;
   socialApproved?: boolean;
 }
@@ -181,6 +182,7 @@ export type RequestsOptionalAttributes =
   | 'prodHomePageUri'
   | 'bcscAttributes'
   | 'bcServicesCardApproved'
+  | 'bcgovidirApproved'
   | 'confirmSocial'
   | 'socialApproved'
   | 'otpApproved'
@@ -289,6 +291,7 @@ export class Requests extends Model<RequestsAttributes, RequestsCreationAttribut
   prodHomePageUri?: string;
   bcscAttributes!: string[];
   bcServicesCardApproved?: boolean;
+  bcgovidirApproved!: boolean;
   confirmSocial?: boolean;
   socialApproved?: boolean;
 
@@ -847,6 +850,12 @@ export class Requests extends Model<RequestsAttributes, RequestsCreationAttribut
           type: DataTypes.BOOLEAN,
           allowNull: true,
           field: 'bc_services_card_approved',
+        },
+        bcgovidirApproved: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: false,
+          field: 'bcgovidir_approved',
         },
         confirmSocial: {
           type: DataTypes.BOOLEAN,

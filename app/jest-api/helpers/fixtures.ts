@@ -158,6 +158,7 @@ export const getUpdateIntegrationData = (args: {
   testBceidApproved?: boolean;
   githubApproved?: boolean;
   bcServicesCardApproved?: boolean;
+  bcgovidirApproved?: boolean;
   socialApproved?: boolean;
   otpApproved?: boolean;
   devHomePageUri?: string;
@@ -176,6 +177,7 @@ export const getUpdateIntegrationData = (args: {
     testBceidApproved = args.integration.testBceidApproved || false,
     githubApproved = args.integration.githubApproved || false,
     bcServicesCardApproved = args.integration.bcServicesCardApproved || false,
+    bcgovidirApproved = args.integration.bcgovidirApproved || false,
     socialApproved = args.integration.socialApproved || false,
     otpApproved = args.integration.otpApproved || false,
     devHomePageUri = args.integration.devHomePageUri || '',
@@ -205,6 +207,7 @@ export const getUpdateIntegrationData = (args: {
     testBceidApproved,
     githubApproved,
     bcServicesCardApproved,
+    bcgovidirApproved,
     socialApproved,
     otpApproved,
     devSamlLogoutPostBindingUri: samlIntegration ? 'https://a' : undefined,

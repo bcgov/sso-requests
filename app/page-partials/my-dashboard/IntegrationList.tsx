@@ -124,8 +124,8 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
   const [activeIntegrationId, setActiveIntegrationId] = useState<number | undefined>(
     (integr && Number(integr)) || undefined,
   );
-  const handleNewIntegrationClick = async () => {
-    router.push('/request');
+  const handleNewIntegrationClick = () => {
+    void router.push('/request');
   };
 
   const updateActiveIntegration = (integration: Integration) => {
@@ -153,8 +153,8 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
   };
 
   useEffect(() => {
-    loadIntegrations();
-    router.replace('/my-dashboard/integrations');
+    void loadIntegrations();
+    void router.replace('/my-dashboard/integrations');
   }, []);
 
   let interval: any;
@@ -165,14 +165,15 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
 
       interval = setInterval(async () => {
         const [data, err] = await getRequests();
-        // Ignore update if no data changed
-        if (isEqual(integrations, data)) return;
-
         if (err) {
           clearInterval(interval);
-        } else {
-          updateIntegrations(data || []);
+          return;
         }
+
+        // A poll with no changes may return no data; preserve the current table.
+        if (!data || isEqual(integrations, data)) return;
+
+        updateIntegrations(data);
       }, 1000 * 5);
     }
 
@@ -229,7 +230,7 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
                       content: `Failed to delete integration ${props.row.original.projectName}.`,
                     });
                   } else {
-                    loadIntegrations();
+                    void loadIntegrations();
                   }
                   setIntegration(null);
                 }}

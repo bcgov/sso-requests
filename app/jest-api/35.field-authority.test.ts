@@ -174,6 +174,7 @@ describe('field authority', () => {
     expect(FIELD_AUTHORITY.testBceidApproved).toEqual('integrations:approve-bceid');
     expect(FIELD_AUTHORITY.githubApproved).toEqual('integrations:approve-github');
     expect(FIELD_AUTHORITY.bcServicesCardApproved).toEqual('integrations:approve-bcsc');
+    expect(FIELD_AUTHORITY.bcgovidirApproved).toEqual('integrations:approve-bcgovidir');
     expect(FIELD_AUTHORITY.socialApproved).toEqual('integrations:approve-social');
     expect(FIELD_AUTHORITY.otpApproved).toEqual('integrations:approve-otp');
     for (const env of ['dev', 'test', 'prod']) {

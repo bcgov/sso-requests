@@ -1,7 +1,14 @@
 import { Permission } from '@sso/authz';
 import { Integration } from '@app/interfaces/Request';
 import { Team } from '@app/interfaces/team';
-import { checkBceidGroup, checkBcServicesCard, checkGithubGroup, checkOTP, checkSocial } from './integration';
+import {
+  checkBceidGroup,
+  checkBcgovIdir,
+  checkBcServicesCard,
+  checkGithubGroup,
+  checkOTP,
+  checkSocial,
+} from './integration';
 import { hasTeamPermission, teamPermissions } from '@app/utils/authorize';
 import { isInFlight, isResting } from './transitions';
 
@@ -91,6 +98,10 @@ export const approvalResetsForRemovedIdps = (originalData: any, updatedData: any
 
   if (originalData.bcServicesCardApproved && !updatedData.devIdps.some(checkBcServicesCard)) {
     changedAttrs.bcServicesCardApproved = false;
+  }
+
+  if (originalData.bcgovidirApproved && !updatedData.devIdps.some(checkBcgovIdir)) {
+    changedAttrs.bcgovidirApproved = false;
   }
 
   if (originalData.socialApproved && !updatedData.devIdps.some(checkSocial)) {

@@ -67,6 +67,25 @@ const sampleEvents = {
     createdAt: '2024-09-24T21:18:21.546Z',
     updatedAt: '2024-09-24T21:18:21.546Z',
   },
+  bcgovidirApproved: {
+    id: 5,
+    requestId: 5,
+    eventCode: 'request-update-success',
+    idirUserid: null,
+    details: {
+      changes: [
+        {
+          lhs: false,
+          rhs: true,
+          path: ['bcgovidirApproved'],
+          kind: 'E',
+        },
+      ],
+    },
+    idirUserDisplayName: 'BCGOV IDIR Approver',
+    createdAt: '2024-09-24T21:18:21.546Z',
+    updatedAt: '2024-09-24T21:18:21.546Z',
+  },
   socialApproved: {
     id: 3,
     requestId: 3,
@@ -188,6 +207,19 @@ const sampleRequests: { [key: string]: Integration } = {
     prodIdps: ['bceidbasic', 'otp', 'bcservicescard'],
     authType: 'both',
     otpApproved: false,
+  },
+  bcgovidir: {
+    ...sampleRequest,
+    id: 5,
+    projectName: 'BCGOV IDIR Approver',
+    status: 'applied',
+    serviceType: 'gold',
+    environments: ['dev', 'test', 'prod'],
+    devIdps: ['bcgovidir'],
+    testIdps: ['bcgovidir'],
+    prodIdps: ['bcgovidir'],
+    authType: 'both',
+    bcgovidirApproved: false,
   },
 };
 
@@ -540,5 +572,48 @@ describe('IDP Approvals', () => {
     ).toLocaleString()}`;
 
     expect(screen.getByTestId('idp-approved-note')).toHaveTextContent(approvedString);
+  });
+
+  it('BCGOV IDIR Approver', async () => {
+    jest
+      .spyOn(requestModule, 'getRequestAll')
+      .mockImplementationOnce(() => Promise.resolve([{ count: 1, rows: [sampleRequests.bcgovidir] }, null]));
+    jest.spyOn(requestModule, 'updateRequest').mockImplementation(() => Promise.resolve([{}, null]));
+    jest
+      .spyOn(eventModule, 'getEvents')
+      .mockImplementation(() => Promise.resolve([{ count: 1, rows: sampleEventsArray as any }, null]));
+
+    render(
+      <AdminDashboard
+        session={{ ...sampleSession, client_roles: ['bcgovidir-approver'] }}
+        onLoginClick={jest.fn}
+        onLogoutClick={jest.fn}
+      />,
+    );
+
+    await waitFor(() => {
+      screen.getAllByText('BCGOV IDIR Approver');
+    });
+
+    actionButtonsValidations();
+    fireEvent.click(within(screen.getByTestId('admin-dashboard-table')).getByText('BCGOV IDIR Approver'));
+    expect(screen.queryByText('BC Services Card Prod')).not.toBeInTheDocument();
+    expect(screen.queryByText('GitHub Prod')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('BCGOV IDIR Prod'));
+    fireEvent.click(screen.getByRole('button', { name: 'Approve Prod' }));
+    expect(screen.getByText('BCGOV IDIR Approve')).toBeInTheDocument();
+
+    jest
+      .spyOn(requestModule, 'getRequestAll')
+      .mockImplementationOnce(() =>
+        Promise.resolve([{ count: 1, rows: [{ ...sampleRequests.bcgovidir, bcgovidirApproved: true }] }, null]),
+      );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    expect(updateRequest).toHaveBeenCalledWith(expect.objectContaining({ bcgovidirApproved: true }), true);
+    await waitFor(() => {
+      expect(screen.queryByText('BCGOV IDIR Approve')).not.toBeInTheDocument();
+    });
   });
 });

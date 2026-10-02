@@ -32,6 +32,7 @@ interface DataProps {
   hasBceid?: boolean;
   waitingGithubProdApproval?: boolean;
   waitingBcServicesCardProdApproval?: boolean;
+  waitingBcgovIdirProdApproval?: boolean;
   waitingSocialProdApproval?: boolean;
   waitingOTPProdApproval?: boolean;
 }

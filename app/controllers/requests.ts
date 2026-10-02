@@ -41,6 +41,7 @@ import {
   usesOTP,
   usesSdxServices,
   usesBcgovIdir,
+  checkNotBcgovIdir,
   isReservedClientId,
 } from '@app/helpers/integration';
 import { getAccountableEntity } from '@app/shared/templates/helpers';
@@ -235,7 +236,7 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
       idirUserDisplayName: session?.user?.displayName || '',
     };
 
-    createEvent(eventData);
+    await createEvent(eventData);
     await sendTemplate(EMAILS.REQUEST_LIMIT_EXCEEDED, { user: session?.user?.displayName || '' });
     throw new createHttpError.TooManyRequests('reached the day limit');
   }
@@ -461,8 +462,8 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
       ...customConfig,
     };
 
-    if (!mapperExists) createClientScopeMapper({ ...clientScopeMapperPayload } as any);
-    else updateClientScopeMapper({ ...clientScopeMapperPayload, id: mapperExists?.id } as any);
+    if (!mapperExists) await createClientScopeMapper({ ...clientScopeMapperPayload } as any);
+    else await updateClientScopeMapper({ ...clientScopeMapperPayload, id: mapperExists?.id } as any);
   }
 };
 
@@ -953,7 +954,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     await sendTemplate(emailCode, emailData);
 
-    createEvent({
+    await createEvent({
       eventCode: EVENTS.REQUEST_DELETE_SUCCESS,
       requestId: id,
       idirUserid: session?.idir_userid,
@@ -964,7 +965,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
   } catch (err) {
     console.error(err);
 
-    createEvent({
+    await createEvent({
       eventCode: EVENTS.REQUEST_DELETE_FAILURE,
       requestId: id,
       idirUserid: session?.idir_userid,
@@ -1001,6 +1002,7 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   const hasBCSC = usesBcServicesCard(baseData);
   const hasSocial = usesSocial(baseData);
   const hasOTP = usesOTP(baseData);
+  const hasBcgovIdir = usesBcgovIdir(baseData);
 
   // let's use dev's idps until having a env-specific idp selections
   if (baseData?.environments?.includes('test')) baseData.testIdps = baseData.devIdps;
@@ -1023,6 +1025,10 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
 
   if (!baseData.bcServicesCardApproved && hasBCSC) {
     baseData.prodIdps = baseData?.prodIdps?.filter((idp) => !checkBcServicesCard(idp));
+  }
+
+  if (!baseData.bcgovidirApproved && hasBcgovIdir) {
+    baseData.prodIdps = baseData?.prodIdps?.filter(checkNotBcgovIdir);
   }
 
   // prevent the TF from creating GitHub integration in prod environment if not approved

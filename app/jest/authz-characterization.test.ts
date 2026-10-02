@@ -180,6 +180,7 @@ describe('app-role permission expansion (dev baseline)', () => {
     ['social-approver', [...APPROVER_BASE, appPermissions.APPROVE_SOCIAL]],
     ['otp-approver', [...APPROVER_BASE, appPermissions.APPROVE_OTP]],
     ['bc-services-card-approver', [...APPROVER_BASE, appPermissions.APPROVE_BC_SERVICES_CARD]],
+    ['bcgovidir-approver', [...APPROVER_BASE, appPermissions.APPROVE_BCGOVIDIR]],
   ])('expands %s to exactly its own permissions', (role, expected) => {
     expect(getAllAppPermissions([role as string]).sort()).toEqual([...(expected as string[])].sort());
   });
@@ -207,6 +208,7 @@ describe('app-role permission expansion (dev baseline)', () => {
         // Added with organizations: an sso-admin may unpick a misconfigured one.
         appPermissions.MANAGE_ORGANIZATIONS,
         appPermissions.APPROVE_BC_SERVICES_CARD,
+        appPermissions.APPROVE_BCGOVIDIR,
         appPermissions.APPROVE_OTP,
         appPermissions.APPROVE_GITHUB,
         appPermissions.APPROVE_BCEID,
@@ -236,6 +238,7 @@ describe('app-role permission expansion (dev baseline)', () => {
       'social-approver',
       'otp-approver',
       'bc-services-card-approver',
+      'bcgovidir-approver',
     ];
     for (const role of approverRoles) {
       const granted = getAllAppPermissions([role]);

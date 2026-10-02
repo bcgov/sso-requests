@@ -1,7 +1,14 @@
 import styled from 'styled-components';
 import { Tabs } from '@bcgov-sso/common-react-components';
 import { Integration } from 'interfaces/Request';
-import { usesBceid, usesGithub, usesBcServicesCard, usesSocial, usesOTP } from '@app/helpers/integration';
+import {
+  usesBceid,
+  usesBcgovIdir,
+  usesGithub,
+  usesBcServicesCard,
+  usesSocial,
+  usesOTP,
+} from '@app/helpers/integration';
 import AdminRequestPanel from 'page-partials/admin-dashboard/AdminRequestPanel';
 import AdminEventPanel from 'page-partials/admin-dashboard/AdminEventPanel';
 import { LoggedInUser } from 'interfaces/team';
@@ -10,6 +17,7 @@ import GithubTabContent from './GithubTabContent';
 import BcServicesCardTabContent from './BcServicesCardTabContent';
 import SocialTabContent from './SocialTabContent';
 import OTPTabContent from './OTPTabContent';
+import BcgovIdirTabContent from './BcgovIdirTabContent';
 import RoleEnvironment from '@app/page-partials/my-dashboard/RoleManagement/RoleEnvironment';
 import { useState } from 'react';
 import { startCase } from 'lodash';
@@ -19,6 +27,7 @@ import {
   isGithubApprover,
   isOTPApprover,
   isSocialApprover,
+  isBcgovIdirApprover,
 } from '@app/utils/helpers';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
@@ -76,11 +85,15 @@ function AdminTabs({
   const hasOTP = usesOTP(integration);
   const hasOTPProd = hasOTP && hasProd && currentUser && isOTPApprover(currentUser);
 
+  const hasBcgovIdir = usesBcgovIdir(integration);
+  const hasBcgovIdirProd = hasBcgovIdir && hasProd && currentUser && isBcgovIdirApprover(currentUser);
+
   const handleBceidApproved = () => setRows();
   const handleGithubApproved = () => setRows();
   const handleBcServicesCardApproved = () => setRows();
   const handleSocialApproved = () => setRows();
   const handleOTPApproved = () => setRows();
+  const handleBcgovIdirApproved = () => setRows();
 
   const tabs = [
     {
@@ -127,6 +140,13 @@ function AdminTabs({
       key: 'otp-prod',
       label: 'OTP Prod',
       children: <OTPTabContent integration={integration} onApproved={handleOTPApproved} />,
+    });
+  }
+  if (hasBcgovIdirProd) {
+    tabs.push({
+      key: 'bcgovidir-prod',
+      label: 'BCGOV IDIR Prod',
+      children: <BcgovIdirTabContent integration={integration} onApproved={handleBcgovIdirApproved} />,
     });
   }
   if (showEventsTabIf) {

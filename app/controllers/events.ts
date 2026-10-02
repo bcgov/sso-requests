@@ -4,6 +4,7 @@ import {
   getAllowedIdpsForApprover,
   isBceidApprover,
   isBcServicesCardApprover,
+  isBcgovIdirApprover,
   isGithubApprover,
   isOTPApprover,
 } from '@app/utils/helpers';
@@ -66,6 +67,8 @@ export const getEvents = async (
     if (isOTPApprover(session)) approvedKeys.push('otpApproved');
 
     if (isBcServicesCardApprover(session)) approvedKeys.push('bcServicesCardApproved');
+
+    if (isBcgovIdirApprover(session)) approvedKeys.push('bcgovidirApproved');
 
     if (isSocialApprover(session)) approvedKeys.push('socialApproved');
 

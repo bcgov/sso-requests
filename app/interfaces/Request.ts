@@ -72,6 +72,7 @@ export interface Integration {
   digitalCredentialApproved?: boolean;
   otpApproved?: boolean;
   bcServicesCardApproved?: boolean;
+  bcgovidirApproved?: boolean;
   archived?: boolean;
   provisioned?: boolean;
   provisionedAt?: string;

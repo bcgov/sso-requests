@@ -24,6 +24,7 @@ import TableNew from '@app/components/TableNew';
 import ActionButton from '@app/components/ActionButton';
 import { canEditIntegration } from '@app/helpers/permissions';
 import { isResting } from '@app/helpers/transitions';
+import { isEqual } from 'lodash';
 
 const idpOptions = [
   { value: 'idir', label: 'IDIR' },
@@ -105,7 +106,7 @@ const RestoreModalContent = ({
     setError('');
     setSelectedEmail('');
     if (selectedIntegration?.usesTeam) {
-      checkTeamExistence();
+      void checkTeamExistence();
     }
   }, [selectedIntegration?.id]);
 
@@ -258,16 +259,17 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
     });
   };
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     const [data, err] = await getData();
     if (err) {
       setHasError(true);
     } else if (data) {
-      setRows(data.rows);
-      setCount(data.count);
+      setHasError(false);
+      if (!isEqual(rows, data.rows)) setRows(data.rows);
+      if (count !== data.count) setCount(data.count);
     }
-    setLoading(false);
+    if (showLoading) setLoading(false);
   };
 
   useEffect(() => {
@@ -290,15 +292,15 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
         ]);
       }
       setSelectedId(undefined);
-      loadData();
+      void loadData();
     }
   }, [searchKey, limit, page, workflowStatus, selectedIdp, selectedEnvironments, archiveStatus]);
 
   useEffect(() => {
     let interval: any;
     if (hasAnyPendingStatus(rows)) {
-      interval = setTimeout(async () => {
-        await loadData();
+      interval = setTimeout(() => {
+        void loadData(false);
       }, 2000); // Poll every 2 seconds
     }
     return () => {
@@ -328,13 +330,13 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
     await router.push(`/request/${request.id}?status=${request.status}`);
   };
 
-  const handleDelete = async (request: Integration) => {
+  const handleDelete = (request: Integration) => {
     if (!request.id || !canDelete(request)) return;
     setSelectedId(request.id);
     setShowDeleteModal(true);
   };
 
-  const handleRestore = async (request: Integration) => {
+  const handleRestore = (request: Integration) => {
     if (!request.id || !canRestore(request)) return;
     setSelectedId(request.id);
     setShowRestoreModal(false);
