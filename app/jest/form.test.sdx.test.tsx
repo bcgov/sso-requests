@@ -984,9 +984,7 @@ describe('SDX Services Selection Helpers', () => {
 
       const { approvedServiceIds } = getClientServiceState(approved, null, catalog);
 
-      expect(Array.from(approvedServiceIds['non-production'])).toEqual([
-        getServiceId('health-rs', 'status-api', 'v1'),
-      ]);
+      expect(Array.from(approvedServiceIds['non-production'])).toEqual([getServiceId('health-rs', 'status-api', 'v1')]);
     });
 
     it('Keeps a scope-free grant in its authoritative environment', () => {
@@ -1018,9 +1016,7 @@ describe('SDX Services Selection Helpers', () => {
 
       const { approvedServiceIds } = getClientServiceState(approved, null, catalog);
 
-      expect(Array.from(approvedServiceIds['non-production'])).toEqual([
-        getServiceId('shared-rs', 'status-api', 'v1'),
-      ]);
+      expect(Array.from(approvedServiceIds['non-production'])).toEqual([getServiceId('shared-rs', 'status-api', 'v1')]);
       expect(approvedServiceIds.production.size).toBe(0);
     });
   });

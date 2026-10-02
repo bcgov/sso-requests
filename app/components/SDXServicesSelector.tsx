@@ -481,13 +481,15 @@ export default function SDXServicesSelector({
                     [getResourceServerKey(resourceServer), getServiceKey(service), service.version].join('###'),
                   );
                 const selectedInApi = apiScopeIds.filter((scopeId) => selectedScopes.has(scopeId)).length;
-                const selectedServicesInApi = apiServiceIds.filter((serviceId) => selectedServices.has(serviceId)).length;
+                const selectedServicesInApi = apiServiceIds.filter((serviceId) =>
+                  selectedServices.has(serviceId),
+                ).length;
                 const apiSummary =
                   apiScopeIds.length === 0
                     ? `${selectedServicesInApi} of ${apiServiceIds.length} services`
                     : apiServiceIds.length > 0
-                      ? `${selectedInApi} scopes, ${selectedServicesInApi} services`
-                      : `${selectedInApi} of ${apiScopeIds.length} scopes`;
+                    ? `${selectedInApi} scopes, ${selectedServicesInApi} services`
+                    : `${selectedInApi} of ${apiScopeIds.length} scopes`;
 
                 return (
                   <SDXServiceCard key={group.key}>

@@ -969,12 +969,7 @@ describe('SDX APIs', () => {
       setUpSdxApi({
         resourceServers: {
           [NON_PRODUCTION_ENV]: [
-            selectedResourceServer(NON_PRODUCTION_ENV, [
-              'patient.read',
-              'shared.read',
-              'lab.read',
-              'obsolete.read',
-            ]),
+            selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read', 'shared.read', 'lab.read', 'obsolete.read']),
           ],
         },
       });

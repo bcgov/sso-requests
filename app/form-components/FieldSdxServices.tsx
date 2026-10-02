@@ -182,7 +182,9 @@ export function getClientScopeState(
         getServiceScopes(service).forEach((scope) => {
           const scopeLabel = getScopeLabel(scope);
           if (service.version) {
-            matcherKeys[environment].add(getScopeMatcherKey(resourceServerKey, serviceKey, service.version, scopeLabel));
+            matcherKeys[environment].add(
+              getScopeMatcherKey(resourceServerKey, serviceKey, service.version, scopeLabel),
+            );
           } else {
             // Accept pre-APS-4988 responses that did not include a service version.
             serviceScopeKeys[environment].add(getServiceScopeKey(resourceServerKey, serviceKey, scopeLabel));
@@ -258,9 +260,7 @@ export function getClientServiceState(
           exact[environment].add(getServiceId(resourceServerKey, serviceKey, service.version).toLowerCase());
         } else {
           // Accept pre-APS-4988 responses that did not include a service version.
-          versionAgnostic[environment].add(
-            [resourceServerKey, serviceKey].join(SCOPE_ID_SEPARATOR).toLowerCase(),
-          );
+          versionAgnostic[environment].add([resourceServerKey, serviceKey].join(SCOPE_ID_SEPARATOR).toLowerCase());
         }
       });
     });
@@ -553,7 +553,9 @@ const tabItems = (
 ) => [
   {
     key: 'non-production',
-    label: `Non-Production (${(selectedScopesByTab['non-production']?.size ?? 0) + (selectedServicesByTab['non-production']?.size ?? 0)})`,
+    label: `Non-Production (${
+      (selectedScopesByTab['non-production']?.size ?? 0) + (selectedServicesByTab['non-production']?.size ?? 0)
+    })`,
     children: (
       <TabWrapper>
         <SDXServicesSelector
@@ -574,7 +576,9 @@ const tabItems = (
   },
   {
     key: 'production',
-    label: `Production (${(selectedScopesByTab.production?.size ?? 0) + (selectedServicesByTab.production?.size ?? 0)})`,
+    label: `Production (${
+      (selectedScopesByTab.production?.size ?? 0) + (selectedServicesByTab.production?.size ?? 0)
+    })`,
     children: (
       <TabWrapper>
         <SDXServicesSelector
@@ -673,12 +677,7 @@ export default function FieldSdxServices(props: Readonly<FieldTemplateProps>) {
     [pendingServiceIds],
   );
   const persistedSelectedServicesByTab = useMemo(
-    () =>
-      restoreSelectedServicesByTab(
-        formData?.sdxServices,
-        requiredSelectedServiceIds,
-        defaultSelectedServiceIds,
-      ),
+    () => restoreSelectedServicesByTab(formData?.sdxServices, requiredSelectedServiceIds, defaultSelectedServiceIds),
     [formData?.sdxServices, requiredSelectedServiceIds, defaultSelectedServiceIds],
   );
   const [activeTab, setActiveTab] = useState<EnvironmentKey>('non-production');
