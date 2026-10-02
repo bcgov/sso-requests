@@ -620,7 +620,9 @@ export const createAzureIdirUser = async ({
   environment,
   guid,
   userId,
+  idirGuid,
   email,
+  idp,
   firstName,
   lastName,
   displayName,
@@ -630,15 +632,17 @@ export const createAzureIdirUser = async ({
   guid: string;
   userId: string;
   email: string;
+  idirGuid: string;
   firstName: string;
   lastName: string;
   displayName: string;
   upn: string;
+  idp: string;
 }) => {
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
 
   const lowGuid = guid.toLowerCase();
-  const username = `${lowGuid}@azureidir`;
+  const username = `${lowGuid}@${idp}`;
 
   let standardUser = null;
 
@@ -659,7 +663,7 @@ export const createAzureIdirUser = async ({
       lastName,
       attributes: {
         display_name: displayName,
-        idir_user_guid: guid,
+        idir_user_guid: idirGuid,
         idir_username: userId,
         user_principal_name: upn,
       },
@@ -669,11 +673,11 @@ export const createAzureIdirUser = async ({
     await kcAdminClient.users.addToFederatedIdentity({
       realm: 'standard',
       id: standardUser.id,
-      federatedIdentityId: 'azureidir',
+      federatedIdentityId: idp,
       federatedIdentity: {
         userId: lowGuid,
         userName: lowGuid,
-        identityProvider: 'azureidir',
+        identityProvider: idp,
       },
     });
   }

@@ -34,6 +34,7 @@ const idpOptions = [
   { value: 'bcservicescard', label: 'BC Services Card' },
   { value: 'social', label: 'Social' },
   { value: 'otp', label: 'One Time Passcode' },
+  { value: 'bcgovidir', label: 'BCGOV IDIR' },
 ];
 
 const archiveStatusOptions = [

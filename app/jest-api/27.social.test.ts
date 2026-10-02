@@ -32,12 +32,12 @@ jest.mock('@app/queries/request', () => {
 const socialDevIntegration: IntegrationData = {
   ...formDataDev,
   confirmSocial: true,
-  devIdps: ['social', 'azureidir'],
+  devIdps: ['social', 'bcgovidir'],
 };
 
 const socialProdIntegration: IntegrationData = {
   ...formDataProd,
-  devIdps: ['social', 'azureidir'],
+  devIdps: ['social', 'bcgovidir'],
 };
 
 describe('Feature flag', () => {
@@ -90,7 +90,7 @@ describe('Build Github Dispatch', () => {
     expect(processedIntegration?.prodIdps?.includes('social')).toBe(false);
 
     // Only removes from prod
-    expect(processedIntegration?.prodIdps?.includes('azureidir')).toBe(true);
+    expect(processedIntegration?.prodIdps?.includes('bcgovidir')).toBe(true);
     expect(processedIntegration?.testIdps?.includes('social')).toBe(true);
     expect(processedIntegration?.devIdps?.includes('social')).toBe(true);
   });

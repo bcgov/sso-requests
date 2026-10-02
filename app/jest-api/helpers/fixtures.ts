@@ -49,7 +49,7 @@ export const formDataDev: IntegrationData = {
   publicAccess: true,
   devValidRedirectUris: ['https://b'],
   environments: ['dev'],
-  devIdps: ['azureidir'],
+  devIdps: ['bcgovidir'],
   projectLead: true,
   newToSso: true,
   agreeWithTerms: true,
@@ -71,6 +71,12 @@ export const formDataDev: IntegrationData = {
     { lhs: true, rhs: false, kind: 'E', path: ['bceidApproved'] },
     { lhs: 'project-1', rhs: 'project-2', kind: 'E', path: ['projectName'] },
   ],
+  bcgovUnitId: 1,
+  divisionId: 1,
+  description: 'Test description',
+  devHomePageUri: 'https://dev.homepage.uri',
+  testHomePageUri: 'https://test.homepage.uri',
+  prodHomePageUri: 'https://prod.homepage.uri',
 };
 
 export const formDataDevTest: IntegrationData = {
@@ -161,7 +167,7 @@ export const getUpdateIntegrationData = (args: {
   const {
     projectName = args.integration.projectName,
     envs = (args?.integration?.environments as string[])?.length > 1 ? args.integration.environments : ['dev'],
-    identityProviders = (args?.integration?.devIdps as string[])?.length > 1 ? args.integration.devIdps : ['azureidir'],
+    identityProviders = (args?.integration?.devIdps as string[])?.length > 1 ? args.integration.devIdps : ['bcgovidir'],
     protocol = args.integration.protocol || 'oidc',
     authType = args.integration.authType || 'browser-login',
     publicAccess = args.integration.publicAccess || true,
@@ -208,10 +214,13 @@ export const getUpdateIntegrationData = (args: {
     devLoginTitle: '',
     testLoginTitle: '',
     prodLoginTitle: '',
-    devHomePageUri: devHomePageUri ?? '',
-    testHomePageUri: testHomePageUri ?? '',
-    prodHomePageUri: prodHomePageUri ?? '',
+    devHomePageUri: devHomePageUri || 'https://localhost-dev',
+    testHomePageUri: testHomePageUri || 'https://localhost-test',
+    prodHomePageUri: prodHomePageUri || 'https://localhost-prod',
     confirmSocial: true,
+    bcgovUnitId: 1,
+    divisionId: 1,
+    description: 'This is API Unit Testing',
   };
 };
 

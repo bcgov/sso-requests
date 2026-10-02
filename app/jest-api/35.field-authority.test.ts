@@ -40,7 +40,7 @@ const applied = {
   projectName: 'p',
   status: 'applied',
   environments: ['dev', 'test'],
-  devIdps: ['azureidir'],
+  devIdps: ['bcgovidir'],
   devValidRedirectUris: ['https://b', 'https://a'],
   testValidRedirectUris: [],
   teamId: 5,
@@ -51,6 +51,12 @@ const applied = {
   devLoginTitle: null,
   devAccessTokenLifespan: 0,
   updatedAt: new Date('2026-01-01'),
+  bcgovUnitId: 1,
+  divisionId: 1,
+  description: 'Test description',
+  devHomePageUri: 'https://dev.homepage.uri',
+  testHomePageUri: 'https://test.homepage.uri',
+  prodHomePageUri: 'https://prod.homepage.uri',
 };
 
 const merged = { merged: true };
@@ -224,17 +230,17 @@ describe('field authority', () => {
   });
 
   it('needs add-restricted-idps to add a restricted or discontinued IdP, and only to add', () => {
-    expect(() => authorizeChanges(applied, { devIdps: ['azureidir', 'githubpublic'] }, teamAdmin, merged)).toThrow(
+    expect(() => authorizeChanges(applied, { devIdps: ['bcgovidir', 'githubpublic'] }, teamAdmin, merged)).toThrow(
       'not allowed to change: devIdps',
     );
-    expect(() => authorizeChanges(applied, { devIdps: ['azureidir', 'idir'] }, teamAdmin, merged)).toThrow(
+    expect(() => authorizeChanges(applied, { devIdps: ['bcgovidir', 'idir'] }, teamAdmin, merged)).toThrow(
       'not allowed to change: devIdps',
     );
-    expect(authorizeChanges(applied, { devIdps: ['azureidir', 'bceidbasic'] }, teamAdmin, merged)).toEqual(['devIdps']);
-    expect(authorizeChanges({ ...applied, devIdps: ['otp'] }, { devIdps: ['azureidir'] }, teamAdmin, merged)).toEqual([
+    expect(authorizeChanges(applied, { devIdps: ['bcgovidir', 'bceidbasic'] }, teamAdmin, merged)).toEqual(['devIdps']);
+    expect(authorizeChanges({ ...applied, devIdps: ['otp'] }, { devIdps: ['bcgovidir'] }, teamAdmin, merged)).toEqual([
       'devIdps',
     ]);
-    expect(authorizeChanges(applied, { devIdps: ['azureidir', 'githubpublic'] }, admin, merged)).toEqual(['devIdps']);
+    expect(authorizeChanges(applied, { devIdps: ['bcgovidir', 'githubpublic'] }, admin, merged)).toEqual(['devIdps']);
   });
 });
 

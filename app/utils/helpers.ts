@@ -1,4 +1,11 @@
-import { errorMessages, environmentOptions, environments, KC_ENTRA_IDP_REALM } from '@app/utils/constants';
+import {
+  errorMessages,
+  environmentOptions,
+  environments,
+  KC_ENTRA_IDP_REALM,
+  DISCONTINUED_IDPS,
+  RESTRICTED_IDPS,
+} from '@app/utils/constants';
 import { LoggedInUser, Team, User } from '@app/interfaces/team';
 import { Integration, Option, GoldIDPOption, Division, BcgovUnit } from '@app/interfaces/Request';
 import { getStatusDisplayName } from '@app/utils/status';
@@ -29,7 +36,7 @@ import { isSettled } from '@app/helpers/transitions';
 
 export const formatFilters = (idps: Option[], envs: Option[]) => {
   const gold_realms: GoldIDPOption = {
-    idir: ['idir', 'azureidir'],
+    idir: ['idir', 'azureidir', 'bcgovidir'],
     bceid: ['bceidbasic', 'bceidbusiness', 'bceidboth'],
     github: ['githubbcgov', 'githubpublic'],
     digitalCredential: 'digitalcredential',
@@ -364,17 +371,9 @@ export const isIdpApprover = (session: LoggedInUser | null) => {
   return false;
 };
 
-export const getDiscontinuedIdps = () => {
-  return ['idir'];
-};
-
-// IdPs only an admin may add. Removing one, or keeping one that is already
-// there, is a plain edit.
-export const RESTRICTED_IDPS = ['githubpublic', 'otp', KC_ENTRA_IDP_REALM];
-
 export const restrictedIdpsAdded = (currentIdps: readonly string[] = [], updatedIdps: readonly string[] = []) =>
   updatedIdps.filter(
-    (idp) => !currentIdps.includes(idp) && (RESTRICTED_IDPS.includes(idp) || getDiscontinuedIdps().includes(idp)),
+    (idp) => !currentIdps.includes(idp) && (RESTRICTED_IDPS.includes(idp) || DISCONTINUED_IDPS.includes(idp)),
   );
 
 export const getAllowedIdps = () => {

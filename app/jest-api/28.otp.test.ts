@@ -108,7 +108,12 @@ describe('Validations', () => {
   it('Does not allow submission when both OTP and BCSC are selected without a valid homePageUri', async () => {
     process.env.NEXT_PUBLIC_INCLUDE_OTP = 'true';
     process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD = 'true';
-    const result = await submitNewIntegration(otpAndBcscDevIntegration);
+    const result = await submitNewIntegration({
+      ...otpAndBcscDevIntegration,
+      devHomePageUri: '',
+      testHomePageUri: '',
+      prodHomePageUri: '',
+    });
     expect(result.status).toBe(422);
   });
 
