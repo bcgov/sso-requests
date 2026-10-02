@@ -224,6 +224,7 @@ describe('integration email updates for individual users', () => {
         integration,
         hasBceid: true,
         waitingBceidProdApproval: true,
+        waitingBcgovIdirProdApproval: true,
       });
 
       expect(emailList.length).toEqual(1);

@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { Application, KeyCredential } from '@microsoft/microsoft-graph-types';
-import { handleError } from '@app/utils/helpers';
+import { handleError, withApiLogging } from '@app/utils/api';
 import { fetchAllEntraClients } from '@app/queries/entra-client';
 import { getAppRegistrationByAppId, replaceKeyCredentials } from '@app/utils/graph-api';
 import { buildKeyCredential, computeThumbprint } from '@app/utils/entra-helpers';
@@ -13,6 +13,10 @@ import {
   updateRealmKeyProvider,
   RealmKeyCert,
 } from '@app/keycloak/keys';
+
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'api/ms-graph/refreshApplicationKeyCredentials' });
 
 const ENVIRONMENTS = ['dev', 'test', 'prod'];
 
@@ -113,7 +117,7 @@ const rotateEnvironment = async (environment: string): Promise<RotationResult> =
       updated.push({ appId: client.appId, displayName, objectId: appReg.id as string });
     }
   } catch (err) {
-    console.error(`Failed to refresh application key credentials`, err);
+    log.error({ err }, 'Failed to refresh application key credentials');
     // Nothing signs with the new key yet, so restore the previous credentials and drop the standby provider.
     for (const target of updated) {
       try {
@@ -122,12 +126,12 @@ const rotateEnvironment = async (environment: string): Promise<RotationResult> =
           credentialsFor(target.displayName, staleCert ? [staleCert] : []),
         );
       } catch (rollbackErr) {
-        console.error(`Failed to roll back the new key credential on appId ${target.appId}`, rollbackErr);
+        log.error({ err: rollbackErr }, `Failed to roll back the new key credential on appId ${target.appId}`);
       }
     }
 
     await removeRealmKey(environment, newProvider.id, KC_ENTRA_IDP_REALM).catch((removeErr) =>
-      console.error(`Failed to remove the standby PS256 key provider in ${environment}`, removeErr),
+      log.error({ err: removeErr }, `Failed to remove the standby PS256 key provider in ${environment}`),
     );
 
     throw err;
@@ -149,7 +153,7 @@ const rotateEnvironment = async (environment: string): Promise<RotationResult> =
       client.keyThumbprint = newThumbprint;
       await client.save();
     } catch (err) {
-      console.error(`Failed to clean up the previous key credential on appId ${client.appId}`, err);
+      log.error({ err }, `Failed to clean up the previous key credential on appId ${client.appId}`);
       cleanupFailures.push({ appId: client.appId, message: errorMessage(err) });
     }
   }
@@ -162,14 +166,14 @@ const rotateEnvironment = async (environment: string): Promise<RotationResult> =
       priority: ACTIVE_KEY_PRIORITY,
     });
   } catch (err) {
-    console.error(`Failed to retire the previous PS256 key provider in ${environment}`, err);
+    log.error({ err }, `Failed to retire the previous PS256 key provider in ${environment}`);
     cleanupFailures.push({ appId: currentProvider.name, message: errorMessage(err) });
   }
 
   return { environment, rotated: true, clients: clients.length, cleanupFailures };
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method !== 'GET') {
       res.setHeader('Allow', ['GET']);
@@ -194,7 +198,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       try {
         results.push(await rotateEnvironment(env));
       } catch (err) {
-        console.error('Failed to rotate the Entra key credentials in %s', env, err);
+        log.error({ err, environment: env }, 'Failed to rotate the Entra key credentials');
         results.push({ environment: env, rotated: false, clients: 0, message: errorMessage(err), cleanupFailures: [] });
       }
     }
@@ -208,3 +212,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     handleError(res, error);
   }
 }
+
+export default withApiLogging(handler);

@@ -5,6 +5,10 @@ import { EmailOptions } from '@app/shared/interfaces';
 import https from 'https';
 import { envMap, idpMap } from '@app/helpers/meta';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'ches' });
+
 const compactUniq = (v: any) => uniq(compact(v));
 
 const httpsAgent = new https.Agent({
@@ -28,7 +32,7 @@ const fetchChesToken = async (username: string, password: string) => {
     const { access_token: accessToken } = payload.data;
     return [accessToken, null];
   } catch (err) {
-    console.log(err);
+    log.error({ err }, 'fetchChesToken failed');
     return [null, err];
   }
 };

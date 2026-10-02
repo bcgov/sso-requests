@@ -334,7 +334,7 @@ describe('Feature flag', () => {
 
 describe('Build Github Dispatch', () => {
   it('Removes bc services card from production IDP list if not approved yet, but keeps it in dev and test', () => {
-    const processedIntegration = buildGitHubRequestData(bcscProdIntegration);
+    const processedIntegration = buildGitHubRequestData({ ...bcscProdIntegration, bcgovidirApproved: true });
     expect(processedIntegration?.prodIdps?.includes('bcservicescard')).toBe(false);
 
     // Leaves other idp alone

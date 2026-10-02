@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { handleError } from '@app/utils/helpers';
+import { handleError, withApiLogging } from '@app/utils/api';
 import { processUserSession } from '@app/controllers/user';
 import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
 import { createTeam, listTeams } from '@app/controllers/team';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const userSession = await authenticate(req.headers);
     if (!userSession) return res.status(401).json({ success: false, message: 'not authorized' });
@@ -25,3 +25,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     handleError(res, error);
   }
 }
+
+export default withApiLogging(handler);

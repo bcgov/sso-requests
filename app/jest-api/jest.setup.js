@@ -1,3 +1,7 @@
+// Before anything imports the logger; NODE_ENV is forced to development below, which would otherwise mean debug output.
+// Run with LOG_LEVEL=debug to see logs while debugging a test.
+process.env.LOG_LEVEL = process.env.LOG_LEVEL || 'silent';
+
 const { sequelize } = require('@app/shared/sequelize/models/models');
 const { cleanUpDatabaseTables } = require('./helpers/utils');
 require('./helpers/common-mocks');

@@ -41,6 +41,7 @@ env:
   SDX_POLICY_VERSION: SDX.R1.00
   SDX_TO_CSS_SVC_ACCOUNT: sdx-css-tkn-exch-svc-acct
   SDX_TOKEN_EXCH_CLIENT_ID: sdx-rg-pzgw-play
+  LOG_LEVEL: debug
 
 envVars: {}
 

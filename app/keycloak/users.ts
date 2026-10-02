@@ -10,6 +10,10 @@ import { checkIfUserIsServiceAccount } from '@app/helpers/users';
 import { IntegrationData } from '@app/shared/interfaces';
 import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'keycloak/users' });
+
 const getRoleByName = async (kcClient: KcAdminClient, clientId: string, roleName: string) => {
   // @ts-ignore
   const role = await kcClient.clients.findRole({ realm: 'standard', id: clientId, roleName });
@@ -548,7 +552,7 @@ export const updateRole = async (
       },
     );
   } catch (err) {
-    console.error(`Error updating role ${roleName}:`, err);
+    log.error({ err }, `Error updating role ${roleName}`);
     throw new createHttpError.UnprocessableEntity(`failed to update role ${roleName}`);
   }
   return updatedRole;

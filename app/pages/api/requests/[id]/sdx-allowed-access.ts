@@ -1,16 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { authenticate, getConfiguration } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
-import { handleError } from '@app/utils/helpers';
+import { handleError, withApiLogging } from '@app/utils/api';
 import { processUserSession } from '@app/controllers/user';
 import { getSdxServicesForClient, processSdxWorkflowUpdates } from '@app/controllers/sdx-services';
 import jws from 'jws';
 import jwkToPem from 'jwk-to-pem';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'api/requests/sdx-allowed-access' });
+
 const audience = process.env.SDX_TO_CSS_SVC_ACCOUNT || '';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method === 'GET') {
       const userSession = await authenticate(req.headers);
@@ -49,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           issuer,
         }) as JwtPayload;
       } catch (err) {
-        console.error('Error validating token:', err);
+        log.error({ err }, 'Error validating token');
         return res.status(401).json({ success: false, message: 'not authorized' });
       }
 
@@ -66,3 +70,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     handleError(res, error);
   }
 }
+
+export default withApiLogging(handler);

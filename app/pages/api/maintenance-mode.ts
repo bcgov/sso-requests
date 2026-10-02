@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
-import { handleError } from '@app/utils/helpers';
+import { handleError, withApiLogging } from '@app/utils/api';
 import { processUserSession } from '@app/controllers/user';
 import { changeSecret, getInstallation } from '@app/controllers/installation';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method === 'GET') {
       return res.status(200).json({ maintenanceMode: process.env.MAINTENANCE_MODE_ACTIVE === 'true' });
@@ -17,3 +17,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     handleError(res, error);
   }
 }
+
+export default withApiLogging(handler);

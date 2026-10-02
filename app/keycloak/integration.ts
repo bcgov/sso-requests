@@ -24,6 +24,10 @@ import {
 import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
 import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'keycloak/integration' });
+
 const realm = 'standard';
 
 export const openIdClientProfile = (
@@ -405,8 +409,7 @@ export const keycloakClient = async (
     }
     return true;
   } catch (err) {
-    console.error(err);
-    console.trace('Failed to apply integration', (err as Error).message || err);
+    log.error({ err, clientId: integration.clientId }, 'failed to apply integration');
     return false;
   }
 };

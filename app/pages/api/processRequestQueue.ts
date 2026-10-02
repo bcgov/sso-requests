@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { handleError } from '@app/utils/helpers';
+import { handleError, withApiLogging } from '@app/utils/api';
 import { drainWorkflows } from '@app/workflow/orchestrator';
 
 /**
@@ -9,7 +9,7 @@ import { drainWorkflows } from '@app/workflow/orchestrator';
  * the crash-recovery path: it re-claims workflows whose owner died mid-flight (expired lease), workflows
  * waiting out a retry backoff window, and workflows that were persisted but never started.
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method === 'GET') {
       const { Authorization, authorization } = req.headers || {};
@@ -28,3 +28,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     handleError(res, error);
   }
 }
+
+export default withApiLogging(handler);

@@ -2,6 +2,9 @@ import { queryGrafana } from '@/modules/grafana';
 import { createEvent } from '@/utils';
 import { ParsedQs } from 'qs';
 import { injectable } from 'tsyringe';
+import { logger } from '@/logger';
+
+const log = logger.child({ module: 'services/logs' });
 
 @injectable()
 export class LogsService {
@@ -75,7 +78,7 @@ export class LogsService {
       });
       return { status: 200, message, data: parsedLogs };
     } catch (err) {
-      console.info(`Error while fetching logs from loki: ${err}`);
+      log.error({ err, environment: env, clientId }, 'Error while fetching logs from loki');
       await createEvent({
         eventCode: 'logs-download-failure',
         ...eventMeta,

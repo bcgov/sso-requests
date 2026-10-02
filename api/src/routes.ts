@@ -35,6 +35,7 @@ import { isValidEnvironment } from './constants';
 import { ACTIONS, RESOURCES } from '@sso/authz';
 import { ListBceidUsersFilterQuery, ListUserRoleMappingQuery } from './types';
 import { collectApiUsageMetrics } from './middleware/api-usage';
+import { addLogContext } from './logger';
 
 const router = Router();
 
@@ -95,6 +96,7 @@ router.use(async (req: Request, res: Response, next: NextFunction) => {
   // via getAuthContext. Kept for /verify-token and the usage metrics.
   req.teamId = auth?.data?.teamId;
   req.apiClientId = auth?.data?.apiClientId;
+  addLogContext({ apiClientId: req.apiClientId, teamId: req.teamId });
 
   const authz = await getAuthContext(req.apiClientId);
   if (!authz) {

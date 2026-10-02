@@ -21,6 +21,10 @@ import OrganizationMember from './OrganizationMember';
 import OrganizationTeam from './OrganizationTeam';
 import OrganizationIntegrationOverride from './OrganizationIntegrationOverride';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'sequelize' });
+
 const config: any = configs[`${process.env.NODE_ENV || 'development'}`];
 
 export const models: any = {};
@@ -35,7 +39,7 @@ if (config.databaseUrl) {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
-console.log('sequelize initialized', !!sequelize);
+log.debug('sequelize initialized');
 
 [
   Event,
