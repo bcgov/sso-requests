@@ -74,7 +74,9 @@ const resolveMfaUser = async (environment: string, kcAdminClient: any, guid: str
   return await createAzureIdirUser({
     environment,
     guid,
+    idirGuid: guid,
     userId: account.userId || guid,
+    idp: 'azureidir',
     email: account.email as string,
     firstName: account.firstName as string,
     lastName: account.lastName as string,
