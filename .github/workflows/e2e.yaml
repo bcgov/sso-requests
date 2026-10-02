@@ -8,19 +8,17 @@ on:
     paths:
       - app/**
       - docker-compose.yml
-      - github/workflows/e2e.yaml
+      - .github/workflows/e2e.yaml
       - local/terraform/**
 
 env:
-  CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
-  CYPRESS_guid: ${{ secrets.CYPRESS_GUID }}
-  CYPRESS_loginproxy: ${{ secrets.CYPRESS_LOGINPROXY }}
-  CYPRESS_siteminder: ${{ secrets.CYPRESS_SITEMINDER }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   CYPRESS_host: 'http://localhost:3000'
   CYPRESS_smoketest: true
   CYPRESS_localtest: true
   CYPRESS_BASE_URL: 'http://localhost:3000'
+
+permissions:
+  contents: read
 
 jobs:
   smoke-test:
@@ -28,47 +26,65 @@ jobs:
     strategy:
       fail-fast: false
     steps:
+      - name: Mask sensitive Cypress user fields
+        shell: bash
+        env:
+          CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
+        run: |
+          set -euo pipefail
+          # Values are base64-encoded by jq so that credentials containing
+          # newlines survive the read loop intact; ::add-mask:: needs each
+          # value on a single line with %-escaped control characters.
+          encoded=$(jq -r '.[] | (.username, .password, .otpsecret, .email)
+                           | select(. != null and . != "") | @base64' <<< "$CYPRESS_users")
+          if [ -z "$encoded" ]; then
+            echo "::error::No Cypress credentials found to mask; refusing to run with unmasked secrets."
+            exit 1
+          fi
+          while IFS= read -r b64; do
+            val=$(printf '%s' "$b64" | base64 -d)
+            escaped=$(printf '%s' "$val" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g')
+            printf '::add-mask::%s\n' "$escaped"
+          done <<< "$encoded"
       - name: Install Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: 22
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Build TF Modules Docker image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ./Dockerfile.tf-modules
           push: false
           tags: tf-modules-migrator:latest
 
-      - uses: isbang/compose-action@v1.5.1
+      - uses: isbang/compose-action@178aeba5c9dbeed89ffffbb3e6548ec08e9839cf # v1.5.1
         with:
           compose-file: './docker-compose.yml'
+
+      # Dependencies are installed in a step without secrets in scope, so that
+      # package lifecycle scripts cannot read the Cypress credentials.
+      - name: Install app dependencies
+        run: yarn install --frozen-lockfile
+        working-directory: app
+
       - name: E2E Tests
-        uses: cypress-io/github-action@v7.1.6
+        uses: cypress-io/github-action@82482149c343a5dee155d22104111b9319f9dd45 # v7.1.6
         id: smoke
         continue-on-error: false
+        env:
+          CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
+          CYPRESS_guid: ${{ secrets.CYPRESS_GUID }}
+          CYPRESS_loginproxy: ${{ secrets.CYPRESS_LOGINPROXY }}
+          CYPRESS_siteminder: ${{ secrets.CYPRESS_SITEMINDER }}
         with:
           summary-title: 'E2E tests'
           wait-on: 'http://localhost:3000'
           wait-on-timeout: 360
-          install-command: yarn
+          install: false
           working-directory: app
           spec: |
             cypress/e2e/ci/smoke-10-brokenlinks.cy.ts
             cypress/e2e/ci/*.cy.ts
           browser: electron
-
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: cypress-screenshots
-          path: app/cypress/screenshots/**/*
-          if-no-files-found: ignore
-
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: cypress-videos
-          path: app/cypress/videos/**/*
-          if-no-files-found: ignore

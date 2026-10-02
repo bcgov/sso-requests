@@ -6,16 +6,13 @@ on:
     - cron: '0 8 * * 3'
 
 env:
-  CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
-  CYPRESS_guid: ${{ secrets.CYPRESS_GUID }}
-  CYPRESS_loginproxy: ${{ secrets.CYPRESS_LOGINPROXY }}
-  CYPRESS_siteminder: ${{ secrets.CYPRESS_SITEMINDER }}
-  CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   CYPRESS_host: 'https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/'
   CYPRESS_smoketest: false
   CYPRESS_localtest: false
   CYPRESS_BASE_URL: 'https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/'
+
+permissions:
+  contents: read
 
 jobs:
   pre-reqs:
@@ -23,41 +20,57 @@ jobs:
     strategy:
       fail-fast: false # https://github.com/cypress-io/github-action/issues/48
     steps:
+      - name: Mask sensitive Cypress user fields
+        shell: bash
+        env:
+          CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
+        run: |
+          set -euo pipefail
+          # Values are base64-encoded by jq so that credentials containing
+          # newlines survive the read loop intact; ::add-mask:: needs each
+          # value on a single line with %-escaped control characters.
+          encoded=$(jq -r '.[] | (.username, .password, .otpsecret, .email)
+                           | select(. != null and . != "") | @base64' <<< "$CYPRESS_users")
+          if [ -z "$encoded" ]; then
+            echo "::error::No Cypress credentials found to mask; refusing to run with unmasked secrets."
+            exit 1
+          fi
+          while IFS= read -r b64; do
+            val=$(printf '%s' "$b64" | base64 -d)
+            escaped=$(printf '%s' "$val" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g')
+            printf '::add-mask::%s\n' "$escaped"
+          done <<< "$encoded"
+
       # Checkout the PR branch
       - name: Checkout Target Branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
 
+      - name: Install app dependencies
+        run: yarn install --frozen-lockfile
+        working-directory: app
+
       - name: Pre-requisites for test run
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@be1bab96b388bbd9ce3887e397d373c8557e15af # v6.9.2
         id: prereq
         continue-on-error: false
+        env:
+          CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
+          CYPRESS_guid: ${{ secrets.CYPRESS_GUID }}
+          CYPRESS_loginproxy: ${{ secrets.CYPRESS_LOGINPROXY }}
+          CYPRESS_siteminder: ${{ secrets.CYPRESS_SITEMINDER }}
         with:
           summary-title: 'Pre-reqs'
           wait-on: https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/
           wait-on-timeout: 120
-          install-command: yarn
+          install: false
           working-directory: app
           spec: |
             cypress/e2e/**/integration-990-deleteAllIntegrations.cy.ts
           browser: electron
-
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: cypress-screenshots-prereqs
-          path: app/cypress/screenshots/**/*
-          if-no-files-found: ignore
-
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: cypress-videos-prereqs
-          path: app/cypress/videos/**/*
-          if-no-files-found: ignore
 
   idp-stopper:
     runs-on: ubuntu-latest
@@ -65,21 +78,51 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - name: Mask sensitive Cypress user fields
+        shell: bash
+        env:
+          CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
+        run: |
+          set -euo pipefail
+          # Values are base64-encoded by jq so that credentials containing
+          # newlines survive the read loop intact; ::add-mask:: needs each
+          # value on a single line with %-escaped control characters.
+          encoded=$(jq -r '.[] | (.username, .password, .otpsecret, .email)
+                           | select(. != null and . != "") | @base64' <<< "$CYPRESS_users")
+          if [ -z "$encoded" ]; then
+            echo "::error::No Cypress credentials found to mask; refusing to run with unmasked secrets."
+            exit 1
+          fi
+          while IFS= read -r b64; do
+            val=$(printf '%s' "$b64" | base64 -d)
+            escaped=$(printf '%s' "$val" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g')
+            printf '::add-mask::%s\n' "$escaped"
+          done <<< "$encoded"
 
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
 
+      - name: Install app dependencies
+        run: yarn install --frozen-lockfile
+        working-directory: app
+
       - name: E2E Tests
-        uses: cypress-io/github-action@v6
+        uses: cypress-io/github-action@be1bab96b388bbd9ce3887e397d373c8557e15af # v6.9.2
         id: smoke
         continue-on-error: false
+        env:
+          CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
+          CYPRESS_guid: ${{ secrets.CYPRESS_GUID }}
+          CYPRESS_loginproxy: ${{ secrets.CYPRESS_LOGINPROXY }}
+          CYPRESS_siteminder: ${{ secrets.CYPRESS_SITEMINDER }}
         with:
           summary-title: 'E2E tests'
           wait-on: 'https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/'
           wait-on-timeout: 360
-          install-command: yarn
+          install: false
           working-directory: app
           spec: |
             cypress/e2e/external/idpstopper-*.cy.ts
@@ -87,17 +130,3 @@ jobs:
             cypress/e2e/external/integration-roles.cy.ts
             cypress/e2e/ci/integrations-crud.cy.ts
           browser: electron
-
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: cypress-screenshots-idpstopper
-          path: app/cypress/screenshots/**/*
-          if-no-files-found: ignore
-
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: cypress-videos-idpstopper
-          path: app/cypress/videos/**/*
-          if-no-files-found: ignore

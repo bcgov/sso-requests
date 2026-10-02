@@ -17,7 +17,7 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
         cy.visit(Cypress.env('host'));
         cy.contains(home.title);
         home.clickLoginButton();
-        cy.get('#user').type(foundItem.username);
+        cy.get('#user').type(foundItem.username, { log: false });
         cy.get('#password').type(foundItem.password, { log: false });
         cy.get('input[name=btnSubmit]').click();
         cy.contains(home.title);
@@ -35,12 +35,12 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
         const userToken = await utils.getOTPToken(foundItem.otpsecret);
 
         cy.origin('login.microsoftonline.com', { args: { foundItem, userToken } }, ({ foundItem, userToken }) => {
-          cy.get('input[type="email"]').type(foundItem.email, { delay: 15 });
+          cy.get('input[type="email"]').type(foundItem.email, { delay: 15, log: false });
           cy.contains('Next').click();
-          cy.get('input[type="password"]').type(foundItem.password, { delay: 15 });
+          cy.get('input[type="password"]').type(foundItem.password, { delay: 15, log: false });
           cy.contains('Sign in').click();
 
-          cy.get('input[type="tel"]').type(userToken, { delay: 15 });
+          cy.get('input[type="tel"]').type(userToken, { delay: 15, log: false });
           cy.contains('Verify').click();
 
           cy.get('input[type="submit"][value="Yes"]', { timeout: 2000 }).then(($btn) => {

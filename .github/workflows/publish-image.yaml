@@ -21,6 +21,9 @@ env:
   GITHUB_REGISTRY: ghcr.io
   IMAGE_NAME: bcgov/sso-requests
 
+permissions:
+  contents: read
+
 jobs:
   create_release:
     # Only release on push to main
@@ -35,7 +38,7 @@ jobs:
     steps:
       - name: Create Release
         id: release
-        uses: rymndhng/release-on-push-action@v0.28.0
+        uses: rymndhng/release-on-push-action@aebba2bbce07a9474bf95e8710e5ee8a9e922fe2 # v0.28.0
         with:
           bump_version_scheme: 'patch'
           tag_prefix: 'v'
@@ -55,22 +58,28 @@ jobs:
     steps:
       - name: Set tag based on context
         id: set
+        env:
+          RELEASE_TAG: ${{ needs.create_release.outputs.tag }}
         run: |
-          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
-            echo "tag=${{ needs.create_release.outputs.tag }}" >> $GITHUB_OUTPUT
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            if [[ -z "$RELEASE_TAG" ]]; then
+              echo "::error::No release tag was produced for main; refusing to publish an untagged image."
+              exit 1
+            fi
+            echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
           else
-            echo "tag=dev" >> $GITHUB_OUTPUT
+            echo "tag=dev" >> "$GITHUB_OUTPUT"
           fi
 
   build-and-push-images-and-deploy:
-    permissions: write-all
+    permissions:
+      contents: read
+      packages: write
     runs-on: ubuntu-24.04
     needs: set-tag
-    if: always()
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Print tag
         run: |
@@ -208,38 +217,38 @@ jobs:
           EOF
 
       - name: Log in to the GitHub Container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ${{ env.GITHUB_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache Docker layers for SSO Requests Cron
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: /tmp/.buildx-cache-sso-requests-cron
           key: ${{ runner.os }}-buildx-sso-requests-cron-${{ github.sha }}
           restore-keys: ${{ runner.os }}-buildx-sso-requests-cron-
 
       - name: Cache Docker layers for SSO Requests API
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: /tmp/.buildx-cache-sso-requests-api
           key: ${{ runner.os }}-buildx-sso-requests-api-${{ github.sha }}
           restore-keys: ${{ runner.os }}-buildx-sso-requests-api-
 
       - name: Cache Docker layers for SSO Requests
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: /tmp/.buildx-cache-sso-requests
           key: ${{ runner.os }}-buildx-sso-requests-${{ github.sha }}
           restore-keys: ${{ runner.os }}-buildx-sso-requests-
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - name: Build and Push SSO Requests Docker image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           build-args: |
             NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }}
@@ -270,11 +279,12 @@ jobs:
         # https://github.com/docker/build-push-action/issues/252
         # https://github.com/moby/buildkit/issues/1896
       - name: Move cache
-        run: rm -rf /tmp/.buildx-cache-sso-requests
+        run: |
+          rm -rf /tmp/.buildx-cache-sso-requests
           mv /tmp/.buildx-cache-sso-requests-new /tmp/.buildx-cache-sso-requests
 
       - name: Build and Push SSO Requests Cron Docker image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: ./cron
           push: true
@@ -283,11 +293,12 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache-sso-requests-cron-new,mode=max
 
       - name: Move cache
-        run: rm -rf /tmp/.buildx-cache-sso-requests-cron
+        run: |
+          rm -rf /tmp/.buildx-cache-sso-requests-cron
           mv /tmp/.buildx-cache-sso-requests-cron-new /tmp/.buildx-cache-sso-requests-cron
 
       - name: Build and Push SSO Requests API Docker image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           # Root context: the api compiles @sso/authz from packages/, which sits
           # outside ./api and would not otherwise be in the build context.
@@ -299,23 +310,23 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache-sso-requests-api-new,mode=max
 
       - name: Move cache
-        run: rm -rf /tmp/.buildx-cache-sso-requests-api
+        run: |
+          rm -rf /tmp/.buildx-cache-sso-requests-api
           mv /tmp/.buildx-cache-sso-requests-api-new /tmp/.buildx-cache-sso-requests-api
 
       - name: Install CLI tools from OpenShift Mirror
-        uses: redhat-actions/openshift-tools-installer@v1
+        uses: redhat-actions/openshift-tools-installer@144527c7d98999f2652264c048c7a9bd103f8a82 # v1.13.1
         with:
           source: mirror
           kam: latest
           oc: 4.18.7
 
       - name: Authenticate and set context
-        uses: redhat-actions/oc-login@v1
+        uses: redhat-actions/oc-login@5eb45e848b168b6bf6b8fe7f1561003c12e3c99d # v1.3
         with:
           openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
           namespace: ${{ env.OPENSHIFT_NAMESPACE }}
-          insecure_skip_tls_verify: true
 
       - name: Deploy app with Helm chart
         run: |
