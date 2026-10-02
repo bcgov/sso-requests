@@ -70,7 +70,7 @@ jobs:
         working-directory: app
 
       - name: Install Cypress binary
-        run: yarn cypress install
+        run: ./node_modules/.bin/cypress install
         working-directory: app
 
       - name: E2E Tests
