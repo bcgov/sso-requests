@@ -22,6 +22,10 @@ import { generateInstallation, updateClientSecret } from '../keycloak/installati
 import createHttpError from 'http-errors';
 import { teamPermissions } from '@app/utils/authorize';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'controllers/team' });
+
 export const listTeams = async (user: User) => {
   const result = await findTeamsForUser(user.id, { raw: true });
   return result;
@@ -391,7 +395,7 @@ export const deleteServiceAccount = async (session: Session, teamId: number, saI
 
     return serviceAccount;
   } catch (err) {
-    console.log(err);
+    log.error({ err }, 'deleteServiceAccount failed');
 
     createEvent({
       eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_FAILURE,

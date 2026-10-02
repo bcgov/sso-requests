@@ -86,7 +86,7 @@ describe('Agrees to terms', () => {
 
 describe('Build Github Dispatch', () => {
   it('Removes social IDPs from production IDP list if not approved yet, but keeps it in dev and test', () => {
-    const processedIntegration = buildGitHubRequestData(socialProdIntegration);
+    const processedIntegration = buildGitHubRequestData({ ...socialProdIntegration, bcgovidirApproved: true });
     expect(processedIntegration?.prodIdps?.includes('social')).toBe(false);
 
     // Only removes from prod

@@ -23,6 +23,10 @@ import { getEmailTemplate, isNonProdDigitalCredentialRequest } from './helpers';
 import disableBcscIdp from './disable-bcsc-idp';
 import teamMemberAdded from './team-member-added';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'email-templates' });
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/app';
 const APP_ENV = process.env.NEXT_PUBLIC_APP_ENV || 'development';
@@ -187,7 +191,7 @@ const createEvent = async (data: any) => {
   try {
     await models.event.create(data);
   } catch (err) {
-    console.log(err);
+    log.error({ err }, 'createEvent failed');
   }
 };
 
@@ -198,8 +202,7 @@ export const sendTemplate = async (code: string, data: any) => {
 
     await builder.send(data, rendered);
   } catch (err) {
-    console.error(code, data);
-    console.error(err);
+    log.error({ err, emailCode: code, requestId: data?.integration?.id }, 'failed to send email');
 
     if (data.integration) {
       await createEvent({

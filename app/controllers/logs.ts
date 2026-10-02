@@ -4,6 +4,10 @@ import { clientEventsAggregationQuery, queryGrafana } from '@app/utils/grafana';
 import { createEvent } from '@app/queries/event';
 import { EVENTS } from '@app/shared/enums';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'controllers/logs' });
+
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
 // Loki limit lower in sandbox.
@@ -71,7 +75,7 @@ export const fetchLogs = async (
     });
     return { status: 200, message, data: parsedLogs };
   } catch (err) {
-    console.info(`Error while fetching logs from loki: ${err}`);
+    log.info({ err }, 'Error while fetching logs from loki');
     await createEvent({
       eventCode: EVENTS.LOGS_DOWNLOADED_FAILURE,
       ...eventMeta,
@@ -115,7 +119,7 @@ export const fetchMetrics = async (
 
     return { status: 200, message: null, data: result };
   } catch (err) {
-    console.error(err);
+    log.error({ err }, 'fetchMetrics failed');
     return { status: 500, message: 'Unable to fetch metrics at this moment!', data: null };
   }
 };

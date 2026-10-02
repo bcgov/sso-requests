@@ -16,9 +16,12 @@ jest.mock('@app/utils/helpers', () => {
     getBCSCEnvVars: jest.fn(() => {
       return {};
     }),
-    getRequiredBCSCScopes: jest.fn(() => Promise.resolve([])),
   };
 });
+
+jest.mock('@app/utils/server-helpers', () => ({
+  getRequiredBCSCScopes: jest.fn(() => Promise.resolve([])),
+}));
 
 describe('BCSC API Callouts', () => {
   beforeEach(() => {

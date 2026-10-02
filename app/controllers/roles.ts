@@ -18,6 +18,10 @@ import { Session } from '@app/shared/interfaces';
 import { Integration } from '@app/interfaces/Request';
 import { previewRoleReplication, replicateRolesToMfa } from '@app/keycloak/roleReplication';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'controllers/roles' });
+
 // The integration a role operation targets, or 403. Writing operations keep
 // the canCreateOrDeleteRoles status guard after this until the transition
 // table replaces it.
@@ -88,7 +92,7 @@ export const bulkCreateClientRoles = async (
     }
     return envResults;
   } catch (err) {
-    console.error('bulkCreateClientRoles', err);
+    log.error({ err }, 'bulkCreateClientRoles');
     throw new createHttpError.UnprocessableEntity('unable to create roles');
   }
 };

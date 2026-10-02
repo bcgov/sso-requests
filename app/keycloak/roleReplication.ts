@@ -5,6 +5,10 @@ import { createAzureIdirUser } from './users';
 import { verifyAzureIdirAccountByGuid } from '@app/utils/graph-api';
 import { Integration } from '@app/interfaces/Request';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'keycloak/roleReplication' });
+
 const MAX_CLIENT_ROLE_COUNT = 5000;
 // Small parallel batches so we don't hammer Keycloak/MS Graph at once.
 const REPLICATION_BATCH_SIZE = 8;
@@ -163,7 +167,7 @@ const replicateRoleForUsers = async (
 
           return { ...base, status: 'REPLICATED' };
         } catch (err: any) {
-          console.error('error replicating role:', err);
+          log.error({ err }, 'error replicating role');
           return { ...base, status: 'ERROR' };
         }
       }),
