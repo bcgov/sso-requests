@@ -263,7 +263,7 @@ afterAll(() => {
 
 const bcscProdIntegration: IntegrationData = {
   ...formDataProd,
-  devIdps: ['bcservicescard', 'azureidir'],
+  devIdps: ['bcservicescard', 'bcgovidir'],
   bcscPrivacyZone: 'zone',
   bcscAttributes: ['age'],
   primaryEndUsers: [],
@@ -274,7 +274,7 @@ const bcscProdIntegration: IntegrationData = {
 
 const bcscDevIntegration: IntegrationData = {
   ...formDataDev,
-  devIdps: ['bcservicescard', 'azureidir'],
+  devIdps: ['bcservicescard', 'bcgovidir'],
   bcscPrivacyZone: 'zone',
   bcscAttributes: ['age'],
   primaryEndUsers: [],
@@ -338,7 +338,7 @@ describe('Build Github Dispatch', () => {
     expect(processedIntegration?.prodIdps?.includes('bcservicescard')).toBe(false);
 
     // Leaves other idp alone
-    expect(processedIntegration?.prodIdps?.includes('azureidir')).toBe(true);
+    expect(processedIntegration?.prodIdps?.includes('bcgovidir')).toBe(true);
 
     // Keeps BCSC in dev and test
     expect(processedIntegration?.testIdps?.includes('bcservicescard')).toBe(true);

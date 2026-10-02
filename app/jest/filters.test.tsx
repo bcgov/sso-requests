@@ -19,7 +19,6 @@ const allEnvironmentOptions = [
 describe('Format filters', () => {
   it('Should return the expected format', () => {
     const [devIdps, realms, environments] = formatFilters(allIdpOptions, allEnvironmentOptions);
-    console.log('🚀 ~ devIdps:', devIdps);
     expect(devIdps).toEqual([
       'idir',
       'azureidir',

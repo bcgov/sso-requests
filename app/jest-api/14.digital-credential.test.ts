@@ -49,9 +49,9 @@ const mockIntegration: IntegrationData = {
   devValidRedirectUris: [],
   testValidRedirectUris: [],
   prodValidRedirectUris: [],
-  devIdps: ['digitalcredential', 'azureidir'],
-  testIdps: ['digitalcredential', 'azureidir'],
-  prodIdps: ['digitalcredential', 'azureidir'],
+  devIdps: ['digitalcredential', 'bcgovidir'],
+  testIdps: ['digitalcredential', 'bcgovidir'],
+  prodIdps: ['digitalcredential', 'bcgovidir'],
   devRoles: [],
   testRoles: [],
   prodRoles: [],
@@ -78,6 +78,12 @@ const mockIntegration: IntegrationData = {
   testSamlSignAssertions: false,
   prodSamlSignAssertions: false,
   primaryEndUsers: [],
+  bcgovUnitId: 1,
+  divisionId: 1,
+  description: 'Digital Credential integration for testing purposes',
+  devHomePageUri: 'https://a',
+  testHomePageUri: 'https://a',
+  prodHomePageUri: 'https://a',
 };
 
 const OLD_ENV = process.env;
@@ -100,10 +106,16 @@ describe('Digital Credential Validations', () => {
   });
 
   it('Only allows Digital Credential as an IDP for OIDC integrations', async () => {
-    const samlResult = await submitNewIntegration({ ...mockIntegration, protocol: 'saml' });
+    const samlResult = await submitNewIntegration({
+      ...mockIntegration,
+      protocol: 'saml',
+    });
     expect(samlResult.status).toBe(422);
 
-    const oidcResult = await submitNewIntegration({ ...mockIntegration, protocol: 'oidc' });
+    const oidcResult = await submitNewIntegration({
+      ...mockIntegration,
+      protocol: 'oidc',
+    });
     expect(oidcResult.status).toBe(200);
   });
 });

@@ -476,7 +476,7 @@ describe('integration email updates for individual users', () => {
       let updateIntegrationRes = await updateIntegration(
         getUpdateIntegrationData({
           integration,
-          identityProviders: ['azureidir', 'bceidbasic'],
+          identityProviders: ['bcgovidir', 'bceidbasic'],
         }),
         true,
       );

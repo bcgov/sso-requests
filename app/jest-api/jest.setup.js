@@ -17,6 +17,8 @@ process.env.WORKFLOW_MAX_STEP_ATTEMPTS = '1';
 process.env.WORKFLOW_RETRY_BASE_DELAY_MS = '0';
 process.env.WORKFLOW_RETRY_MAX_DELAY_MS = '0';
 
+process.env.NEXT_PUBLIC_INCLUDE_BCGOVIDIR = 'true';
+
 beforeAll(async () => {
   await cleanUpDatabaseTables();
 });

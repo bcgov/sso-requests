@@ -97,7 +97,7 @@ describe('create/manage integrations by authenticated user', () => {
     let result = await updateIntegration(
       getUpdateIntegrationData({
         integration,
-        identityProviders: ['azureidir', 'bceidbasic'],
+        identityProviders: ['bcgovidir', 'bceidbasic'],
         envs: ['dev', 'test', 'prod'],
         publicAccess: true,
       }),

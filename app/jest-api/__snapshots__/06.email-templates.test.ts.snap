@@ -177,7 +177,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
-<strong>Identity Providers: </strong>IDIR - MFA<br />
+<strong>Identity Providers: </strong>BCGOV IDIR<br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -230,7 +230,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
-<strong>Identity Providers: </strong>IDIR - MFA<br />
+<strong>Identity Providers: </strong>BCGOV IDIR<br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -281,7 +281,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
-<strong>Identity Providers: </strong>IDIR - MFA<br />
+<strong>Identity Providers: </strong>BCGOV IDIR<br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -334,7 +334,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
-<strong>Identity Providers: </strong>IDIR - MFA<br />
+<strong>Identity Providers: </strong>BCGOV IDIR<br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -386,7 +386,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
-<strong>Identity Providers: </strong>IDIR - MFA<br />
+<strong>Identity Providers: </strong>BCGOV IDIR<br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -486,7 +486,7 @@ exports[`Email template snapshots Should return the expected email for DELETE_IN
 <p>Below is a summary of your deleted integration:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
-<strong>Identity Providers: </strong>IDIR - MFA<br />
+<strong>Identity Providers: </strong>BCGOV IDIR<br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -600,7 +600,7 @@ exports[`Email template snapshots Should return the expected email for PROD_APPR
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
-<strong>Identity Providers: </strong>IDIR - MFA<br />
+<strong>Identity Providers: </strong>BCGOV IDIR<br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -649,7 +649,7 @@ exports[`Email template snapshots Should return the expected email for PROD_APPR
 <p>Below is a summary of your integration request details:</p>
 <strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
-<strong>Identity Providers: </strong>IDIR - MFA<br />
+<strong>Identity Providers: </strong>BCGOV IDIR<br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -820,7 +820,7 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
 <h4>Final details summary:</h4>
 <blockquote><strong>Project name: </strong>test<br />
 <strong>Primary End Users: </strong>None Selected<br />
-<strong>Identity Providers: </strong>IDIR - MFA<br />
+<strong>Identity Providers: </strong>BCGOV IDIR<br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />

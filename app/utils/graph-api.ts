@@ -1,6 +1,7 @@
 import {
   CYPRESS_MOCKED_IDIR_LOOKUP,
   ENTRA_CUSTOM_CLAIM_MAPPING_POLICY_ID,
+  KC_ENTRA_IDP_REALM,
   MS_GRAPH_API_VERSION,
   MS_GRAPH_URL,
 } from './constants';
@@ -252,7 +253,8 @@ export const validateIdirEmail = async (email: string) => {
   }
 };
 
-const formatUser = (data: MsGraphUserValue) => {
+const formatUser = (data: MsGraphUserValue, idp?: string) => {
+  const id = data.id;
   const userId = data.mailNickname;
   const guid = data.onPremisesExtensionAttributes.extensionAttribute12;
   const email = data.mail;
@@ -265,6 +267,7 @@ const formatUser = (data: MsGraphUserValue) => {
   const jobTitle = data.jobTitle;
   const userPrincipalName = data.userPrincipalName;
   return {
+    id,
     guid,
     userId,
     email,
@@ -280,14 +283,14 @@ const formatUser = (data: MsGraphUserValue) => {
 };
 
 /** Search for an IDIR user by any field and value. Search expects the actual value to start with the provided value. */
-export const searchIdirUsers = async ({ field, search }: { field: string; search: string }) => {
+export const searchIdirUsers = async ({ field, search, idp }: { field: string; search: string; idp: string }) => {
   if (!['givenName', 'surname', 'mail', 'mailNickname'].includes(field)) {
     throw new Error('Allowed search fields are givenName, surname, mail, mailNickname');
   }
   try {
-    const url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=startswith(${field},'${search}')&$top=100&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName`;
+    const url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=startswith(${field},'${search}')&$top=100&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName,id`;
     const response = (await callAzureGraphApi(url)) as MsGraphUserResponse;
-    const formattedUsers = response.value.map(formatUser);
+    const formattedUsers = response.value.map((user) => formatUser(user, idp));
     return formattedUsers;
   } catch (err) {
     console.error('Failed searching Azure IDIR users from Graph API:', err);
@@ -305,7 +308,7 @@ export const verifyAzureIdirAccountByGuid = async (guid: string) => {
     // OData string literals delimit with single quotes; escape any embedded single quote by
     // doubling it (the OData standard) so the GUID cannot break out of the filter expression.
     const escapedGuid = guid.replace(/'/g, "''");
-    const url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=onPremisesExtensionAttributes/extensionAttribute12 eq '${escapedGuid}'&$count=true&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName`;
+    const url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=onPremisesExtensionAttributes/extensionAttribute12 eq '${escapedGuid}'&$count=true&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName,id`;
     const response = (await callAzureGraphApi(url)) as MsGraphUserResponse;
     const match = response?.value?.find(
       (user) => user.onPremisesExtensionAttributes?.extensionAttribute12?.toLowerCase() === guid.toLowerCase(),
@@ -319,19 +322,33 @@ export const verifyAzureIdirAccountByGuid = async (guid: string) => {
 };
 
 /** Import a user into the keycloak instances for all envs. */
-export const importIdirUser = async ({ guid, userId }: { guid: string; userId: string }) => {
-  if (!guid || !userId) {
+export const importIdirUser = async ({
+  guid,
+  userId,
+  idirGuid,
+  idp,
+}: {
+  guid: string;
+  userId: string;
+  idirGuid: string;
+  idp: string;
+}) => {
+  if (!guid || !userId || !idirGuid || !idp) {
     throw new Error('Missing required user data');
   }
 
   try {
-    const url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=mailNickname eq '${userId}'&$select=onPremisesExtensionAttributes,displayName,mail,givenName,surname,userPrincipalName`;
+    const url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=mailNickname eq '${userId}'&$select=onPremisesExtensionAttributes,displayName,mail,givenName,surname,userPrincipalName,id`;
     const response = (await callAzureGraphApi(url)) as MsGraphUserResponse;
 
     if (!response?.value?.length) {
       return false;
     }
-    const result = response.value.find((user) => user.onPremisesExtensionAttributes.extensionAttribute12 === guid);
+    const result = response.value.find((user) =>
+      idp === KC_ENTRA_IDP_REALM
+        ? user.id === guid.toLocaleLowerCase()
+        : user.onPremisesExtensionAttributes.extensionAttribute12 === guid,
+    );
     if (!result) return false;
 
     await Promise.all(
@@ -340,6 +357,8 @@ export const importIdirUser = async ({ guid, userId }: { guid: string; userId: s
           environment: env,
           guid,
           userId,
+          idirGuid,
+          idp,
           email: result.mail,
           firstName: result.givenName,
           lastName: result.surname,
@@ -349,8 +368,8 @@ export const importIdirUser = async ({ guid, userId }: { guid: string; userId: s
       ),
     );
   } catch (err) {
-    console.error('Failed to import Azure IDIR user from Graph API:', err);
-    throw new createHttpError.UnprocessableEntity('Failed to import Azure IDIR user');
+    console.error('Failed to import user from Graph API:', err);
+    throw new createHttpError.UnprocessableEntity('Failed to import user fromGraph API ');
   }
 };
 

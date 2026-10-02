@@ -50,6 +50,9 @@ jest.mock('@app/queries/custom-requests', () => ({
   doSkipPrivacyZoneScope: jest.fn(() => Promise.resolve(true)),
 }));
 
+jest.unmock('@app/queries/bcgov-unit');
+jest.unmock('@app/queries/division');
+
 const requests = jest.requireActual('@app/controllers/requests') as typeof import('@app/controllers/requests');
 const graphApi = jest.requireMock('@app/utils/graph-api') as jest.Mocked<typeof import('@app/utils/graph-api')>;
 const idp = jest.requireMock('@app/keycloak/idp') as jest.Mocked<typeof import('@app/keycloak/idp')>;
@@ -138,20 +141,20 @@ beforeEach(() => {
 // validateIDPs no longer reads the session: the caller says whether the actor
 // may add a restricted IdP. bcgovidir is one of them.
 describe('bcgovidir idp permissions', () => {
-  it('does not allow regular users to add the bcgovidir identity provider', () => {
+  it('does allow regular users to add the bcgovidir identity provider', () => {
     const isValid = validateIDPs({
-      currentIdps: ['azureidir'],
-      updatedIdps: ['azureidir', KC_ENTRA_IDP_REALM],
+      currentIdps: ['digitalcredential'],
+      updatedIdps: ['digitalcredential', KC_ENTRA_IDP_REALM],
       canAddRestrictedIdps: false,
     });
 
-    expect(isValid).toBe(false);
+    expect(isValid).toBe(true);
   });
 
   it('allows an actor who may add restricted idps to add the bcgovidir identity provider', () => {
     const isValid = validateIDPs({
-      currentIdps: ['azureidir'],
-      updatedIdps: ['azureidir', KC_ENTRA_IDP_REALM],
+      currentIdps: ['digitalcredential'],
+      updatedIdps: ['digitalcredential', KC_ENTRA_IDP_REALM],
       canAddRestrictedIdps: true,
     });
 

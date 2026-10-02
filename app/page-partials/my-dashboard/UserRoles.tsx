@@ -22,6 +22,7 @@ import { Col, Row } from 'react-bootstrap';
 import ActionButton from '@app/components/ActionButton';
 import { searchIdirUsers, importIdirUser } from 'services/bceid-webservice';
 import { importAzureIdirUser, searchAzureIdirUsers } from '@app/services/ms-graph';
+import { KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 
 const Label = styled.label`
   font-weight: bold;
@@ -211,6 +212,7 @@ const fetchIdpUsers = async ({ idp, userQuery }: { idp: string; userQuery: { pro
     const [data, err] = await searchAzureIdirUsers({
       field: userQuery.property,
       search: userQuery.value,
+      idp,
     });
     if (err) return [null, err];
     return [data, null];
@@ -232,6 +234,8 @@ const importUserToKeycloak = async (user: KeycloakUser & { source: string }) => 
     await importAzureIdirUser({
       guid: user.username.split('@')[0].toUpperCase(),
       userId: user.attributes['idir_username'] || '',
+      idirGuid: user.attributes['idir_user_id'].toUpperCase() || '',
+      idp: user.username.split('@')[1],
     });
   }
 };
@@ -263,7 +267,9 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [selectedIdp, setSelectedIdp] = useState<string>(selectedRequest.devIdps[0]);
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [searchKey, setSearchKey] = useState<string>('');
-  const [selectedUser, setSelectedUser] = useState<(KeycloakUser & { source: string }) | undefined>(undefined);
+  const [selectedUser, setSelectedUser] = useState<(KeycloakUser & { id: string; source: string }) | undefined>(
+    undefined,
+  );
   const [userAssignmentError, setUserAssignmentError] = useState(false);
   const surveyContext = useContext(SurveyContext);
 
@@ -460,7 +466,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
     if (data && data?.count > 0) users.push(...(data?.rows.map((u) => ({ ...u, source: 'keycloak' })) || []));
 
-    if (['idir', 'azureidir'].includes(selectedIdp)) {
+    if (['idir', 'azureidir', KC_ENTRA_IDP_REALM].includes(selectedIdp)) {
       const userGuids = new Set(users.map((u) => u.username.split('@')[0].toLowerCase()));
       const [idpUsers, err] = await fetchIdpUsers({
         idp: selectedIdp,
@@ -468,7 +474,11 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       });
 
       if (!err && idpUsers && idpUsers?.length > 0) {
-        const filteredIdpUsers = idpUsers?.filter((u) => u.guid && !userGuids.has(u.guid.toLowerCase())) || [];
+        const filteredIdpUsers =
+          idpUsers?.filter((u) => {
+            let userProp = selectedIdp === KC_ENTRA_IDP_REALM ? u.id!.toLowerCase() : u.guid.toLowerCase();
+            return userProp && !userGuids.has(userProp);
+          }) || [];
         users.push(
           ...(filteredIdpUsers.map((u: any) => {
             const attributes: any = {
@@ -477,13 +487,15 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
               displayName: u.displayName,
             };
 
-            if (selectedIdp === 'azureidir') {
+            if (['azureidir', KC_ENTRA_IDP_REALM].includes(selectedIdp)) {
               attributes['userPrincipalName'] = u.userPrincipalName;
             }
 
             return {
               source: 'idp',
-              username: `${u.guid.toLowerCase()}@${selectedIdp}`,
+              username: `${
+                selectedIdp === KC_ENTRA_IDP_REALM ? u.id!.toLowerCase() : u.guid.toLowerCase()
+              }@${selectedIdp}`,
               firstName: u.firstName,
               lastName: u.lastName,
               email: u.email,

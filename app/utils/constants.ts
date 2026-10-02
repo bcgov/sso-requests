@@ -499,4 +499,4 @@ export const DISCONTINUED_IDPS = ['idir', 'azureidir'];
 
 // IdPs only an admin may add. Removing one, or keeping one that is already
 // there, is a plain edit.
-export const RESTRICTED_IDPS = ['githubpublic', 'otp', KC_ENTRA_IDP_REALM];
+export const RESTRICTED_IDPS = ['githubpublic', 'otp'];
