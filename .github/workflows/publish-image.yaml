@@ -77,7 +77,8 @@ jobs:
       packages: write
     runs-on: ubuntu-24.04
     needs: set-tag
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    # A status function is required: create_release is skipped on dev, and a skipped upstream job would otherwise skip this one.
+    if: ${{ !cancelled() && needs.set-tag.result == 'success' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
