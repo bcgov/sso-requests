@@ -10,7 +10,7 @@
       "protocol": "oidc",
       "authtype": "browser-login",
       "publicaccess": "true",
-      "identityprovider": ["IDIR - MFA"],
+      "identityprovider": ["GitHub BC Gov"],
       "additionalroleattribute": "tbd",
       "environments": ["dev", "test"],
       "displayheader": false,
@@ -25,7 +25,7 @@
       "agreeWithTermstrue": true,
       "submit": true,
       "confirm": true,
-      "description": "Role Test: OIDC-Browser-Login-Public-IDIR - MFA"
+      "description": "Role Test: OIDC-Browser-Login-Public-Github BC Gov"
     },
     "devroles": {
       "add": [
@@ -220,7 +220,7 @@
       "protocol": "oidc",
       "authtype": "browser-login",
       "publicaccess": "true",
-      "identityprovider": ["IDIR - MFA"],
+      "identityprovider": ["GitHub BC Gov"],
       "additionalroleattribute": "tbd",
       "environments": ["dev", "test"],
       "displayheader": false,
@@ -346,7 +346,7 @@
       "protocol": "oidc",
       "authtype": "service-account",
       "publicaccess": null,
-      "identityprovider": ["IDIR - MFA"],
+      "identityprovider": ["GitHub BC Gov"],
       "environments": ["dev", "test"],
       "displayheader": false,
       "displayheadertest": false,
@@ -360,7 +360,7 @@
       "agreeWithTermstrue": true,
       "submit": true,
       "confirm": true,
-      "description": "Role Test: OIDC-Service-Account--IDIR - MFA"
+      "description": "Role Test: OIDC-Service-Account--Github BC Gov"
     },
     "devroles": {
       "add": [
@@ -554,7 +554,7 @@
       "protocol": "oidc",
       "authtype": "service-account",
       "publicaccess": null,
-      "identityprovider": ["IDIR - MFA"],
+      "identityprovider": ["GitHub BC Gov"],
       "environments": ["dev", "test"],
       "displayheader": false,
       "displayheadertest": false,
@@ -679,7 +679,7 @@
       "protocol": "saml",
       "authtype": "browser-login",
       "publicaccess": "true",
-      "identityprovider": ["IDIR - MFA"],
+      "identityprovider": ["GitHub BC Gov"],
       "additionalroleattribute": "tbd",
       "environments": ["dev", "test"],
       "displayheader": false,
@@ -694,7 +694,7 @@
       "agreeWithTermstrue": true,
       "submit": true,
       "confirm": true,
-      "description": "Role Test: SAML-Browser-Login-Public-IDIR - MFA"
+      "description": "Role Test: SAML-Browser-Login-Public-Github BC Gov"
     },
     "devroles": {
       "add": [
@@ -889,7 +889,7 @@
       "protocol": "saml",
       "authtype": "browser-login",
       "publicaccess": "true",
-      "identityprovider": ["IDIR - MFA"],
+      "identityprovider": ["GitHub BC Gov"],
       "additionalroleattribute": "tbd",
       "environments": ["dev", "test"],
       "displayheader": false,

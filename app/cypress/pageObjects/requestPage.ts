@@ -74,7 +74,7 @@ class RequestPage {
   idpSelect: string = 'input[id^="react-select-"]'; // eq(1)
   criterionSelect: string = 'input[id^="react-select-"]'; // eq(2)
   pagingSelect: string = 'input[id^="react-select-"]'; // eq(3)
-  assignSelect: string = 'input[id^="react-select-"]'; // eq(4)
+  assignSelect: string = 'input#user-role-assignment';
 
   //IDIM Search
   idimSearchButton: string = 'button[data-testid="idim-search-button"]';
@@ -268,9 +268,7 @@ class RequestPage {
     cy.get('button').contains('Search').click({ force: true });
   }
   setRoleAssignSelect(assign: string) {
-    cy.get(this.assignSelect)
-      .eq(4)
-      .type(assign + '{enter}');
+    cy.get(this.assignSelect).type(assign + '{enter}');
     cy.get('p').contains(this.savedMessage);
   }
   setRolePickUser(user: string) {

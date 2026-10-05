@@ -10,7 +10,7 @@
       "protocol": "oidc",
       "authtype": "browser-login",
       "publicaccess": true,
-      "identityprovider": ["IDIR - MFA", "Basic BCeID"],
+      "identityprovider": ["Digital Credential", "Basic BCeID"],
       "additionalroleattribute": "tbd",
       "environments": ["dev", "", ""],
       "displayheader": false,

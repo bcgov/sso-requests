@@ -333,6 +333,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     });
 
     if (err) {
+      setUserLoading(false);
       return alert.show({
         variant: 'danger',
         content: 'Failed to fetch users.',
@@ -434,6 +435,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         closable: true,
         content: 'Failed to fetch composite roles.',
       });
+      setCompositeLoading(false);
       return;
     }
 
