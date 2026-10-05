@@ -56,6 +56,7 @@ import {
   validateIdirEmail,
   deleteServicePrincipal,
   deleteAppRegistration,
+  updateEntraIntegration,
 } from '@app/utils/graph-api';
 import {
   BCSCClientParameters,
@@ -1208,6 +1209,7 @@ export const createEntraIntegration = async (environment: string, request: Integ
     const appName = `${bcgovUnit.code.toUpperCase()}-${division.code.toUpperCase()}-${upperFirst(
       camelCase(request.projectName),
     )}-${request.id}-${upperFirst(environment)}`;
+
     if (!entraClient) {
       application = await setupEntraIntegration(appName, environment, request, kcCert, bcgovUnit.name, division.name);
       if (application) {
@@ -1220,6 +1222,16 @@ export const createEntraIntegration = async (environment: string, request: Integ
           requestId: request.id!,
         });
       }
+    } else {
+      await updateEntraIntegration(
+        entraClient?.appId as string,
+        entraClient?.servicePrincipalId as string,
+        appName,
+        request,
+        environment,
+        bcgovUnit.name,
+        division.name,
+      );
     }
 
     const idpCreated = await getIdp(environment, request.clientId!, KC_ENTRA_IDP_REALM);
