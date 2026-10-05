@@ -386,10 +386,15 @@ export const isIdpApprover = (session: LoggedInUser | null) => {
   return false;
 };
 
-export const restrictedIdpsAdded = (currentIdps: readonly string[] = [], updatedIdps: readonly string[] = []) =>
-  updatedIdps.filter(
-    (idp) => !currentIdps.includes(idp) && (RESTRICTED_IDPS.includes(idp) || DISCONTINUED_IDPS.includes(idp)),
+export const restrictedIdpsAdded = (currentIdps: readonly string[] = [], updatedIdps: readonly string[] = []) => {
+  const includeAzureidir = process.env.NEXT_PUBLIC_INCLUDE_AZUREIDIR === 'true';
+  return updatedIdps.filter(
+    (idp) =>
+      !currentIdps.includes(idp) &&
+      !(includeAzureidir && idp === 'azureidir') &&
+      (RESTRICTED_IDPS.includes(idp) || DISCONTINUED_IDPS.includes(idp)),
   );
+};
 
 export const getAllowedIdps = () => {
   return [
