@@ -150,11 +150,9 @@ export default function getSchema(
       }
     });
 
-    if (
-      hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS) &&
-      !idpEnum.some((idp) => DISCONTINUED_IDPS.includes(idp))
-    ) {
-      idpEnum.unshift(...DISCONTINUED_IDPS);
+    if (hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS)) {
+      const missing = DISCONTINUED_IDPS.filter((idp) => !idpEnum.includes(idp));
+      idpEnum.unshift(...missing);
     }
 
     properties.devIdps = {
