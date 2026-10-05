@@ -493,7 +493,6 @@ export const updateEntraIntegration = async (
     }
 
     await updateServicePrincipal(servicePrincipalId, {
-      displayName: appName,
       notes,
     });
   }
