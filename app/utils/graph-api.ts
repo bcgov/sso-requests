@@ -391,7 +391,7 @@ export const setupEntraIntegration = async (
 ): Promise<{ appId: string; servicePrincipalId: string; secret: KeyCredential | null }> => {
   let newCredential: KeyCredential | null = null;
 
-  let appReg = await getAppRegistration(appName as string);
+  let appReg = await getAppRegistration(appName);
   if (!appReg) {
     const kcBaseUrl = getKeycloakBaseUrlByEnvironment(environment);
     appReg = await createAppRegistration(
@@ -460,6 +460,45 @@ export const setupEntraIntegration = async (
   };
 };
 
+export const updateEntraIntegration = async (
+  appId: string,
+  servicePrincipalId: string,
+  appName: string,
+  request: IntegrationData,
+  environment: string,
+  bcgovUnitName: string,
+  divisionName: string,
+): Promise<void> => {
+  const notes = getApplicationNotes({
+    environment,
+    requester: request.requester || '',
+    bcgovUnitName,
+    divisionName,
+    description: request.description || '<no description provided>',
+  });
+  const appRegistration = await getAppRegistration(appId);
+  if (!appRegistration) {
+    throw new Error(`No application registration found for app ${appName}`);
+  }
+  if (appRegistration.displayName !== appName || appRegistration.description !== notes) {
+    await updateAppRegistration(appRegistration.id as string, {
+      displayName: appName,
+      notes,
+    });
+
+    const servicePrincipal = await getServicePrincipal(appId);
+
+    if (!servicePrincipal) {
+      throw new Error(`No service principal found for app ${appName}`);
+    }
+
+    await updateServicePrincipal(servicePrincipalId, {
+      displayName: appName,
+      notes,
+    });
+  }
+};
+
 export const updateAppRegistration = async (id: string, application: Application): Promise<Application> => {
   try {
     return await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications/${id}`, {
@@ -516,10 +555,10 @@ export const deleteAppRegistration = async (appId: string): Promise<void> => {
   }
 };
 
-export const getAppRegistration = async (appName: string): Promise<Application | null> => {
+export const getAppRegistration = async (appNameOrId: string): Promise<Application | null> => {
   try {
     const response = await callAzureGraphApi(
-      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications?$filter=displayName eq '${appName}'`,
+      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications?$filter=displayName eq '${appNameOrId}' or appId eq '${appNameOrId}'`,
       {
         method: 'GET',
       },

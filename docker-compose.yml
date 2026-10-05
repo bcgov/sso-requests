@@ -58,6 +58,7 @@ services:
       NEXT_PUBLIC_APP_ENV: local
       NEXT_PUBLIC_SSO_IDP_HINT: azureidir
       NEXT_PUBLIC_INCLUDE_BCGOVIDIR: true
+      NEXT_PUBLIC_INCLUDE_AZUREIDIR: true
 
       MAINTENANCE_MODE_ACTIVE: 'false'
       SSO_REQUESTS_BACKEND_HOSTNAME: sso-requests
