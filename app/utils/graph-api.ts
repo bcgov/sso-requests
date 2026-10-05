@@ -480,7 +480,7 @@ export const updateEntraIntegration = async (
   if (!appRegistration) {
     throw new Error(`No application registration found for app ${appName}`);
   }
-  if (appRegistration.displayName !== appName || appRegistration.description !== notes) {
+  if (appRegistration.displayName !== appName || appRegistration.notes !== notes) {
     await updateAppRegistration(appRegistration.id as string, {
       displayName: appName,
       notes,
