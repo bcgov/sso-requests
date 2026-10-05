@@ -1,16 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
-import { handleError } from '@app/utils/helpers';
+import { handleError, withApiLogging } from '@app/utils/api';
 import { processUserSession } from '@app/controllers/user';
 import { getSdxSubsystemStatus } from '@app/controllers/sdx-services';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method === 'GET') {
       const userSession = await authenticate(req.headers);
       if (!userSession) return res.status(401).json({ success: false, message: 'not authorized' });
       await processUserSession(userSession as Session);
+
+      if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES !== 'true') {
+        return res.status(403).json({ success: false, message: 'SDX services not enabled' });
+      }
 
       const { id } = req.query || {};
       const data = await getSdxSubsystemStatus(Number(id));
@@ -23,3 +27,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     handleError(res, error);
   }
 }
+
+export default withApiLogging(handler);

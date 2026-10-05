@@ -22,6 +22,18 @@ export const EVENTS = {
   TRANSFER_OF_OWNERSHIP_FAILURE: 'transfer-of-ownership-failure',
   TEAM_ADMIN_REMOVAL: 'team-admin-removal',
   SDX_ACCESS_REQUEST_UPDATE: 'sdx-access-request-update',
+  ORGANIZATION_CREATE_SUCCESS: 'organization-create-success',
+  ORGANIZATION_UPDATE_SUCCESS: 'organization-update-success',
+  ORGANIZATION_DELETE_SUCCESS: 'organization-delete-success',
+  ORGANIZATION_MEMBER_ADDED: 'organization-member-added',
+  ORGANIZATION_MEMBER_REMOVED: 'organization-member-removed',
+  ORGANIZATION_MEMBER_ROLE_UPDATED: 'organization-member-role-updated',
+  ORGANIZATION_TEAM_INVITED: 'organization-team-invited',
+  ORGANIZATION_TEAM_JOINED: 'organization-team-joined',
+  ORGANIZATION_TEAM_DECLINED: 'organization-team-declined',
+  ORGANIZATION_TEAM_LEFT: 'organization-team-left',
+  ORGANIZATION_CONSENT_UPDATED: 'organization-consent-updated',
+  ORGANIZATION_OVERRIDES_UPDATED: 'organization-overrides-updated',
 };
 
 export const EMAILS = {

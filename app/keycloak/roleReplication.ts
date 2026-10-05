@@ -2,8 +2,12 @@ import { chunk } from 'lodash';
 import createHttpError from 'http-errors';
 import { getAdminClient } from './adminClient';
 import { createAzureIdirUser } from './users';
-import { verifyAzureIdirAccountByGuid } from '@app/utils/ms-graph-idir';
+import { verifyAzureIdirAccountByGuid } from '@app/utils/graph-api';
 import { Integration } from '@app/interfaces/Request';
+
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'keycloak/roleReplication' });
 
 const MAX_CLIENT_ROLE_COUNT = 5000;
 // Small parallel batches so we don't hammer Keycloak/MS Graph at once.
@@ -74,7 +78,9 @@ const resolveMfaUser = async (environment: string, kcAdminClient: any, guid: str
   return await createAzureIdirUser({
     environment,
     guid,
+    idirGuid: guid,
     userId: account.userId || guid,
+    idp: 'azureidir',
     email: account.email as string,
     firstName: account.firstName as string,
     lastName: account.lastName as string,
@@ -161,7 +167,7 @@ const replicateRoleForUsers = async (
 
           return { ...base, status: 'REPLICATED' };
         } catch (err: any) {
-          console.error('error replicating role:', err);
+          log.error({ err }, 'error replicating role');
           return { ...base, status: 'ERROR' };
         }
       }),

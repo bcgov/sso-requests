@@ -1,8 +1,12 @@
-import { getAllowedRequest } from '@app/queries/request';
+import { authorizeIntegration } from '@app/queries/integrationAccess';
 import { Session } from '@app/shared/interfaces';
 import { clientEventsAggregationQuery, queryGrafana } from '@app/utils/grafana';
-import { createEvent } from './requests';
+import { createEvent } from '@app/queries/event';
 import { EVENTS } from '@app/shared/enums';
+
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'controllers/logs' });
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
@@ -71,7 +75,7 @@ export const fetchLogs = async (
     });
     return { status: 200, message, data: parsedLogs };
   } catch (err) {
-    console.info(`Error while fetching logs from loki: ${err}`);
+    log.info({ err }, 'Error while fetching logs from loki');
     await createEvent({
       eventCode: EVENTS.LOGS_DOWNLOADED_FAILURE,
       ...eventMeta,
@@ -89,11 +93,10 @@ export const fetchMetrics = async (
 ) => {
   try {
     let result = [];
-    // Check user owns requested logs
-    const userRequest = await getAllowedRequest(session, id);
-    if (!userRequest) return { status: 401, message: "You are not authorized to view this integration's metrics" };
+    const authorized = await authorizeIntegration(session, id, 'integrations:read');
+    if (!authorized) return { status: 401, message: "You are not authorized to view this integration's metrics" };
 
-    const { clientId } = userRequest;
+    const { clientId } = authorized.integration;
 
     if (!allowedEnvs.includes(environment)) {
       return { status: 400, message: `The env query param must be one of ${allowedEnvs.join(', ')}.` };
@@ -116,7 +119,7 @@ export const fetchMetrics = async (
 
     return { status: 200, message: null, data: result };
   } catch (err) {
-    console.error(err);
+    log.error({ err }, 'fetchMetrics failed');
     return { status: 500, message: 'Unable to fetch metrics at this moment!', data: null };
   }
 };

@@ -1,8 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { sequelize } from '@app/shared/sequelize/models/models';
-import { handleError } from '@app/utils/helpers';
+import { handleError, withApiLogging } from '@app/utils/api';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'api/heartbeat' });
+
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method === 'GET') {
       const result = await sequelize.query('SELECT NOW()');
@@ -13,7 +17,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(405).end(`Method ${req.method} Not Allowed`);
     }
   } catch (err) {
-    console.error('Error in heartbeat API:', err);
+    log.error({ err }, 'Error in heartbeat API');
     handleError(res, err);
   }
 }
+
+export default withApiLogging(handler);

@@ -7,11 +7,12 @@ export const collectApiUsageMetrics = (req: Request, res: Response, next: NextFu
   res.on('finish', async () => {
     const duration = Date.now() - startTime;
 
-    if (req.teamId) {
+    if (req.apiClientId) {
       await models.apiUsageMetrics.create({
         method: req.method,
         endpoint: req.originalUrl.replace(new RegExp(`^/api/${process.env.API_VERSION}`), ''),
-        teamId: req.teamId,
+        teamId: req.teamId ?? null,
+        apiClientId: req.apiClientId,
         responseTimeMs: duration,
         statusCode: res.statusCode,
       });

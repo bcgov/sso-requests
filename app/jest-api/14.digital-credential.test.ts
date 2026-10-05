@@ -23,10 +23,11 @@ const baseIntegration = {
   serviceType: 'gold',
   usesTeam: false,
 };
+// Submitted by a regular user: no client id or lifespans, which need
+// integrations:write-client-id and integrations:write-lifespans.
 const mockIntegration: IntegrationData = {
   ...baseIntegration,
   idirUserid: TEAM_ADMIN_IDIR_USERID_01,
-  clientId: 'a',
   clientName: 'a',
   realm: 'a',
   publicAccess: true,
@@ -48,36 +49,15 @@ const mockIntegration: IntegrationData = {
   devValidRedirectUris: [],
   testValidRedirectUris: [],
   prodValidRedirectUris: [],
-  devIdps: ['digitalcredential', 'azureidir'],
-  testIdps: ['digitalcredential', 'azureidir'],
-  prodIdps: ['digitalcredential', 'azureidir'],
+  devIdps: ['digitalcredential', 'bcgovidir'],
+  testIdps: ['digitalcredential', 'bcgovidir'],
+  prodIdps: ['digitalcredential', 'bcgovidir'],
   devRoles: [],
   testRoles: [],
   prodRoles: [],
   devLoginTitle: 'a',
   testLoginTitle: 'a',
   prodLoginTitle: 'a',
-  devAssertionLifespan: 1,
-  devAccessTokenLifespan: 1,
-  devSessionIdleTimeout: 1,
-  devSessionMaxLifespan: 1,
-  devOfflineSessionIdleTimeout: 1,
-  devOfflineSessionMaxLifespan: 1,
-  testAssertionLifespan: 1,
-  testAccessTokenLifespan: 1,
-  testSessionIdleTimeout: 1,
-  testSessionMaxLifespan: 1,
-  testOfflineSessionIdleTimeout: 1,
-  testOfflineSessionMaxLifespan: 1,
-  prodAssertionLifespan: 1,
-  prodAccessTokenLifespan: 1,
-  prodSessionIdleTimeout: 1,
-  prodSessionMaxLifespan: 1,
-  prodOfflineSessionIdleTimeout: 1,
-  prodOfflineSessionMaxLifespan: 1,
-  devOfflineAccessEnabled: true,
-  testOfflineAccessEnabled: true,
-  prodOfflineAccessEnabled: true,
   lastChanges: [],
   idirUserDisplayName: 'a',
   requester: 'a',
@@ -98,6 +78,12 @@ const mockIntegration: IntegrationData = {
   testSamlSignAssertions: false,
   prodSamlSignAssertions: false,
   primaryEndUsers: [],
+  bcgovUnitId: 1,
+  divisionId: 1,
+  description: 'Digital Credential integration for testing purposes',
+  devHomePageUri: 'https://a',
+  testHomePageUri: 'https://a',
+  prodHomePageUri: 'https://a',
 };
 
 const OLD_ENV = process.env;
@@ -120,10 +106,16 @@ describe('Digital Credential Validations', () => {
   });
 
   it('Only allows Digital Credential as an IDP for OIDC integrations', async () => {
-    const samlResult = await submitNewIntegration({ ...mockIntegration, protocol: 'saml' });
+    const samlResult = await submitNewIntegration({
+      ...mockIntegration,
+      protocol: 'saml',
+    });
     expect(samlResult.status).toBe(422);
 
-    const oidcResult = await submitNewIntegration({ ...mockIntegration, protocol: 'oidc' });
+    const oidcResult = await submitNewIntegration({
+      ...mockIntegration,
+      protocol: 'oidc',
+    });
     expect(oidcResult.status).toBe(200);
   });
 });
@@ -140,7 +132,6 @@ describe('Digital Credential Feature flag', () => {
   it('Does not allow digital credential as an IDP if feature flag is not included in env vars', async () => {
     process.env.NEXT_PUBLIC_INCLUDE_DIGITAL_CREDENTIAL = undefined;
     const result = await submitNewIntegration(mockIntegration);
-    console.log('🚀 ~ result:', result.body);
     expect(result.status).toBe(422);
   });
 

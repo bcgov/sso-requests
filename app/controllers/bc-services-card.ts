@@ -1,6 +1,10 @@
 import axios from 'axios';
 import createHttpError from 'http-errors';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'controllers/bc-services-card' });
+
 export const getPrivacyZones = async (env: string = 'prod') => {
   let bcscBaseUrl;
   if (env === 'dev') bcscBaseUrl = process.env.BCSC_REGISTRATION_BASE_URL_DEV;
@@ -10,7 +14,7 @@ export const getPrivacyZones = async (env: string = 'prod') => {
     const pzResponse = await axios.get(`${bcscBaseUrl}/oauth2/privacy-zones`);
     return pzResponse.data;
   } catch (err) {
-    console.error(`Error fetching privacy zones: ${err}`);
+    log.error({ err }, 'Error fetching privacy zones');
     throw new createHttpError[424]();
   }
 };
@@ -20,7 +24,7 @@ export const getAttributes = async () => {
     const attributesResponse = await axios.get(`${process.env.BCSC_REGISTRATION_BASE_URL_PROD}/oauth2/claim-types`);
     return attributesResponse.data?.claims_supported;
   } catch (err) {
-    console.error(`Error fetching bcsc attributes: ${err}`);
+    log.error({ err }, 'Error fetching bcsc attributes');
     throw new createHttpError[424]();
   }
 };

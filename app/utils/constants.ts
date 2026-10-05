@@ -435,6 +435,8 @@ export const bcscAttributes = () => {
 
 export const MS_GRAPH_URL = 'https://graph.microsoft.com';
 
+export const MS_GRAPH_API_VERSION = 'v1.0';
+
 export const CYPRESS_MOCKED_IDIR_LOOKUP = [{ mail: 'Pathfinder.SSOTraining2@gov.bc.ca', id: 1 }];
 
 export const bcscIdpMappers = [
@@ -451,6 +453,16 @@ export const bcscClientScopeMappers: any[] = [
     name: 'bcsc_did',
     type: 'attribute',
   },
+];
+
+export const bcgovIdirIdpMappers = [
+  { name: 'username', type: 'oidc-username-idp-mapper', template: '${CLAIM.oid}' },
+  { name: 'idir_username', type: 'oidc-user-attribute-idp-mapper', claim: 'samAccountName' },
+  { name: 'idir_user_guid', type: 'oidc-user-attribute-idp-mapper', claim: 'bcgovGUID' },
+  { name: 'user_principal_name', type: 'oidc-user-attribute-idp-mapper', claim: 'upn' },
+  { name: 'first_name', type: 'oidc-user-attribute-idp-mapper', claim: 'given_name' },
+  { name: 'last_name', type: 'oidc-user-attribute-idp-mapper', claim: 'family_name' },
+  { name: 'display_name', type: 'oidc-user-attribute-idp-mapper', claim: 'display_name' },
 ];
 
 export const environments = ['dev', 'test', 'prod'] as Environment[];
@@ -476,3 +488,15 @@ export const SDX_ENVIRONMENTS = {
     'non-production': 'bct',
   },
 };
+
+export const KC_ENTRA_IDP_REALM = 'bcgovidir';
+
+export const ENTRA_CUSTOM_CLAIM_MAPPING_POLICY_ID = '600bfa8b-1ae5-4d5c-ba03-56f63c490ff7';
+
+export const KC_PS256_KEY_PROVIDER_ID = 'entra-rsa-generated-ps256-4096';
+
+export const DISCONTINUED_IDPS = ['idir', 'azureidir'];
+
+// IdPs only an admin may add. Removing one, or keeping one that is already
+// there, is a plain edit.
+export const RESTRICTED_IDPS = ['githubpublic', 'otp'];

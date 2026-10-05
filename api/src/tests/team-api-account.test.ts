@@ -9,11 +9,12 @@ import {
 import supertest from 'supertest';
 import app from '@/tests/helpers/server';
 import { KeycloakService } from '@/services/keycloak-service';
-import { seedIntergrations, seedTeamAndMembers } from './helpers/seeder';
+import { seedApiAccount, seedIntergrations, seedTeamAndMembers } from './helpers/seeder';
 
 const API_BASE_PATH = '/api/v1';
 let team;
 let integration;
+let apiAccount;
 const integrationRoles = [
   {
     name: 'role1',
@@ -77,7 +78,7 @@ jest.mock('@/modules/authenticate', () => {
     authenticate: jest.fn(() => {
       return Promise.resolve({
         success: true,
-        data: { teamId: team.id as any },
+        data: { teamId: team.id, apiClientId: apiAccount.clientId } as any,
         err: null,
       });
     }),
@@ -116,6 +117,9 @@ describe('emails for teams', () => {
           role: 'admin',
         },
       ]);
+
+      // The API account, owned by the team, that authorizes every request below.
+      apiAccount = await seedApiAccount(team.id);
 
       integration = await seedIntergrations({
         integrationName: 'Test Integration',

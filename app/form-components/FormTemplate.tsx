@@ -25,7 +25,7 @@ import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import { getMyTeams, getAllowedTeams } from 'services/team';
 import { getUISchema } from 'schemas-ui';
 import { getSchemas } from 'schemas';
-import { Integration } from 'interfaces/Request';
+import { BcgovUnit, Division, Integration } from 'interfaces/Request';
 import { Team, LoggedInUser } from 'interfaces/team';
 import CancelConfirmModal from 'page-partials/edit-request/CancelConfirmModal';
 import { createRequest, isRequestBcscExcluded, updateRequest } from 'services/request';
@@ -47,6 +47,8 @@ import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import Link from '@app/components/Link';
 import { listSdxResourceServers, getSdxAllowedAccessForClient, getSdxSubsytemStatus } from '@app/services/sdx-services';
 import { SDXResourceServer, SDXAllowedAccessForClient, SDXService } from '@app/shared/interfaces';
+import { listBcgovUnits } from '@app/services/bcgov-unit';
+import { listDivisions } from '@app/services/division';
 
 const Description = styled.p`
   margin: 0;
@@ -84,7 +86,7 @@ const adjustIdps = ({
   const valid = validateIDPs({
     currentIdps,
     updatedIdps,
-    session: user,
+    canAddRestrictedIdps: hasAppPermission(user?.client_roles, appPermissions.ADD_RESTRICTED_IDPS),
     bceidApproved,
     protocol,
     githubApproved,
@@ -163,7 +165,9 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<any>({});
   const [visited, setVisited] = useState<any>(request ? { '0': true } : {});
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [teams, setTeams] = useState<Team[]>(
+    request?.teamId && request.team ? [{ id: Number(request.teamId), name: request.team.name }] : [],
+  );
   const [schemas, setSchemas] = useState<any[]>([]);
   const [bcscPrivacyZones, setBcscPrivacyZones] = useState<BcscPrivacyZone[]>(defaultBcscPrivacyZones());
   const [bcscAttributes, setBcscAttributes] = useState<BcscAttribute[]>(defaultBcscAttributes());
@@ -177,11 +181,14 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [sdxResourceServers, setSdxResourceServers] = useState<SDXResourceServer[]>([]);
   const [sdxServicesApprovedForClient, setSdxServicesApprovedForClient] = useState<SDXAllowedAccessForClient | []>([]);
   const [sdxServicesPendingForClient, setSdxServicesPendingForClient] = useState<SDXAllowedAccessForClient | []>([]);
+  const [bcgovUnits, setBcgovUnits] = useState<BcgovUnit[]>([]);
+  const [divisions, setDivisions] = useState<Division[]>([]);
 
   const surveyContext = useContext(SurveyContext);
 
   const isNew = isNil(request?.id);
   const isApplied = request?.status === 'applied';
+  const canReassignTeam = isNew || request?.permissions?.includes('integrations:reassign-team');
   //const isAdmin = currentUser?.isAdmin || false;
 
   const showFormButtons = formStage !== 0 || formData.usesTeam || formData.projectLead;
@@ -254,6 +261,15 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       loadSdxResources(true);
     }
 
+    if (newData.bcgovUnitId === 0) {
+      processed.bcgovUnitId = null;
+      processed.divisionId = null;
+    }
+
+    if (newData.bcgovUnitId !== formData.bcgovUnitId) {
+      processed.divisionId = null;
+    }
+
     throttleUpdate(processed);
   };
 
@@ -266,7 +282,15 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         content: 'Failed to load teams. Please refresh.',
       });
     } else {
-      setTeams(teams || []);
+      const availableTeams = teams || [];
+      const currentTeam = request?.team;
+      const includesCurrentTeam = availableTeams.some((team) => String(team.id) === String(request?.teamId));
+
+      setTeams(
+        !isNew && request?.teamId && currentTeam && !includesCurrentTeam
+          ? [...availableTeams, { id: Number(request.teamId), name: currentTeam.name }]
+          : availableTeams,
+      );
     }
   };
 
@@ -297,6 +321,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       teams,
       bcscPrivacyZones,
       bcscAttributes,
+      bcgovUnits,
+      divisions,
     });
 
     setSchemas(schemas);
@@ -305,6 +331,32 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const isBcscExcluded = async () => {
     const [bcscExcluded] = await isRequestBcscExcluded(request?.id!);
     setBcscExcluded(!!bcscExcluded);
+  };
+
+  const loadBcgovUnits = async () => {
+    const [bcgovUnits, err] = await listBcgovUnits();
+    if (err) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to load BC Gov units. Please refresh.',
+      });
+    } else {
+      const sortedBcgovUnits = bcgovUnits?.sort((a, b) => a.name.localeCompare(b.name))!;
+      setBcgovUnits(sortedBcgovUnits || []);
+    }
+  };
+
+  const loadDivisions = async () => {
+    const [divisions, err] = await listDivisions();
+    if (err) {
+      alert.show({
+        variant: 'danger',
+        content: 'Failed to load divisions. Please refresh.',
+      });
+    } else {
+      const sortedDivisions = divisions?.sort((a, b) => a.name.localeCompare(b.name))!;
+      setDivisions(sortedDivisions || []);
+    }
   };
 
   const loadSdxResources = async (loadClientAccess = formData?.sdxEnabled && formData?.status === 'applied') => {
@@ -362,7 +414,9 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     loadBcscAttributes();
     loadDefaultSessionSettings();
     isBcscExcluded();
-    loadSdxResources();
+    loadBcgovUnits();
+    loadDivisions();
+    if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true') loadSdxResources();
   }, []);
 
   // Clear other details when other is unselected
@@ -408,6 +462,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     schemas,
     defaultSessionSettings,
     bcscExcluded,
+    bcgovUnits,
+    divisions,
   });
 
   const handleFormSubmit = async () => {
@@ -570,6 +626,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           formData,
           setFormData,
           loadTeams,
+          canReassignTeam,
           bcscPrivacyZones,
           sdxResourceServers,
           sdxServicesApprovedForClient,

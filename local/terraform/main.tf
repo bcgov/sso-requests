@@ -8,6 +8,7 @@ locals {
   github_realm_name                     = "github"
   digitalcredential_realm_name          = "digitalcredential"
   otp_realm_name                        = "otp"
+  bcgovidir_realm_name                  = "bcgovidir"
   sandbox_client_redirect_uri           = ""
   siteminder_single_sign_on_service_url = ""
 }
@@ -24,6 +25,7 @@ module "standard" {
   bceidboth_realm_name     = local.bceidboth_realm_name
   github_realm_name        = local.github_realm_name
   otp_realm_name           = local.otp_realm_name
+  bcgovidir_realm_name     = local.bcgovidir_realm_name
 
   idir_client_id                      = ""
   idir_client_secret                  = ""
@@ -47,4 +49,7 @@ module "standard" {
 
   ppid_client_id     = ""
   ppid_client_secret = ""
+
+  bcgovidir_client_id     = ""
+  bcgovidir_client_secret = ""
 }

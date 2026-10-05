@@ -10,6 +10,7 @@ import {
   checkIfBcServicesCardProdApplying,
   checkIfSocialProdApplying,
   checkIfOTPProdApplying,
+  checkIfBcgovIdirProdApplying,
 } from '@app/utils/helpers';
 import { ErrorMessage } from '@app/components/MessageBox';
 import Link from '@app/components/Link';
@@ -24,7 +25,7 @@ const TabWrapper = styled.div`
 
 interface Props {
   integration: Integration;
-  type: 'bceid' | 'github' | 'BCServicesCard' | 'social' | 'otp';
+  type: 'bceid' | 'github' | 'BCServicesCard' | 'BCGOV IDIR' | 'social' | 'otp';
   canApproveProd: boolean;
   notApplied: boolean;
   onApproved?: () => void;
@@ -34,6 +35,7 @@ const approvalTypeMap = {
   bceid: 'bceidApproved',
   github: 'githubApproved',
   BCServicesCard: 'bcServicesCardApproved',
+  'BCGOV IDIR': 'bcgovidirApproved',
   social: 'socialApproved',
   otp: 'otpApproved',
 };
@@ -66,12 +68,13 @@ function TabContent({ integration, type, canApproveProd, notApplied, onApproved 
   };
 
   useEffect(() => {
-    getApprovalEvents();
+    void getApprovalEvents();
   }, [
     integration?.id,
     integration?.bceidApproved,
     integration?.githubApproved,
     integration?.bcServicesCardApproved,
+    integration?.bcgovidirApproved,
     integration?.otpApproved,
   ]);
 
@@ -94,6 +97,9 @@ function TabContent({ integration, type, canApproveProd, notApplied, onApproved 
     case 'BCServicesCard':
       typeApproved = checkIfBcServicesCardProdApplying(integration);
       break;
+    case 'BCGOV IDIR':
+      typeApproved = checkIfBcgovIdirProdApplying(integration);
+      break;
     case 'social':
       typeApproved = checkIfSocialProdApplying(integration);
       break;
@@ -101,6 +107,9 @@ function TabContent({ integration, type, canApproveProd, notApplied, onApproved 
       typeApproved = checkIfOTPProdApplying(integration);
       break;
   }
+
+  const approvalInFlight = ['submitted', 'planned'].includes(integration.status as string) && typeApproved;
+  const approvalFailed = ['planFailed', 'applyFailed'].includes(integration.status as string) && typeApproved;
 
   let content;
 
@@ -119,7 +128,9 @@ function TabContent({ integration, type, canApproveProd, notApplied, onApproved 
         </button>
       </>
     );
-  } else if (notApplied && typeApproved) {
+  } else if (approvalInFlight) {
+    content = <p>Your request for {displayType} production approval is being applied.</p>;
+  } else if (approvalFailed) {
     content = (
       <div style={{ display: 'inline-flex', background: '#FFCCCB', borderRadius: '5px' }}>
         <div style={{ padding: 5 }}>

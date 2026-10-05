@@ -32,12 +32,12 @@ jest.mock('@app/queries/request', () => {
 const socialDevIntegration: IntegrationData = {
   ...formDataDev,
   confirmSocial: true,
-  devIdps: ['social', 'azureidir'],
+  devIdps: ['social', 'bcgovidir'],
 };
 
 const socialProdIntegration: IntegrationData = {
   ...formDataProd,
-  devIdps: ['social', 'azureidir'],
+  devIdps: ['social', 'bcgovidir'],
 };
 
 describe('Feature flag', () => {
@@ -86,11 +86,11 @@ describe('Agrees to terms', () => {
 
 describe('Build Github Dispatch', () => {
   it('Removes social IDPs from production IDP list if not approved yet, but keeps it in dev and test', () => {
-    const processedIntegration = buildGitHubRequestData(socialProdIntegration);
+    const processedIntegration = buildGitHubRequestData({ ...socialProdIntegration, bcgovidirApproved: true });
     expect(processedIntegration?.prodIdps?.includes('social')).toBe(false);
 
     // Only removes from prod
-    expect(processedIntegration?.prodIdps?.includes('azureidir')).toBe(true);
+    expect(processedIntegration?.prodIdps?.includes('bcgovidir')).toBe(true);
     expect(processedIntegration?.testIdps?.includes('social')).toBe(true);
     expect(processedIntegration?.devIdps?.includes('social')).toBe(true);
   });

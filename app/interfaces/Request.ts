@@ -1,3 +1,4 @@
+import { Permission } from '@sso/authz';
 import { SDXAccessRequest } from '@app/shared/interfaces';
 import type { Status } from './types';
 
@@ -71,12 +72,17 @@ export interface Integration {
   digitalCredentialApproved?: boolean;
   otpApproved?: boolean;
   bcServicesCardApproved?: boolean;
+  bcgovidirApproved?: boolean;
   archived?: boolean;
   provisioned?: boolean;
   provisionedAt?: string;
   createdAt?: string;
   updatedAt?: string;
   userTeamRole?: string;
+  // What this actor may do to this integration: their team role, whatever
+  // organization the owning team belongs to, and their app roles, merged by
+  // the server. Absent on rows that never passed through the resolver.
+  permissions?: Permission[];
   devDisplayHeaderTitle?: boolean;
   testDisplayHeaderTitle?: boolean;
   prodDisplayHeaderTitle?: boolean;
@@ -99,6 +105,9 @@ export interface Integration {
   socialApproved?: boolean;
   sdxEnabled?: boolean;
   sdxServices?: SDXAccessRequest | null;
+  bcgovUnitId?: number;
+  divisionId?: number;
+  description?: string;
 }
 
 export interface Option {
@@ -128,4 +137,21 @@ export interface ClientRole {
 export interface EventCountMetric {
   event: string;
   count: number;
+}
+
+export interface BcgovUnit {
+  id: number;
+  name: string;
+  code?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Division {
+  id: number;
+  name: string;
+  code?: string;
+  bcgovUnitId?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }

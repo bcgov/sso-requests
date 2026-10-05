@@ -49,7 +49,7 @@ export const formDataDev: IntegrationData = {
   publicAccess: true,
   devValidRedirectUris: ['https://b'],
   environments: ['dev'],
-  devIdps: ['azureidir'],
+  devIdps: ['bcgovidir'],
   projectLead: true,
   newToSso: true,
   agreeWithTerms: true,
@@ -71,6 +71,12 @@ export const formDataDev: IntegrationData = {
     { lhs: true, rhs: false, kind: 'E', path: ['bceidApproved'] },
     { lhs: 'project-1', rhs: 'project-2', kind: 'E', path: ['projectName'] },
   ],
+  bcgovUnitId: 1,
+  divisionId: 1,
+  description: 'Test description',
+  devHomePageUri: 'https://dev.homepage.uri',
+  testHomePageUri: 'https://test.homepage.uri',
+  prodHomePageUri: 'https://prod.homepage.uri',
 };
 
 export const formDataDevTest: IntegrationData = {
@@ -152,6 +158,7 @@ export const getUpdateIntegrationData = (args: {
   testBceidApproved?: boolean;
   githubApproved?: boolean;
   bcServicesCardApproved?: boolean;
+  bcgovidirApproved?: boolean;
   socialApproved?: boolean;
   otpApproved?: boolean;
   devHomePageUri?: string;
@@ -161,7 +168,7 @@ export const getUpdateIntegrationData = (args: {
   const {
     projectName = args.integration.projectName,
     envs = (args?.integration?.environments as string[])?.length > 1 ? args.integration.environments : ['dev'],
-    identityProviders = (args?.integration?.devIdps as string[])?.length > 1 ? args.integration.devIdps : ['azureidir'],
+    identityProviders = (args?.integration?.devIdps as string[])?.length > 1 ? args.integration.devIdps : ['bcgovidir'],
     protocol = args.integration.protocol || 'oidc',
     authType = args.integration.authType || 'browser-login',
     publicAccess = args.integration.publicAccess || true,
@@ -170,6 +177,7 @@ export const getUpdateIntegrationData = (args: {
     testBceidApproved = args.integration.testBceidApproved || false,
     githubApproved = args.integration.githubApproved || false,
     bcServicesCardApproved = args.integration.bcServicesCardApproved || false,
+    bcgovidirApproved = args.integration.bcgovidirApproved || false,
     socialApproved = args.integration.socialApproved || false,
     otpApproved = args.integration.otpApproved || false,
     devHomePageUri = args.integration.devHomePageUri || '',
@@ -199,6 +207,7 @@ export const getUpdateIntegrationData = (args: {
     testBceidApproved,
     githubApproved,
     bcServicesCardApproved,
+    bcgovidirApproved,
     socialApproved,
     otpApproved,
     devSamlLogoutPostBindingUri: samlIntegration ? 'https://a' : undefined,
@@ -208,10 +217,13 @@ export const getUpdateIntegrationData = (args: {
     devLoginTitle: '',
     testLoginTitle: '',
     prodLoginTitle: '',
-    devHomePageUri: devHomePageUri ?? '',
-    testHomePageUri: testHomePageUri ?? '',
-    prodHomePageUri: prodHomePageUri ?? '',
+    devHomePageUri: devHomePageUri || 'https://localhost-dev',
+    testHomePageUri: testHomePageUri || 'https://localhost-test',
+    prodHomePageUri: prodHomePageUri || 'https://localhost-prod',
     confirmSocial: true,
+    bcgovUnitId: 1,
+    divisionId: 1,
+    description: 'This is API Unit Testing',
   };
 };
 

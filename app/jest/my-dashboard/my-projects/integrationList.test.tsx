@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import IntegrationList from 'page-partials/my-dashboard/IntegrationList';
 import { sampleRequest } from '../../samples/integrations';
 import { docusaurusURL } from '@app/utils/constants';
@@ -113,11 +113,41 @@ describe('Integration list', () => {
       );
     });
   });
+
+  it('preserves the table when a polling response has no changes', async () => {
+    let poll: (() => Promise<void>) | undefined;
+    const intervalSpy = jest.spyOn(global, 'setInterval').mockImplementation((handler: TimerHandler) => {
+      poll = handler as () => Promise<void>;
+      return 1 as unknown as NodeJS.Timeout;
+    });
+
+    spyGetRequest
+      .mockResolvedValueOnce([[{ ...mockRequest, status: 'submitted' }], null])
+      .mockResolvedValueOnce([null, null] as any);
+
+    render(<IntegrationListComponent />);
+
+    expect(await screen.findByText('00000001')).toBeVisible();
+    await waitFor(() => expect(intervalSpy).toHaveBeenCalled());
+
+    await act(async () => {
+      await poll?.();
+    });
+
+    expect(screen.getByText('00000001')).toBeVisible();
+    expect(screen.queryByText('No Requests Submitted')).not.toBeInTheDocument();
+    intervalSpy.mockRestore();
+    spyGetRequest.mockReset();
+    spyGetRequest.mockImplementation(() => Promise.resolve([[mockRequest], null]));
+  });
 });
 
 describe('Delete Permissions', () => {
   const setupDeleteRender = (integration: Integration) => {
-    jest.spyOn(requestService, 'getRequests').mockResolvedValueOnce([[{ ...sampleRequest, ...integration }], null]);
+    // Deletability is decided from the transition table, so the row needs a resting status.
+    jest
+      .spyOn(requestService, 'getRequests')
+      .mockResolvedValueOnce([[{ ...sampleRequest, status: 'applied', ...integration }], null]);
     render(<IntegrationListComponent />);
     return screen.findByRole('button', { name: 'delete' });
   };

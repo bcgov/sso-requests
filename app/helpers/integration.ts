@@ -1,4 +1,5 @@
 import { Integration } from '@app/interfaces/Request';
+import { KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 
 export const checkBceidBoth = (idp: string) => idp === 'bceidboth';
 export const checkDigitalCredential = (idp: string) => idp === 'digitalcredential';
@@ -18,6 +19,8 @@ export const checkNotDigitalCredential = (idp: string) => !checkDigitalCredentia
 export const checkNotOTP = (idp: string) => !checkOTP(idp);
 export const checkNotBcServicesCard = (idp: string) => !checkBcServicesCard(idp);
 export const checkNotSocial = (idp: string) => !checkSocial(idp);
+export const checkBcgovIdir = (idp: string) => idp === KC_ENTRA_IDP_REALM;
+export const checkNotBcgovIdir = (idp: string) => !checkBcgovIdir(idp);
 
 export const usesBceid = (integration: Integration) => {
   if (!integration) return false;
@@ -112,3 +115,24 @@ export const usesSdxServices = (integration: Integration) => {
 
   return sdxEnabled;
 };
+
+export const usesBcgovIdir = (integration: Integration) => {
+  if (!integration) return false;
+
+  const { devIdps = [] } = integration;
+
+  return devIdps.some(checkBcgovIdir);
+};
+
+export const usesBcgovIdirProd = (integration: Integration) => {
+  if (!integration) return false;
+  const { environments = [] } = integration;
+  return usesBcgovIdir(integration) && environments.includes('prod');
+};
+
+export const isApiAccountClientId = (clientId?: string | null) =>
+  /^service-account-(org|team)-\d+-\d+$/.test((clientId ?? '').trim());
+
+// Block attempts to mock service accounts via client id
+export const isReservedClientId = (clientId?: string | null) =>
+  (clientId ?? '').trim().toLowerCase().startsWith('service-account-');

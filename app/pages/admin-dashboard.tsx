@@ -7,7 +7,7 @@ import { Integration, Option } from 'interfaces/Request';
 import { ActionButtonContainer, VerticalLine } from 'components/ActionButtons';
 import CenteredModal from 'components/CenteredModal';
 import { PRIMARY_RED } from 'styles/theme';
-import { formatFilters } from 'utils/helpers';
+import { formatFilters, hasAnyPendingStatus } from 'utils/helpers';
 import AdminTabs, { TabKey } from 'page-partials/admin-dashboard/AdminTabs';
 import { workflowStatusOptions } from 'metadata/options';
 import VerticalLayout from 'page-partials/admin-dashboard/VerticalLayout';
@@ -22,6 +22,9 @@ import DeleteModal from '@app/components/DeleteModal';
 import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 import TableNew from '@app/components/TableNew';
 import ActionButton from '@app/components/ActionButton';
+import { canEditIntegration } from '@app/helpers/permissions';
+import { isResting } from '@app/helpers/transitions';
+import { isEqual } from 'lodash';
 
 const idpOptions = [
   { value: 'idir', label: 'IDIR' },
@@ -32,6 +35,7 @@ const idpOptions = [
   { value: 'bcservicescard', label: 'BC Services Card' },
   { value: 'social', label: 'Social' },
   { value: 'otp', label: 'One Time Passcode' },
+  { value: 'bcgovidir', label: 'BCGOV IDIR' },
 ];
 
 const archiveStatusOptions = [
@@ -102,7 +106,7 @@ const RestoreModalContent = ({
     setError('');
     setSelectedEmail('');
     if (selectedIntegration?.usesTeam) {
-      checkTeamExistence();
+      void checkTeamExistence();
     }
   }, [selectedIntegration?.id]);
 
@@ -255,16 +259,17 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
     });
   };
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     const [data, err] = await getData();
     if (err) {
       setHasError(true);
     } else if (data) {
-      setRows(data.rows);
-      setCount(data.count);
+      setHasError(false);
+      if (!isEqual(rows, data.rows)) setRows(data.rows);
+      if (count !== data.count) setCount(data.count);
     }
-    setLoading(false);
+    if (showLoading) setLoading(false);
   };
 
   useEffect(() => {
@@ -287,22 +292,32 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
         ]);
       }
       setSelectedId(undefined);
-      loadData();
+      void loadData();
     }
   }, [searchKey, limit, page, workflowStatus, selectedIdp, selectedEnvironments, archiveStatus]);
+
+  useEffect(() => {
+    let interval: any;
+    if (hasAnyPendingStatus(rows)) {
+      interval = setTimeout(() => {
+        void loadData(false);
+      }, 2000); // Poll every 2 seconds
+    }
+    return () => {
+      if (interval) clearTimeout(interval);
+    };
+  }, [rows]);
 
   if (hasError) {
     return <SystemUnavailableMessage />;
   }
 
-  const canEdit = (request: Integration) =>
-    !request.archived && ['applied'].includes(request?.status || '') && !request.apiServiceAccount;
+  // The dashboard offers the same edit and delete as the owner's own list
+  // (every resting state), from the shared transition table. The in-flight
+  // delete an sso-admin holds is deliberately not offered here.
+  const canEdit = (request: Integration) => canEditIntegration(request) && request.status !== 'draft';
 
-  const canDelete = (request: Integration) => {
-    if (request.archived === true) return false;
-    else if (['pr', 'planned', 'submitted'].includes(request?.status || '')) return false;
-    else return true;
-  };
+  const canDelete = (request: Integration) => !request.archived && isResting(request.status);
 
   const canRestore = (request: Integration) => {
     if (request.archived === false) return false;
@@ -315,13 +330,13 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
     await router.push(`/request/${request.id}?status=${request.status}`);
   };
 
-  const handleDelete = async (request: Integration) => {
+  const handleDelete = (request: Integration) => {
     if (!request.id || !canDelete(request)) return;
     setSelectedId(request.id);
     setShowDeleteModal(true);
   };
 
-  const handleRestore = async (request: Integration) => {
+  const handleRestore = (request: Integration) => {
     if (!request.id || !canRestore(request)) return;
     setSelectedId(request.id);
     setShowRestoreModal(false);

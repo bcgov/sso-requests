@@ -4,7 +4,9 @@ import jwt from 'jsonwebtoken';
 import { RolePayload } from '@/types';
 import createHttpError from 'http-errors';
 import { inject, singleton } from 'tsyringe';
-import logger from '@/logger';
+import { logger } from '@/logger';
+
+const log = logger.child({ module: 'services/keycloak' });
 
 interface KeycloakTokenResponse {
   access_token: string;
@@ -63,7 +65,7 @@ export class KeycloakService {
 
           return this.httpClient(originalRequest);
         } else {
-          console.error(`Unhandled error in axios interceptor: ${error}`);
+          log.error({ err: error, environment: this.environment }, 'Unhandled error in axios interceptor');
           throw error;
         }
       },
@@ -111,7 +113,7 @@ export class KeycloakService {
         this.refreshToken = response.data.refresh_token;
         return this.accessToken;
       } catch (e) {
-        logger.error(`Error in token refresh: `, e);
+        log.error({ err: e, environment: this.environment }, 'Error in token refresh');
         return this.accessToken;
       } finally {
         this.refreshing = false;
@@ -137,7 +139,7 @@ export class KeycloakService {
         this.refreshToken = response.data.refresh_token;
         return this.accessToken;
       } catch (e) {
-        logger.error('Error in access token request: ', e);
+        log.error({ err: e, environment: this.environment }, 'Error in access token request');
         return this.accessToken;
       }
     }

@@ -1,6 +1,7 @@
 import { instance } from './axios';
 
 export interface IdirUser {
+  id?: string;
   company: string;
   phone: string;
   department: string;

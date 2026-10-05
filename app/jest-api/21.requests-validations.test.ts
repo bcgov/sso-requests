@@ -9,7 +9,7 @@ import {
   getUpdateIntegrationData,
   postTeam,
 } from './helpers/fixtures';
-import { createIntegration, updateIntegration } from './helpers/modules/integrations';
+import { createIntegration, getIntegration, updateIntegration } from './helpers/modules/integrations';
 import { createTeam } from './helpers/modules/teams';
 import { cleanUpDatabaseTables } from './helpers/utils';
 import { Integration } from '@app/interfaces/Request';
@@ -91,10 +91,12 @@ describe('integration validations', () => {
         { ...updateableIntegration, usesTeam: false, projectLead: true },
         true,
       );
-      console.log('🚀 ~ updateIntRes:', updateIntRes);
-      expect(updateIntRes.status).toEqual(200);
-      expect(updateIntRes.body.usesTeam).toEqual(true);
-      expect(updateIntRes.body.projectLead).toEqual(false);
+      // Refused naming the field, rather than silently pinned back to the team.
+      expect(updateIntRes.status).toEqual(422);
+      expect(updateIntRes.body.message).toContain('usesTeam');
+      const stored = await getIntegration(integration.id!);
+      expect(stored.body.usesTeam).toEqual(true);
+      expect(stored.body.projectLead).toEqual(false);
     });
 
     it('should allow changing the team after the integration is applied', async () => {
@@ -157,7 +159,9 @@ describe('integration validations', () => {
         true,
       );
       expect(changeIdpRes.status).toEqual(422);
-      const addNewIdp = ['azureidir', 'bceidbasic', 'githubbcgov'];
+      const addNewIdp = ['bcgovidir', 'bceidbasic', 'githubbcgov'];
+      // Clearing the flag needs the approver's permission in either direction; the whole update
+      // is refused naming the flag rather than the flag being silently kept.
       const unapproveIdpRes = await updateIntegration(
         {
           ...getUpdateIntegrationData({ integration: bceidIntegration }),
@@ -168,11 +172,23 @@ describe('integration validations', () => {
         },
         true,
       );
-      expect(unapproveIdpRes.status).toEqual(200);
-      expect(unapproveIdpRes.body.bceidApproved).toEqual(true);
-      expect(unapproveIdpRes.body.devIdps).toEqual(addNewIdp);
-      expect(unapproveIdpRes.body.testIdps).toEqual(addNewIdp);
-      expect(unapproveIdpRes.body.prodIdps).toEqual(addNewIdp);
+      expect(unapproveIdpRes.status).toEqual(422);
+      expect(unapproveIdpRes.body.message).toEqual('not allowed to change: bceidApproved');
+      // The same IdP change without touching the flag goes through.
+      const addIdpRes = await updateIntegration(
+        {
+          ...getUpdateIntegrationData({ integration: bceidIntegration }),
+          devIdps: addNewIdp,
+          testIdps: addNewIdp,
+          prodIdps: addNewIdp,
+        },
+        true,
+      );
+      expect(addIdpRes.status).toEqual(200);
+      expect(addIdpRes.body.bceidApproved).toEqual(true);
+      expect(addIdpRes.body.devIdps).toEqual(expect.arrayContaining(addNewIdp));
+      expect(addIdpRes.body.testIdps).toEqual(expect.arrayContaining(addNewIdp));
+      expect(addIdpRes.body.prodIdps).toEqual(expect.arrayContaining(addNewIdp));
     });
 
     it('should not allow to change github idp and/or approved flag', async () => {
@@ -187,7 +203,7 @@ describe('integration validations', () => {
       );
       expect(approvedRes.status).toEqual(200);
       githubIntegration = approvedRes.body;
-      const changeGithubIdp = ['azureidir', 'githubpublic'];
+      const changeGithubIdp = ['bcgovidir', 'githubpublic'];
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const changeIdpRes = await updateIntegration(
         {
@@ -199,7 +215,7 @@ describe('integration validations', () => {
         true,
       );
       expect(changeIdpRes.status).toEqual(422);
-      const addNewIdp = ['azureidir', 'githubbcgov', 'bceidbasic'];
+      const addNewIdp = ['bcgovidir', 'githubbcgov', 'bceidbasic'];
       const unapproveIdpRes = await updateIntegration(
         {
           ...getUpdateIntegrationData({ integration: githubIntegration }),
@@ -210,11 +226,23 @@ describe('integration validations', () => {
         },
         true,
       );
-      expect(unapproveIdpRes.status).toEqual(200);
-      expect(unapproveIdpRes.body.githubApproved).toEqual(true);
-      expect(unapproveIdpRes.body.devIdps).toEqual(addNewIdp);
-      expect(unapproveIdpRes.body.testIdps).toEqual(addNewIdp);
-      expect(unapproveIdpRes.body.prodIdps).toEqual(addNewIdp);
+      expect(unapproveIdpRes.status).toEqual(422);
+      expect(unapproveIdpRes.body.message).toEqual('not allowed to change: githubApproved');
+      const addIdpRes = await updateIntegration(
+        {
+          ...getUpdateIntegrationData({ integration: githubIntegration }),
+          devIdps: addNewIdp,
+          testIdps: addNewIdp,
+          prodIdps: addNewIdp,
+        },
+        true,
+      );
+      expect(addIdpRes.status).toEqual(200);
+      expect(addIdpRes.body.githubApproved).toEqual(true);
+      // The IdPs are stored in canonical order, not the order the payload happened to send.
+      expect(addIdpRes.body.devIdps).toEqual([...addNewIdp].sort());
+      expect(addIdpRes.body.testIdps).toEqual([...addNewIdp].sort());
+      expect(addIdpRes.body.prodIdps).toEqual([...addNewIdp].sort());
     });
 
     it('should not allow to change bc services card idp and/or approved flag', async () => {
@@ -316,7 +344,7 @@ describe('integration validations', () => {
     );
 
     expect(updateIntegrationRes.status).toEqual(200);
-    expect(updateIntegrationRes.body.devIdps).toEqual(['idir', 'azureidir', 'bceidbasic']);
+    expect(updateIntegrationRes.body.devIdps).toEqual(['azureidir', 'bceidbasic', 'idir']);
   });
 
   it('should preserve discontinued idp for existing integrations', async () => {
@@ -351,7 +379,7 @@ describe('integration validations', () => {
     );
 
     expect(updateIntegrationRes.status).toEqual(200);
-    expect(updateIntegrationRes.body.devIdps).toEqual(['idir', 'azureidir', 'bceidbasic']);
+    expect(updateIntegrationRes.body.devIdps).toEqual(['azureidir', 'bceidbasic', 'idir']);
   });
 });
 
@@ -367,7 +395,7 @@ describe('Approval Resets', () => {
         bceid: true,
         bceidApproved: true,
       });
-      let response = await updateIntegration({ ...integrationRes.body, devIdps: ['azureidir'] }, true);
+      let response = await updateIntegration({ ...integrationRes.body, devIdps: ['bcgovidir'] }, true);
       expect(response.status).toBe(200);
       expect(response.body.bceidApproved).toBeFalsy();
 
@@ -377,7 +405,7 @@ describe('Approval Resets', () => {
         bceidBusiness: true,
         bceidApproved: true,
       });
-      response = await updateIntegration({ ...integrationRes.body, devIdps: ['azureidir'] }, true);
+      response = await updateIntegration({ ...integrationRes.body, devIdps: ['bcgovidir'] }, true);
       expect(response.status).toBe(200);
       expect(response.body.bceidApproved).toBeFalsy();
     });
@@ -400,7 +428,7 @@ describe('Approval Resets', () => {
         github: true,
         githubApproved: true,
       });
-      const response = await updateIntegration({ ...integrationRes.body, devIdps: ['azureidir'] }, true);
+      const response = await updateIntegration({ ...integrationRes.body, devIdps: ['bcgovidir'] }, true);
       expect(response.status).toBe(200);
       expect(response.body.githubApproved).toBeFalsy();
     });
@@ -412,7 +440,7 @@ describe('Approval Resets', () => {
         githubApproved: true,
       });
       expect(integrationRes.status).toBe(200);
-      const response = await updateIntegration({ ...integrationRes.body, devIdps: ['githubbcgov', 'azureidir'] }, true);
+      const response = await updateIntegration({ ...integrationRes.body, devIdps: ['githubbcgov', 'bcgovidir'] }, true);
       expect(response.status).toBe(200);
       expect(response.body.githubApproved).toBeTruthy();
     });

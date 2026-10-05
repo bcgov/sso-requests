@@ -11,6 +11,7 @@ module.exports = {
   //transformIgnorePatterns: ['/node_modules/(?!(@keycloak|url-join|url-template|camelize-ts)/)'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@sso/authz$': '<rootDir>/../packages/authz/src',
   },
   verbose: true,
   coverageReporters: ['json', 'html'],

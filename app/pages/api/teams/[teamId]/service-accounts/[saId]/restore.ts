@@ -1,12 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { handleError } from '@app/utils/helpers';
+import { handleError, withApiLogging } from '@app/utils/api';
 import { processUserSession } from '@app/controllers/user';
 import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
 import { restoreTeamServiceAccount } from '@app/controllers/team';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const userSession = await authenticate(req.headers);
     if (!userSession) return res.status(401).json({ success: false, message: 'not authorized' });
@@ -16,12 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { teamId, saId } = req.query;
       if (!hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_RESTORE_REQUEST))
         return res.status(403).json({ success: false, message: 'forbidden' });
-      const result = await restoreTeamServiceAccount(
-        session as Session,
-        session?.user?.id!,
-        Number(teamId),
-        Number(saId),
-      );
+      const result = await restoreTeamServiceAccount(session as Session, Number(teamId), Number(saId));
       return res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['GET']);
@@ -31,3 +26,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     handleError(res, error);
   }
 }
+
+export default withApiLogging(handler);

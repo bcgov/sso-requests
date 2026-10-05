@@ -23,6 +23,10 @@ import { getEmailTemplate, isNonProdDigitalCredentialRequest } from './helpers';
 import disableBcscIdp from './disable-bcsc-idp';
 import teamMemberAdded from './team-member-added';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'email-templates' });
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/app';
 const APP_ENV = process.env.NEXT_PUBLIC_APP_ENV || 'development';
@@ -33,6 +37,7 @@ const createGithubBottom = getEmailTemplate('create-github-bottom.html');
 const createOTPBottom = getEmailTemplate('create-otp-bottom.html');
 const createDigitalCredentialBottom = getEmailTemplate('create-verified-credential-bottom.html');
 const createBcServicesCardBottom = getEmailTemplate('create-bc-services-card-bottom.html');
+const createBcgovIdirBottom = getEmailTemplate('create-bcgovidir-bottom.html');
 const createSocialBottom = getEmailTemplate('create-social-bottom.html');
 const applyBceidBottom = getEmailTemplate('apply-bceid-bottom.html');
 const applyBcServicesCardBottom = getEmailTemplate('apply-bc-services-card-bottom.html');
@@ -83,6 +88,7 @@ Handlebars.registerPartial('createGithubBottom', createGithubBottom);
 Handlebars.registerPartial('createOTPBottom', createOTPBottom);
 Handlebars.registerPartial('createDigitalCredentialBottom', createDigitalCredentialBottom);
 Handlebars.registerPartial('createBcServicesCardBottom', createBcServicesCardBottom);
+Handlebars.registerPartial('createBcgovIdirBottom', createBcgovIdirBottom);
 Handlebars.registerPartial('createSocialBottom', createSocialBottom);
 Handlebars.registerPartial('applyBceidBottom', applyBceidBottom);
 Handlebars.registerPartial('applyGithubBottom', applyGithubBottom);
@@ -185,7 +191,7 @@ const createEvent = async (data: any) => {
   try {
     await models.event.create(data);
   } catch (err) {
-    console.log(err);
+    log.error({ err }, 'createEvent failed');
   }
 };
 
@@ -196,11 +202,10 @@ export const sendTemplate = async (code: string, data: any) => {
 
     await builder.send(data, rendered);
   } catch (err) {
-    console.error(code, data);
-    console.error(err);
+    log.error({ err, emailCode: code, requestId: data?.integration?.id }, 'failed to send email');
 
     if (data.integration) {
-      createEvent({
+      await createEvent({
         eventCode: EVENTS.EMAIL_SUBMISSION_FAILURE,
         requestId: data.integration.id,
         details: { emailCode: code, error: (err as any).message || err },
@@ -210,7 +215,7 @@ export const sendTemplate = async (code: string, data: any) => {
 };
 
 export const sendTemplates = async (emails: { code: string; data: any }[]) => {
-  await emails.map((email) => sendTemplate(email.code, email.data));
+  await Promise.all(emails.map((email) => sendTemplate(email.code, email.data)));
 };
 
 export default { renderTemplate, sendTemplate };

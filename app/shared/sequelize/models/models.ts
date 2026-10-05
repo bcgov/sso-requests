@@ -6,11 +6,24 @@ import Team from './Team';
 import User from './User';
 import Survey from './Survey';
 import UserTeam from './UserTeam';
-import RequestQueue from './RequestQueue';
 import RequestRole from './RequestRole';
 import BcscClient from './BcscClient';
 import CustomRequest from './CustomRequest';
 import SdxRequest from './SdxRequest';
+import EntraClient from './EntraClient';
+import RequestWorkflow from './requestWorkflow';
+import RequestWorkflowStep from './requestWorkflowStep';
+import RequestWorkflowFailures from './requestWorkflowFailure';
+import Division from './Division';
+import BcgovUnit from './BcgovUnit';
+import Organization from './Organization';
+import OrganizationMember from './OrganizationMember';
+import OrganizationTeam from './OrganizationTeam';
+import OrganizationIntegrationOverride from './OrganizationIntegrationOverride';
+
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'sequelize' });
 
 const config: any = configs[`${process.env.NODE_ENV || 'development'}`];
 
@@ -26,7 +39,7 @@ if (config.databaseUrl) {
   sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
-console.log('sequelize initialized', !!sequelize);
+log.debug('sequelize initialized');
 
 [
   Event,
@@ -35,11 +48,20 @@ console.log('sequelize initialized', !!sequelize);
   User,
   UserTeam,
   Survey,
-  RequestQueue,
   RequestRole,
   BcscClient,
   CustomRequest,
   SdxRequest,
+  EntraClient,
+  RequestWorkflow,
+  RequestWorkflowStep,
+  RequestWorkflowFailures,
+  BcgovUnit,
+  Division,
+  Organization,
+  OrganizationMember,
+  OrganizationTeam,
+  OrganizationIntegrationOverride,
 ].forEach((init) => {
   const model = init(sequelize, DataTypes);
   models[model.name] = model;
