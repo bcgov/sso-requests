@@ -110,7 +110,6 @@ export const listUsersByRole = async (
   },
 ) => {
   const integration = await authorizedIntegration(session, integrationId, 'user-role-mappings:read');
-  if (integration.authType === 'service-account') throw new createHttpError.BadRequest('invalid auth type');
   return await listRoleUsers(integration, {
     environment,
     roleName,
