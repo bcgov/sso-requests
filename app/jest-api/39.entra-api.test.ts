@@ -22,6 +22,7 @@ jest.mock('@azure/msal-node', () => ({
 }));
 jest.mock('@app/utils/graph-api', () => ({
   setupEntraIntegration: jest.fn(),
+  updateEntraIntegration: jest.fn(),
   deleteServicePrincipal: jest.fn(),
   deleteAppRegistration: jest.fn(),
   validateIdirEmail: jest.fn(),
@@ -261,6 +262,15 @@ describe('createEntraIntegration', () => {
     await requests.createEntraIntegration('dev', existingIntegration);
 
     expect(graphApi.setupEntraIntegration).not.toHaveBeenCalled();
+    expect(graphApi.updateEntraIntegration).toHaveBeenCalledWith(
+      'app-id',
+      'service-principal-id',
+      expect.any(String),
+      expect.objectContaining({ id: existingIntegration.id }),
+      'dev',
+      expect.any(String),
+      expect.any(String),
+    );
     await expect(
       getEntraClientByRequestId({ integrationId: existingIntegration.id!, environment: 'dev' }),
     ).resolves.toHaveLength(1);
@@ -338,6 +348,215 @@ describe('createEntraIntegration', () => {
       otherUnit.name,
       otherDivision.name,
     );
+  });
+});
+
+describe('createEntraIntegration with an existing Entra client', () => {
+  const financeUnit = { name: 'Finance', code: 'FIN' };
+  const treasuryDivision = { name: 'Treasury Division', code: 'TRS' };
+  const securityDivision = { name: 'Security Division', code: 'SD' };
+  let financeUnitId: number;
+  let treasuryDivisionId: number;
+  let securityDivisionId: number;
+
+  beforeAll(async () => {
+    const createdFinanceUnit = await models.bcgovUnit.create(financeUnit);
+    const createdTreasury = await models.division.create({ ...treasuryDivision, bcgovUnitId: createdFinanceUnit.id });
+    const createdSecurity = await models.division.create({ ...securityDivision, bcgovUnitId: integration.bcgovUnitId });
+    financeUnitId = createdFinanceUnit.id;
+    treasuryDivisionId = createdTreasury.id;
+    securityDivisionId = createdSecurity.id;
+  });
+
+  beforeEach(() => {
+    idp.getIdp.mockResolvedValue({ alias: 'entra-client' } as never);
+    idp.getIdpMappers.mockResolvedValue(bcgovIdirIdpMappers as never);
+  });
+
+  it.each([
+    {
+      field: 'projectName',
+      id: 12,
+      changes: () => ({ projectName: 'Renamed Project' }),
+      expected: () => ({ appName: 'CITZ-TD-RenamedProject-12-Dev', unit: bcgovUnit.name, division: division.name }),
+    },
+    {
+      field: 'description',
+      id: 13,
+      changes: () => ({ description: 'An updated description' }),
+      expected: () => ({ appName: appNameFor(13), unit: bcgovUnit.name, division: division.name }),
+    },
+    {
+      field: 'bcgov unit',
+      id: 14,
+      changes: () => ({ bcgovUnitId: financeUnitId, divisionId: treasuryDivisionId }),
+      expected: () => ({
+        appName: 'FIN-TRS-EntraProject-14-Dev',
+        unit: financeUnit.name,
+        division: treasuryDivision.name,
+      }),
+    },
+    {
+      field: 'division',
+      id: 15,
+      changes: () => ({ divisionId: securityDivisionId }),
+      expected: () => ({
+        appName: 'CITZ-SD-EntraProject-15-Dev',
+        unit: bcgovUnit.name,
+        division: securityDivision.name,
+      }),
+    },
+  ])('updates the Entra app when the $field changes', async ({ id, changes, expected }) => {
+    const existingIntegration = integrationForRequest(id);
+    await createPersistedEntraClient(existingIntegration);
+    const updatedIntegration = { ...existingIntegration, ...changes() };
+    const { appName, unit, division: divisionName } = expected();
+
+    await requests.createEntraIntegration('dev', updatedIntegration);
+
+    expect(graphApi.setupEntraIntegration).not.toHaveBeenCalled();
+    expect(graphApi.updateEntraIntegration).toHaveBeenCalledTimes(1);
+    expect(graphApi.updateEntraIntegration).toHaveBeenCalledWith(
+      'app-id',
+      'service-principal-id',
+      appName,
+      expect.objectContaining(changes()),
+      'dev',
+      unit,
+      divisionName,
+    );
+    expect(idp.createIdp).not.toHaveBeenCalled();
+  });
+});
+
+describe('updateEntraIntegration', () => {
+  const actualGraphApi = jest.requireActual('@app/utils/graph-api') as typeof import('@app/utils/graph-api');
+  const { getApplicationNotes } = jest.requireActual(
+    '@app/utils/entra-helpers',
+  ) as typeof import('@app/utils/entra-helpers');
+
+  const appObjectId = 'app-object-id';
+  const currentAppName = appNameFor(1);
+  const notesFor = (request: typeof integration, unitName = bcgovUnit.name, divisionName = division.name) =>
+    getApplicationNotes({
+      environment: 'dev',
+      requester: request.requester || '',
+      bcgovUnitName: unitName,
+      divisionName,
+      description: request.description || '<no description provided>',
+    });
+
+  const graphRequests = () => (axios.request as jest.Mock).mock.calls.map(([config]) => config);
+  const patchesTo = (path: string) =>
+    graphRequests().filter(({ method, url }) => method === 'PATCH' && new URL(url).pathname === path);
+
+  beforeEach(() => {
+    // Notes embed a timestamp, so freeze the clock to make "unchanged" notes comparable.
+    jest.useFakeTimers({ now: new Date('2026-01-01T00:00:00.000Z') });
+    (ConfidentialClientApplication as jest.Mock).mockImplementation(() => ({
+      acquireTokenByClientCredential: jest.fn(() =>
+        Promise.resolve({ accessToken: 'graph-token', expiresOn: new Date(Date.now() + 3600_000) }),
+      ),
+    }));
+    const currentNotes = notesFor(integration);
+    (axios.request as jest.Mock).mockImplementation(({ method, url }) => {
+      const { pathname } = new URL(url);
+      if (method === 'GET' && pathname === '/v1.0/applications') {
+        return Promise.resolve({
+          data: { value: [{ id: appObjectId, appId: 'app-id', displayName: currentAppName, notes: currentNotes }] },
+        });
+      }
+      if (method === 'GET' && pathname === '/v1.0/servicePrincipals') {
+        return Promise.resolve({ data: { value: [{ id: 'service-principal-id', appId: 'app-id' }] } });
+      }
+      return Promise.resolve({ data: {} });
+    });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it.each([
+    {
+      field: 'projectName',
+      appName: 'CITZ-TD-RenamedProject-1-Dev',
+      request: { ...integration, projectName: 'Renamed Project' },
+      unit: bcgovUnit.name,
+      division: division.name,
+    },
+    {
+      field: 'description',
+      appName: currentAppName,
+      request: { ...integration, description: 'An updated description' },
+      unit: bcgovUnit.name,
+      division: division.name,
+    },
+    {
+      field: 'bcgov unit',
+      appName: 'FIN-TRS-EntraProject-1-Dev',
+      request: integration,
+      unit: 'Finance',
+      division: 'Treasury Division',
+    },
+    {
+      field: 'division',
+      appName: 'CITZ-SD-EntraProject-1-Dev',
+      request: integration,
+      unit: bcgovUnit.name,
+      division: 'Security Division',
+    },
+  ])('patches the app registration and service principal when the $field changes', async (testCase) => {
+    const expectedNotes = notesFor(testCase.request, testCase.unit, testCase.division);
+
+    await actualGraphApi.updateEntraIntegration(
+      'app-id',
+      'service-principal-id',
+      testCase.appName,
+      testCase.request,
+      'dev',
+      testCase.unit,
+      testCase.division,
+    );
+
+    const appPatches = patchesTo(`/v1.0/applications/${appObjectId}`);
+    expect(appPatches).toHaveLength(1);
+    expect(appPatches[0].data).toEqual({ displayName: testCase.appName, notes: expectedNotes });
+
+    const servicePrincipalPatches = patchesTo('/v1.0/servicePrincipals/service-principal-id');
+    expect(servicePrincipalPatches).toHaveLength(1);
+    expect(servicePrincipalPatches[0].data).toEqual({ notes: expectedNotes });
+  });
+
+  it('does not patch anything when the name and notes are unchanged', async () => {
+    await actualGraphApi.updateEntraIntegration(
+      'app-id',
+      'service-principal-id',
+      currentAppName,
+      integration,
+      'dev',
+      bcgovUnit.name,
+      division.name,
+    );
+
+    expect(graphRequests().filter(({ method }) => method === 'PATCH')).toHaveLength(0);
+  });
+
+  it('throws when the app registration no longer exists', async () => {
+    (axios.request as jest.Mock).mockResolvedValue({ data: { value: [] } });
+
+    await expect(
+      actualGraphApi.updateEntraIntegration(
+        'app-id',
+        'service-principal-id',
+        currentAppName,
+        integration,
+        'dev',
+        bcgovUnit.name,
+        division.name,
+      ),
+    ).rejects.toThrow(`No application registration found for app ${currentAppName}`);
+    expect(graphRequests().filter(({ method }) => method === 'PATCH')).toHaveLength(0);
   });
 });
 
