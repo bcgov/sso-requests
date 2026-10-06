@@ -137,4 +137,4 @@ jobs:
             cypress/e2e/external/search-users.cy.ts
             cypress/e2e/external/integration-roles.cy.ts
             cypress/e2e/ci/integrations-crud.cy.ts
-          browser: electron
+          browser: chrome
