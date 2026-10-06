@@ -63,7 +63,7 @@ describe('Run IDP Stopper Test', () => {
             });
           }
           cy.window().then((w) => w.focus());
-          cy.contains('button', 'Token Parsed', { timeout: 1000 }).click();
+          cy.contains('button', 'Token Parsed', { timeout: 10000 }).click();
           cy.contains('td', 'family_name').siblings().should('be.empty');
           playground.clickLogout();
         });

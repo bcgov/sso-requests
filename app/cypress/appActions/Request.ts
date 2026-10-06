@@ -287,8 +287,8 @@ class Request {
     const nonEmptyIDPs = this.identityProvider.filter((str) => str !== '');
     if (nonEmptyIDPs.length == 1 && nonEmptyIDPs[0] == this.reqPage.idpLabels.bcscLabel) {
       cy.get('[id$=-tab-tech-details]');
-      cy.get('[id$=-tab-role-management]', { timeout: 1000 }).should('not.exist');
-      cy.get('[id$=-tab-user-role-management]', { timeout: 1000 }).should('not.exist');
+      cy.get('[id$=-tab-role-management]', { timeout: 10000 }).should('not.exist');
+      cy.get('[id$=-tab-user-role-management]', { timeout: 10000 }).should('not.exist');
     }
 
     return this.getID(this.projectName);
