@@ -1,49 +1,5 @@
 [
   {
-    "test_id": "SEARCH-005",
-    "id": "Test Automation do not delete",
-    "environment": "Dev",
-    "idp": "IDIR - MFA",
-    "criterion": "First Name",
-    "search_value": "Test",
-    "error": false,
-    "smoketest": false,
-    "localtest": false
-  },
-  {
-    "test_id": "SEARCH-006",
-    "id": "Test Automation do not delete",
-    "environment": "Dev",
-    "idp": "IDIR - MFA",
-    "criterion": "Last Name",
-    "search_value": "User",
-    "error": false,
-    "smoketest": false,
-    "localtest": false
-  },
-  {
-    "test_id": "SEARCH-007",
-    "id": "Test Automation do not delete",
-    "environment": "Dev",
-    "idp": "IDIR - MFA",
-    "criterion": "Email",
-    "search_value": "test.azure.idir@gov.bc.ca",
-    "error": false,
-    "smoketest": false,
-    "localtest": false
-  },
-  {
-    "test_id": "SEARCH-008",
-    "id": "Test Automation do not delete",
-    "environment": "Dev",
-    "idp": "IDIR - MFA",
-    "criterion": "IDP GUID",
-    "search_value": "test.azure.idir@gov.bc.ca",
-    "error": false,
-    "smoketest": false,
-    "localtest": false
-  },
-  {
     "test_id": "SEARCH-009",
     "id": "Test Automation do not delete",
     "environment": "Dev",
@@ -138,50 +94,6 @@
     "idp": "GitHub BC Gov",
     "criterion": "IDP GUID",
     "search_value": "gh.bcgov.sso@gov.bc.ca",
-    "error": false,
-    "smoketest": false,
-    "localtest": false
-  },
-  {
-    "test_id": "SEARCH-022",
-    "id": "Test Automation do not delete",
-    "environment": "Test",
-    "idp": "IDIR - MFA",
-    "criterion": "First Name",
-    "search_value": "Test",
-    "error": false,
-    "smoketest": false,
-    "localtest": false
-  },
-  {
-    "test_id": "SEARCH-023",
-    "id": "Test Automation do not delete",
-    "environment": "Test",
-    "idp": "IDIR - MFA",
-    "criterion": "Last Name",
-    "search_value": "User",
-    "error": false,
-    "smoketest": false,
-    "localtest": false
-  },
-  {
-    "test_id": "SEARCH-024",
-    "id": "Test Automation do not delete",
-    "environment": "Test",
-    "idp": "IDIR - MFA",
-    "criterion": "Email",
-    "search_value": "test.azure.idir@gov.bc.ca",
-    "error": false,
-    "smoketest": false,
-    "localtest": false
-  },
-  {
-    "test_id": "SEARCH-025",
-    "id": "Test Automation do not delete",
-    "environment": "Test",
-    "idp": "IDIR - MFA",
-    "criterion": "IDP GUID",
-    "search_value": "test.azure.idir@gov.bc.ca",
     "error": false,
     "smoketest": false,
     "localtest": false
