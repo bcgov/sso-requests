@@ -35,13 +35,15 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
         const userToken = await utils.getOTPToken(foundItem.otpsecret);
 
         cy.origin('login.microsoftonline.com', { args: { foundItem, userToken } }, ({ foundItem, userToken }) => {
+          cy.wait(510);
           cy.get('input[type="email"]').type(foundItem.email, { delay: 15, log: false });
-          cy.wait(500);
+          cy.wait(520);
           cy.contains('Next').click();
+          cy.wait(514);
           cy.get('input[type="password"]').type(foundItem.password, { delay: 15, log: false });
           cy.wait(550);
           cy.contains('Sign in').click();
-
+          cy.wait(540);
           cy.get('input[type="tel"]').type(userToken, { delay: 15, log: false });
           cy.wait(450);
           cy.contains('Verify').click();
