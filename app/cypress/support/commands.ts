@@ -36,11 +36,14 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
 
         cy.origin('login.microsoftonline.com', { args: { foundItem, userToken } }, ({ foundItem, userToken }) => {
           cy.get('input[type="email"]').type(foundItem.email, { delay: 15, log: false });
+          cy.wait(500);
           cy.contains('Next').click();
           cy.get('input[type="password"]').type(foundItem.password, { delay: 15, log: false });
+          cy.wait(550);
           cy.contains('Sign in').click();
 
           cy.get('input[type="tel"]').type(userToken, { delay: 15, log: false });
+          cy.wait(450);
           cy.contains('Verify').click();
 
           cy.get('input[type="submit"][value="Yes"]', { timeout: 2000 }).then(($btn) => {
@@ -62,7 +65,7 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
               cy.get('[data-testid="desktop-login-button"]').click();
             }
           });
-          cy.get('[data-testid="desktop-logout-button"]', { timeout: 3000 }).should('be.visible');
+          cy.get('[data-testid="desktop-logout-button"]', { timeout: 10000 }).should('be.visible');
         },
       },
     );
