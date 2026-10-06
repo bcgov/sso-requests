@@ -461,9 +461,9 @@ describe('updateEntraIntegration', () => {
     const currentNotes = notesFor(integration);
     (axios.request as jest.Mock).mockImplementation(({ method, url }) => {
       const { pathname } = new URL(url);
-      if (method === 'GET' && pathname === '/v1.0/applications') {
+      if (method === 'GET' && pathname === `/v1.0/applications(appId='app-id')`) {
         return Promise.resolve({
-          data: { value: [{ id: appObjectId, appId: 'app-id', displayName: currentAppName, notes: currentNotes }] },
+          data: { id: appObjectId, appId: 'app-id', displayName: currentAppName, notes: currentNotes },
         });
       }
       if (method === 'GET' && pathname === '/v1.0/servicePrincipals') {

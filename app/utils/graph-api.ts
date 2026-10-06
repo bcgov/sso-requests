@@ -476,7 +476,7 @@ export const updateEntraIntegration = async (
     divisionName,
     description: request.description || '<no description provided>',
   });
-  const appRegistration = await getAppRegistration(appId);
+  const appRegistration = await getAppRegistrationByAppId(appId);
   if (!appRegistration) {
     throw new Error(`No application registration found for app ${appName}`);
   }
@@ -554,10 +554,10 @@ export const deleteAppRegistration = async (appId: string): Promise<void> => {
   }
 };
 
-export const getAppRegistration = async (appNameOrId: string): Promise<Application | null> => {
+export const getAppRegistration = async (appName: string): Promise<Application | null> => {
   try {
     const response = await callAzureGraphApi(
-      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications?$filter=displayName eq '${appNameOrId}' or appId eq '${appNameOrId}'`,
+      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/applications?$filter=displayName eq '${appName}'`,
       {
         method: 'GET',
       },
