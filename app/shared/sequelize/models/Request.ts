@@ -155,6 +155,14 @@ const init = (sequelize: any, DataTypes: any) => {
         allowNull: true,
         field: 'team_id',
       },
+      // Only ever set on an API service account: the organization that owns it,
+      // in place of a team. A database CHECK keeps an account to exactly one of
+      // the two owners.
+      organizationId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        field: 'organization_id',
+      },
       requester: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -321,6 +329,16 @@ const init = (sequelize: any, DataTypes: any) => {
           return this.getDataValue('userTeamRole');
         },
       },
+      // The authority the actor holds over this row, resolved by
+      // queries/integrationAccess and attached by whatever loaded it. Virtual
+      // like userTeamRole: it is per-actor, so it is never stored.
+      permissions: {
+        type: DataTypes.VIRTUAL,
+        get(): string[] {
+          //@ts-ignore
+          return this.getDataValue('permissions');
+        },
+      },
       devDisplayHeaderTitle: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
@@ -399,6 +417,11 @@ const init = (sequelize: any, DataTypes: any) => {
         type: DataTypes.BOOLEAN,
         allowNull: true,
       },
+      bcgovidirApproved: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
       otpApproved: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
@@ -420,11 +443,24 @@ const init = (sequelize: any, DataTypes: any) => {
         allowNull: false,
         defaultValue: false,
       },
+      bcgovUnitId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      divisionId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      description: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
     },
     {
       underscored: true,
       associate: function (models: any) {
         Request.belongsTo(models.team);
+        Request.belongsTo(models.organization);
         Request.belongsTo(models.user);
         Request.hasMany(models.bcscClient);
       },

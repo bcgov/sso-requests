@@ -15,7 +15,8 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@app/*": ["*"]
+      "@app/*": ["*"],
+      "@sso/authz": ["../packages/authz/src"]
     },
     "incremental": true,
     "types": ["cypress", "node", "cypress-real-events", "jest"]

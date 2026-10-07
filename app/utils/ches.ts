@@ -5,6 +5,10 @@ import { EmailOptions } from '@app/shared/interfaces';
 import https from 'https';
 import { envMap, idpMap } from '@app/helpers/meta';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'ches' });
+
 const compactUniq = (v: any) => uniq(compact(v));
 
 const httpsAgent = new https.Agent({
@@ -28,13 +32,13 @@ const fetchChesToken = async (username: string, password: string) => {
     const { access_token: accessToken } = payload.data;
     return [accessToken, null];
   } catch (err) {
-    console.log(err);
+    log.error({ err }, 'fetchChesToken failed');
     return [null, err];
   }
 };
 
 export const sendEmail = async ({ code, from = 'bcgov.sso@gov.bc.ca', to, cc, body, ...rest }: EmailOptions) => {
-  const chesAPIEndpoint = process.env.REALM_REGISTRY_API + '/emails';
+  const chesAPIEndpoint = process.env.CHES_API_ENDPOINT || 'https://ches.api.gov.bc.ca/api/v1/email';
   const [accessToken, error] = await fetchChesToken(process.env.CHES_USERNAME!, process.env.CHES_PASSWORD!);
   if (error) throw Error(error);
 

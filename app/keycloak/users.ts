@@ -10,6 +10,10 @@ import { checkIfUserIsServiceAccount } from '@app/helpers/users';
 import { IntegrationData } from '@app/shared/interfaces';
 import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
 
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'keycloak/users' });
+
 const getRoleByName = async (kcClient: KcAdminClient, clientId: string, roleName: string) => {
   // @ts-ignore
   const role = await kcClient.clients.findRole({ realm: 'standard', id: clientId, roleName });
@@ -101,9 +105,6 @@ export const getCompositeClientRoles = async (
     roleName: string;
   },
 ) => {
-  if (integration.authType === 'service-account')
-    throw new createHttpError.BadRequest(`invalid auth type ${integration.authType}`);
-
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
   if (clients.length === 0) throw new createHttpError.NotFound(`client ${integration.clientId} not found`);
@@ -548,7 +549,7 @@ export const updateRole = async (
       },
     );
   } catch (err) {
-    console.error(`Error updating role ${roleName}:`, err);
+    log.error({ err }, `Error updating role ${roleName}`);
     throw new createHttpError.UnprocessableEntity(`failed to update role ${roleName}`);
   }
   return updatedRole;
@@ -620,7 +621,9 @@ export const createAzureIdirUser = async ({
   environment,
   guid,
   userId,
+  idirGuid,
   email,
+  idp,
   firstName,
   lastName,
   displayName,
@@ -630,15 +633,17 @@ export const createAzureIdirUser = async ({
   guid: string;
   userId: string;
   email: string;
+  idirGuid: string;
   firstName: string;
   lastName: string;
   displayName: string;
   upn: string;
+  idp: string;
 }) => {
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
 
   const lowGuid = guid.toLowerCase();
-  const username = `${lowGuid}@azureidir`;
+  const username = `${lowGuid}@${idp}`;
 
   let standardUser = null;
 
@@ -659,7 +664,7 @@ export const createAzureIdirUser = async ({
       lastName,
       attributes: {
         display_name: displayName,
-        idir_user_guid: guid,
+        idir_user_guid: idirGuid,
         idir_username: userId,
         user_principal_name: upn,
       },
@@ -669,11 +674,11 @@ export const createAzureIdirUser = async ({
     await kcAdminClient.users.addToFederatedIdentity({
       realm: 'standard',
       id: standardUser.id,
-      federatedIdentityId: 'azureidir',
+      federatedIdentityId: idp,
       federatedIdentity: {
         userId: lowGuid,
         userName: lowGuid,
-        identityProvider: 'azureidir',
+        identityProvider: idp,
       },
     });
   }
@@ -737,7 +742,18 @@ export const searchUsersByIdp = async ({
     }
   }
 
-  if (!['azureidir', 'idir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubpublic', 'githubbcgov'].includes(idp))
+  if (
+    ![
+      'azureidir',
+      'idir',
+      'bceidbasic',
+      'bceidbusiness',
+      'bceidboth',
+      'githubpublic',
+      'githubbcgov',
+      'bcgovidir',
+    ].includes(idp)
+  )
     throw new createHttpError.BadRequest(`invalid idp ${idp}`);
 
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });

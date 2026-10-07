@@ -3,8 +3,6 @@ import { BcscClients as _BcscClients } from '@/sequelize/models/BcscClients';
 import type { BcscClientsAttributes, BcscClientsCreationAttributes } from '@/sequelize/models/BcscClients';
 import { Events as _Events } from '@/sequelize/models/Events';
 import type { EventsAttributes, EventsCreationAttributes } from '@/sequelize/models/Events';
-import { RequestQueues as _RequestQueues } from '@/sequelize/models/RequestQueues';
-import type { RequestQueuesAttributes, RequestQueuesCreationAttributes } from '@/sequelize/models/RequestQueues';
 import { RequestRoles as _RequestRoles } from '@/sequelize/models/RequestRoles';
 import type { RequestRolesAttributes, RequestRolesCreationAttributes } from '@/sequelize/models/RequestRoles';
 import { Requests as _Requests } from '@/sequelize/models/Requests';
@@ -18,19 +16,24 @@ import type { UsersAttributes, UsersCreationAttributes } from '@/sequelize/model
 import { UsersTeams as _UsersTeams } from '@/sequelize/models/UsersTeams';
 import type { UsersTeamsAttributes, UsersTeamsCreationAttributes } from '@/sequelize/models/UsersTeams';
 import sequelize from '@/sequelize/config';
+import { OrganizationTeams as _OrganizationTeams } from '@/sequelize/models/OrganizationTeams';
+export type { OrganizationTeamsAttributes } from '@/sequelize/models/OrganizationTeams';
+import { OrganizationIntegrationOverrides as _OrganizationIntegrationOverrides } from '@/sequelize/models/OrganizationIntegrationOverrides';
+export type { OrganizationIntegrationOverridesAttributes } from '@/sequelize/models/OrganizationIntegrationOverrides';
 import { ApiUsageMetrics as _ApiUsageMetrics } from '@/sequelize/models/ApiUsageMetrics';
 import type { ApiUsageMetricsAttributes } from '@/sequelize/models/ApiUsageMetrics';
 
 export {
   _BcscClients as BcscClients,
   _Events as Events,
-  _RequestQueues as RequestQueues,
   _RequestRoles as RequestRoles,
   _Requests as Requests,
   _Surveys as Surveys,
   _Teams as Teams,
   _Users as Users,
   _UsersTeams as UsersTeams,
+  _OrganizationTeams as OrganizationTeams,
+  _OrganizationIntegrationOverrides as OrganizationIntegrationOverrides,
 };
 
 export type {
@@ -38,8 +41,6 @@ export type {
   BcscClientsCreationAttributes,
   EventsAttributes,
   EventsCreationAttributes,
-  RequestQueuesAttributes,
-  RequestQueuesCreationAttributes,
   RequestRolesAttributes,
   RequestRolesCreationAttributes,
   RequestsAttributes,
@@ -58,7 +59,6 @@ export type {
 export function models(sequelize: Sequelize) {
   const BcscClients = _BcscClients.initModel(sequelize);
   const Events = _Events.initModel(sequelize);
-  const RequestQueues = _RequestQueues.initModel(sequelize);
   const RequestRoles = _RequestRoles.initModel(sequelize);
   const Requests = _Requests.initModel(sequelize);
   const Surveys = _Surveys.initModel(sequelize);
@@ -66,6 +66,8 @@ export function models(sequelize: Sequelize) {
   const Users = _Users.initModel(sequelize);
   const UsersTeams = _UsersTeams.initModel(sequelize);
   const ApiUsageMetrics = _ApiUsageMetrics.initModel(sequelize);
+  const OrganizationTeams = _OrganizationTeams.initModel(sequelize);
+  const OrganizationIntegrationOverrides = _OrganizationIntegrationOverrides.initModel(sequelize);
 
   Teams.belongsToMany(Users, { as: 'userIdUsers', through: UsersTeams, foreignKey: 'teamId', otherKey: 'userId' });
   Users.belongsToMany(Teams, { as: 'teamIdTeams', through: UsersTeams, foreignKey: 'userId', otherKey: 'teamId' });
@@ -87,7 +89,6 @@ export function models(sequelize: Sequelize) {
   return {
     bcscClient: BcscClients,
     event: Events,
-    requestQueue: RequestQueues,
     requestRole: RequestRoles,
     request: Requests,
     survey: Surveys,
@@ -95,6 +96,8 @@ export function models(sequelize: Sequelize) {
     user: Users,
     usersTeam: UsersTeams,
     apiUsageMetrics: ApiUsageMetrics,
+    organizationTeam: OrganizationTeams,
+    organizationIntegrationOverride: OrganizationIntegrationOverrides,
   };
 }
 

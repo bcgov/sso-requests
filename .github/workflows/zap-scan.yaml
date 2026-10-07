@@ -12,37 +12,42 @@ on:
           - info
           - warning
           - debug
-  # Only trigger, when the build workflow succeeded
+  # Only trigger when the build workflow succeeded
   workflow_run:
     workflows:
-      - Terraform
+      - Build Images and Deploy CSS App
     branches:
       - dev
     types:
       - completed
 
+permissions:
+  contents: read
+
 jobs:
   zap-scan:
+    # workflow_run fires on failed runs too; only scan a successful deploy.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: isbang/compose-action@v1.5.1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: isbang/compose-action@178aeba5c9dbeed89ffffbb3e6548ec08e9839cf # v1.5.1
         with:
           compose-file: './docker-compose.yml'
-      - uses: iFaxity/wait-on-action@v1.1.0
+      - uses: iFaxity/wait-on-action@628831cec646e6dacca502f34a6c6b46e131e51d # v1.1.0
         with:
           resource: http://localhost:3000
       - name: ZAP Scan App
-        uses: zaproxy/action-full-scan@v0.9.0
+        uses: zaproxy/action-full-scan@bdd21ad4090d552d299261226c553efbc216f5ee # v0.9.0
         with:
           target: 'http://localhost:3000'
           token: ${{ secrets.GITHUB_TOKEN}}
           allow_issue_writing: false
           artifact_name: 'app-zap-report'
       - name: ZAP Scan API
-        uses: zaproxy/action-full-scan@v0.9.0
+        uses: zaproxy/action-full-scan@bdd21ad4090d552d299261226c553efbc216f5ee # v0.9.0
         with:
           target: 'http://localhost:3000/api/'
           token: ${{ secrets.GITHUB_TOKEN}}

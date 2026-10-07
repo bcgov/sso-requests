@@ -66,6 +66,11 @@ export const createMigrator = async () => {
       await import('./migrations/2026.07.27T10.00.00.add-custom-requests-table'),
       await import('./migrations/2026.08.07T10.00.00.add-sdx-enabled'),
       await import('./migrations/2026.08.07T14.00.00.create-sdx-requests-table'),
+      await import('./migrations/2026.09.08T13.50.00.add-entra-table'),
+      await import('./migrations/2026.09.15T10.00.00.create-request-workflows-tables'),
+      await import('./migrations/2026.09.16T10.00.00.create-organizations'),
+      await import('./migrations/2026.09.22T02.33.00.add-bcgov-unit-description-requests-table'),
+      await import('./migrations/2026.09.25T15.00.00.add-bcgovidir-approved'),
     ],
     context: sequelize,
     storage: new SequelizeStorage({

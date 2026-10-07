@@ -1,22 +1,19 @@
 import { validateIDPs } from '@app/utils/helpers';
 
-const sampleSession = {
-  email: '',
-  client_roles: ['sso-admin'],
-  given_name: '',
-  family_name: '',
-  idir_userid: '',
-};
+// validateIDPs no longer reads the session: the caller says whether the actor
+// may add a restricted IdP. Admin and non-admin are the two values of that flag.
+const asAdmin = { canAddRestrictedIdps: true };
+const asUser = { canAddRestrictedIdps: false };
 
 describe('Github', () => {
   describe('Draft', () => {
     const applied = false;
     describe('Public', () => {
       it('Allows admins to add and remove', () => {
-        let result = validateIDPs({ currentIdps: [], updatedIdps: ['githubpublic'], session: sampleSession });
+        let result = validateIDPs({ currentIdps: [], updatedIdps: ['githubpublic'], ...asAdmin });
         expect(result).toEqual(true);
 
-        result = validateIDPs({ currentIdps: ['githubpublic'], updatedIdps: [], session: sampleSession });
+        result = validateIDPs({ currentIdps: ['githubpublic'], updatedIdps: [], ...asAdmin });
         expect(result).toEqual(true);
       });
 
@@ -24,14 +21,14 @@ describe('Github', () => {
         let result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['githubpublic'],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(false);
 
         result = validateIDPs({
           currentIdps: ['githubpublic'],
           updatedIdps: [],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
       });
@@ -39,10 +36,10 @@ describe('Github', () => {
 
     describe('BCGov', () => {
       it('Allows admins to add and remove', () => {
-        let result = validateIDPs({ currentIdps: [], updatedIdps: ['githubbcgov'], session: sampleSession });
+        let result = validateIDPs({ currentIdps: [], updatedIdps: ['githubbcgov'], ...asAdmin });
         expect(result).toEqual(true);
 
-        result = validateIDPs({ currentIdps: ['githubbcgov'], updatedIdps: [], session: sampleSession });
+        result = validateIDPs({ currentIdps: ['githubbcgov'], updatedIdps: [], ...asAdmin });
         expect(result).toEqual(true);
       });
 
@@ -50,14 +47,14 @@ describe('Github', () => {
         let result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['githubbcgov'],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
 
         result = validateIDPs({
           currentIdps: ['githubbcgov'],
           updatedIdps: [],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
       });
@@ -68,21 +65,21 @@ describe('Github', () => {
         let result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['githubbcgov', 'githubpublic'],
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(false);
 
         result = validateIDPs({
           currentIdps: ['githubbcgov'],
           updatedIdps: ['githubbcgov', 'githubpublic'],
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(false);
 
         result = validateIDPs({
           currentIdps: ['githubpublic'],
           updatedIdps: ['githubbcgov', 'githubpublic'],
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(false);
       });
@@ -91,21 +88,21 @@ describe('Github', () => {
         let result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['githubbcgov', 'githubpublic'],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(false);
 
         result = validateIDPs({
           currentIdps: ['githubbcgov'],
           updatedIdps: ['githubbcgov', 'githubpublic'],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(false);
 
         result = validateIDPs({
           currentIdps: ['githubpublic'],
           updatedIdps: ['githubbcgov', 'githubpublic'],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(false);
       });
@@ -114,11 +111,11 @@ describe('Github', () => {
         let result = validateIDPs({
           currentIdps: ['githubbcgov'],
           updatedIdps: ['githubpublic'],
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(true);
 
-        result = validateIDPs({ currentIdps: ['githubpublic'], updatedIdps: ['githubbcgov'], session: sampleSession });
+        result = validateIDPs({ currentIdps: ['githubpublic'], updatedIdps: ['githubbcgov'], ...asAdmin });
         expect(result).toEqual(true);
       });
     });
@@ -128,10 +125,10 @@ describe('Github', () => {
     const applied = true;
     describe('Public', () => {
       it('Allows admins to add and remove', () => {
-        let result = validateIDPs({ currentIdps: [], updatedIdps: ['githubpublic'], session: sampleSession });
+        let result = validateIDPs({ currentIdps: [], updatedIdps: ['githubpublic'], ...asAdmin });
         expect(result).toEqual(true);
 
-        result = validateIDPs({ currentIdps: ['githubpublic'], updatedIdps: [], session: sampleSession });
+        result = validateIDPs({ currentIdps: ['githubpublic'], updatedIdps: [], ...asAdmin });
         expect(result).toEqual(true);
       });
 
@@ -139,14 +136,14 @@ describe('Github', () => {
         let result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['githubpublic'],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(false);
 
         result = validateIDPs({
           currentIdps: ['githubpublic'],
           updatedIdps: [],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
       });
@@ -154,10 +151,10 @@ describe('Github', () => {
 
     describe('BCGov', () => {
       it('Allows admins to add and remove', () => {
-        let result = validateIDPs({ currentIdps: [], updatedIdps: ['githubbcgov'], session: sampleSession });
+        let result = validateIDPs({ currentIdps: [], updatedIdps: ['githubbcgov'], ...asAdmin });
         expect(result).toEqual(true);
 
-        result = validateIDPs({ currentIdps: ['githubbcgov'], updatedIdps: [], session: sampleSession });
+        result = validateIDPs({ currentIdps: ['githubbcgov'], updatedIdps: [], ...asAdmin });
         expect(result).toEqual(true);
       });
 
@@ -165,14 +162,14 @@ describe('Github', () => {
         let result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['githubbcgov'],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
 
         result = validateIDPs({
           currentIdps: ['githubbcgov'],
           updatedIdps: [],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
       });
@@ -183,21 +180,21 @@ describe('Github', () => {
         let result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['githubbcgov', 'githubpublic'],
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(false);
 
         result = validateIDPs({
           currentIdps: ['githubbcgov'],
           updatedIdps: ['githubbcgov', 'githubpublic'],
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(false);
 
         result = validateIDPs({
           currentIdps: ['githubpublic'],
           updatedIdps: ['githubbcgov', 'githubpublic'],
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(false);
       });
@@ -206,11 +203,11 @@ describe('Github', () => {
         let result = validateIDPs({
           currentIdps: ['githubbcgov'],
           updatedIdps: ['githubpublic'],
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(true);
 
-        result = validateIDPs({ currentIdps: ['githubpublic'], updatedIdps: ['githubbcgov'], session: sampleSession });
+        result = validateIDPs({ currentIdps: ['githubpublic'], updatedIdps: ['githubbcgov'], ...asAdmin });
         expect(result).toEqual(true);
       });
 
@@ -218,21 +215,21 @@ describe('Github', () => {
         let result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['githubbcgov', 'githubpublic'],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(false);
 
         result = validateIDPs({
           currentIdps: ['githubbcgov'],
           updatedIdps: ['githubbcgov', 'githubpublic'],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(false);
 
         result = validateIDPs({
           currentIdps: ['githubpublic'],
           updatedIdps: ['githubbcgov', 'githubpublic'],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(false);
       });
@@ -248,7 +245,7 @@ describe('Github', () => {
           currentIdps: [],
           updatedIdps: ['githubpublic'],
           githubApproved,
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(false);
 
@@ -256,7 +253,7 @@ describe('Github', () => {
           currentIdps: ['githubpublic'],
           updatedIdps: [],
           githubApproved,
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(true);
       });
@@ -266,7 +263,7 @@ describe('Github', () => {
           currentIdps: [],
           updatedIdps: ['githubpublic'],
           githubApproved,
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(false);
 
@@ -274,7 +271,7 @@ describe('Github', () => {
           currentIdps: ['githubpublic'],
           updatedIdps: [],
           githubApproved,
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
       });
@@ -283,7 +280,7 @@ describe('Github', () => {
         let result = validateIDPs({
           currentIdps: ['githubpublic', 'azureidir'],
           updatedIdps: ['githubpublic', 'digitalcredential'],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
       });
@@ -295,7 +292,7 @@ describe('Github', () => {
           currentIdps: [],
           updatedIdps: ['githubbcgov'],
           githubApproved,
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(false);
 
@@ -303,7 +300,7 @@ describe('Github', () => {
           currentIdps: ['githubbcgov'],
           updatedIdps: [],
           githubApproved,
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(true);
       });
@@ -313,7 +310,7 @@ describe('Github', () => {
           currentIdps: [],
           updatedIdps: ['githubbcgov'],
           githubApproved,
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(false);
 
@@ -321,7 +318,7 @@ describe('Github', () => {
           currentIdps: ['githubbcgov'],
           updatedIdps: [],
           githubApproved,
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
       });
@@ -332,7 +329,7 @@ describe('Github', () => {
         let result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['githubbcgov', 'githubpublic'],
-          session: sampleSession,
+          ...asAdmin,
           githubApproved,
         });
         expect(result).toEqual(false);
@@ -340,7 +337,7 @@ describe('Github', () => {
         result = validateIDPs({
           currentIdps: ['githubbcgov'],
           updatedIdps: ['githubbcgov', 'githubpublic'],
-          session: sampleSession,
+          ...asAdmin,
           githubApproved,
         });
         expect(result).toEqual(false);
@@ -350,7 +347,7 @@ describe('Github', () => {
         let result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['githubbcgov', 'githubpublic'],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
           githubApproved,
         });
         expect(result).toEqual(false);
@@ -358,7 +355,7 @@ describe('Github', () => {
         result = validateIDPs({
           currentIdps: ['githubbcgov'],
           updatedIdps: ['githubbcgov', 'githubpublic'],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
           githubApproved,
         });
         expect(result).toEqual(false);
@@ -377,24 +374,24 @@ describe('BCeID', () => {
           currentIdps: [],
           updatedIdps: ['bceidbasic'],
           bceidApproved,
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(true);
 
-        result = validateIDPs({ currentIdps: ['bceidbasic'], updatedIdps: [], bceidApproved, session: sampleSession });
+        result = validateIDPs({ currentIdps: ['bceidbasic'], updatedIdps: [], bceidApproved, ...asAdmin });
         expect(result).toEqual(true);
 
-        result = validateIDPs({ currentIdps: [], updatedIdps: ['bceidboth'], bceidApproved, session: sampleSession });
+        result = validateIDPs({ currentIdps: [], updatedIdps: ['bceidboth'], bceidApproved, ...asAdmin });
         expect(result).toEqual(true);
 
-        result = validateIDPs({ currentIdps: ['bceidboth'], updatedIdps: [], bceidApproved, session: sampleSession });
+        result = validateIDPs({ currentIdps: ['bceidboth'], updatedIdps: [], bceidApproved, ...asAdmin });
         expect(result).toEqual(true);
 
         result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['bceidbusiness'],
           bceidApproved,
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(true);
 
@@ -402,7 +399,7 @@ describe('BCeID', () => {
           currentIdps: ['bceidbusiness'],
           updatedIdps: [],
           bceidApproved,
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(true);
       });
@@ -411,7 +408,7 @@ describe('BCeID', () => {
         let result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['bceidbasic', 'bceidboth'],
-          session: sampleSession,
+          ...asAdmin,
           bceidApproved,
         });
         expect(result).toEqual(false);
@@ -419,7 +416,7 @@ describe('BCeID', () => {
         result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['bceidbasic', 'bceidboth'],
-          session: sampleSession,
+          ...asAdmin,
           bceidApproved,
         });
         expect(result).toEqual(false);
@@ -427,7 +424,7 @@ describe('BCeID', () => {
         result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['bceidbasic', 'bceidbusiness', 'bceidboth'],
-          session: sampleSession,
+          ...asAdmin,
           bceidApproved,
         });
         expect(result).toEqual(false);
@@ -435,7 +432,7 @@ describe('BCeID', () => {
         result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['bceidbasic', 'bceidbusiness'],
-          session: sampleSession,
+          ...asAdmin,
           bceidApproved,
         });
         expect(result).toEqual(true);
@@ -448,7 +445,7 @@ describe('BCeID', () => {
           currentIdps: [],
           updatedIdps: ['bceidbasic'],
           bceidApproved,
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
 
@@ -456,7 +453,7 @@ describe('BCeID', () => {
           currentIdps: ['bceidbasic'],
           updatedIdps: [],
           bceidApproved,
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
 
@@ -464,7 +461,7 @@ describe('BCeID', () => {
           currentIdps: [],
           updatedIdps: ['bceidboth'],
           bceidApproved,
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
 
@@ -472,7 +469,7 @@ describe('BCeID', () => {
           currentIdps: ['bceidboth'],
           updatedIdps: [],
           bceidApproved,
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
 
@@ -480,7 +477,7 @@ describe('BCeID', () => {
           currentIdps: [],
           updatedIdps: ['bceidbusiness'],
           bceidApproved,
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
 
@@ -488,7 +485,7 @@ describe('BCeID', () => {
           currentIdps: ['bceidbusiness'],
           updatedIdps: [],
           bceidApproved,
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
       });
@@ -497,7 +494,7 @@ describe('BCeID', () => {
         let result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['bceidbasic', 'bceidboth'],
-          session: sampleSession,
+          ...asAdmin,
           bceidApproved,
         });
         expect(result).toEqual(false);
@@ -505,7 +502,7 @@ describe('BCeID', () => {
         result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['bceidbasic', 'bceidboth'],
-          session: sampleSession,
+          ...asAdmin,
           bceidApproved,
         });
         expect(result).toEqual(false);
@@ -513,7 +510,7 @@ describe('BCeID', () => {
         result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['bceidbasic', 'bceidbusiness', 'bceidboth'],
-          session: sampleSession,
+          ...asAdmin,
           bceidApproved,
         });
         expect(result).toEqual(false);
@@ -521,7 +518,7 @@ describe('BCeID', () => {
         result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['bceidbasic', 'bceidbusiness'],
-          session: sampleSession,
+          ...asAdmin,
           bceidApproved,
         });
         expect(result).toEqual(true);
@@ -538,24 +535,24 @@ describe('BCeID', () => {
           currentIdps: [],
           updatedIdps: ['bceidbasic'],
           bceidApproved,
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(false);
 
-        result = validateIDPs({ currentIdps: ['bceidbasic'], updatedIdps: [], bceidApproved, session: sampleSession });
+        result = validateIDPs({ currentIdps: ['bceidbasic'], updatedIdps: [], bceidApproved, ...asAdmin });
         expect(result).toEqual(true);
 
-        result = validateIDPs({ currentIdps: [], updatedIdps: ['bceidboth'], bceidApproved, session: sampleSession });
+        result = validateIDPs({ currentIdps: [], updatedIdps: ['bceidboth'], bceidApproved, ...asAdmin });
         expect(result).toEqual(false);
 
-        result = validateIDPs({ currentIdps: ['bceidboth'], updatedIdps: [], bceidApproved, session: sampleSession });
+        result = validateIDPs({ currentIdps: ['bceidboth'], updatedIdps: [], bceidApproved, ...asAdmin });
         expect(result).toEqual(true);
 
         result = validateIDPs({
           currentIdps: [],
           updatedIdps: ['bceidbusiness'],
           bceidApproved,
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(false);
 
@@ -563,7 +560,7 @@ describe('BCeID', () => {
           currentIdps: ['bceidbusiness'],
           updatedIdps: [],
           bceidApproved,
-          session: sampleSession,
+          ...asAdmin,
         });
         expect(result).toEqual(true);
       });
@@ -575,7 +572,7 @@ describe('BCeID', () => {
           currentIdps: ['bceidboth'],
           updatedIdps: [],
           bceidApproved,
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
 
@@ -583,7 +580,7 @@ describe('BCeID', () => {
           currentIdps: ['bceidbasic'],
           updatedIdps: [],
           bceidApproved,
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
 
@@ -591,7 +588,7 @@ describe('BCeID', () => {
           currentIdps: ['bceidbusiness'],
           updatedIdps: [],
           bceidApproved,
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(true);
       });
@@ -603,7 +600,7 @@ describe('BCeID', () => {
           currentIdps: [],
           updatedIdps: ['bceidboth'],
           bceidApproved,
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(false);
 
@@ -611,7 +608,7 @@ describe('BCeID', () => {
           currentIdps: [],
           updatedIdps: ['bceidbasic'],
           bceidApproved,
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(false);
 
@@ -619,14 +616,14 @@ describe('BCeID', () => {
           currentIdps: [],
           updatedIdps: ['bceidbusiness'],
           bceidApproved,
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
         });
         expect(result).toEqual(false);
 
         result = validateIDPs({
           currentIdps: ['bceidbusiness'],
           updatedIdps: ['bceidbusiness'],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
           bceidApproved,
         });
         expect(result).toEqual(true);
@@ -634,7 +631,7 @@ describe('BCeID', () => {
         result = validateIDPs({
           currentIdps: ['bceidbusiness'],
           updatedIdps: ['bceidbasic'],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
           bceidApproved,
         });
         expect(result).toEqual(false);
@@ -642,7 +639,7 @@ describe('BCeID', () => {
         result = validateIDPs({
           currentIdps: ['bceidbusiness', 'bceidbasic'],
           updatedIdps: ['bceidboth'],
-          session: { ...sampleSession, client_roles: [] },
+          ...asUser,
           bceidApproved,
         });
         expect(result).toEqual(false);
@@ -659,7 +656,7 @@ describe('SAML', () => {
     let result = validateIDPs({
       currentIdps: ['azureidir'],
       updatedIdps: ['azureidir', 'bceidbasic'],
-      session: { ...sampleSession, client_roles: [] },
+      ...asUser,
       protocol,
     });
     expect(result).toEqual(false);
@@ -668,7 +665,7 @@ describe('SAML', () => {
       currentIdps: [],
       updatedIdps: ['azureidir', 'bceidbasic'],
       protocol,
-      session: { ...sampleSession, client_roles: [] },
+      ...asUser,
     });
     expect(result).toEqual(false);
 
@@ -676,7 +673,7 @@ describe('SAML', () => {
       currentIdps: [],
       updatedIdps: ['bceidbasic'],
       protocol,
-      session: { ...sampleSession, client_roles: [] },
+      ...asUser,
     });
     expect(result).toEqual(true);
   });
@@ -686,7 +683,7 @@ describe('SAML', () => {
     let result = validateIDPs({
       currentIdps: ['bceidbusiness'],
       updatedIdps: ['bceidbasic'],
-      session: { ...sampleSession, client_roles: [] },
+      ...asUser,
       protocol,
       bceidApproved,
     });
@@ -695,7 +692,7 @@ describe('SAML', () => {
     result = validateIDPs({
       currentIdps: ['bceidbasic'],
       updatedIdps: ['bceidbusiness'],
-      session: { ...sampleSession, client_roles: [] },
+      ...asUser,
       protocol,
       bceidApproved,
     });
@@ -704,7 +701,7 @@ describe('SAML', () => {
     result = validateIDPs({
       currentIdps: ['bceidbasic'],
       updatedIdps: ['bceidboth'],
-      session: { ...sampleSession, client_roles: [] },
+      ...asUser,
       protocol,
       bceidApproved,
     });
@@ -716,7 +713,7 @@ describe('SAML', () => {
     let result = validateIDPs({
       currentIdps: ['bceidbusiness'],
       updatedIdps: ['azureidir'],
-      session: { ...sampleSession, client_roles: [] },
+      ...asUser,
       protocol,
       bceidApproved,
     });
@@ -731,7 +728,7 @@ describe('Discontinued', () => {
     let result = validateIDPs({
       currentIdps: ['bceidbusiness'],
       updatedIdps: ['idir'],
-      session: { ...sampleSession, client_roles: [] },
+      ...asUser,
     });
     expect(result).toEqual(false);
   });
@@ -742,18 +739,18 @@ describe('Discontinued', () => {
     let result = validateIDPs({
       currentIdps: ['bceidbusiness'],
       updatedIdps: ['idir'],
-      session: { ...sampleSession, client_roles: [] },
+      ...asUser,
     });
     expect(result).toEqual(false);
   });
 
   it('Allows admin users to add idir in draft', () => {
-    let result = validateIDPs({ currentIdps: ['bceidbusiness'], updatedIdps: ['idir'], session: sampleSession });
+    let result = validateIDPs({ currentIdps: ['bceidbusiness'], updatedIdps: ['idir'], ...asAdmin });
     expect(result).toEqual(true);
   });
 
   it('Allows admin users to add idir after creation', () => {
-    let result = validateIDPs({ currentIdps: ['bceidbusiness'], updatedIdps: ['idir'], session: sampleSession });
+    let result = validateIDPs({ currentIdps: ['bceidbusiness'], updatedIdps: ['idir'], ...asAdmin });
     expect(result).toEqual(true);
   });
 
@@ -763,7 +760,7 @@ describe('Discontinued', () => {
     let result = validateIDPs({
       currentIdps: ['idir'],
       updatedIdps: ['idir'],
-      session: { ...sampleSession, client_roles: [] },
+      ...asUser,
     });
     expect(result).toEqual(true);
   });
@@ -778,7 +775,7 @@ describe('BCSC', () => {
       let result = validateIDPs({
         currentIdps: ['bcservicescard'],
         updatedIdps: ['idir'],
-        session: { ...sampleSession, client_roles: [] },
+        ...asUser,
         bcServicesCardApproved,
       });
       expect(result).toEqual(false);
@@ -786,7 +783,7 @@ describe('BCSC', () => {
       result = validateIDPs({
         currentIdps: ['bcservicescard'],
         updatedIdps: ['idir'],
-        session: sampleSession,
+        ...asAdmin,
         bcServicesCardApproved,
       });
       expect(result).toEqual(false);
@@ -797,10 +794,10 @@ describe('BCSC', () => {
 describe('OTP', () => {
   describe('Post Approval', () => {
     it('Allows admins to add and remove', () => {
-      let result = validateIDPs({ currentIdps: [], updatedIdps: ['otp'], session: sampleSession });
+      let result = validateIDPs({ currentIdps: [], updatedIdps: ['otp'], ...asAdmin });
       expect(result).toEqual(true);
 
-      result = validateIDPs({ currentIdps: ['otp'], updatedIdps: [], session: sampleSession });
+      result = validateIDPs({ currentIdps: ['otp'], updatedIdps: [], ...asAdmin });
       expect(result).toEqual(true);
     });
 
@@ -808,11 +805,11 @@ describe('OTP', () => {
       let result = validateIDPs({
         currentIdps: [],
         updatedIdps: ['otp'],
-        session: { ...sampleSession, client_roles: [] },
+        ...asUser,
       });
       expect(result).toEqual(false);
 
-      result = validateIDPs({ currentIdps: ['otp'], updatedIdps: [], session: { ...sampleSession, client_roles: [] } });
+      result = validateIDPs({ currentIdps: ['otp'], updatedIdps: [], ...asUser });
       expect(result).toEqual(true);
     });
 
@@ -820,7 +817,7 @@ describe('OTP', () => {
       let result = validateIDPs({
         currentIdps: ['otp', 'azureidir'],
         updatedIdps: ['otp', 'digitalcredential'],
-        session: { ...sampleSession, client_roles: [] },
+        ...asUser,
       });
       expect(result).toEqual(true);
     });

@@ -1,8 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { handleError } from '@app/utils/helpers';
-import { retryFailedRequests } from '@app/controllers/requests';
+import { handleError, withApiLogging } from '@app/utils/api';
+import { drainWorkflows } from '@app/workflow/orchestrator';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+/**
+ * Recovery tick for the integration workflow orchestrator.
+ *
+ * Workflows are normally started in-process by the pod that accepted the submission. This endpoint is
+ * the crash-recovery path: it re-claims workflows whose owner died mid-flight (expired lease), workflows
+ * waiting out a retry backoff window, and workflows that were persisted but never started.
+ */
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method === 'GET') {
       const { Authorization, authorization } = req.headers || {};
@@ -11,8 +18,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(401).json({ success: false, message: 'not authorized' });
       }
 
-      await retryFailedRequests();
-      return res.status(200).json({ success: true, message: 'Request processed successfully' });
+      const { processed } = await drainWorkflows();
+      return res.status(200).json({ success: true, processed });
     } else {
       res.setHeader('Allow', ['GET']);
       res.status(405).end(`Method ${req.method} Not Allowed`);
@@ -21,3 +28,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     handleError(res, error);
   }
 }
+
+export default withApiLogging(handler);

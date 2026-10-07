@@ -4,8 +4,6 @@ import {
   SSO_TEAM_IDIR_EMAIL,
   TEAM_ADMIN_IDIR_EMAIL_01,
   TEAM_ADMIN_IDIR_USERID_01,
-  TEAM_MEMBER_IDIR_EMAIL_01,
-  TEAM_MEMBER_IDIR_USERID_01,
   getUpdateIntegrationData,
   postTeam,
 } from './helpers/fixtures';
@@ -17,7 +15,6 @@ import { renderTemplate } from '@app/shared/templates';
 import { EMAILS } from '@app/shared/enums';
 import { IDIM_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { buildIntegration } from './helpers/modules/common';
-import { getAuthenticatedUser } from './helpers/modules/users';
 import { createMockAuth } from './mocks/authenticate';
 import { createMockSendEmail } from './mocks/mail';
 
@@ -345,7 +342,7 @@ describe('integration email updates for teams', () => {
       let updateIntegrationRes = await updateIntegration(
         getUpdateIntegrationData({
           integration,
-          identityProviders: ['azureidir', 'bceidbasic'],
+          identityProviders: ['bcgovidir', 'bceidbasic'],
         }),
         true,
       );

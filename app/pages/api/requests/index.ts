@@ -1,17 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { authenticate } from '@app/utils/authenticate';
 import { Session, User } from '@app/shared/interfaces';
-import { handleError } from '@app/utils/helpers';
+import { handleError, withApiLogging } from '@app/utils/api';
 import { processUserSession } from '@app/controllers/user';
-import {
-  createRequest,
-  deleteRequest,
-  getRequests,
-  isAllowedToDeleteIntegration,
-  updateRequest,
-} from '@app/controllers/requests';
+import { createRequest, deleteRequest, getRequests, updateRequest } from '@app/controllers/requests';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const userSession = await authenticate(req.headers);
     if (!userSession) return res.status(401).json({ success: false, message: 'not authorized' });
@@ -30,9 +24,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json(result);
     } else if (req.method === 'DELETE') {
       const { id } = req.query || {};
-      const authorized = await isAllowedToDeleteIntegration(session as Session, Number(id));
-      if (!authorized)
-        return res.status(401).json({ success: false, message: 'You are not authorized to delete this integration' });
       const result = await deleteRequest(session as Session, session?.user!, Number(id));
       return res.status(200).json(result);
     } else {
@@ -43,3 +34,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     handleError(res, error);
   }
 }
+
+export default withApiLogging(handler);

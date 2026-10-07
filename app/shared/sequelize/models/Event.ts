@@ -15,6 +15,13 @@ const init = (sequelize: any, DataTypes: any) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
+      // Organization events have no request to hang from, so they are recorded
+      // against the organization instead.
+      organizationId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        field: 'organization_id',
+      },
       details: {
         type: DataTypes.JSONB,
         allowNull: true,

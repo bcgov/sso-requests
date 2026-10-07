@@ -1,8 +1,9 @@
+import { Permission, union } from '@sso/authz';
+
 export const appPermissions = {
   VIEW_TEAMS: 'view_teams',
   ADD_RESTRICTED_IDPS: 'add_restricted_idps',
   UPDATE_REQUEST_ADDITIONAL_SETTINGS: 'update_request_additional_settings',
-  UPDATE_REQUEST_META_DATA: 'update_request_metadata',
   UPDATE_SAML_REQUEST_CLIENT_ID: 'update_saml_request_client_id',
   ADD_REQUEST_COMMENT: 'update_request_comment',
   ADMIN_DASHBOARD_VIEW_REQUEST: 'admin_dashboard_view_request',
@@ -20,10 +21,37 @@ export const appPermissions = {
   ADMIN_DASHBOARD_VIEW_ROLES_USERS: 'admin_dashboard_view_roles_users',
   DOWNLOAD_ADMIN_REPORTS: 'download_admin_reports',
   APPROVE_BC_SERVICES_CARD: 'approve_bc_services_card',
+  APPROVE_BCGOVIDIR: 'approve_bcgovidir',
   APPROVE_OTP: 'approve_otp',
   APPROVE_GITHUB: 'approve_github',
   APPROVE_BCEID: 'approve_bceid',
   APPROVE_SOCIAL: 'approve_social',
+  MANAGE_ORGANIZATIONS: 'manage_organizations',
+};
+
+export const organizationPermissions = {
+  UPDATE_ORGANIZATION: 'update_organization',
+  VIEW_ORGANIZATION: 'view_organization',
+  ADD_ORG_MEMBER: 'add_org_member',
+  REMOVE_ORG_MEMBER: 'remove_org_member',
+  UPDATE_ORG_MEMBER_ROLE: 'update_org_member_role',
+  INVITE_TEAM: 'invite_team',
+  REMOVE_TEAM: 'remove_team',
+  MANAGE_ORG_API_ACCOUNTS: 'manage_org_api_accounts',
+};
+
+export const organizationRolePermissionMap: Record<string, string[]> = {
+  admin: [
+    organizationPermissions.UPDATE_ORGANIZATION,
+    organizationPermissions.VIEW_ORGANIZATION,
+    organizationPermissions.ADD_ORG_MEMBER,
+    organizationPermissions.REMOVE_ORG_MEMBER,
+    organizationPermissions.UPDATE_ORG_MEMBER_ROLE,
+    organizationPermissions.INVITE_TEAM,
+    organizationPermissions.REMOVE_TEAM,
+    organizationPermissions.MANAGE_ORG_API_ACCOUNTS,
+  ],
+  member: [organizationPermissions.VIEW_ORGANIZATION],
 };
 
 export const teamPermissions = {
@@ -62,7 +90,6 @@ export const appRolePermissionMap: Record<string, string[]> = {
   'sso-admin': [
     appPermissions.VIEW_TEAMS,
     appPermissions.ADD_REQUEST_COMMENT,
-    appPermissions.UPDATE_REQUEST_META_DATA,
     appPermissions.UPDATE_SAML_REQUEST_CLIENT_ID,
     appPermissions.ADD_RESTRICTED_IDPS,
     appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS,
@@ -78,7 +105,9 @@ export const appRolePermissionMap: Record<string, string[]> = {
     appPermissions.VIEW_ADMIN_DASHBOARD,
     appPermissions.DOWNLOAD_ADMIN_REPORTS,
     appPermissions.ADMIN_DASHBOARD_VIEW_IDPS_FILTER,
+    appPermissions.MANAGE_ORGANIZATIONS,
     appPermissions.APPROVE_BC_SERVICES_CARD,
+    appPermissions.APPROVE_BCGOVIDIR,
     appPermissions.APPROVE_OTP,
     appPermissions.APPROVE_GITHUB,
     appPermissions.APPROVE_BCEID,
@@ -89,6 +118,12 @@ export const appRolePermissionMap: Record<string, string[]> = {
     appPermissions.VIEW_MY_DASHBOARD,
     appPermissions.VIEW_ADMIN_DASHBOARD,
     appPermissions.APPROVE_BC_SERVICES_CARD,
+  ],
+  'bcgovidir-approver': [
+    appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_IDP_EVENTS,
+    appPermissions.VIEW_MY_DASHBOARD,
+    appPermissions.VIEW_ADMIN_DASHBOARD,
+    appPermissions.APPROVE_BCGOVIDIR,
   ],
   'bceid-approver': [
     appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_IDP_EVENTS,
@@ -123,6 +158,13 @@ export const hasTeamPermission = (role: string | undefined, permission: string) 
   return permissions.includes(permission);
 };
 
+export const hasOrganizationPermission = (role: string | undefined, permission: string) => {
+  if (!role) return false;
+  const permissions = organizationRolePermissionMap[role];
+  if (!permissions) return false;
+  return permissions.includes(permission);
+};
+
 export const hasAppPermission = (roles: string[] = [], permission: string) => {
   if (roles.length === 0) return false;
   for (const role of roles) {
@@ -144,3 +186,33 @@ export const getAllAppPermissions = (roles: string[]) => {
   });
   return Array.from(permissionsSet);
 };
+
+// Map global application role permissions (e.g. sso-admin, bceid-approver) to the shared permission vocabulary
+const APP_PERMISSION_GRANTS: Partial<Record<string, Permission[]>> = {
+  [appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST]: ['integrations:read'],
+  [appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST]: [
+    'integrations:read',
+    'integrations:write',
+    'integrations:reassign-team',
+  ],
+  [appPermissions.ADMIN_DASHBOARD_DELETE_REQUEST]: [
+    'integrations:read',
+    'integrations:delete',
+    'integrations:delete-in-flight',
+  ],
+  [appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_ROLES]: ['roles:read'],
+  [appPermissions.ADMIN_DASHBOARD_VIEW_ROLES_USERS]: ['user-role-mappings:read'],
+
+  [appPermissions.APPROVE_BCEID]: ['integrations:approve-bceid'],
+  [appPermissions.APPROVE_GITHUB]: ['integrations:approve-github'],
+  [appPermissions.APPROVE_BC_SERVICES_CARD]: ['integrations:approve-bcsc'],
+  [appPermissions.APPROVE_BCGOVIDIR]: ['integrations:approve-bcgovidir'],
+  [appPermissions.APPROVE_SOCIAL]: ['integrations:approve-social'],
+  [appPermissions.APPROVE_OTP]: ['integrations:approve-otp'],
+  [appPermissions.UPDATE_REQUEST_ADDITIONAL_SETTINGS]: ['integrations:write-lifespans'],
+  [appPermissions.UPDATE_SAML_REQUEST_CLIENT_ID]: ['integrations:write-client-id'],
+  [appPermissions.ADD_RESTRICTED_IDPS]: ['integrations:add-restricted-idps'],
+};
+
+export const commonPermissionsForAppRoles = (roles: string[] = []): Permission[] =>
+  union(getAllAppPermissions(roles).map((permission) => APP_PERMISSION_GRANTS[permission] ?? []));

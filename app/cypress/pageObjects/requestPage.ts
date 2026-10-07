@@ -282,25 +282,48 @@ class RequestPage {
       });
   }
 
-  // Clears all checkboxes and rechecks included idps
+  // Clears all checkboxes and rechecks included idps.
+  // Restricted/discontinued idps may not be rendered for the current user, so only
+  // idps present on the form are touched; a requested idp that is missing fails the test.
   setIdentityProvider(identityProviders: string[]) {
-    Object.entries(this.idpLabels).forEach(([label, matcher]) => {
-      cy.contains(matcher).find('input[type="checkbox"]').uncheck();
-      if (identityProviders.some((idpLabel) => idpLabel === matcher)) {
-        cy.contains(matcher).find('input[type="checkbox"]').check();
-        // Dismiss BCeID warning modal if it appears after selecting Basic BCeID or BCeID Both
-        if (matcher === this.idpLabels.basicBceidLabel || matcher === this.idpLabels.basicOrBusinessBceidLabel) {
-          cy.get('body').then(($body) => {
-            if ($body.find('#bceid-warning-modal').length) {
-              cy.get('#bceid-warning-modal').contains('button', 'I Understand').click();
-            }
-          });
-        }
+    cy.get(this.identityProvider).then(($idps) => {
+      const renderedLabels = new Set(
+        $idps
+          .find('label input[type="checkbox"] + span')
+          .toArray()
+          .filter((el) => !el.closest('.d-none'))
+          .map((el) => el.textContent?.trim()),
+      );
+
+      const missing = identityProviders.filter(
+        (idp) => Object.values(this.idpLabels).includes(idp) && !renderedLabels.has(idp),
+      );
+      if (missing.length) {
+        throw new Error(`Requested identity provider(s) not available on the form: ${missing.join(', ')}`);
       }
+
+      Object.values(this.idpLabels)
+        .filter((matcher) => renderedLabels.has(matcher))
+        .forEach((matcher) => this.toggleIdentityProvider(matcher, identityProviders));
     });
     // Agree to social when included
     if (identityProviders.some((idp) => idp === 'Social')) {
       cy.get('label').contains('Do you acknowledge and agree that by choosing social login').click();
+    }
+  }
+
+  private toggleIdentityProvider(matcher: string, identityProviders: string[]) {
+    cy.contains(matcher).find('input[type="checkbox"]').uncheck();
+    if (identityProviders.includes(matcher)) {
+      cy.contains(matcher).find('input[type="checkbox"]').check();
+      // Dismiss BCeID warning modal if it appears after selecting Basic BCeID or BCeID Both
+      if (matcher === this.idpLabels.basicBceidLabel || matcher === this.idpLabels.basicOrBusinessBceidLabel) {
+        cy.get('body').then(($body) => {
+          if ($body.find('#bceid-warning-modal').length) {
+            cy.get('#bceid-warning-modal').contains('button', 'I Understand').click();
+          }
+        });
+      }
     }
   }
 

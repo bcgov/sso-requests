@@ -1,9 +1,9 @@
-import { Integration } from '../interfaces/Request';
+import { Integration, BcgovUnit, Division } from '../interfaces/Request';
 import { Schema } from './index';
-import { docusaurusURL } from '@app/utils/constants';
+import { DISCONTINUED_IDPS, docusaurusURL, KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
-import { usesBcServicesCard, usesOTP, usesSocial } from '@app/helpers/integration';
-import { allBceidEnvsApproved, getDiscontinuedIdps } from '@app/utils/helpers';
+import { usesBcServicesCard, usesOTP, usesSocial, usesBcgovIdir } from '@app/helpers/integration';
+import { allBceidEnvsApproved } from '@app/utils/helpers';
 import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 import { LoggedInUser } from '@app/interfaces/team';
 import BceidBanner from '@app/form-components/widgets/BceidBanner';
@@ -14,6 +14,8 @@ const allow_bc_services_card_prod = process.env.NEXT_PUBLIC_ALLOW_BC_SERVICES_CA
 const include_social = process.env.NEXT_PUBLIC_INCLUDE_SOCIAL;
 const include_otp = process.env.NEXT_PUBLIC_INCLUDE_OTP;
 const include_sdx_services = process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES;
+const include_bcgovidir = process.env.NEXT_PUBLIC_INCLUDE_BCGOVIDIR;
+const include_azureidir = process.env.NEXT_PUBLIC_INCLUDE_AZUREIDIR;
 
 export const NON_ROLE_ASSIGNABLE_IDPS = ['digitalcredential', 'bcservicescard', 'otp'];
 
@@ -25,8 +27,10 @@ export default function getSchema(
   session: LoggedInUser | null,
   bcscPrivacyZones?: BcscPrivacyZone[],
   bcscAttributes?: BcscAttribute[],
+  bcgovUnits?: BcgovUnit[],
+  divisions?: Division[],
 ) {
-  const { protocol, authType, status, devIdps } = integration;
+  const { protocol, authType, status, devIdps, bcgovUnitId } = integration;
   const applied = status === 'applied';
 
   const allow_bcsc_prod =
@@ -35,6 +39,8 @@ export default function getSchema(
   const includeSocial = include_social === 'true' || process.env.NEXT_PUBLIC_INCLUDE_SOCIAL === 'true';
   const includeOTP = include_otp === 'true' || process.env.NEXT_PUBLIC_INCLUDE_OTP === 'true';
   const includeSdx = include_sdx_services === 'true' || process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true';
+  const includeBcgovidir = include_bcgovidir === 'true' || process.env.NEXT_PUBLIC_INCLUDE_BCGOVIDIR === 'true';
+  const includeAzureidir = include_azureidir === 'true' || process.env.NEXT_PUBLIC_INCLUDE_AZUREIDIR === 'true';
 
   if (integration.environments?.includes('prod') && !allow_bcsc_prod) {
     include_bcsc = false;
@@ -43,6 +49,7 @@ export default function getSchema(
   const bcscSelected = usesBcServicesCard(integration);
   const otpSelected = usesOTP(integration);
   const socialSelected = usesSocial(integration);
+  const bcgovIdirSelected = usesBcgovIdir(integration);
 
   const protocolSchema = {
     type: 'string',
@@ -63,7 +70,7 @@ export default function getSchema(
 
   const privacyZonesSchema = {
     type: 'string',
-    title: 'Please select privacy zone',
+    title: 'Select Privacy Zone',
     enum: bcscPrivacyZones?.map((zone) => zone.privacy_zone_name || []),
   };
 
@@ -108,7 +115,7 @@ export default function getSchema(
   }
 
   if (authType !== 'service-account') {
-    const idpEnum = ['azureidir', 'bceidbasic', 'bceidbusiness', 'bceidboth', 'githubpublic', 'githubbcgov'];
+    const idpEnum = ['bceidbasic', 'bceidbusiness', 'bceidboth', 'githubpublic', 'githubbcgov'];
 
     /*
       Schemas are shared between lambda functions and client app to keep validations in sync.
@@ -134,15 +141,19 @@ export default function getSchema(
       idpEnum.push('otp');
     }
 
-    // grandfather existing integrations and allow them to remove discontinued IDPs
-    getDiscontinuedIdps().forEach((idp) => {
-      if (devIdps?.includes(idp) && !idpEnum.includes(idp)) {
-        idpEnum.unshift(idp);
-      }
-    });
+    if (includeBcgovidir) {
+      idpEnum.push(KC_ENTRA_IDP_REALM);
+    }
 
-    if (hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS) && !idpEnum?.includes('idir'))
-      idpEnum?.unshift('idir');
+    // Admins can add discontinued IDPs; existing integrations are grandfathered so they can remove them.
+    // Unshift once so the options keep DISCONTINUED_IDPS order.
+    const canAddRestrictedIdps = hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS);
+    const discontinuedOptions = DISCONTINUED_IDPS.filter(
+      (idp) =>
+        !idpEnum.includes(idp) &&
+        (canAddRestrictedIdps || devIdps?.includes(idp) || (includeAzureidir && idp === 'azureidir')),
+    );
+    idpEnum.unshift(...discontinuedOptions);
 
     properties.devIdps = {
       type: 'array',
@@ -227,7 +238,7 @@ export default function getSchema(
   if (bcscSelected && include_bcsc) {
     properties.bcscAttributes = {
       type: 'array',
-      title: 'Please select attribute(s)',
+      title: 'Select Attribute(s)',
       items: {
         type: 'string',
         enum: bcscAttributes?.map((attribute) => attribute.name),
@@ -235,6 +246,30 @@ export default function getSchema(
       uniqueItems: true,
       tooltip: {
         content: `We will provide a separate client for each attribute you can select. Select the attributes required for your project.`,
+      },
+    };
+  }
+
+  if (bcgovIdirSelected && includeBcgovidir) {
+    properties.bcgovUnitId = {
+      type: 'number',
+      title: 'Select BC Government Unit',
+      enum: [0].concat(bcgovUnits?.map((org) => org?.id) ?? []),
+    };
+
+    properties.divisionId = {
+      type: 'number',
+      title: 'Select Division',
+      enum: [0].concat(
+        divisions?.flatMap((division) => (bcgovUnitId === division?.bcgovUnitId ? division?.id : [])) ?? [],
+      ),
+    };
+
+    properties.description = {
+      type: 'string',
+      title: 'Project Description',
+      tooltip: {
+        content: `Provide a brief description about your project`,
       },
     };
   }
@@ -305,6 +340,9 @@ export default function getSchema(
       'authType',
       'bcscPrivacyZone',
       'bcscAttributes',
+      'bcgovUnitId',
+      'divisionId',
+      'description',
     ],
     headerText: 'Choose providers',
     stepText: 'Basic Info',

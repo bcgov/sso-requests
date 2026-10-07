@@ -4,13 +4,14 @@ import {
   getAllowedIdpsForApprover,
   isBceidApprover,
   isBcServicesCardApprover,
+  isBcgovIdirApprover,
   isGithubApprover,
   isOTPApprover,
 } from '@app/utils/helpers';
 import { Op } from 'sequelize';
 import { isSocialApprover } from '@app/utils/helpers';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
-import { getAllowedRequest } from '@app/queries/request';
+import { authorizeIntegration } from '@app/queries/integrationAccess';
 import { EVENTS } from '@app/shared/enums';
 import createHttpError from 'http-errors';
 
@@ -21,7 +22,7 @@ import createHttpError from 'http-errors';
  * @returns Promise<{count: number, rows: Event[]}>
  */
 export const getRequestScopedEvents = async (session: Session, requestId: string) => {
-  const authorized = await getAllowedRequest(session, Number(requestId));
+  const authorized = await authorizeIntegration(session, Number(requestId), 'integrations:read');
   if (!authorized) throw new createHttpError.Forbidden('User is not authorized to view request events');
 
   return models.event.findAndCountAll({
@@ -66,6 +67,8 @@ export const getEvents = async (
     if (isOTPApprover(session)) approvedKeys.push('otpApproved');
 
     if (isBcServicesCardApprover(session)) approvedKeys.push('bcServicesCardApproved');
+
+    if (isBcgovIdirApprover(session)) approvedKeys.push('bcgovidirApproved');
 
     if (isSocialApprover(session)) approvedKeys.push('socialApproved');
 

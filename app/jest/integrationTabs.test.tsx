@@ -3,6 +3,10 @@ import IntegrationTabs from 'page-partials/my-dashboard/IntegrationInfoTabs';
 import { Integration } from 'interfaces/Request';
 import { sampleRequest } from './samples/integrations';
 
+jest.mock('services/request', () => ({
+  getIntegrationProgress: jest.fn(() => Promise.resolve([null, null])),
+}));
+
 const integreationCommonTabs = ['Technical Details', 'Role Management', 'Secrets', 'Change History', 'Metrics', 'Logs'];
 
 const browerLoginTabs = [...integreationCommonTabs, 'Assign Users to Roles'];

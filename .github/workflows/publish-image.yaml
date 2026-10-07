@@ -13,12 +13,16 @@ on:
       - 'helm/templates/**'
       - 'helm/values**'
       - 'api/**'
+      - 'packages/**'
       - 'cron/**'
       - '.github/workflows/publish-image.yaml'
 
 env:
   GITHUB_REGISTRY: ghcr.io
   IMAGE_NAME: bcgov/sso-requests
+
+permissions:
+  contents: read
 
 jobs:
   create_release:
@@ -34,7 +38,7 @@ jobs:
     steps:
       - name: Create Release
         id: release
-        uses: rymndhng/release-on-push-action@v0.28.0
+        uses: rymndhng/release-on-push-action@aebba2bbce07a9474bf95e8710e5ee8a9e922fe2 # v0.28.0
         with:
           bump_version_scheme: 'patch'
           tag_prefix: 'v'
@@ -54,22 +58,29 @@ jobs:
     steps:
       - name: Set tag based on context
         id: set
+        env:
+          RELEASE_TAG: ${{ needs.create_release.outputs.tag }}
         run: |
-          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
-            echo "tag=${{ needs.create_release.outputs.tag }}" >> $GITHUB_OUTPUT
+          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            if [[ -z "$RELEASE_TAG" ]]; then
+              echo "::error::No release tag was produced for main; refusing to publish an untagged image."
+              exit 1
+            fi
+            echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
           else
-            echo "tag=dev" >> $GITHUB_OUTPUT
+            echo "tag=dev" >> "$GITHUB_OUTPUT"
           fi
 
   build-and-push-images-and-deploy:
-    permissions: write-all
+    permissions:
+      contents: read
+      packages: write
     runs-on: ubuntu-24.04
     needs: set-tag
-    if: always()
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # A status function is required: create_release is skipped on dev, and a skipped upstream job would otherwise skip this one.
+    if: ${{ !cancelled() && needs.set-tag.result == 'success' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Print tag
         run: |
@@ -87,6 +98,7 @@ jobs:
           NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD=true
           NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD=true
           NEXT_PUBLIC_INCLUDE_OTP=true
+          NEXT_PUBLIC_INCLUDE_AZUREIDIR=true
           EOF
 
       - name: Setup Sandbox Environment Variables
@@ -101,6 +113,7 @@ jobs:
           NEXT_PUBLIC_SSO_IDP_HINT=azureidir
           NEXT_PUBLIC_APP_URL=https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca
           NEXT_PUBLIC_INCLUDE_SDX_SERVICES=true
+          NEXT_PUBLIC_INCLUDE_BCGOVIDIR=true
 
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           GRAFANA_API_TOKEN=${{ secrets.DEV_GRAFANA_API_TOKEN }}
@@ -124,6 +137,9 @@ jobs:
           SDX_CLIENT_ID=${{ secrets.DEV_SDX_CLIENT_ID }}
           SDX_CLIENT_SECRET=${{ secrets.DEV_SDX_CLIENT_SECRET }}
 
+          MS_GRAPH_API_CLIENT_ID=${{ secrets.DEV_MS_GRAPH_API_CLIENT_ID }}
+          MS_GRAPH_API_CLIENT_SECRET=${{ secrets.DEV_MS_GRAPH_API_CLIENT_SECRET }}
+
           OPENSHIFT_NAMESPACE=${{ secrets.DEV_OPENSHIFT_NAMESPACE }}
           EOF
 
@@ -138,6 +154,7 @@ jobs:
           NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT=https://test.loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
           NEXT_PUBLIC_APP_URL=https://sso-requests-test.apps.gold.devops.gov.bc.ca
           NEXT_PUBLIC_INCLUDE_SDX_SERVICES=false
+          NEXT_PUBLIC_INCLUDE_BCGOVIDIR=false
 
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           GRAFANA_API_TOKEN=${{ secrets.DEV_GRAFANA_API_TOKEN }}
@@ -162,6 +179,9 @@ jobs:
           SDX_CLIENT_ID=${{ secrets.TEST_SDX_CLIENT_ID }}
           SDX_CLIENT_SECRET=${{ secrets.TEST_SDX_CLIENT_SECRET }}
 
+          MS_GRAPH_API_CLIENT_ID=${{ secrets.DEV_MS_GRAPH_API_CLIENT_ID }}
+          MS_GRAPH_API_CLIENT_SECRET=${{ secrets.DEV_MS_GRAPH_API_CLIENT_SECRET }}
+
           OPENSHIFT_NAMESPACE=${{ secrets.TEST_OPENSHIFT_NAMESPACE }}
           EOF
 
@@ -177,6 +197,7 @@ jobs:
           NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT=https://loginproxy.gov.bc.ca/auth/realms/standard/.well-known/openid-configuration
           NEXT_PUBLIC_APP_URL=https://sso-requests.apps.gold.devops.gov.bc.ca
           NEXT_PUBLIC_INCLUDE_SDX_SERVICES=false
+          NEXT_PUBLIC_INCLUDE_BCGOVIDIR=false
 
           API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
           GRAFANA_API_TOKEN=${{ secrets.PROD_GRAFANA_API_TOKEN }}
@@ -200,42 +221,45 @@ jobs:
           SDX_CLIENT_ID=${{ secrets.PROD_SDX_CLIENT_ID }}
           SDX_CLIENT_SECRET=${{ secrets.PROD_SDX_CLIENT_SECRET }}
 
+          MS_GRAPH_API_CLIENT_ID=${{ secrets.PROD_MS_GRAPH_API_CLIENT_ID }}
+          MS_GRAPH_API_CLIENT_SECRET=${{ secrets.PROD_MS_GRAPH_API_CLIENT_SECRET }}
+
           OPENSHIFT_NAMESPACE=${{ secrets.PROD_OPENSHIFT_NAMESPACE }}
           EOF
 
       - name: Log in to the GitHub Container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ${{ env.GITHUB_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache Docker layers for SSO Requests Cron
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: /tmp/.buildx-cache-sso-requests-cron
           key: ${{ runner.os }}-buildx-sso-requests-cron-${{ github.sha }}
           restore-keys: ${{ runner.os }}-buildx-sso-requests-cron-
 
       - name: Cache Docker layers for SSO Requests API
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: /tmp/.buildx-cache-sso-requests-api
           key: ${{ runner.os }}-buildx-sso-requests-api-${{ github.sha }}
           restore-keys: ${{ runner.os }}-buildx-sso-requests-api-
 
       - name: Cache Docker layers for SSO Requests
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: /tmp/.buildx-cache-sso-requests
           key: ${{ runner.os }}-buildx-sso-requests-${{ github.sha }}
           restore-keys: ${{ runner.os }}-buildx-sso-requests-
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - name: Build and Push SSO Requests Docker image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           build-args: |
             NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }}
@@ -255,6 +279,8 @@ jobs:
             NEXT_PUBLIC_APP_ENV=${{ env.NEXT_PUBLIC_APP_ENV }}
             NEXT_PUBLIC_SSO_IDP_HINT=${{ env.NEXT_PUBLIC_SSO_IDP_HINT }}
             NEXT_PUBLIC_INCLUDE_SDX_SERVICES=${{ env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES }}
+            NEXT_PUBLIC_INCLUDE_BCGOVIDIR=${{ env.NEXT_PUBLIC_INCLUDE_BCGOVIDIR }}
+            NEXT_PUBLIC_INCLUDE_AZUREIDIR=${{ env.NEXT_PUBLIC_INCLUDE_AZUREIDIR }}
           context: .
           push: true
           tags: ${{ env.GITHUB_REGISTRY }}/bcgov/sso-requests:${{ needs.set-tag.outputs.tag }}
@@ -265,11 +291,12 @@ jobs:
         # https://github.com/docker/build-push-action/issues/252
         # https://github.com/moby/buildkit/issues/1896
       - name: Move cache
-        run: rm -rf /tmp/.buildx-cache-sso-requests
+        run: |
+          rm -rf /tmp/.buildx-cache-sso-requests
           mv /tmp/.buildx-cache-sso-requests-new /tmp/.buildx-cache-sso-requests
 
       - name: Build and Push SSO Requests Cron Docker image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: ./cron
           push: true
@@ -278,36 +305,40 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache-sso-requests-cron-new,mode=max
 
       - name: Move cache
-        run: rm -rf /tmp/.buildx-cache-sso-requests-cron
+        run: |
+          rm -rf /tmp/.buildx-cache-sso-requests-cron
           mv /tmp/.buildx-cache-sso-requests-cron-new /tmp/.buildx-cache-sso-requests-cron
 
       - name: Build and Push SSO Requests API Docker image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: ./api
+          # Root context: the api compiles @sso/authz from packages/, which sits
+          # outside ./api and would not otherwise be in the build context.
+          context: .
+          file: ./api/Dockerfile
           push: true
           tags: ${{ env.GITHUB_REGISTRY }}/bcgov/sso-requests-api:${{ needs.set-tag.outputs.tag }}
           cache-from: type=local,src=/tmp/.buildx-cache-sso-requests-api
           cache-to: type=local,dest=/tmp/.buildx-cache-sso-requests-api-new,mode=max
 
       - name: Move cache
-        run: rm -rf /tmp/.buildx-cache-sso-requests-api
+        run: |
+          rm -rf /tmp/.buildx-cache-sso-requests-api
           mv /tmp/.buildx-cache-sso-requests-api-new /tmp/.buildx-cache-sso-requests-api
 
       - name: Install CLI tools from OpenShift Mirror
-        uses: redhat-actions/openshift-tools-installer@v1
+        uses: redhat-actions/openshift-tools-installer@144527c7d98999f2652264c048c7a9bd103f8a82 # v1.13.1
         with:
           source: mirror
           kam: latest
           oc: 4.18.7
 
       - name: Authenticate and set context
-        uses: redhat-actions/oc-login@v1
+        uses: redhat-actions/oc-login@5eb45e848b168b6bf6b8fe7f1561003c12e3c99d # v1.3
         with:
           openshift_server_url: ${{ secrets.OPENSHIFT_SERVER }}
           openshift_token: ${{ secrets.OPENSHIFT_TOKEN }}
           namespace: ${{ env.OPENSHIFT_NAMESPACE }}
-          insecure_skip_tls_verify: true
 
       - name: Deploy app with Helm chart
         run: |
@@ -341,8 +372,8 @@ jobs:
           --set envVars.bceidServiceIdProd="${{ secrets.BCEID_SERVICE_ID_PROD }}" \
           --set envVars.bceidWebServiceUrlProd="${{ vars.BCEID_WEB_SERVICE_URL_PROD }}" \
           --set envVars.msGraphApiAuthority="${{ secrets.MS_GRAPH_API_AUTHORITY }}" \
-          --set envVars.msGraphApiClientId="${{ secrets.MS_GRAPH_API_CLIENT_ID }}" \
-          --set envVars.msGraphApiClientSecret="${{ secrets.MS_GRAPH_API_CLIENT_SECRET }}" \
+          --set envVars.msGraphApiClientId="${{ env.MS_GRAPH_API_CLIENT_ID }}" \
+          --set envVars.msGraphApiClientSecret="${{ env.MS_GRAPH_API_CLIENT_SECRET }}" \
           --set envVars.bcscInitialAccessTokenDev="${{ env.BCSC_INITIAL_ACCESS_TOKEN_DEV }}" \
           --set envVars.bcscInitialAccessTokenProd="${{ env.BCSC_INITIAL_ACCESS_TOKEN_PROD }}" \
           --set envVars.bcscInitialAccessTokenTest="${{ env.BCSC_INITIAL_ACCESS_TOKEN_TEST }}" \

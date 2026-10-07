@@ -7,19 +7,33 @@ import {
   searchAzureIdirUsersByEmail,
   searchIdirUsers,
 } from './helpers/modules/users';
-import { searchIdirEmail } from '@app/utils/ms-graph-idir';
-import * as graphApiModule from '@app/utils/graph-api';
+import { searchIdirEmail } from '@app/utils/graph-api';
+import axios from 'axios';
 
 const AZURE_RESPONSE = ['some.user@email.com'];
 
-jest.mock('@app/utils/ms-graph-idir', () => {
-  const originalModule = jest.requireActual('@app/utils/ms-graph-idir');
+jest.mock('@app/utils/graph-api', () => {
+  const originalModule = jest.requireActual('@app/utils/graph-api');
   return {
     __esModule: true,
     ...originalModule,
+    getAzureAccessToken: jest.fn(() => Promise.resolve('mocked-access-token')),
     searchIdirEmail: jest.fn(() => Promise.resolve(AZURE_RESPONSE)),
   };
 });
+
+// callAzureGraphApi and getAzureAccessToken call each other from within the same module, so
+// mocking their exports (above/via spyOn) can't intercept those internal calls. Mock the actual
+// dependencies they use (axios and MSAL) instead.
+jest.mock('axios');
+
+jest.mock('@azure/msal-node', () => ({
+  ConfidentialClientApplication: jest.fn().mockImplementation(() => ({
+    acquireTokenByClientCredential: jest.fn(() =>
+      Promise.resolve({ accessToken: 'mocked-access-token', expiresOn: new Date(Date.now() + 3600_000) }),
+    ),
+  })),
+}));
 
 // mock easy-soap-request to send back a xml response that contains 2 users for the searchIdirUsers test
 jest.mock('easy-soap-request', () => {
@@ -147,8 +161,8 @@ describe('should allow searching and importing azure idir users', () => {
 
   it('should return idir search results', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-    jest.spyOn(graphApiModule, 'callAzureGraphApi').mockImplementationOnce(() =>
-      Promise.resolve({
+    (axios.request as jest.Mock).mockResolvedValueOnce({
+      data: {
         value: [
           {
             onPremisesExtensionAttributes: { extensionAttribute12: '1234' },
@@ -177,8 +191,8 @@ describe('should allow searching and importing azure idir users', () => {
             userPrincipalName: 'IDIRUSER2',
           },
         ],
-      } as any),
-    );
+      },
+    });
     const result = await searchAzureIdirUsers('mail', 'search');
     expect(result.status).toBe(200);
     expect(result.body.length).toEqual(2);
@@ -192,8 +206,52 @@ describe('should allow searching and importing azure idir users', () => {
 
   it('should import user successfully', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-    jest.spyOn(graphApiModule, 'callAzureGraphApi').mockImplementationOnce(() =>
-      Promise.resolve({
+    (axios.request as jest.Mock).mockResolvedValueOnce({
+      data: {
+        value: [
+          {
+            onPremisesExtensionAttributes: { extensionAttribute12: '1234' },
+            mailNickname: 'idirUser1',
+            displayName: 'Idir User 1',
+            mail: 'idiruser1@email.com',
+            jobTitle: 'Developer',
+            givenName: 'idir',
+            surname: 'user1',
+            companyName: 'Company A',
+            department: 'IT',
+            mobilePhone: '123-456-7890',
+            userPrincipalName: 'IDIRUSER1',
+            id: '1234',
+          },
+        ],
+      },
+    });
+    const userData = {
+      guid: '1234',
+      userId: 'idirUser1',
+      idirGuid: '1234',
+      idp: 'azureidir',
+    };
+    const importResult = await importAzureIdirUser(userData);
+    expect(importResult.status).toBe(200);
+  });
+});
+
+describe('should allow searching and importing bcgov idir users', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should throw error upon searching users with invalid fields', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const result = await searchAzureIdirUsers('invalidField', 'search');
+    expect(result.status).toBe(422);
+  });
+
+  it('should return bcgov idir search results', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    (axios.request as jest.Mock).mockResolvedValueOnce({
+      data: {
         value: [
           {
             onPremisesExtensionAttributes: { extensionAttribute12: '1234' },
@@ -208,12 +266,60 @@ describe('should allow searching and importing azure idir users', () => {
             mobilePhone: '123-456-7890',
             userPrincipalName: 'IDIRUSER1',
           },
+          {
+            onPremisesExtensionAttributes: { extensionAttribute12: '5678' },
+            mailNickname: 'idirUser2',
+            displayName: 'Idir User 2',
+            mail: 'idiruser2@email.com',
+            jobTitle: 'Manager',
+            givenName: 'idir',
+            surname: 'user2',
+            companyName: 'Company B',
+            department: 'HR',
+            mobilePhone: '987-654-3210',
+            userPrincipalName: 'IDIRUSER2',
+          },
         ],
-      } as any),
-    );
+      },
+    });
+    const result = await searchAzureIdirUsers('mail', 'search');
+    expect(result.status).toBe(200);
+    expect(result.body.length).toEqual(2);
+  });
+
+  it('should throw error upon importing users with missing data', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    const result = await importAzureIdirUser({ invalidField: '1234', userId: 'idirUser1' });
+    expect(result.status).toBe(422);
+  });
+
+  it('should import user successfully', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    (axios.request as jest.Mock).mockResolvedValueOnce({
+      data: {
+        value: [
+          {
+            onPremisesExtensionAttributes: { extensionAttribute12: '1234' },
+            mailNickname: 'idirUser1',
+            displayName: 'Idir User 1',
+            mail: 'idiruser1@email.com',
+            jobTitle: 'Developer',
+            givenName: 'idir',
+            surname: 'user1',
+            companyName: 'Company A',
+            department: 'IT',
+            mobilePhone: '123-456-7890',
+            userPrincipalName: 'IDIRUSER1',
+            id: '1234',
+          },
+        ],
+      },
+    });
     const userData = {
       guid: '1234',
       userId: 'idirUser1',
+      idirGuid: '1234',
+      idp: 'bcgovidir',
     };
     const importResult = await importAzureIdirUser(userData);
     expect(importResult.status).toBe(200);

@@ -1,0 +1,535 @@
+import React, { useEffect, useState } from 'react';
+import styled from 'styled-components';
+import { Tabs } from '@bcgov-sso/common-react-components';
+import AsyncSelect from 'react-select/async';
+import { components, SingleValue } from 'react-select';
+import CenteredModal from 'components/CenteredModal';
+import Dropdown from 'components/Dropdown';
+import PresetPicker from 'components/PresetPicker';
+import WarningModalContents from 'components/WarningModalContents';
+import ActionButton from 'components/ActionButton';
+import { ActionButtonContainer } from 'components/ActionButtons';
+import TableNew from 'components/TableNew';
+import OrganizationApiAccountPanel from './OrganizationApiAccountPanel';
+import {
+  Organization,
+  OrganizationApiAccount,
+  OrganizationMember,
+  OrganizationTeamLink,
+  TeamIntegration,
+} from 'interfaces/organization';
+import { UserSession } from 'interfaces/props';
+import { Permission, PRESETS, describePermissions } from '@sso/authz';
+import {
+  addOrganizationMember,
+  getOrganizationApiAccounts,
+  getOrganizationMembers,
+  getOrganizationTeams,
+  inviteTeamToOrganization,
+  removeOrganizationMember,
+  removeTeamFromOrganization,
+  searchTeamsForOrganization,
+  getTeamIntegrationsForOrganization,
+} from 'services/organization';
+import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { PRIMARY_RED } from '@app/styles/theme';
+import {
+  appPermissions,
+  hasAppPermission,
+  hasOrganizationPermission,
+  organizationPermissions,
+} from '@app/utils/authorize';
+import { throttledIdirSearch } from '@app/utils/users';
+
+const Panel = styled.div`
+  margin-top: 10px;
+
+  table {
+    width: 100%;
+  }
+
+  th,
+  td {
+    padding: 0.4em 0.5em;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  td ul {
+    margin: 0;
+    padding-left: 1.2em;
+  }
+`;
+
+// The sso-dashboard's actions column: a centred header over evenly spaced
+// icons divided by a rule. Centred rather than right-aligned because these
+// columns hold one or two icons rather than four.
+const ActionsHeader = () => <div style={{ display: 'flex', justifyContent: 'center' }}>Actions</div>;
+
+const Actions = styled(ActionButtonContainer)`
+  justify-content: center;
+  padding-right: 0;
+`;
+
+const Pill = styled.span<{ pending: boolean }>`
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.85em;
+  background: ${(props) => (props.pending ? '#fff4d6' : '#dff0d8')};
+`;
+
+// One entry per team, each carrying its own list of levels. The team entries
+// are not bulleted: they read as headings over the levels beneath them.
+const PermissionsList = styled.ul`
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+
+  ul {
+    margin: 0;
+    padding-left: 1.2em;
+    list-style: disc;
+  }
+`;
+
+const describeLink = (link: OrganizationTeamLink, integrations: TeamIntegration[]): string[] => {
+  const nameFor = (id: number) => integrations.find((integration) => integration.id === id)?.projectName;
+  const parts = [`All integrations: ${describePermissions(link.permissions)}`];
+
+  if (link.overrides.length > 0 && link.overrides.length <= 3) {
+    parts.push(
+      ...link.overrides.map((override) => {
+        const label = nameFor(override.requestId) ?? `#${override.requestId}`;
+        return `${label}: ${describePermissions(override.permissions)}`;
+      }),
+    );
+  } else if (link.overrides.length > 0) {
+    parts.push(`${link.overrides.length} integrations capped below it`);
+  }
+
+  return parts;
+};
+
+interface Props {
+  organization: Organization;
+  currentUser: UserSession;
+  alert: TopAlert;
+}
+
+function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Props>) {
+  const [members, setMembers] = useState<OrganizationMember[]>([]);
+  const [links, setLinks] = useState<OrganizationTeamLink[]>([]);
+  const [accounts, setAccounts] = useState<OrganizationApiAccount[]>([]);
+  const [teamResults, setTeamResults] = useState<any[]>([]);
+  const [teamQuery, setTeamQuery] = useState('');
+  const [integrationsByTeam, setIntegrationsByTeam] = useState<Record<number, TeamIntegration[]>>({});
+
+  const [openMemberModal, setOpenMemberModal] = useState(false);
+  const [memberEmail, setMemberEmail] = useState('');
+  const [memberRole, setMemberRole] = useState('member');
+
+  const [openInviteModal, setOpenInviteModal] = useState(false);
+  const [inviteTeamId, setInviteTeamId] = useState<number | undefined>(undefined);
+  const [proposed, setProposed] = useState<Permission[]>([...PRESETS.viewer]);
+
+  const [linkToRemove, setLinkToRemove] = useState<OrganizationTeamLink | null>(null);
+
+  const activeLinks = links.filter((link) => !link.pending);
+  const admins = members.filter((member) => member.role === 'admin');
+  // An organization holds one account at most; the server refuses a second.
+  const activeAccount = accounts.find((account) => !account.archived) ?? null;
+  // sso-admins can manage any organization regardless of their membership role in it.
+  const isSsoAdmin = hasAppPermission(currentUser?.client_roles, appPermissions.MANAGE_ORGANIZATIONS);
+  const canManage = (permission: string) => isSsoAdmin || hasOrganizationPermission(organization.role, permission);
+  const canAddMember = canManage(organizationPermissions.ADD_ORG_MEMBER);
+  const canRemoveMember = canManage(organizationPermissions.REMOVE_ORG_MEMBER);
+  const canInviteTeam = canManage(organizationPermissions.INVITE_TEAM);
+  const canRemoveTeam = canManage(organizationPermissions.REMOVE_TEAM);
+  const canManageApiAccounts = canManage(organizationPermissions.MANAGE_ORG_API_ACCOUNTS);
+
+  const reload = async () => {
+    const [memberResult] = await getOrganizationMembers(organization.id);
+    setMembers(memberResult || []);
+    const [linkResult] = await getOrganizationTeams(organization.id);
+    setLinks(linkResult || []);
+    const [accountResult] = await getOrganizationApiAccounts(organization.id);
+    setAccounts(accountResult || []);
+  };
+
+  useEffect(() => {
+    reload();
+  }, [organization.id]);
+
+  useEffect(() => {
+    if (!openInviteModal) return;
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      const [results] = await searchTeamsForOrganization(organization.id, teamQuery);
+      if (!cancelled) setTeamResults(results || []);
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [openInviteModal, teamQuery, organization.id]);
+
+  // Joined teams only: the server refuses the rest, and the names are only
+  // needed to describe the per-integration limits under a live consent.
+  const loadIntegrations = async (teamId: number) => {
+    if (integrationsByTeam[teamId]) return;
+    const [result] = await getTeamIntegrationsForOrganization(organization.id, teamId);
+    setIntegrationsByTeam((current) => ({ ...current, [teamId]: result || [] }));
+  };
+
+  useEffect(() => {
+    activeLinks.forEach((link) => loadIntegrations(link.teamId));
+  }, [links]);
+
+  const integrationsFor = (teamId?: number) => (teamId ? integrationsByTeam[teamId] ?? [] : []);
+  const teamOptions = teamResults.map((team) => ({
+    value: team.id,
+    label: `${team.name} (#${team.id})${team.available ? '' : ' - already in another organization'}`,
+    available: team.available,
+  }));
+
+  const fail = (content: string) => alert.show({ variant: 'danger', fadeOut: 10000, closable: true, content });
+
+  const handleAddMember = async () => {
+    const [, err] = await addOrganizationMember(organization.id, { idirEmail: memberEmail, role: memberRole });
+    if (err) return fail('Could not add that member.');
+    setMemberEmail('');
+    setOpenMemberModal(false);
+    reload();
+  };
+
+  const handleInvite = async () => {
+    if (!inviteTeamId) return;
+    const [, err] = await inviteTeamToOrganization(organization.id, { teamId: inviteTeamId, permissions: proposed });
+    if (err) return fail('Could not invite that team.');
+    setOpenInviteModal(false);
+    setProposed([...PRESETS.viewer]);
+    setInviteTeamId(undefined);
+    setTeamQuery('');
+    reload();
+  };
+
+  const handleRemoveTeam = async () => {
+    if (!linkToRemove) return;
+    const [, err] = await removeTeamFromOrganization(organization.id, linkToRemove.teamId);
+    if (err) return fail('Could not remove that team.');
+    setLinkToRemove(null);
+    reload();
+  };
+
+  // What the organization's API account can reach: one entry per joined team,
+  // at the level that team consented to. Shown both on the accounts tab and in
+  // the request confirmation, so the two never disagree.
+  const permissionsSummary =
+    activeLinks.length === 0 ? (
+      <em>no teams have joined yet</em>
+    ) : (
+      <PermissionsList>
+        {activeLinks.map((link) => (
+          <li key={link.id}>
+            <strong>{link.team?.name}:</strong>
+            <ul>
+              {describeLink(link, integrationsFor(link.teamId)).map((part) => (
+                <li key={part}>{part}</li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </PermissionsList>
+    );
+
+  const membersTab = (
+    <Panel>
+      <button className="primary" onClick={() => setOpenMemberModal(true)} disabled={!canAddMember}>
+        + Add Member
+      </button>
+      <TableNew
+        dataTestId="organization-members-table"
+        readOnly
+        enableGlobalSearch={false}
+        enablePagination={false}
+        columns={[
+          { accessorKey: 'email', header: 'Email' },
+          { accessorKey: 'role', header: 'Role' },
+          {
+            accessorKey: 'actions',
+            header: () => <ActionsHeader />,
+            cell: (props) => {
+              const member = props.row.original as OrganizationMember;
+              const lastAdmin = member.role === 'admin' && admins.length === 1;
+              return (
+                <Actions>
+                  <ActionButton
+                    icon={faTrash}
+                    role="button"
+                    disabled={!canRemoveMember || lastAdmin}
+                    aria-label={`remove-organization-member-${member.userId}`}
+                    data-testid={`remove-organization-member-${member.userId}`}
+                    title={lastAdmin ? 'Add a second admin before removing this one' : 'Remove organization member'}
+                    size="lg"
+                    activeColor={PRIMARY_RED}
+                    onClick={async () => {
+                      if (!canRemoveMember || lastAdmin) return;
+                      const [, err] = await removeOrganizationMember(organization.id, member.userId);
+                      if (err) return fail('Could not remove that member.');
+                      reload();
+                    }}
+                  />
+                </Actions>
+              );
+            },
+          },
+        ]}
+        data={members.map((member) => ({
+          ...member,
+          email: member.user?.idirEmail,
+        }))}
+      />
+    </Panel>
+  );
+
+  const teamsTab = (
+    <Panel>
+      <button className="primary" onClick={() => setOpenInviteModal(true)} disabled={!canInviteTeam}>
+        + Invite a Team
+      </button>
+      <br />
+      <p>You can invite teams to your organization to have access to their integrations.</p>
+      <TableNew
+        dataTestId="organization-teams-table"
+        readOnly
+        enableGlobalSearch={false}
+        enablePagination={false}
+        columns={[
+          { accessorKey: 'teamName', header: 'Team' },
+          {
+            accessorKey: 'status',
+            header: 'Status',
+            cell: (props) => {
+              const link = props.row.original as OrganizationTeamLink;
+              return <Pill pending={link.pending}>{link.pending ? 'invitation pending' : 'joined'}</Pill>;
+            },
+          },
+          {
+            accessorKey: 'permissions',
+            header: 'Consented permissions',
+            cell: (props) => {
+              const link = props.row.original as OrganizationTeamLink;
+              return (
+                <>
+                  {link.pending && <em>proposed: </em>}
+                  <ul>
+                    {describeLink(link, integrationsFor(link.teamId)).map((part) => (
+                      <li key={part}>{part}</li>
+                    ))}
+                  </ul>
+                </>
+              );
+            },
+          },
+          {
+            accessorKey: 'actions',
+            header: () => <ActionsHeader />,
+            cell: (props) => {
+              const link = props.row.original as OrganizationTeamLink;
+              return (
+                <Actions>
+                  <ActionButton
+                    icon={faTrash}
+                    role="button"
+                    disabled={!canRemoveTeam}
+                    aria-label={`remove-organization-team-${link.teamId}`}
+                    data-testid={`remove-organization-team-${link.teamId}`}
+                    title="Remove team from organization"
+                    size="lg"
+                    activeColor={PRIMARY_RED}
+                    onClick={() => {
+                      if (canRemoveTeam) setLinkToRemove(link);
+                    }}
+                  />
+                </Actions>
+              );
+            },
+          },
+        ]}
+        data={links.map((link) => ({
+          ...link,
+          teamName: link.team?.name,
+        }))}
+      />
+    </Panel>
+  );
+
+  const apiAccountsTab = (
+    <Panel>
+      <OrganizationApiAccountPanel
+        organization={organization}
+        account={activeAccount}
+        permissionsSummary={permissionsSummary}
+        canManage={canManageApiAccounts}
+        reload={reload}
+      />
+    </Panel>
+  );
+
+  return (
+    <>
+      <Tabs
+        defaultActiveKey="members"
+        tabBarGutter={30}
+        items={[
+          { key: 'members', label: 'Members', children: membersTab },
+          { key: 'teams', label: 'Teams', children: teamsTab },
+          { key: 'api-accounts', label: 'CSS API Account', children: apiAccountsTab },
+        ]}
+      />
+
+      <CenteredModal
+        id="add-org-member-modal"
+        openModal={openMemberModal}
+        handleClose={() => setOpenMemberModal(false)}
+        title="Add Organization Member"
+        icon={false}
+        closable
+        confirmText="Add"
+        onConfirm={handleAddMember}
+        content={
+          <div>
+            <label htmlFor="org-member-email">IDIR Email</label>
+            <AsyncSelect
+              inputId="org-member-email"
+              loadOptions={throttledIdirSearch}
+              onChange={(option: SingleValue<{ value: string; label: string }>) =>
+                setMemberEmail(option?.label.toLowerCase() || '')
+              }
+              value={memberEmail ? { value: memberEmail, label: memberEmail } : null}
+              noOptionsMessage={() => 'Start typing email...'}
+              placeholder="Enter email address"
+              menuPlacement="top"
+              maxMenuHeight={120}
+              components={{
+                Input: (props) => <components.Input {...props} data-testid="org-member-email-input" />,
+              }}
+            />
+            <label htmlFor="org-member-role">Role</label>
+            <Dropdown
+              inputId="org-member-role"
+              data-testid="org-member-role"
+              options={[
+                { value: 'member', label: 'Member' },
+                { value: 'admin', label: 'Admin' },
+              ]}
+              value={{ value: memberRole, label: memberRole === 'admin' ? 'Admin' : 'Member' }}
+              isSearchable={false}
+              onChange={(option: any) => setMemberRole(option?.value ?? 'member')}
+            />
+            <p>
+              Both roles reach the same integrations — whatever the teams consented to. An admin also manages the
+              organization itself: its members, its teams and its API accounts.
+            </p>
+          </div>
+        }
+      />
+
+      <CenteredModal
+        id="invite-team-modal"
+        openModal={openInviteModal}
+        handleClose={() => setOpenInviteModal(false)}
+        title="Invite a Team"
+        icon={false}
+        closable
+        confirmText="Send Invitation"
+        onConfirm={handleInvite}
+        content={
+          <div>
+            <p>
+              Ask a team for an access level over its integrations. Nothing is in force until a team admin accepts, and
+              they may accept on narrower terms. From then on the level is theirs to change.
+            </p>
+            <label htmlFor="invite-team-select">Team</label>
+            <Dropdown
+              inputId="invite-team-select"
+              data-testid="invite-team-select"
+              placeholder="Search by team name or id"
+              options={teamOptions}
+              value={teamOptions.find((option) => option.value === inviteTeamId) ?? null}
+              filterOption={() => true}
+              isOptionDisabled={(option: any) => !option.available}
+              noOptionsMessage={() => (teamQuery ? 'No matching teams' : 'Start typing to find a team')}
+              onInputChange={(value, action) => {
+                if (action.action === 'input-change') setTeamQuery(value);
+              }}
+              // A team's integrations are not the organization's to see until
+              // the team has joined, so nothing is loaded for one being invited.
+              onChange={(option: any) => setInviteTeamId(option?.value as number | undefined)}
+              isClearable
+            />
+            {inviteTeamId && (
+              <div style={{ margin: '0.8em 0' }}>
+                <label htmlFor="invite-permissions">Access level requested</label>
+                <PresetPicker
+                  id="invite-permissions"
+                  ariaLabel="Access level requested"
+                  value={proposed}
+                  onChange={(permissions) => setProposed(permissions ?? [])}
+                />
+                <p>
+                  Default permission level organization members and API Accounts will have over the teams integrations.
+                  Teams may choose to restrict access further on accepting the invitation. Newly added integrations to
+                  the team will default to this level.
+                </p>
+                <p>
+                  <strong>Role Description:</strong>
+                </p>
+                <ul>
+                  <li>
+                    <strong>Viewer:</strong> Allows viewing integration data, roles, and role assignments.
+                  </li>
+                  <li>
+                    <strong>Editor:</strong> Allows editing integration data, and reading or rotating the integration’s
+                    client secrets.
+                  </li>
+                  <li>
+                    <strong>Role Manager:</strong> Allows viewing and editing integration roles and role assignments.
+                  </li>
+                  <li>
+                    <strong>Admin:</strong> Full write access to integrations and their roles, including their client
+                    secrets.
+                  </li>
+                </ul>
+              </div>
+            )}
+          </div>
+        }
+      />
+
+      <CenteredModal
+        id="remove-organization-team-modal"
+        openModal={Boolean(linkToRemove)}
+        handleClose={() => setLinkToRemove(null)}
+        title="Remove Team"
+        icon={null}
+        closable
+        confirmText="Remove Team"
+        buttonStyle="danger"
+        skipCloseOnConfirm
+        onConfirm={handleRemoveTeam}
+        content={
+          <WarningModalContents
+            title={`Are you sure that you want to remove ${linkToRemove?.team?.name ?? 'this team'} from ${
+              organization.name
+            }?`}
+            content={`Removing this team will immediately revoke access to its integrations from organization members and API accounts.`}
+          />
+        }
+      />
+    </>
+  );
+}
+
+export default withTopAlert(OrganizationInfoTabs);

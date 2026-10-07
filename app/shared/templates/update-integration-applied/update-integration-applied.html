@@ -16,5 +16,6 @@
 {{#if integration.waitingBceidApproval}} {{> createBceidBottom }} {{/if}} {{#if waitingOTPProdApproval}} {{>
 createOTPBottom }} {{/if}} {{#if waitingGithubProdApproval}} {{> applyGithubBottom }} {{/if}}{{#if
 waitingBcServicesCardProdApproval}} {{> createBcServicesCardBottom }} {{/if}}{{#if waitingSocialProdApproval}} {{>
-applySocialBottom }} {{/if}} {{> dashboardLogin }} {{> ssoUpdatesMailingListMessage }} {{#if
-(isNonProdDigitalCredentialRequest integration)}} {{> digitalCredentialInfoContact }} {{/if}} {{> footer }}
+applySocialBottom }} {{/if}}{{#if waitingBcgovIdirProdApproval}} {{> createBcgovIdirBottom }} {{/if}} {{> dashboardLogin
+}} {{> ssoUpdatesMailingListMessage }} {{#if (isNonProdDigitalCredentialRequest integration)}} {{>
+digitalCredentialInfoContact }} {{/if}} {{> footer }}

@@ -1,8 +1,9 @@
 import type { SDXAccessRequest, Session } from '@app/shared/interfaces';
 import { SDXResourceServer } from '@app/shared/interfaces';
-import { getAllowedRequest, getIntegrationById } from '@app/queries/request';
+import { getIntegrationById } from '@app/queries/request';
+import { authorizeIntegration } from '@app/queries/integrationAccess';
 import { EVENTS } from '@app/shared/enums';
-import { createEvent } from './requests';
+import { createEvent } from '@app/queries/event';
 import { getAdminClient } from '@app/keycloak/adminClient';
 import { getClientScopes } from '@app/keycloak/clientScopes';
 import ClientScopeRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientScopeRepresentation';
@@ -12,6 +13,10 @@ import { getUserById } from '@app/queries/user';
 import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
 import { SDX_ENVIRONMENTS } from '@app/utils/constants';
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
+
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'controllers/sdx-services' });
 
 const tokenExchangerClientId = process.env.SDX_TOKEN_EXCH_CLIENT_ID || 'sdx-rg-pzgw';
 
@@ -41,7 +46,7 @@ const getToken = async () => {
     .then((response) => response.json())
     .then((data) => data.access_token)
     .catch((error) => {
-      console.error('Error fetching SDX token:', error);
+      log.error({ err: error }, 'Error fetching SDX token');
       throw new Error('Failed to fetch SDX token');
     });
 };
@@ -51,8 +56,9 @@ export const getSdxServicesForClient = async (
   requestId: number,
   status: string,
 ): Promise<{ clientId: string; resourceServers: SDXResourceServer[] }> => {
-  const current = await getAllowedRequest(session, requestId);
-  if (!current) throw new Error('Request not found');
+  const authorized = await authorizeIntegration(session, requestId, 'integrations:read');
+  if (!authorized) throw new Error('Request not found');
+  const { integration: current } = authorized;
 
   const envs = getSdxEnvironments();
 
@@ -76,7 +82,7 @@ export const getSdxServicesForClient = async (
     }
     return data;
   } catch (err) {
-    console.error('Error fetching SDX services:', err);
+    log.error({ err }, 'Error fetching SDX services');
     throw new Error('Failed to fetch SDX services');
   }
 };
@@ -95,7 +101,7 @@ export const listSdxResourceServers = async (): Promise<SDXResourceServer[]> => 
     }
     return resourceServers;
   } catch (err) {
-    console.error('Error fetching SDX resource servers:', err);
+    log.error({ err }, 'Error fetching SDX resource servers');
     throw new Error('Failed to fetch SDX resource servers');
   }
 };
@@ -144,9 +150,7 @@ const removeSdxAccessByScopes = async (clientId: string, environment: string, sc
   const result = await kcAdminClient.clients.find({ realm: 'standard', clientId });
 
   if (!result || result.length === 0) {
-    console.info(
-      `Client with ID ${clientId} not found in Keycloak for environment ${environment} - skipping scope removal`,
-    );
+    log.info({ clientId, environment }, 'client not found in Keycloak, skipping scope removal');
     return;
   }
 
@@ -353,9 +357,7 @@ export const manageKeycloakScopes = async (clientId: string, environment: string
   const result = await kcAdminClient.clients.find({ realm: 'standard', clientId });
 
   if (!result || result.length === 0) {
-    console.info(
-      `Client with ID ${clientId} not found in Keycloak for environment ${environment} - skipping scope management`,
-    );
+    log.info({ clientId, environment }, 'client not found in Keycloak, skipping scope management');
     return;
   }
 
@@ -448,7 +450,7 @@ export const getSdxSubsystemStatus = async (requestId: number) => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error fetching SDX status:', error);
+    log.error({ err: error }, 'Error fetching SDX status');
     throw new Error('Failed to fetch SDX status');
   }
 };

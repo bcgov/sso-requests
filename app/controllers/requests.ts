@@ -1,38 +1,31 @@
 import { Op, Model } from 'sequelize';
-import { assign, isEmpty, isString, kebabCase } from 'lodash';
+import { validateRequest, getRequiredBCSCScopes } from '@app/utils/server-helpers';
+import { camelCase, isEmpty, isString, kebabCase, upperFirst } from 'lodash';
 import {
-  validateRequest,
   getDifferences,
   getDisplayName,
   getBCSCEnvVars,
-  getRequiredBCSCScopes,
   compareTwoArrays as compareScopes,
   getAllowedIdpsForApprover,
-  isBceidApprover,
-  isGithubApprover,
-  isBcServicesCardApprover,
-  sanitizeRequest,
-  isOTPApprover,
+  normalizeRequest,
   isAdmin,
+  validateIDPs,
 } from '@app/utils/helpers';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@app/shared/interfaces';
-import { ACTION_TYPES, EMAILS, REQUEST_TYPES, EVENTS } from '@app/shared/enums';
+import { EMAILS, EVENTS } from '@app/shared/enums';
 import { sendTemplate } from '@app/shared/templates';
 import { getAllowedTeams, getTeamById } from '@app/queries/team';
 import {
-  getMyOrTeamRequest,
-  getAllowedRequest,
-  getBaseWhereForMyOrTeamIntegrations,
   getIntegrationsByUserTeam,
-  getIntegrationByClientId,
-  canUpdateRequestByUserId,
+  getAnyIntegrationByClientId,
   getIntegrationById,
   getWhereClauseForAllRequests,
   getAllActiveRequests,
 } from '@app/queries/request';
+import { authorizeIntegration, IntegrationAccess, resolveAccessForIntegrations } from '@app/queries/integrationAccess';
+import { AccessScope, accessibleIntegrationsWhere, resolveAccessScope } from '@app/queries/accessScope';
 import { fetchClient } from '@app/keycloak/client';
-import { getUserTeamRole } from '@app/queries/literals';
 import {
   usesBceid,
   usesGithub,
@@ -46,20 +39,25 @@ import {
   checkNotOTP,
   usesOTP,
   usesSdxServices,
+  usesBcgovIdir,
+  checkNotBcgovIdir,
+  isReservedClientId,
 } from '@app/helpers/integration';
-import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@app/keycloak/users';
-import { getRolesWithEnvironments } from '@app/queries/roles';
-import { keycloakClient } from '@app/keycloak/integration';
 import { getAccountableEntity } from '@app/shared/templates/helpers';
 import {
   oidcDurationAdditionalFields,
   samlDurationAdditionalFields,
   samlFineGrainEndpointConfig,
   samlSignedAssertions,
-  test,
 } from '@app/schemas';
 import { pick } from 'lodash';
-import { validateIdirEmail } from '@app/utils/ms-graph-idir';
+import {
+  setupEntraIntegration,
+  validateIdirEmail,
+  deleteServicePrincipal,
+  deleteAppRegistration,
+  updateEntraIntegration,
+} from '@app/utils/graph-api';
 import {
   BCSCClientParameters,
   createBCSCClient,
@@ -84,16 +82,33 @@ import {
   getClientScopeMapper,
   updateClientScopeMapper,
 } from '@app/keycloak/clientScopes';
-import { bcscClientScopeMappers, bcscIdpMappers } from '@app/utils/constants';
+import {
+  bcgovIdirIdpMappers,
+  bcscClientScopeMappers,
+  bcscIdpMappers,
+  KC_ENTRA_IDP_REALM,
+  KC_PS256_KEY_PROVIDER_ID,
+} from '@app/utils/constants';
 import createHttpError from 'http-errors';
-import { isSocialApprover, validateIDPs } from '@app/utils/helpers';
-import { getIdpApprovalStatus, canDeleteIntegration } from '@app/helpers/permissions';
+import { approvalResetsForRemovedIdps } from '@app/helpers/permissions';
+import { TRANSITIONS, deleteIntentFor } from '@app/helpers/transitions';
+import { actorPayload, authorizeChanges, authorizeTransition } from '@app/utils/requestPolicy';
 import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
-import { hasAppPermission, appPermissions } from '@app/utils/authorize';
+import { hasAppPermission, appPermissions, commonPermissionsForAppRoles } from '@app/utils/authorize';
 import { Event } from '@app/interfaces/Event';
 import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
 import { createSdxRequest } from './sdx-services';
+import { getEntraClientByRequestId, saveEntraClient } from '@app/queries/entra-client';
+import { createEvent } from '@app/queries/event';
+import { enqueueRequestWorkflow } from '@app/workflow/request-workflow';
+import { KeyCredential } from '@microsoft/microsoft-graph-types';
+import { createPS256Key, getActivePS256KeyCert } from '@app/keycloak/keys';
+import { getByBcgovUnitAndDivision, getDivisionById, listDivisions } from '@app/queries/division';
+import { getBcgovUnitById, listBcgovUnits } from '@app/queries/bcgov-unit';
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'controllers/requests' });
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
@@ -141,22 +156,31 @@ const allowedFieldsForGithub = [
   'prodHomePageUri',
   'bcscPrivacyZone',
   'usesTeam',
+  'bcgovUnitId',
+  'divisionId',
+  'description',
   ...envFieldsAll,
 ];
 
-export const createEvent = async (data: Event) => {
-  try {
-    await models.event.create(data);
-  } catch (err) {
-    console.log(err);
-  }
+// The name recorded on a change. An admin acting on an integration they
+// neither own nor belong to is recorded as SSO Admin rather than by name.
+export const getRequester = (session: Session, access: IntegrationAccess) => {
+  const ownOrTeam = access.owner || access.userTeamRole !== null;
+  return !ownOrTeam && isAdmin(session) ? 'SSO Admin' : getDisplayName(session);
 };
 
-export const getRequester = async (session: Session, requestId: number) => {
-  let requester = getDisplayName(session);
-  const isMyOrTeamRequest = await getMyOrTeamRequest(session?.user?.id as number, requestId);
-  if (!isMyOrTeamRequest && isAdmin(session)) requester = 'SSO Admin';
-  return requester;
+// The client-side guards (canDeleteIntegration, canCreateOrDeleteRoles) read
+// the role and the merged permissions off each row. Both come from the
+// resolver rather than a SQL literal, so a list row reports the authority it
+// was admitted on — including the authority an organization confers, which no
+// team role describes.
+const attachAccess = async (session: Session, integrations: any[], scope?: AccessScope) => {
+  const access = await resolveAccessForIntegrations(session, integrations, scope);
+  integrations.forEach((integration) => {
+    integration.setDataValue('userTeamRole', access.get(integration.id)?.userTeamRole ?? null);
+    integration.setDataValue('permissions', access.get(integration.id)?.permissions ?? []);
+  });
+  return integrations;
 };
 
 const checkIfHasFailedRequests = async () => {
@@ -171,6 +195,23 @@ export const checkIfRequestMerged = async (id: number) => {
   });
 
   return !!request;
+};
+
+const authorizeClientId = (session: Session, clientId?: string | null) => {
+  const proposed = clientId?.trim();
+  if (!proposed) return undefined;
+
+  if (!commonPermissionsForAppRoles(session?.client_roles).includes('integrations:write-client-id')) {
+    throw new createHttpError.Forbidden('not allowed to choose a client id');
+  }
+  assertClientIdNotReserved(proposed);
+  return proposed;
+};
+
+const assertClientIdNotReserved = (clientId: string) => {
+  if (isReservedClientId(clientId)) {
+    throw new createHttpError.BadRequest(`${clientId} is reserved for CSS API accounts, please choose another`);
+  }
 };
 
 export const createRequest = async (session: Session, data: IntegrationData) => {
@@ -199,7 +240,7 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
       idirUserDisplayName: session?.user?.displayName || '',
     };
 
-    createEvent(eventData);
+    await createEvent(eventData);
     await sendTemplate(EMAILS.REQUEST_LIMIT_EXCEEDED, { user: session?.user?.displayName || '' });
     throw new createHttpError.TooManyRequests('reached the day limit');
   }
@@ -221,9 +262,10 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     prodSamlSignAssertions,
     primaryEndUsers,
     primaryEndUsersOther,
-    clientId,
   } = data;
   if (!serviceType) serviceType = 'gold';
+
+  const clientId = authorizeClientId(session, data.clientId);
 
   let result = null;
 
@@ -424,8 +466,8 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
       ...customConfig,
     };
 
-    if (!mapperExists) createClientScopeMapper({ ...clientScopeMapperPayload } as any);
-    else updateClientScopeMapper({ ...clientScopeMapperPayload, id: mapperExists?.id } as any);
+    if (!mapperExists) await createClientScopeMapper({ ...clientScopeMapperPayload } as any);
+    else await updateClientScopeMapper({ ...clientScopeMapperPayload, id: mapperExists?.id } as any);
   }
 };
 
@@ -490,70 +532,42 @@ export const updateRequest = async (
   // let's skip this logic for now and see if we might need it back later
   // await checkIfHasFailedRequests();
   let addingProd = false;
-  const bceidApprover = isBceidApprover(session);
-  const githubApprover = isGithubApprover(session);
-  const bcscApprover = isBcServicesCardApprover(session);
-  const socialApprover = isSocialApprover(session);
-  const otpApprover = isOTPApprover(session);
-  const idirUserDisplayName = getDisplayName(session);
   const { id, comment, ...rest } = data;
   const isMerged = await checkIfRequestMerged(id!);
 
   try {
     let existingClientId: string = '';
-    const current = await getAllowedRequest(session, data?.id!);
-    if (!current) throw new Error('Request not found');
+    const readable = await authorizeIntegration(session, id!, 'integrations:read', { archived: false });
+    if (!readable) throw new createHttpError.NotFound('Request not found');
+    const { integration: current, access } = readable;
     const getCurrentValue = () => current.get({ plain: true, clone: true });
-
-    if (current.status === 'applied' && !submit) {
-      throw Error('Temporary updates not allowed for applied requests.');
-    }
-
     const originalData = getCurrentValue();
-    const isAllowedStatus = ['draft', 'applied'].includes(current.status);
 
-    if (current.status === 'applied' && current.clientId !== rest.clientId) existingClientId = current.clientId;
+    // A save is a draft's autosave; anything else is a submission
+    const intent = submit ? 'submit' : 'save';
+    authorizeTransition(current, intent, access);
 
-    if (!current || !isAllowedStatus) {
-      throw new createHttpError.BadRequest('Request not found or not in draft or applied status');
-    }
+    const submitted = normalizeRequest(rest, isMerged);
+    const changed = authorizeChanges(originalData, submitted, access, { merged: isMerged });
+    Object.assign(current, actorPayload(submitted));
 
-    if (originalData.status === 'applied') {
-      // Once an integration has been created for a team, cannot revert to single person ownership.
-      if (originalData.usesTeam && !rest.usesTeam) rest.usesTeam = originalData.usesTeam;
-      if (!originalData.projectLead && rest.projectLead) rest.projectLead = originalData.projectLead;
-
-      // preserve environments if already applied
-      rest.environments = originalData.environments.concat(
-        rest?.environments?.filter((env) => {
-          if (!originalData.environments.includes(env) && ['dev', 'test', 'prod'].includes(env)) return env;
-        }),
-      );
-    }
-
-    const allowedData = sanitizeRequest(session, rest, isMerged);
-
-    assign(current, allowedData);
+    // A renamed client on an applied integration has its old client torn down.
+    if (current.status === 'applied' && changed.includes('clientId')) existingClientId = originalData.clientId;
 
     const mergedData = getCurrentValue();
 
-    const updatedAttributes = getIdpApprovalStatus({
-      session,
-      originalData,
-      updatedData: current,
-    });
-    assign(current, updatedAttributes);
+    Object.assign(current, approvalResetsForRemovedIdps(originalData, current));
 
     const validIDPSelection = validateIDPs({
       currentIdps: originalData.devIdps,
       updatedIdps: current.devIdps,
+      canAddRestrictedIdps: access.permissions.includes('integrations:add-restricted-idps'),
       bceidApproved: originalData.bceidApproved,
       devBceidApproved: originalData.devBceidApproved,
       testBceidApproved: originalData.testBceidApproved,
       githubApproved: originalData.githubApproved,
       bcServicesCardApproved: originalData.bcServicesCardApproved,
       protocol: current.protocol,
-      session,
     });
     if (!validIDPSelection) {
       throw new createHttpError[400]('Invalid IDP Selection');
@@ -567,32 +581,27 @@ export const updateRequest = async (
       );
     }
 
-    // IDP approvers are not allowed to update other fields except approved flag if request doesn't belong to them
-    if (
-      !hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST) &&
-      (bceidApprover || githubApprover || bcscApprover || socialApprover || otpApprover) &&
-      !(await canUpdateRequestByUserId(session?.user?.id as number, data?.id!))
-    ) {
-      Object.assign(current, {
-        ...originalData,
-        bceidApproved: bceidApprover ? data.bceidApproved : originalData.bceidApproved,
-        devBceidApproved: bceidApprover ? data.devBceidApproved : originalData.devBceidApproved,
-        testBceidApproved: bceidApprover ? data.testBceidApproved : originalData.testBceidApproved,
-        githubApproved: githubApprover ? data.githubApproved : originalData.githubApproved,
-        bcServicesCardApproved: bcscApprover ? data.bcServicesCardApproved : originalData.bcServicesCardApproved,
-        socialApproved: socialApprover ? data.socialApproved : originalData.socialApproved,
-        otpApproved: otpApprover ? data.otpApproved : originalData.otpApproved,
-      });
-    }
-
     const allowedTeams = await getAllowedTeams(session, { raw: true });
+    // If current team is not in allowed list, add it. Allows org editors who have write access but not reassign-team permission to maintain the current one only.
+    const originalTeamInAllowedList = allowedTeams.some((team: any) => String(team.id) === String(originalData.teamId));
+    const validTeams =
+      originalData.usesTeam && originalData.teamId && originalTeamInAllowedList
+        ? allowedTeams
+        : [...allowedTeams, { id: originalData.teamId }];
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     let finalData = getCurrentValue();
     let changes = null;
 
     if (submit) {
-      const validationErrors = await validateRequest(mergedData, originalData, allowedTeams, isMerged);
+      const validationErrors = await validateRequest(
+        mergedData,
+        originalData,
+        validTeams,
+        usesBcgovIdir(current) ? await listBcgovUnits() : [],
+        usesBcgovIdir(current) ? await listDivisions() : [],
+        isMerged,
+      );
       if (!isEmpty(validationErrors)) {
         if (isString(validationErrors)) throw new createHttpError.BadRequest(validationErrors);
         else
@@ -601,9 +610,19 @@ export const updateRequest = async (
           );
       }
 
+      // Validate BC Government Unit and division selection for bcgovidir IDP
+      if (usesBcgovIdir(current)) {
+        const division = await getByBcgovUnitAndDivision(current.bcgovUnitId, current.divisionId);
+        if (!division) {
+          throw new createHttpError.BadRequest('Please select a valid division for the selected BC Gov Unit');
+        }
+      }
+
       // keycloak related operations
-      // when it is submitted for the first time.
-      if (!isMerged && !current.clientId) {
+      // when it is submitted for the first time. A generated id ends in the
+      // row's own id, so it cannot collide with another row's.
+      const generatedClientId = !isMerged && !current.clientId;
+      if (generatedClientId) {
         current.clientId = `${kebabCase(current.projectName)}-${id}`;
       }
 
@@ -612,23 +631,30 @@ export const updateRequest = async (
         await createSdxRequest(session, current);
       }
 
-      // If custom client id is provided, check if that client id is already used
-      if (current.protocol === 'saml') {
-        if ((current.status === 'draft' && current.clientId) || current.clientId !== originalData.clientId) {
+      // Ensures requested client ID is not reserved
+      if (!generatedClientId && (current.status === 'draft' || current.clientId !== originalData.clientId)) {
+        assertClientIdNotReserved(current.clientId);
+
+        const refuse = () => {
+          throw new createHttpError.BadRequest(
+            `${current.clientId} already exists, please choose a different client id`,
+          );
+        };
+
+        const holder = await getAnyIntegrationByClientId(current.clientId);
+        if (holder && holder.id !== current.id) refuse();
+
+        for (const environment of current.environments) {
           const existingKeycloakClient = await fetchClient({
             serviceType: 'gold',
             realmName: 'standard',
-            environment: 'dev',
+            environment,
             clientId: current.clientId,
           });
-          const existingIntegration = await getIntegrationByClientId(current.clientId);
-          if (existingKeycloakClient || (existingIntegration !== null && current.id !== existingIntegration.id))
-            throw new createHttpError.BadRequest(
-              `${current.clientId} already exists, please choose a different client id`,
-            );
+          if (existingKeycloakClient) refuse();
         }
       }
-      current.status = 'submitted';
+      current.status = TRANSITIONS.submit.to;
       let environments = current.environments.concat();
 
       const hasProd = environments.includes('prod');
@@ -637,7 +663,7 @@ export const updateRequest = async (
       const removingBcscIdp =
         originalData.devIdps.includes('bcservicescard') && !current.devIdps.includes('bcservicescard');
 
-      current.requester = await getRequester(session, current.id);
+      current.requester = getRequester(session, access);
 
       finalData = getCurrentValue();
       changes = getDifferences(finalData, originalData);
@@ -691,12 +717,14 @@ export const updateRequest = async (
 
       await processIntegrationRequest(updated, false, existingClientId, addingProd);
 
-      updated = await getAllowedRequest(session, data?.id!);
+      const refreshed = await authorizeIntegration(session, id!, 'integrations:read');
+      if (!refreshed) throw new Error('Request not found');
+      updated = refreshed.integration;
     }
 
     return updated.get({ plain: true });
   } catch (err) {
-    console.log(err);
+    log.error({ err }, 'updateRequest failed');
     if (submit) {
       const eventData = {
         eventCode: isMerged ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
@@ -717,28 +745,28 @@ export const resubmitRequest = async (session: Session, id: number) => {
   if (!isMerged) return;
 
   try {
-    const current = await getAllowedRequest(session, id);
+    const readable = await authorizeIntegration(session, id, 'integrations:read', { archived: false });
+    if (!readable) throw new createHttpError.NotFound('Request not found');
+    const { integration: current, access } = readable;
+    authorizeTransition(current, 'resubmit', access);
     const getCurrentValue = () => current.get({ plain: true, clone: true });
-    const isAllowedStatus = ['submitted'].includes(current.status);
-
-    if (!current || !isAllowedStatus) {
-      throw new createHttpError.BadRequest('Request not found or not in draft or applied status');
-    }
 
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
-    current.requester = await getRequester(session, current.id);
+    current.requester = getRequester(session, access);
     current.changed('updatedAt', true);
-
-    await processIntegrationRequest(getCurrentValue());
 
     const updated = await current.save();
     if (!updated) {
       throw new createHttpError.UnprocessableEntity('update failed');
     }
 
+    // Enqueue is de-duplicated: if a workflow is still in flight it is simply re-driven from its last
+    // completed step instead of starting a second workflow.
+    await processIntegrationRequest(getCurrentValue());
+
     return updated.get({ plain: true });
   } catch (err) {
-    console.log(err);
+    log.error({ err }, 'resubmitRequest failed');
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };
@@ -781,13 +809,11 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
   if (!isMerged) return;
 
   try {
-    const current = await getAllowedRequest(session, id);
-    const getCurrentValue = () => current.get({ plain: true, clone: true });
-    const isAllowedStatus = ['submitted'].includes(current.status);
-
-    if (!current || (!isAllowedStatus && !current.archived)) {
+    const authorized = await authorizeIntegration(session, id, 'integrations:write');
+    if (!authorized || (!['submitted'].includes(authorized.integration.status) && !authorized.integration.archived)) {
       throw new createHttpError.BadRequest('Request not found or in invalid state');
     }
+    const { integration: current } = authorized;
     if (current.usesTeam) {
       const teamExists = await getTeamById(current.teamId);
       if (!teamExists) {
@@ -802,62 +828,25 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
     current.archived = false;
     current.changed('updatedAt', true);
 
-    await processIntegrationRequest(current, true);
-
     const updated = await current.save();
     if (!updated) {
       throw new createHttpError.UnprocessableEntity('update failed');
     }
 
-    const int = getCurrentValue();
-
-    const dbRoles: NewRole[] = (await getRolesWithEnvironments(int.id)) as NewRole[];
-
-    await bulkCreateRole(int, dbRoles);
-
-    const requestRoles = await models.requestRole.findAll({
-      where: {
-        requestId: int.id,
-      },
-      raw: true,
-    });
-
-    for (const role of requestRoles) {
-      let compRoleNames: { name: string }[];
-      if (role.composite) {
-        compRoleNames = await models.requestRole.findAll({
-          where: {
-            id: {
-              [Op.in]: role.compositeRoles,
-            },
-            requestId: int.id,
-          },
-          attributes: ['name'],
-          raw: true,
-        });
-        await setCompositeClientRoles(int, {
-          environment: role.environment,
-          roleName: role.name,
-          compositeRoleNames: compRoleNames.map((role: { name: string }) => role.name),
-        });
-      }
-    }
-
-    await sendTemplate(EMAILS.RESTORE_INTEGRATION, {
-      integration: int,
-      hasClientSecret: !int.publicAccess || ['both', 'service-account'].includes(int.authType),
-    });
+    // Role re-creation and the restore notification are workflow steps so they only run once the
+    // Keycloak clients actually exist again.
+    await processIntegrationRequest(current, true);
 
     return updated.get({ plain: true });
   } catch (err) {
-    console.log(err);
+    log.error({ err }, 'restoreRequest failed');
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };
 
 export const getRequest = async (session: Session, user: User, data: { requestId: number }) => {
-  const { requestId } = data;
-  return getAllowedRequest(session, requestId);
+  const authorized = await authorizeIntegration(session, data.requestId, 'integrations:read');
+  return authorized?.integration ?? null;
 };
 
 // see https://sequelize.org/master/class/lib/model.js~Model.html#static-method-findAll
@@ -911,10 +900,14 @@ export const getRequestAll = async (
   return result;
 };
 
+// The dashboard list. One scope resolves the actor's memberships; the `where`
+// clause and the per-row resolve are both read off it, so the rows admitted and
+// the authority attached to them cannot disagree.
 export const getRequests = async (session: Session, user: User, include: string = 'active') => {
-  const where: any = getBaseWhereForMyOrTeamIntegrations(session?.user?.id as number);
-  // ignore api accounts
-  where.apiServiceAccount = false;
+  const scope = await resolveAccessScope(session?.user?.id as number);
+  const where: any = accessibleIntegrationsWhere(scope, 'integrations:read');
+  if (!where) return [];
+
   if (include === 'archived') where.archived = true;
   else if (include === 'active') where.archived = false;
 
@@ -926,28 +919,25 @@ export const getRequests = async (session: Session, user: User, include: string 
         required: false,
       },
     ],
-    attributes: {
-      include: [[sequelize.literal(getUserTeamRole(session?.user?.id as number)), 'userTeamRole']],
-    },
   });
 
-  return requests;
+  return attachAccess(session, requests, scope);
 };
 
 export const getIntegrations = async (session: Session, teamId: number, user: User, include: string = 'active') => {
-  return getIntegrationsByUserTeam(user, teamId);
+  const scope = await resolveAccessScope(session?.user?.id as number);
+  const integrations = await getIntegrationsByUserTeam(scope, teamId);
+  return attachAccess(session, integrations, scope);
 };
 
 export const deleteRequest = async (session: Session, user: User, id: number) => {
+  const readable = await authorizeIntegration(session, id, 'integrations:read', { archived: false });
+  if (!readable) throw new createHttpError.NotFound(`request #${id} not found`);
+  const { integration: current, access } = readable;
+  const transition = authorizeTransition(current, deleteIntentFor(current.status), access);
+
   try {
-    const current = await getAllowedRequest(session, id);
-
-    if (!current) {
-      throw new createHttpError.NotFound(`request #${id} not found`);
-    }
-
-    const requester = await getRequester(session, current.id);
-    current.requester = requester;
+    current.requester = getRequester(session, access);
     current.archived = true;
 
     if (current.status === 'draft') {
@@ -955,7 +945,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
       return result.get({ plain: true });
     }
 
-    current.status = 'submitted';
+    current.status = transition.to;
 
     const result = await current.save();
 
@@ -968,7 +958,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     await sendTemplate(emailCode, emailData);
 
-    createEvent({
+    await createEvent({
       eventCode: EVENTS.REQUEST_DELETE_SUCCESS,
       requestId: id,
       idirUserid: session?.idir_userid,
@@ -977,9 +967,9 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     return integration;
   } catch (err) {
-    console.log(err);
+    log.error({ err }, 'deleteRequest failed');
 
-    createEvent({
+    await createEvent({
       eventCode: EVENTS.REQUEST_DELETE_FAILURE,
       requestId: id,
       idirUserid: session?.idir_userid,
@@ -1010,18 +1000,13 @@ export const updateRequestMetadata = async (session: Session, user: User, data: 
   return result[1].dataValues;
 };
 
-export const isAllowedToDeleteIntegration = async (session: Session, integrationId: number) => {
-  if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_DELETE_REQUEST)) return true;
-  const integration = await getMyOrTeamRequest(session?.user?.id as number, integrationId);
-  return canDeleteIntegration(integration);
-};
-
 export const buildGitHubRequestData = (baseData: IntegrationData) => {
   const hasBceid = usesBceid(baseData);
   const hasGithub = usesGithub(baseData);
   const hasBCSC = usesBcServicesCard(baseData);
   const hasSocial = usesSocial(baseData);
   const hasOTP = usesOTP(baseData);
+  const hasBcgovIdir = usesBcgovIdir(baseData);
 
   // let's use dev's idps until having a env-specific idp selections
   if (baseData?.environments?.includes('test')) baseData.testIdps = baseData.devIdps;
@@ -1046,6 +1031,10 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
     baseData.prodIdps = baseData?.prodIdps?.filter((idp) => !checkBcServicesCard(idp));
   }
 
+  if (!baseData.bcgovidirApproved && hasBcgovIdir) {
+    baseData.prodIdps = baseData?.prodIdps?.filter(checkNotBcgovIdir);
+  }
+
   // prevent the TF from creating GitHub integration in prod environment if not approved
   if (!baseData.githubApproved && hasGithub) {
     baseData.prodIdps = baseData?.prodIdps?.filter(checkNotGithubGroup);
@@ -1062,17 +1051,13 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
   return baseData;
 };
 
-export const processIntegrationRequest = async (
-  integration: any,
-  restore: boolean = false,
-  existingClientId: string = '',
-  addingProd: boolean = false,
-) => {
+/** Normalizes an integration row into the flat payload the Keycloak layer consumes. */
+export const buildIntegrationPayload = async (integration: any): Promise<IntegrationData> => {
   if (integration instanceof models.request) {
     integration = integration.get({ plain: true, clone: true });
   }
 
-  integration = buildGitHubRequestData(integration);
+  integration = buildGitHubRequestData({ ...integration });
 
   const idps = integration.devIdps;
 
@@ -1081,205 +1066,43 @@ export const processIntegrationRequest = async (
   payload.idpNames = idps || [];
 
   if (payload.serviceType === 'gold') {
+    const hasBcgovIdir = usesBcgovIdir(integration);
     const hasDigitalCredential = usesDigitalCredential(integration);
-    const browserFlowAlias = hasDigitalCredential ? 'client stopper' : 'idp stopper';
+    const browserFlowAlias = hasDigitalCredential || hasBcgovIdir ? 'client stopper' : 'idp stopper';
 
     payload.browserFlowOverride = browserFlowAlias;
   }
 
-  if (['development', 'production'].includes(process.env.NODE_ENV)) {
-    return await standardClients(payload, restore, existingClientId, addingProd);
-  }
+  return payload as IntegrationData;
 };
 
-export const standardClients = async (
-  integration: IntegrationData,
+interface ProcessIntegrationOptions {
+  /** Block until the workflow finishes. Only used by callers that need the Keycloak client to exist
+   * before they return (team API service accounts). */
+  awaitCompletion?: boolean;
+}
+
+/**
+ * Hands the integration off to the workflow orchestrator and returns immediately. Callers no longer wait
+ * for Keycloak; progress is tracked in `integration_workflows` and surfaced on the dashboard.
+ */
+export const processIntegrationRequest = async (
+  integration: any,
   restore: boolean = false,
   existingClientId: string = '',
   addingProd: boolean = false,
+  options: ProcessIntegrationOptions = {},
 ) => {
-  // add to the queue
-  const queueItem = await models.requestQueue.create({
-    type: REQUEST_TYPES.INTEGRATION,
-    action: integration.archived ? ACTION_TYPES.DELETE : ACTION_TYPES.UPDATE,
-    requestId: integration.id,
-    request: { ...integration, existingClientId },
+  const payload = await buildIntegrationPayload(integration);
+
+  if (!['development', 'production'].includes(process.env.NODE_ENV)) return;
+
+  return await enqueueRequestWorkflow(payload, {
+    restore,
+    existingClientId,
+    addingProd,
+    awaitCompletion: options.awaitCompletion,
   });
-  if (!queueItem) {
-    await models.request.update({ status: 'planFailed' }, { where: { id: integration?.id } });
-    await createEvent({ eventCode: EVENTS.REQUEST_PLAN_FAILURE, requestId: integration.id });
-    return false;
-  }
-
-  await models.request.update({ status: 'planned' }, { where: { id: integration.id } });
-  await createEvent({ eventCode: EVENTS.REQUEST_PLAN_SUCCESS, requestId: integration.id });
-  try {
-    const responses = await Promise.all(
-      (integration?.environments as string[]).map((env: string) => keycloakClient(env, integration, existingClientId)),
-    );
-    for (const res of responses) {
-      if (!res) {
-        throw new createHttpError.UnprocessableEntity('Unable to create client at keycloak');
-      }
-    }
-  } catch (err) {
-    console.error(err);
-    await createEvent({
-      eventCode: restore ? EVENTS.REQUEST_RESTORE_FAILURE : EVENTS.REQUEST_APPLY_FAILURE,
-      requestId: integration.id,
-    });
-    await models.request.update({ status: 'applyFailed' }, { where: { id: integration?.id } });
-    return false;
-  }
-
-  await createEvent({
-    eventCode: restore ? EVENTS.REQUEST_RESTORE_SUCCESS : EVENTS.REQUEST_APPLY_SUCCESS,
-    requestId: integration.id,
-  });
-  await models.request.update({ status: 'applied' }, { where: { id: integration.id } });
-  // delete from the queue
-  await models.requestQueue.destroy({ where: { id: queueItem.id } });
-  if (!restore) await updatePlannedIntegration(integration, addingProd);
-  return true;
-};
-
-export const updatePlannedIntegration = async (integration: IntegrationData, addingProd: boolean = false) => {
-  const updatedIntegration = await models.request.findOne({
-    where: {
-      id: integration.id,
-    },
-    raw: true,
-  });
-
-  integration = Object.assign(integration, updatedIntegration);
-  if (integration.archived) return;
-  const isUpdate =
-    (await models.event.count({ where: { eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id } })) > 1;
-
-  if (integration.apiServiceAccount) {
-    const teamIntegrations = await models.request.findAll({
-      where: {
-        teamId: integration.teamId,
-        apiServiceAccount: false,
-        archived: false,
-        serviceType: 'gold',
-      },
-      raw: true,
-      attributes: ['id', 'projectName', 'usesTeam', 'teamId', 'userId', 'devIdps', 'environments', 'authType'],
-    });
-
-    const team = await getTeamById(integration.teamId as number);
-    await sendTemplate(EMAILS.CREATE_TEAM_API_ACCOUNT_APPROVED, {
-      requester: integration.requester,
-      team,
-      integrations: teamIntegrations,
-    });
-  } else {
-    const hasProd = integration?.environments?.includes('prod');
-    const hasBceid = usesBceid(integration);
-    const hasGithub = usesGithub(integration);
-    const hasSocial = usesSocial(integration);
-    const hasOTP = usesOTP(integration);
-    const hasBcServicesCard = usesBcServicesCard(integration);
-    const waitingGithubProdApproval = hasGithub && hasProd && !integration.githubApproved;
-    const waitingSocialProdApproval = hasSocial && hasProd && !integration.socialApproved;
-    const waitingBcServicesCardProdApproval = hasBcServicesCard && hasProd && !integration.bcServicesCardApproved;
-    const waitingOTPProdApproval = hasOTP && hasProd && !integration.otpApproved;
-
-    const approvals = {
-      bceidApproved: { type: 'BCeID', environment: 'production', integration },
-      devBceidApproved: { type: 'BCeID', environment: 'development', integration },
-      testBceidApproved: { type: 'BCeID', environment: 'test', integration },
-      githubApproved: { type: 'GitHub', environment: 'production', integration },
-      bcServicesCardApproved: { type: 'BC Services Card', environment: 'production', integration },
-      socialApproved: { type: 'Social', environment: 'production', integration },
-      otpApproved: { type: 'One Time Passcode', environment: 'production', integration },
-    };
-
-    let approvalType;
-    const isApproval = integration?.lastChanges?.some((change) => {
-      // change example: {lhs: false, rhs: true, path: ['devBceidApproved']} when approving dev Bceid
-      if (!change.lhs && change.rhs === true && Object.keys(approvals).includes(change.path[0])) {
-        approvalType = change.path[0];
-        return true;
-      }
-      return false;
-    });
-
-    if (isApproval && approvalType) {
-      await sendTemplate(EMAILS.PROD_APPROVED, approvals[approvalType as keyof typeof approvals]);
-    } else {
-      const emailCode = isUpdate ? EMAILS.UPDATE_INTEGRATION_APPLIED : EMAILS.CREATE_INTEGRATION_APPLIED;
-      await sendTemplate(emailCode, {
-        integration,
-        hasBceid,
-        waitingGithubProdApproval,
-        waitingBcServicesCardProdApproval,
-        waitingSocialProdApproval,
-        waitingOTPProdApproval,
-        addingProd,
-      });
-    }
-  }
-};
-
-export const retryFailedRequests = async () => {
-  const REQUEST_QUEUE_INTERVAL_SECONDS = 60;
-  const MAX_ATTEMPTS = 5;
-  try {
-    const requestQueue = await models.requestQueue.findAll();
-    if (requestQueue.length === 0) {
-      console.info('Request queue empty, exiting.');
-    }
-
-    for (const queuedRequest of requestQueue) {
-      if (queuedRequest.attempts >= MAX_ATTEMPTS) {
-        console.info(`request ${queuedRequest.request.clientId} at maximum attempts. Skipping.`);
-        continue;
-      }
-
-      // Only act on queued items more than a minute old to prevent potential duplication.
-      const requestQueueSecondsAgo = (new Date().getTime() - new Date(queuedRequest.createdAt).getTime()) / 1000;
-      if (requestQueueSecondsAgo < REQUEST_QUEUE_INTERVAL_SECONDS) continue;
-
-      console.info(`processing queued request ${queuedRequest.request.id}`);
-      const { existingClientId, ...request } = queuedRequest.request;
-
-      // Handle client update for each env
-      const environmentPromises = queuedRequest.request.environments.map((env: string) =>
-        keycloakClient(env, request, existingClientId),
-      );
-      const envResults = await Promise.all(environmentPromises);
-
-      const allEnvironmentsSucceeded = envResults.every((result) => result);
-      const sendEmail = queuedRequest.action !== ACTION_TYPES.DELETE;
-
-      // Update DB, create event and send email based on keycloak results.
-      if (allEnvironmentsSucceeded) {
-        await models.request.update({ status: 'applied' }, { where: { id: queuedRequest.requestId } });
-        await models.requestQueue.destroy({ where: { id: queuedRequest.id } });
-        await createEvent({ eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: request.id });
-        if (sendEmail) await updatePlannedIntegration(request);
-      } else {
-        await models.requestQueue.update({ attempts: queuedRequest.attempts + 1 }, { where: { id: queuedRequest.id } });
-        await models.request.update({ status: 'applyFailed' }, { where: { id: queuedRequest.requestId } });
-        await createEvent({ eventCode: EVENTS.REQUEST_APPLY_FAILURE, requestId: request.id });
-      }
-      if (queuedRequest.attempts >= MAX_ATTEMPTS - 1) {
-        let message = `Request ${queuedRequest.request.clientId} has reached maximum retries and requires manual intervention.`;
-        if (process.env.NODE_ENV === 'development') {
-          message = 'SANDBOX: ' + message;
-        }
-        await axios.post(
-          process.env.RC_SSO_OPS_WEBHOOK || '',
-          { projectName: 'request_queue', message },
-          { headers: { Accept: 'application/json' } },
-        );
-      }
-    }
-  } catch (err) {
-    console.error(err);
-  }
 };
 
 export const getListOfDescrepencies = async () => {
@@ -1330,11 +1153,169 @@ export const getListOfDescrepencies = async () => {
     }
     return data;
   } catch (err) {
-    console.error('could not get discrepancies', err);
+    log.error({ err }, 'could not get discrepancies');
     await axios.post(
       process.env.RC_SSO_OPS_WEBHOOK || '',
       { projectName: 'css-request-monitor', message: '**Failed to get discrepancies**\n\n', statusCode: 'ERROR' },
       { headers: { Accept: 'application/json' } },
     );
+  }
+};
+
+export const createEntraIntegration = async (environment: string, request: IntegrationData) => {
+  try {
+    // Resolved by priority rather than by name, because key rotation creates suffixed providers.
+    let kcCert = await getActivePS256KeyCert(environment, KC_ENTRA_IDP_REALM, KC_PS256_KEY_PROVIDER_ID);
+
+    if (!kcCert) {
+      await createPS256Key(KC_PS256_KEY_PROVIDER_ID, environment, KC_ENTRA_IDP_REALM);
+      kcCert = await getActivePS256KeyCert(environment, KC_ENTRA_IDP_REALM, KC_PS256_KEY_PROVIDER_ID);
+      if (!kcCert) {
+        throw new Error('Failed to create PS256 key and retrieve its certificate.');
+      }
+    }
+
+    const getCurrentEntraClient = async () => {
+      return (await getEntraClientByRequestId({ integrationId: request.id!, environment }))?.[0] || null;
+    };
+    const msGraphApiAuthority = `${process.env.MS_GRAPH_API_AUTHORITY}/oauth2/v2.0`;
+
+    let entraClient = await getCurrentEntraClient();
+
+    let application: {
+      appId: string;
+      secret?: KeyCredential | null;
+      servicePrincipalId: string;
+    } = {
+      appId: '',
+      servicePrincipalId: '',
+      secret: undefined,
+    };
+
+    if (!request.bcgovUnitId || !request.divisionId) {
+      throw new Error('BC Government Unit and division are required to create an Entra integration');
+    }
+
+    const bcgovUnit = await getBcgovUnitById(request.bcgovUnitId);
+    if (!bcgovUnit) {
+      throw new Error(`No BC Government Unit found for bcgovUnitId ${request.bcgovUnitId}`);
+    }
+
+    const division = await getDivisionById(request.divisionId);
+    if (!division) {
+      throw new Error(`No division found for divisionId ${request.divisionId}`);
+    }
+
+    const appName = `${bcgovUnit.code.toUpperCase()}-${division.code.toUpperCase()}-${upperFirst(
+      camelCase(request.projectName),
+    )}-${request.id}-${upperFirst(environment)}`;
+
+    if (!entraClient) {
+      application = await setupEntraIntegration(appName, environment, request, kcCert, bcgovUnit.name, division.name);
+      if (application) {
+        entraClient = await saveEntraClient({
+          appName,
+          appId: application.appId,
+          keyThumbprint: application?.secret?.customKeyIdentifier || null,
+          servicePrincipalId: application.servicePrincipalId,
+          environment,
+          requestId: request.id!,
+        });
+      }
+    } else {
+      await updateEntraIntegration(
+        entraClient?.appId as string,
+        entraClient?.servicePrincipalId as string,
+        appName,
+        request,
+        environment,
+        bcgovUnit.name,
+        division.name,
+      );
+    }
+
+    const idpCreated = await getIdp(environment, request.clientId!, KC_ENTRA_IDP_REALM);
+
+    if (!idpCreated) {
+      entraClient = await getCurrentEntraClient();
+
+      await createIdp(
+        {
+          alias: request.clientId as string,
+          displayName: request.projectName as string,
+          enabled: true,
+          storeToken: false,
+          providerId: 'oidc',
+          realm: KC_ENTRA_IDP_REALM,
+          firstBrokerLoginFlowAlias: 'first broker login - auto link existing user',
+          postBrokerLoginFlowAlias: '',
+          config: {
+            clientId: entraClient.appId,
+            authorizationUrl: `${msGraphApiAuthority}/authorize`,
+            tokenUrl: `${msGraphApiAuthority}/token`,
+            logoutUrl: `${msGraphApiAuthority}/logout`,
+            userInfoUrl: 'https://graph.microsoft.com/oidc/userinfo',
+            jwksUrl: `${process.env.MS_GRAPH_API_AUTHORITY}/discovery/v2.0/keys`,
+            syncMode: 'IMPORT',
+            disableUserInfo: true,
+            validateSignature: true,
+            useJwksUrl: true,
+            defaultScope: 'openid profile email',
+            clientAuthMethod: 'private_key_jwt',
+            jwtX509HeadersEnabled: true,
+            clientAssertionSigningAlg: 'PS256',
+            clientAssertionAudience: `${msGraphApiAuthority}/token`,
+          },
+        },
+        environment,
+      );
+    }
+
+    const idpMappers = await getIdpMappers({
+      environment,
+      idpAlias: request?.clientId as string,
+      realmName: KC_ENTRA_IDP_REALM,
+    });
+
+    const createIdpMapperPromises = bcgovIdirIdpMappers.map(async (mapper) => {
+      const alreadyExists = idpMappers.some((existingMapper: any) => existingMapper.name === mapper.name);
+      if (!alreadyExists) {
+        const payload = {
+          environment: environment,
+          name: mapper.name,
+          idpAlias: request?.clientId as string,
+          idpMapper: mapper.type,
+          realmName: KC_ENTRA_IDP_REALM,
+          idpMapperConfig: {
+            claim: mapper.claim ?? mapper.name,
+            'user.attribute': mapper.name,
+            syncMode: 'FORCE',
+            template: mapper.template,
+          } as IdpMapperConfig,
+        };
+        return await createIdpMapper(payload);
+      }
+    });
+    await Promise.all(createIdpMapperPromises);
+  } catch (err) {
+    log.error({ err }, 'could not create Entra integration');
+    throw err;
+  }
+};
+
+export const deleteEntraIntegration = async (environment: string, request: IntegrationData) => {
+  try {
+    const entraClient = (await getEntraClientByRequestId({ integrationId: request?.id!, environment }))?.[0] || null;
+    if (!entraClient) return;
+    await deleteServicePrincipal(entraClient?.servicePrincipalId);
+    await deleteAppRegistration(entraClient?.appId);
+    const idp = await getIdp(environment, request.clientId!, KC_ENTRA_IDP_REALM);
+    if (idp) {
+      await deleteIdp({ environment, idpAlias: request.clientId!, realmName: KC_ENTRA_IDP_REALM });
+    }
+    await entraClient.destroy();
+  } catch (err) {
+    log.error({ err }, 'could not delete Entra integration');
+    throw err;
   }
 };

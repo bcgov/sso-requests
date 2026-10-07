@@ -6,6 +6,9 @@ import jws from 'jws';
 import jwkToPem from 'jwk-to-pem';
 import { Session } from '@app/shared/interfaces';
 import { IncomingHttpHeaders } from 'http';
+import { addLogContext, logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'authenticate' });
 
 const ssoConfigurationEndpoint = process.env.NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT || '';
 const audience = process.env.NEXT_PUBLIC_SSO_CLIENT_ID || '';
@@ -65,7 +68,8 @@ const validateJWTSignature = async (token: string): Promise<Session | boolean> =
 
     return { idir_userid, email, client_roles: client_roles || [], family_name, given_name, bearerToken: '' };
   } catch (err) {
-    console.error(err);
+    // Expired and malformed tokens land here on every stale browser tab, so this is not an error.
+    log.warn({ err }, 'rejected bearer token');
     return false;
   }
 };
@@ -77,9 +81,11 @@ export const authenticate = async (headers: IncomingHttpHeaders): Promise<Sessio
       return false;
     }
     const bearerToken = (authHeader as string).split('Bearer ')[1] as string;
-    return (await validateJWTSignature(bearerToken)) as any;
-  } catch (error) {
-    console.error(error);
+    const session = await validateJWTSignature(bearerToken);
+    if (session && typeof session === 'object') addLogContext({ userId: session.idir_userid });
+    return session as any;
+  } catch (err) {
+    log.error({ err }, 'failed to authenticate request');
     return false;
   }
 };

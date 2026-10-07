@@ -125,6 +125,16 @@ describe('Email template snapshots', () => {
     expect(rendered.body).toMatchSnapshot();
   });
 
+  it('Should return the expected email for CREATE_INTEGRATION_APPLIED - w/ unapproved BCGOV IDIR prod', async () => {
+    const rendered = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
+      integration: { ...formDataDev, devIdps: ['bcgovidir'] },
+      waitingBcgovIdirProdApproval: true,
+    });
+
+    expect(rendered.subject).toMatchSnapshot();
+    expect(rendered.body).toMatchSnapshot();
+  });
+
   it('Should return the expected email for UPDATE_INTEGRATION_APPLIED', async () => {
     const rendered = await renderTemplate(EMAILS.UPDATE_INTEGRATION_APPLIED, { integration: formDataDev });
     expect(rendered.subject).toMatchSnapshot();

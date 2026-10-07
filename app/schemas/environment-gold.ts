@@ -166,7 +166,8 @@ export default function getSchemas(formData: Integration, session: LoggedInUser 
     let additionalConfig: any = {};
 
     if (
-      (process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD === 'true' && formData?.devIdps?.includes('bcservicescard')) ||
+      (process.env.NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD === 'true' &&
+        formData?.devIdps?.some((idp) => ['bcservicescard', 'bcgovidir'].includes(idp))) ||
       (process.env.NEXT_PUBLIC_INCLUDE_OTP === 'true' && usesOTP(formData))
     ) {
       additionalConfig[homePageUriField] = {

@@ -34,6 +34,9 @@ export interface RequestsAttributes {
   hasUnreadNotifications?: boolean;
   browserFlowOverride?: string;
   teamId?: number;
+  // Only ever set on an API service account: the organization that owns it, in
+  // place of a team.
+  organizationId?: number;
   usesTeam: boolean;
   requester?: string;
   userId?: number;
@@ -96,6 +99,7 @@ export interface RequestsAttributes {
   prodHomePageUri?: string;
   bcscAttributes: string[];
   bcServicesCardApproved?: boolean;
+  bcgovidirApproved: boolean;
   confirmSocial?: boolean;
   socialApproved?: boolean;
 }
@@ -127,6 +131,7 @@ export type RequestsOptionalAttributes =
   | 'hasUnreadNotifications'
   | 'browserFlowOverride'
   | 'teamId'
+  | 'organizationId'
   | 'requester'
   | 'userId'
   | 'serviceType'
@@ -177,6 +182,7 @@ export type RequestsOptionalAttributes =
   | 'prodHomePageUri'
   | 'bcscAttributes'
   | 'bcServicesCardApproved'
+  | 'bcgovidirApproved'
   | 'confirmSocial'
   | 'socialApproved'
   | 'otpApproved'
@@ -222,6 +228,7 @@ export class Requests extends Model<RequestsAttributes, RequestsCreationAttribut
   hasUnreadNotifications?: boolean;
   browserFlowOverride?: string;
   teamId?: number;
+  organizationId?: number;
   usesTeam!: boolean;
   requester?: string;
   userId?: number;
@@ -284,6 +291,7 @@ export class Requests extends Model<RequestsAttributes, RequestsCreationAttribut
   prodHomePageUri?: string;
   bcscAttributes!: string[];
   bcServicesCardApproved?: boolean;
+  bcgovidirApproved!: boolean;
   confirmSocial?: boolean;
   socialApproved?: boolean;
 
@@ -466,6 +474,15 @@ export class Requests extends Model<RequestsAttributes, RequestsCreationAttribut
             key: 'id',
           },
           field: 'team_id',
+        },
+        organizationId: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+          references: {
+            model: 'organizations',
+            key: 'id',
+          },
+          field: 'organization_id',
         },
         usesTeam: {
           type: DataTypes.BOOLEAN,
@@ -833,6 +850,12 @@ export class Requests extends Model<RequestsAttributes, RequestsCreationAttribut
           type: DataTypes.BOOLEAN,
           allowNull: true,
           field: 'bc_services_card_approved',
+        },
+        bcgovidirApproved: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: false,
+          field: 'bcgovidir_approved',
         },
         confirmSocial: {
           type: DataTypes.BOOLEAN,

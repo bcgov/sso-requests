@@ -1,7 +1,8 @@
 import { models } from '@app/shared/sequelize/models/models';
 import axios from 'axios';
 import { IntegrationData } from '@app/shared/interfaces';
-import { getBCSCEnvVars, getRequiredBCSCScopes } from '@app/utils/helpers';
+import { getBCSCEnvVars } from '@app/utils/helpers';
+import { getRequiredBCSCScopes } from '@app/utils/server-helpers';
 import { getAllEmailsOfTeam } from '@app/queries/team';
 import { getPrivacyZones } from '@app/controllers/bc-services-card';
 

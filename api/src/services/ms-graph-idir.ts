@@ -1,7 +1,9 @@
 import { ConfidentialClientApplication, IConfidentialClientApplication } from '@azure/msal-node';
 import axios from 'axios';
 import { injectable } from 'tsyringe';
-import logger from '@/logger';
+import { logger } from '@/logger';
+
+const log = logger.child({ module: 'services/ms-graph-idir' });
 
 const MS_GRAPH_URL = process.env.MS_GRAPH_URL || 'https://graph.microsoft.com';
 
@@ -75,7 +77,7 @@ export class MsGraphService {
         userPrincipalName: match.userPrincipalName,
       };
     } catch (err) {
-      logger.error('Failed to verify Azure IDIR account with the MS Graph API:', err);
+      log.error({ err }, 'Failed to verify Azure IDIR account with the MS Graph API');
       return null;
     }
   }

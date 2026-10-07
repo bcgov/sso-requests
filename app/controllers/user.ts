@@ -4,17 +4,21 @@ import { models } from '@app/shared/sequelize/models/models';
 import { Session, User, UserTeam } from '@app/shared/interfaces';
 import { lowcase } from '@app/helpers/string';
 import { isAdmin } from '../utils/helpers';
-import { findAllowedIntegrationInfo, getIntegrationById } from '@app/queries/request';
+import { Permission } from '@sso/authz';
+import { authorizeIntegration } from '@app/queries/integrationAccess';
 import { listRoleUsers, listUserRoles, manageUserRole, manageUserRoles } from '@app/keycloak/users';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import { EMAILS, EVENTS } from '@app/shared/enums';
 import { sendTemplate } from '@app/shared/templates';
 import { UserSurveyInformation } from '@app/shared/interfaces';
-import { createEvent } from './requests';
+import { createEvent } from '@app/queries/event';
 import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
 import createHttpError from 'http-errors';
 import { compact } from 'lodash';
-import { hasAppPermission, appPermissions } from '@app/utils/authorize';
+
+import { logger } from '@app/utils/logger';
+
+const log = logger.child({ module: 'controllers/user' });
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
@@ -33,7 +37,7 @@ export const findOrCreateUser = async (session: Session) => {
     const existingUserWithGuidRow = users.find((user: User) => user.idirUserid && user.idirEmail);
     // Remove the duplicate row and continue with the correct one
     if (existingUserWithGuidRow && userWithoutGuidRow) {
-      console.info(`Duplicate user found for id ${idir_userid}. Removing duplicate record.`);
+      log.info({ idirUserid: idir_userid }, 'duplicate user found, removing duplicate record');
       await userWithoutGuidRow.destroy();
       user = existingUserWithGuidRow;
     }
@@ -82,6 +86,13 @@ export const createSurvey = (session: Session, data: { message?: string; rating:
   });
 };
 
+// The integration a role-mapping operation targets, or 403.
+const authorizedIntegration = async (session: Session, integrationId: number, permission: Permission) => {
+  const authorized = await authorizeIntegration(session, integrationId, permission);
+  if (!authorized) throw new createHttpError.Forbidden('not allowed to access this integration');
+  return authorized.integration;
+};
+
 export const listUsersByRole = async (
   session: Session,
   {
@@ -98,10 +109,7 @@ export const listUsersByRole = async (
     max: number;
   },
 ) => {
-  const integration = hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_ROLES)
-    ? await getIntegrationById(integrationId)
-    : await findAllowedIntegrationInfo(session?.user?.id as number, integrationId);
-  if (integration.authType === 'service-account') throw new createHttpError.BadRequest('invalid auth type');
+  const integration = await authorizedIntegration(session, integrationId, 'user-role-mappings:read');
   return await listRoleUsers(integration, {
     environment,
     roleName,
@@ -111,7 +119,7 @@ export const listUsersByRole = async (
 };
 
 export const updateUserRoleMapping = async (
-  sessionUserId: number,
+  session: Session,
   {
     environment,
     integrationId,
@@ -126,13 +134,13 @@ export const updateUserRoleMapping = async (
     mode: 'add' | 'del';
   },
 ) => {
-  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  const integration = await authorizedIntegration(session, integrationId, 'user-role-mappings:write');
   const roles = await manageUserRole(integration, { environment, username, roleName, mode });
   return roles.map((role) => role.name);
 };
 
 export const updateUserRoleMappings = async (
-  sessionUserId: number,
+  session: Session,
   {
     environment,
     integrationId,
@@ -145,12 +153,12 @@ export const updateUserRoleMappings = async (
     roleNames: string[];
   },
 ) => {
-  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  const integration = await authorizedIntegration(session, integrationId, 'user-role-mappings:write');
   return await manageUserRoles(integration, { environment, username, roleNames });
 };
 
 export const listClientRolesByUsers = async (
-  sessionUserId: number,
+  session: Session,
   {
     environment,
     integrationId,
@@ -161,7 +169,7 @@ export const listClientRolesByUsers = async (
     username: string;
   },
 ) => {
-  const integration = await findAllowedIntegrationInfo(sessionUserId, integrationId);
+  const integration = await authorizedIntegration(session, integrationId, 'user-role-mappings:read');
   const roles = await listUserRoles(integration, {
     environment,
     username,
@@ -170,8 +178,9 @@ export const listClientRolesByUsers = async (
 };
 
 export const isAllowedToManageRoles = async (session: Session, integrationId: number) => {
-  const integration = await findAllowedIntegrationInfo(session?.user?.id as number, integrationId);
-  return canCreateOrDeleteRoles(integration);
+  const authorized = await authorizeIntegration(session, integrationId, 'roles:write');
+  if (!authorized) return false;
+  return canCreateOrDeleteRoles(authorized.integration);
 };
 
 /*
@@ -346,7 +355,7 @@ export const deleteStaleUsers = async (
             });
           }
         } catch (err) {
-          console.log(err);
+          log.error({ err, requestId: rqst?.id }, 'failed to transfer integration to the SSO team');
           createEvent({
             eventCode: EVENTS.TRANSFER_OF_OWNERSHIP_FAILURE,
             requestId: rqst?.id,
@@ -360,7 +369,7 @@ export const deleteStaleUsers = async (
     await existingUser.destroy();
     return true;
   } catch (err) {
-    console.error(err);
+    log.error({ err }, 'deleteStaleUsers failed');
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };

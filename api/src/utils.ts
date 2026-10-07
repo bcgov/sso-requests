@@ -1,6 +1,10 @@
 import { Response } from 'express';
 import createHttpError, { HttpError } from 'http-errors';
 import models from '@/sequelize/models/models';
+import { logger } from '@/logger';
+
+const log = logger.child({ module: 'utils' });
+const httpLog = logger.child({ module: 'http' });
 
 export const tryJSON = (str: string) => {
   try {
@@ -14,14 +18,18 @@ export const handleError = (res: Response, err: unknown) => {
   const httpErr = err instanceof HttpError ? err : null;
   // Only return intentionally thrown HttpError messages
   let message = httpErr?.message ?? 'unknown exception';
-  res.status(httpErr?.status ?? 422).json({ message });
+  const status = httpErr?.status ?? 422;
+  // Anything that isn't an intentionally thrown HttpError is unexpected, whatever status the client is shown.
+  if (!httpErr || status >= 500) httpLog.error({ err, status }, 'request failed');
+  else httpLog.warn({ err, status }, 'request failed');
+  res.status(status).json({ message });
 };
 
 export const createEvent = async (data: any) => {
   try {
     await models.event.create(data);
   } catch (err) {
-    console.error(err);
+    log.error({ err, eventCode: data?.eventCode }, 'Failed to create event');
   }
 };
 

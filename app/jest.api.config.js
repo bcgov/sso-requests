@@ -14,7 +14,9 @@ module.exports = {
   preset: 'ts-jest/presets/js-with-ts',
   testMatch: ['<rootDir>/jest-api/**/?(*.)+(spec|test).+(ts|tsx|js)'],
   transform: {
-    '\\.[jt]sx?$': 'babel-jest',
+    // configFile rather than the file-relative .babelrc, so files outside this
+    // directory — packages/authz — are transformed too.
+    '\\.[jt]sx?$': ['babel-jest', { configFile: require.resolve('./.babelrc') }],
     // IMPORTANT: js is here intentionally to transform js files with ES Module syntax. The overriding config file allows js.
     '^.+\\.(ts|tsx|js)$': 'ts-jest',
   },
@@ -24,6 +26,7 @@ module.exports = {
   transformIgnorePatterns: ['/node_modules/(?!(@keycloak|url-join|url-template|camelize-ts)/)'],
   moduleNameMapper: {
     '^@app/(.*)$': '<rootDir>/$1',
+    '^@sso/authz$': '<rootDir>/../packages/authz/src',
     '^@pages(.*)$': '<rootDir>/pages$1',
     '^@utils(.*)$': '<rootDir>/utils$1',
   },

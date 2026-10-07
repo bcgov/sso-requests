@@ -16,6 +16,10 @@ app_start:
 db_install:
 	yarn --cwd ./db install
 
+.PHONY: authz_install
+authz_install:
+	yarn --cwd ./packages/authz install
+
 .PHONY: db_compile
 db_compile:
 	yarn --cwd ./db compile
@@ -40,6 +44,10 @@ app_test:
 .PHONY: api_test
 api_test:
 	yarn --cwd ./app/jest-api test-api --collectCoverage
+
+.PHONY: authz_test
+authz_test:
+	yarn --cwd ./packages/authz test
 
 .PHONY: app
 app:
