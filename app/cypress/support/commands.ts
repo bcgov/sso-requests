@@ -35,24 +35,42 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
         const userToken = await utils.getOTPToken(foundItem.otpsecret);
 
         cy.origin('login.microsoftonline.com', { args: { foundItem, userToken } }, ({ foundItem, userToken }) => {
-          cy.wait(510);
-          cy.get('input[type="email"]').type(foundItem.email, { delay: 15, log: false });
-          cy.wait(520);
-          cy.contains('Next').click();
-          cy.wait(514);
-          cy.get('input[type="password"]').type(foundItem.password, { delay: 15, log: false });
-          cy.wait(550);
-          cy.contains('Sign in').click();
-          cy.wait(540);
-          cy.get('input[type="tel"]').type(userToken, { delay: 15, log: false });
-          cy.wait(450);
-          cy.contains('Verify').click();
+          // MS pre-renders off-screen "decoy" inputs for browser autofill (class moveOffScreen, aria-hidden),
+          // so target only the real, visible fields. MS's knockout bindings can also reset an input while
+          // it is initializing, dropping already-typed characters, so verify the value and retype if needed.
+          const fillInput = (selector: string, value: string, attempts = 3) => {
+            cy.get(`${selector}:not(.moveOffScreen):not([aria-hidden="true"])`, { timeout: 30000 })
+              .should('be.visible')
+              .clear({ log: false })
+              .type(value, { delay: 15, log: false });
+            cy.get(`${selector}:not(.moveOffScreen):not([aria-hidden="true"])`).then(($input) => {
+              if ($input.val() !== value) {
+                if (attempts <= 1) throw new Error(`Failed to fill ${selector} after retries`);
+                fillInput(selector, value, attempts - 1);
+              }
+            });
+          };
 
-          cy.get('input[type="submit"][value="Yes"]', { timeout: 2000 }).then(($btn) => {
-            if ($btn.length) {
-              cy.wrap($btn).click();
+          fillInput('input[type="email"]', foundItem.email);
+          cy.contains('Next').should('be.visible').click();
+          fillInput('input[type="password"]', foundItem.password);
+          cy.contains('Sign in').should('be.visible').click();
+          fillInput('input[type="tel"]', userToken);
+          cy.contains('Verify').should('be.visible').click();
+
+          // After MFA, MS posts to /SAS/ProcessAuth, which either renders the optional "Stay signed in?"
+          // (KMSI) page or redirects back to the app. Wait for that page to fully load before deciding,
+          // otherwise we can inspect the blank in-between page and wrongly skip the prompt.
+          const yesButton = '#idSIButton9, input[type="submit"][value="Yes"]';
+          cy.location('pathname', { timeout: 30000 }).should('include', '/SAS/ProcessAuth');
+          cy.document().its('readyState').should('eq', 'complete');
+          cy.window().then((win: any) => {
+            const isKmsiPage =
+              win.$Config?.pgid === 'KmsiInterrupt' || /stay signed in/i.test(win.document.body?.innerText || '');
+            if (isKmsiPage) {
+              cy.get(yesButton, { timeout: 30000 }).should('be.visible').click();
             } else {
-              cy.log('No "Yes" submit button found, skipping');
+              cy.log('No "Stay signed in" prompt, skipping');
             }
           });
         });
