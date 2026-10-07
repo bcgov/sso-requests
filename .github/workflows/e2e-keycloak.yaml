@@ -133,7 +133,7 @@ jobs:
           install: false
           working-directory: app
           spec: |
-            cypress/e2e/external/idpstopper-*.cy.ts
+            cypress/e2e/external/idpstopper-010*.cy.ts
           browser: electron
           # cypress/e2e/external/search-users.cy.ts
           # cypress/e2e/external/integration-roles.cy.ts

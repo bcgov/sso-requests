@@ -55,6 +55,23 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
           cy.contains('Next').should('be.visible').click();
           fillInput('input[type="password"]', foundItem.password);
           cy.contains('Sign in').should('be.visible').click();
+
+          // MS sometimes (e.g. from CI runner IPs) shows a "Verify your identity" method picker before the
+          // code input. Wait until either page has loaded, then pick "Use a verification code" if needed.
+          const codeInput = 'input[type="tel"]:not(.moveOffScreen):not([aria-hidden="true"]):visible';
+          const useCodeOption = ':contains("Use a verification code"):visible';
+          cy.get('body', { timeout: 30000 }).should(($body) => {
+            const found = $body.find(`${codeInput}, ${useCodeOption}`).length > 0;
+            expect(found, 'MFA code input or verification method picker').to.be.true;
+          });
+          cy.get('body').then(($body) => {
+            if (!$body.find(codeInput).length) {
+              cy.contains(/use a verification code/i)
+                .should('be.visible')
+                .click();
+            }
+          });
+
           fillInput('input[type="tel"]', userToken);
           cy.contains('Verify').should('be.visible').click();
 
