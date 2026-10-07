@@ -473,10 +473,11 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
         userQuery: { property, value: searchKey },
       });
 
+      console.log('🚀 ~ searchResults ~ idpUsers:', idpUsers);
       if (!err && idpUsers && idpUsers?.length > 0) {
         const filteredIdpUsers =
           idpUsers?.filter((u) => {
-            let userProp = selectedIdp === KC_ENTRA_IDP_REALM ? u.id!.toLowerCase() : u.guid.toLowerCase();
+            let userProp = selectedIdp === KC_ENTRA_IDP_REALM ? u.id!.toLowerCase() : u?.guid?.toLowerCase() || '';
             return userProp && !userGuids.has(userProp);
           }) || [];
         users.push(
