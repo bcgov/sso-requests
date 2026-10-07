@@ -137,6 +137,9 @@ jobs:
           SDX_CLIENT_ID=${{ secrets.DEV_SDX_CLIENT_ID }}
           SDX_CLIENT_SECRET=${{ secrets.DEV_SDX_CLIENT_SECRET }}
 
+          MS_GRAPH_API_CLIENT_ID=${{ secrets.DEV_MS_GRAPH_API_CLIENT_ID }}
+          MS_GRAPH_API_CLIENT_SECRET=${{ secrets.DEV_MS_GRAPH_API_CLIENT_SECRET }}
+
           OPENSHIFT_NAMESPACE=${{ secrets.DEV_OPENSHIFT_NAMESPACE }}
           EOF
 
@@ -176,6 +179,9 @@ jobs:
           SDX_CLIENT_ID=${{ secrets.TEST_SDX_CLIENT_ID }}
           SDX_CLIENT_SECRET=${{ secrets.TEST_SDX_CLIENT_SECRET }}
 
+          MS_GRAPH_API_CLIENT_ID=${{ secrets.DEV_MS_GRAPH_API_CLIENT_ID }}
+          MS_GRAPH_API_CLIENT_SECRET=${{ secrets.DEV_MS_GRAPH_API_CLIENT_SECRET }}
+
           OPENSHIFT_NAMESPACE=${{ secrets.TEST_OPENSHIFT_NAMESPACE }}
           EOF
 
@@ -214,6 +220,9 @@ jobs:
           GRAFANA_API_URL=https://sso-grafana.apps.gold.devops.gov.bc.ca/api
           SDX_CLIENT_ID=${{ secrets.PROD_SDX_CLIENT_ID }}
           SDX_CLIENT_SECRET=${{ secrets.PROD_SDX_CLIENT_SECRET }}
+
+          MS_GRAPH_API_CLIENT_ID=${{ secrets.PROD_MS_GRAPH_API_CLIENT_ID }}
+          MS_GRAPH_API_CLIENT_SECRET=${{ secrets.PROD_MS_GRAPH_API_CLIENT_SECRET }}
 
           OPENSHIFT_NAMESPACE=${{ secrets.PROD_OPENSHIFT_NAMESPACE }}
           EOF
@@ -363,8 +372,8 @@ jobs:
           --set envVars.bceidServiceIdProd="${{ secrets.BCEID_SERVICE_ID_PROD }}" \
           --set envVars.bceidWebServiceUrlProd="${{ vars.BCEID_WEB_SERVICE_URL_PROD }}" \
           --set envVars.msGraphApiAuthority="${{ secrets.MS_GRAPH_API_AUTHORITY }}" \
-          --set envVars.msGraphApiClientId="${{ secrets.MS_GRAPH_API_CLIENT_ID }}" \
-          --set envVars.msGraphApiClientSecret="${{ secrets.MS_GRAPH_API_CLIENT_SECRET }}" \
+          --set envVars.msGraphApiClientId="${{ env.MS_GRAPH_API_CLIENT_ID }}" \
+          --set envVars.msGraphApiClientSecret="${{ env.MS_GRAPH_API_CLIENT_SECRET }}" \
           --set envVars.bcscInitialAccessTokenDev="${{ env.BCSC_INITIAL_ACCESS_TOKEN_DEV }}" \
           --set envVars.bcscInitialAccessTokenProd="${{ env.BCSC_INITIAL_ACCESS_TOKEN_PROD }}" \
           --set envVars.bcscInitialAccessTokenTest="${{ env.BCSC_INITIAL_ACCESS_TOKEN_TEST }}" \
