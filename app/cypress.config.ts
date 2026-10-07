@@ -11,10 +11,6 @@ export default defineConfig({
   // See here: https://github.com/cypress-io/cypress/issues/21307. experimentalModifyObstructiveThirdPartyCode is necessary to prevent microsoft from removing test frame.
   experimentalModifyObstructiveThirdPartyCode: true,
   numTestsKeptInMemory: 0,
-  retries: {
-    runMode: 1,
-    openMode: 0,
-  },
   viewportHeight: 1080,
   viewportWidth: 1920,
   video: false,
