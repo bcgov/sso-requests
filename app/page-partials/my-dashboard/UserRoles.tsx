@@ -473,7 +473,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
         userQuery: { property, value: searchKey },
       });
 
-      console.log('🚀 ~ searchResults ~ idpUsers:', idpUsers);
       if (!err && idpUsers && idpUsers?.length > 0) {
         const filteredIdpUsers =
           idpUsers?.filter((u) => {
