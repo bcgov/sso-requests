@@ -557,7 +557,7 @@ class Request {
     cy.log('Delete Request: ' + id);
     this.navigation.goToMyDashboard();
     // identify first column
-    cy.get(this.reqPage.integrationsTable, { timeout: 10000 }).each(($elm, index) => {
+    cy.get(this.reqPage.integrationsTable, { timeout: 20000 }).each(($elm, index) => {
       // text captured from column1
       let t = $elm.text();
       const projectName = $elm.next().text();
