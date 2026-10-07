@@ -1,44 +1,43 @@
 const NAV_TIMEOUT = 20000;
 const NAV_ATTEMPTS = 3;
+const SETTLE_MS = 1500;
 
 class Navigation {
   waitForPageLoad() {
     cy.get('[data-testid="grid-loading"]', { timeout: NAV_TIMEOUT }).should('not.exist');
   }
 
-  // Keycloak check-sso may bounce through the IdP and back to "/" after cy.visit; clicks made during that
-  // window are lost. Wait for the callback params to be consumed and the authenticated layout to render.
+  // Keycloak check-sso does a full redirect round-trip on every page load and always returns to the site root
+  // (NEXT_PUBLIC_SSO_REDIRECT_URI). Wait until the callback params are consumed and the authenticated layout renders.
   waitForAppReady() {
     cy.location('hash', { timeout: NAV_TIMEOUT }).should('not.match', /(state|code)=/);
     cy.get('[data-testid="desktop-logout-button"]', { timeout: NAV_TIMEOUT }).should('be.visible');
     this.waitForPageLoad();
   }
 
-  // Click a link and confirm the URL changed, retrying if the navigation was swallowed by a redirect.
-  private navigate(click: () => void, expectedPath: string, attempts = NAV_ATTEMPTS) {
+  // Wait for any in-flight reload/SSO redirect to finish so the URL we read is the final one.
+  private settle() {
     this.waitForAppReady();
-    click();
+    cy.wait(SETTLE_MS, { log: false });
+    this.waitForAppReady();
+  }
 
-    cy.then(() => {
-      const deadline = Date.now() + 10000;
-      const check = (): void => {
-        cy.location('pathname', { log: false }).then((pathname) => {
-          if (pathname.startsWith(expectedPath)) return;
-          if (Date.now() < deadline) {
-            cy.wait(250, { log: false });
-            check();
-            return;
-          }
-          if (attempts <= 1) throw new Error(`Failed to navigate to ${expectedPath}; still on ${pathname}`);
-          cy.log(`Navigation to ${expectedPath} did not complete, retrying`);
-          this.navigate(click, expectedPath, attempts - 1);
-        });
-      };
-      check();
+  // Click a link, let the app settle, and retry if a reload/SSO redirect bounced us back to another page.
+  private navigate(click: () => void, expectedPath: string, attempts = NAV_ATTEMPTS) {
+    this.settle();
+    cy.location('pathname').then((pathname) => {
+      if (pathname.startsWith(expectedPath)) return;
+
+      click();
+      this.settle();
+
+      cy.location('pathname').then((finalPath) => {
+        if (finalPath.startsWith(expectedPath)) return;
+        if (attempts <= 1) throw new Error(`Failed to navigate to ${expectedPath}; ended up on ${finalPath}`);
+        cy.log(`Navigation to ${expectedPath} was redirected to ${finalPath}, retrying`);
+        this.navigate(click, expectedPath, attempts - 1);
+      });
     });
-
-    cy.location('pathname', { timeout: NAV_TIMEOUT }).should('include', expectedPath);
-    this.waitForPageLoad();
   }
 
   private clickMyDashboard() {
@@ -46,30 +45,23 @@ class Navigation {
   }
 
   goToMyDashboard() {
-    cy.location('pathname').then((pathname) => {
-      if (pathname.startsWith('/my-dashboard/integrations')) return;
-      this.navigate(() => this.clickMyDashboard(), '/my-dashboard/integrations');
-    });
+    this.navigate(() => this.clickMyDashboard(), '/my-dashboard/integrations');
   }
 
   goToMyTeams() {
+    this.settle();
     cy.location('pathname').then((pathname) => {
       if (pathname.startsWith('/my-dashboard/teams')) return;
-      if (!pathname.startsWith('/my-dashboard')) {
-        this.navigate(() => this.clickMyDashboard(), '/my-dashboard/integrations');
-      }
+      if (!pathname.startsWith('/my-dashboard')) this.goToMyDashboard();
       this.navigate(() => cy.contains('My Teams', { timeout: NAV_TIMEOUT }).click(), '/my-dashboard/teams');
     });
   }
 
   goToAdminDashboard() {
-    cy.location('pathname').then((pathname) => {
-      if (pathname.endsWith('/admin-dashboard')) return;
-      this.navigate(
-        () => cy.get(`[data-testid="desktop-nav"] a[href="/admin-dashboard"]`, { timeout: NAV_TIMEOUT }).click(),
-        '/admin-dashboard',
-      );
-    });
+    this.navigate(
+      () => cy.get(`[data-testid="desktop-nav"] a[href="/admin-dashboard"]`, { timeout: NAV_TIMEOUT }).click(),
+      '/admin-dashboard',
+    );
   }
 }
 
