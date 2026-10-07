@@ -105,9 +105,6 @@ export const getCompositeClientRoles = async (
     roleName: string;
   },
 ) => {
-  if (integration.authType === 'service-account')
-    throw new createHttpError.BadRequest(`invalid auth type ${integration.authType}`);
-
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
   if (clients.length === 0) throw new createHttpError.NotFound(`client ${integration.clientId} not found`);

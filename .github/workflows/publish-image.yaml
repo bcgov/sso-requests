@@ -77,7 +77,8 @@ jobs:
       packages: write
     runs-on: ubuntu-24.04
     needs: set-tag
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    # A status function is required: create_release is skipped on dev, and a skipped upstream job would otherwise skip this one.
+    if: ${{ !cancelled() && needs.set-tag.result == 'success' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
@@ -97,6 +98,7 @@ jobs:
           NEXT_PUBLIC_INCLUDE_BC_SERVICES_CARD=true
           NEXT_PUBLIC_ALLOW_BC_SERVICES_CARD_PROD=true
           NEXT_PUBLIC_INCLUDE_OTP=true
+          NEXT_PUBLIC_INCLUDE_AZUREIDIR=true
           EOF
 
       - name: Setup Sandbox Environment Variables
@@ -269,6 +271,7 @@ jobs:
             NEXT_PUBLIC_SSO_IDP_HINT=${{ env.NEXT_PUBLIC_SSO_IDP_HINT }}
             NEXT_PUBLIC_INCLUDE_SDX_SERVICES=${{ env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES }}
             NEXT_PUBLIC_INCLUDE_BCGOVIDIR=${{ env.NEXT_PUBLIC_INCLUDE_BCGOVIDIR }}
+            NEXT_PUBLIC_INCLUDE_AZUREIDIR=${{ env.NEXT_PUBLIC_INCLUDE_AZUREIDIR }}
           context: .
           push: true
           tags: ${{ env.GITHUB_REGISTRY }}/bcgov/sso-requests:${{ needs.set-tag.outputs.tag }}

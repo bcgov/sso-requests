@@ -15,6 +15,7 @@ const include_social = process.env.NEXT_PUBLIC_INCLUDE_SOCIAL;
 const include_otp = process.env.NEXT_PUBLIC_INCLUDE_OTP;
 const include_sdx_services = process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES;
 const include_bcgovidir = process.env.NEXT_PUBLIC_INCLUDE_BCGOVIDIR;
+const include_azureidir = process.env.NEXT_PUBLIC_INCLUDE_AZUREIDIR;
 
 export const NON_ROLE_ASSIGNABLE_IDPS = ['digitalcredential', 'bcservicescard', 'otp'];
 
@@ -39,6 +40,7 @@ export default function getSchema(
   const includeOTP = include_otp === 'true' || process.env.NEXT_PUBLIC_INCLUDE_OTP === 'true';
   const includeSdx = include_sdx_services === 'true' || process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true';
   const includeBcgovidir = include_bcgovidir === 'true' || process.env.NEXT_PUBLIC_INCLUDE_BCGOVIDIR === 'true';
+  const includeAzureidir = include_azureidir === 'true' || process.env.NEXT_PUBLIC_INCLUDE_AZUREIDIR === 'true';
 
   if (integration.environments?.includes('prod') && !allow_bcsc_prod) {
     include_bcsc = false;
@@ -143,17 +145,15 @@ export default function getSchema(
       idpEnum.push(KC_ENTRA_IDP_REALM);
     }
 
-    // grandfather existing integrations and allow them to remove discontinued IDPs
-    DISCONTINUED_IDPS.forEach((idp) => {
-      if (devIdps?.includes(idp) && !idpEnum.includes(idp)) {
-        idpEnum.unshift(idp);
-      }
-    });
-
-    if (hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS)) {
-      const missing = DISCONTINUED_IDPS.filter((idp) => !idpEnum.includes(idp));
-      idpEnum.unshift(...missing);
-    }
+    // Admins can add discontinued IDPs; existing integrations are grandfathered so they can remove them.
+    // Unshift once so the options keep DISCONTINUED_IDPS order.
+    const canAddRestrictedIdps = hasAppPermission(session?.client_roles, appPermissions.ADD_RESTRICTED_IDPS);
+    const discontinuedOptions = DISCONTINUED_IDPS.filter(
+      (idp) =>
+        !idpEnum.includes(idp) &&
+        (canAddRestrictedIdps || devIdps?.includes(idp) || (includeAzureidir && idp === 'azureidir')),
+    );
+    idpEnum.unshift(...discontinuedOptions);
 
     properties.devIdps = {
       type: 'array',
