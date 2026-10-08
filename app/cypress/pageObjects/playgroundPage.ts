@@ -1,4 +1,4 @@
-import { authenticator } from 'otplib';
+import { generateSync } from 'otplib';
 
 class PlaygroundPage {
   path: string = 'https://bcgov.github.io/keycloak-example-apps/';
@@ -118,7 +118,7 @@ class PlaygroundPage {
     cy.get('#login_field').type(username, { log: false });
     cy.get('#password').type(password, { log: false });
     cy.get('input[type="submit"]', { timeout: 20000 }).click();
-    const token = authenticator.generate(secret);
+    const token = generateSync({ secret });
     cy.get('#app_totp', { timeout: 10000 }).type(token, { log: false });
     cy.contains('Verify').click();
   }
@@ -135,7 +135,7 @@ class PlaygroundPage {
     cy.get('input#login_field').type(username, { log: false });
     cy.get('input#password').type(password, { log: false });
     cy.get('input[type="submit"]').click();
-    const token = authenticator.generate(secret);
+    const token = generateSync({ secret });
     cy.get('#app_totp', { timeout: 10000 }).type(token, { log: false });
     cy.contains('Verify').click();
 

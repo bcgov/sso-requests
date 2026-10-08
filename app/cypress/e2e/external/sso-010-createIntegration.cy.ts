@@ -21,7 +21,7 @@ describe('Create SSO Integration Requests', () => {
         req.showCreateContent(data);
         req.populateCreateContent(data);
         cy.wrap(req.createRequest()).then(() => {
-          tempData[index].id = Cypress.env(util.md5(data.create.projectname));
+          tempData[index].id = req.id;
         });
       });
     }

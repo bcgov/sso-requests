@@ -12,16 +12,18 @@ let testData = data;
 
 describe('SSO Tests', () => {
   testData.forEach((data, index) => {
+    let integration1Id: string;
+    let integration2Id: string;
     it('Find Integration IDs', function () {
       cy.login();
 
       req.getID(data.integration_1).then(() => {
-        Cypress.env('integration_1_id', req.id);
-        cy.log('Integration 1 ID: ' + Cypress.env('integration_1_id'));
+        integration1Id = req.id;
+        cy.log('Integration 1 ID: ' + integration1Id);
       });
       req.getID(data.integration_2).then(() => {
-        Cypress.env('integration_2_id', req.id);
-        cy.log('Integration 2 ID: ' + Cypress.env('integration_2_id'));
+        integration2Id = req.id;
+        cy.log('Integration 2 ID: ' + integration2Id);
       });
     });
 
@@ -37,7 +39,7 @@ describe('SSO Tests', () => {
         playground.fillInPlayground(
           null,
           null,
-          kebabCase(data.integration_1) + '-' + util.getDate() + '-' + Number(Cypress.env('integration_1_id')),
+          kebabCase(data.integration_1) + '-' + util.getDate() + '-' + Number(integration1Id),
           null,
         );
 
@@ -49,12 +51,12 @@ describe('SSO Tests', () => {
 
         // Log in
         if (data.idp_hint_1 == 'idir') {
-          cy.setid(null).then(() => {
-            playground.loginIDIR(Cypress.env('username'), Cypress.env('password'));
+          cy.setid(null).then(({ username, password }) => {
+            playground.loginIDIR(username, password);
           });
         } else if (data.idp_hint_1 == 'bceidbasic') {
-          cy.setid(data.idp_hint_1).then(() => {
-            playground.loginBasicBCeID(Cypress.env('username'), Cypress.env('password'));
+          cy.setid(data.idp_hint_1).then(({ username, password }) => {
+            playground.loginBasicBCeID(username, password);
           });
         }
         if (data.result_1) {
@@ -67,7 +69,7 @@ describe('SSO Tests', () => {
         playground.fillInPlayground(
           null,
           null,
-          kebabCase(data.integration_2) + '-' + util.getDate() + '-' + Number(Cypress.env('integration_2_id')),
+          kebabCase(data.integration_2) + '-' + util.getDate() + '-' + Number(integration2Id),
           null,
         );
 
@@ -86,12 +88,12 @@ describe('SSO Tests', () => {
               cy.get('#kc-error-message > p').contains(data.error_2);
             }
           } else if (data.idp_hint_2 == 'bceidbasic') {
-            cy.setid('bceidbasic').then(() => {
-              playground.loginBasicBCeID(Cypress.env('username'), Cypress.env('password'));
+            cy.setid('bceidbasic').then(({ username, password }) => {
+              playground.loginBasicBCeID(username, password);
             });
           } else if (data.idp_hint_2 == 'idir') {
-            cy.setid(null).then(() => {
-              playground.loginIDIR(Cypress.env('username'), Cypress.env('password'));
+            cy.setid(null).then(({ username, password }) => {
+              playground.loginIDIR(username, password);
             });
           }
           if (!data.result_2) {

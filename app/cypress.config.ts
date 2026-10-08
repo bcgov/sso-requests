@@ -6,8 +6,6 @@ export default defineConfig({
   includeShadowDom: true,
   responseTimeout: 80000,
   redirectionLimit: 100,
-  experimentalStudio: true,
-  experimentalMemoryManagement: true,
   // See here: https://github.com/cypress-io/cypress/issues/21307. experimentalModifyObstructiveThirdPartyCode is necessary to prevent microsoft from removing test frame.
   experimentalModifyObstructiveThirdPartyCode: true,
   numTestsKeptInMemory: 0,
@@ -27,6 +25,12 @@ export default defineConfig({
     projectId: 'gctfmh',
     experimentalModifyObstructiveThirdPartyCode: true,
     setupNodeEvents(on, config) {
+      config.expose = {
+        ...config.expose,
+        host: config.env.host ?? config.baseUrl,
+        localtest: config.env.localtest ?? false,
+        smoketest: config.env.smoketest ?? false,
+      };
       on('before:browser:launch', (browser, launchOptions) => {
         if (browser.family === 'chromium' && (browser.name === 'chrome' || browser.name === 'chromium')) {
           // If the browser is Chrome or Chromium, add the flags to expose the `gc` function and disable GPU
@@ -35,6 +39,7 @@ export default defineConfig({
         }
         return launchOptions;
       });
+      return config;
     },
   },
 });

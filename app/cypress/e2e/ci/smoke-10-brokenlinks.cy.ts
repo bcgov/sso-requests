@@ -4,7 +4,7 @@
 
 describe('Check for Broken Static Link', () => {
   it('Check All Static Links', () => {
-    cy.visit(Cypress.env('host'));
+    cy.visit(Cypress.expose('host') || '/');
 
     // Iterate through all the links on the page
     // If the link has an url specified, then check if the link is operational

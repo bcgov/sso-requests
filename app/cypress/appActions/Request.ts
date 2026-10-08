@@ -1173,7 +1173,6 @@ class Request {
       .prev() // Get the previous element, presumably the ID.
       .then(($id) => {
         const idText = $id.text();
-        Cypress.env('integration_id', idText);
         this.id = idText; // Set the ID on your class instance.
         cy.log('Found ID: ' + idText); // Log the found ID.
       });

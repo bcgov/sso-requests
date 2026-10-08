@@ -33,8 +33,8 @@ describe('KC Single Sign on session', () => {
     playground.clickLogin();
 
     // Log in with BCeID
-    cy.setid('bceidbasic').then(() => {
-      playground.loginBasicBCeID(Cypress.env('username'), Cypress.env('password'));
+    cy.setid('bceidbasic').then(({ username, password }) => {
+      playground.loginBasicBCeID(username, password);
     });
     // This tells of a succesfull log in and that the session is attached to the user
     cy.get('button', { timeout: 10000 }).contains('Logout').should('exist');

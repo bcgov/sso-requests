@@ -44,22 +44,22 @@ describe('Run IDP Stopper Test', () => {
           playground.clickLogin();
 
           if (data.create.identityprovider[0] == 'Basic BCeID') {
-            cy.setid('bceidbasic').then(() => {
-              playground.loginBasicBCeID(Cypress.env('username'), Cypress.env('password'));
+            cy.setid('bceidbasic').then(({ username, password }) => {
+              playground.loginBasicBCeID(username, password);
             });
           } else if (data.create.identityprovider[0] == 'Business BCeID') {
-            cy.setid('bceidbusiness').then(() => {
-              playground.loginBusinesBCeID(Cypress.env('username'), Cypress.env('password'));
+            cy.setid('bceidbusiness').then(({ username, password }) => {
+              playground.loginBusinesBCeID(username, password);
             });
           } else if (data.create.identityprovider[0] == 'GitHub BC Gov') {
-            cy.setid('githubbcgov').then(async () => {
-              const token = await util.getOTPToken(Cypress.env('otpsecret'));
-              playground.loginGithubbcGov(Cypress.env('username'), Cypress.env('password'), token);
+            cy.setid('githubbcgov').then(({ username, password, otpsecret }) => {
+              if (!otpsecret) throw new Error('No OTP secret found for githubbcgov');
+              playground.loginGithubbcGov(username, password, otpsecret);
             });
           } else if (data.create.identityprovider[0] == 'GitHub') {
-            cy.setid('githubpublic').then(async () => {
-              const token = await util.getOTPToken(Cypress.env('otpsecret'));
-              playground.loginGithubbcGov(Cypress.env('username'), Cypress.env('password'), token);
+            cy.setid('githubpublic').then(({ username, password, otpsecret }) => {
+              if (!otpsecret) throw new Error('No OTP secret found for githubpublic');
+              playground.loginGithubbcGov(username, password, otpsecret);
             });
           }
           cy.window().then((w) => w.focus());

@@ -74,7 +74,7 @@ jobs:
           working-directory: app
           spec: |
             cypress/e2e/**/integration-990-deleteAllIntegrations.cy.ts
-          browser: electron
+          browser: chrome
 
   idp-stopper:
     runs-on: ubuntu-latest
@@ -134,11 +134,7 @@ jobs:
           working-directory: app
           spec: |
             cypress/e2e/external/idpstopper-*.cy.ts
-          browser:
-            electron
-            # cypress/e2e/external/search-users.cy.ts
-            # cypress/e2e/external/integration-roles.cy.ts
-            # cypress/e2e/ci/integrations-crud.cy.ts
+          browser: chrome
 
       - name: Upload E2E Mochawesome report
         if: ${{ !cancelled() && steps.smoke.outcome != 'skipped' }}
@@ -146,12 +142,4 @@ jobs:
         with:
           name: keycloak-e2e-mochawesome
           path: app/mochawesome-report/
-          if-no-files-found: warn
-
-      - name: Upload E2E failure screenshots
-        if: ${{ failure() && steps.smoke.outcome == 'failure' }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: keycloak-e2e-screenshots
-          path: app/cypress/screenshots/
           if-no-files-found: warn

@@ -131,7 +131,7 @@ class RequestPage {
 
   setProjectName(projName: string) {
     cy.get(this.projectName).clear();
-    cy.get(this.projectName).type(projName);
+    cy.get(this.projectName).type(projName, { delay: 10 });
   }
 
   setClientProtocol(protocol: string) {
