@@ -133,6 +133,7 @@ jobs:
           install: false
           working-directory: app
           spec: |
+            cypress/e2e/external/idpstopper-010*.cy.ts
             cypress/e2e/external/idpstopper-020*.cy.ts
           browser: chrome
 
@@ -142,20 +143,4 @@ jobs:
         with:
           name: keycloak-e2e-mochawesome
           path: app/mochawesome-report/
-          if-no-files-found: warn
-
-      - name: Upload E2E failure screenshots
-        if: ${{ failure() && steps.smoke.outcome == 'failure' }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: keycloak-e2e-screenshots
-          path: app/cypress/screenshots/
-          if-no-files-found: warn
-
-      - name: Upload E2E failure screenshots
-        if: ${{ failure() && steps.smoke.outcome == 'failure' }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: keycloak-e2e-screenshots
-          path: app/cypress/videos/
           if-no-files-found: warn
