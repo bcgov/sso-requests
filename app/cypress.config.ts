@@ -12,7 +12,7 @@ export default defineConfig({
   viewportHeight: 1080,
   pageLoadTimeout: 120000,
   viewportWidth: 1920,
-  video: false,
+  video: true,
   reporter: 'mochawesome',
   reporterOptions: {
     files: ['./mochawesome-report/*.json'],
