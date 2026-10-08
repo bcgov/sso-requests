@@ -98,7 +98,7 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
           cy.contains(home.title);
         },
         {
-          cacheAcrossSpecs: true,
+          cacheAcrossSpecs: username !== utils.cssAdmin,
           validate: () => {
             cy.visit(Cypress.expose('host') || '/');
             cy.get('body').then(($body) => {
