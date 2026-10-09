@@ -66,6 +66,10 @@ const validateJWTSignature = async (token: string): Promise<Session | boolean> =
       throw new createHttpError.Unauthorized('IDP is not IDIR');
     }
 
+    if (!email || typeof email !== 'string' || email.trim().length === 0) {
+      throw new createHttpError.Unauthorized('invalid email claim in token');
+    }
+
     return { idir_userid, email, client_roles: client_roles || [], family_name, given_name, bearerToken: '' };
   } catch (err) {
     // Expired and malformed tokens land here on every stale browser tab, so this is not an error.
