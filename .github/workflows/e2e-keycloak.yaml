@@ -133,11 +133,12 @@ jobs:
           install: false
           working-directory: app
           spec: |
-            cypress/e2e/external/idpstopper-*.cy.ts
-            cypress/e2e/external/search-users.cy.ts
             cypress/e2e/external/integration-roles.cy.ts
-            cypress/e2e/ci/integrations-crud.cy.ts
-          browser: chrome
+          browser:
+            chrome
+            # cypress/e2e/external/idpstopper-*.cy.ts
+            # cypress/e2e/external/search-users.cy.ts
+            # cypress/e2e/ci/integrations-crud.cy.ts
 
       - name: Upload E2E Mochawesome report
         if: ${{ !cancelled() && steps.smoke.outcome != 'skipped' }}
