@@ -38,6 +38,10 @@ export default defineConfig({
         smoketest: config.env.smoketest ?? false,
       };
       on('task', {
+        log(message: string) {
+          console.log(message);
+          return null;
+        },
         // Generated at the moment the code is typed so it can't expire during a slow login flow.
         // If the current TOTP window is about to roll over, wait for the next one.
         async generateOTP(secret: string) {

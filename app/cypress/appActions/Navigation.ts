@@ -1,6 +1,12 @@
+import { dumpAuthDiagnostics } from '../support/authDiagnostics';
+
 const NAV_TIMEOUT = 60000;
 const NAV_ATTEMPTS = 3;
 const SETTLE_MS = 1500;
+const AUTH_RELOAD_ATTEMPTS = 2;
+
+const loginButton = '[data-testid="desktop-login-button"]';
+const logoutButton = '[data-testid="desktop-logout-button"]';
 
 class Navigation {
   waitForPageLoad() {
@@ -9,9 +15,21 @@ class Navigation {
 
   // Keycloak check-sso does a full redirect round-trip on every page load and always returns to the site root
   // (NEXT_PUBLIC_SSO_REDIRECT_URI). Wait until the callback params are consumed and the authenticated layout renders.
-  waitForAppReady() {
+  // If the app renders logged out, log the Keycloak traffic and reload to distinguish a transient check-sso failure
+  // from a session that has really ended.
+  waitForAppReady(reloadsLeft = AUTH_RELOAD_ATTEMPTS) {
     cy.location('hash', { timeout: NAV_TIMEOUT }).should('not.match', /(state|code)=/);
-    cy.get('[data-testid="desktop-logout-button"]', { timeout: NAV_TIMEOUT }).should('be.visible');
+    cy.get(`${loginButton}, ${logoutButton}`, { timeout: NAV_TIMEOUT })
+      .should('be.visible')
+      .then(($button) => {
+        if (!$button.is(loginButton)) return;
+
+        const attempt = AUTH_RELOAD_ATTEMPTS - reloadsLeft + 1;
+        dumpAuthDiagnostics(`App rendered logged out (attempt ${attempt}); ${reloadsLeft} reload(s) left`);
+        if (reloadsLeft <= 0) throw new Error('App rendered logged out after reloading; Keycloak session has ended');
+        cy.reload();
+        this.waitForAppReady(reloadsLeft - 1);
+      });
     this.waitForPageLoad();
   }
 

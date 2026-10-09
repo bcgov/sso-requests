@@ -2,6 +2,7 @@ import 'cypress-plugin-api';
 import 'cypress-real-events';
 import HomePage from '../pageObjects/homePage';
 import Utilities from '../appActions/Utilities';
+import { dumpAuthDiagnostics } from './authDiagnostics';
 const utils = new Utilities();
 
 const SESSION_VALIDATE_TIMEOUT = 60000;
@@ -18,7 +19,11 @@ const validateSession = () => {
   cy.get(`${loginButton}, ${logoutButton}`, { timeout: SESSION_VALIDATE_TIMEOUT })
     .should('be.visible')
     .then(($button) => {
-      if ($button.is(loginButton)) throw new Error('Restored session is not authenticated');
+      if ($button.is(loginButton)) {
+        dumpAuthDiagnostics('Restored session is not authenticated').then(() => {
+          throw new Error('Restored session is not authenticated');
+        });
+      }
     });
 };
 
