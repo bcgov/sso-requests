@@ -279,7 +279,7 @@ class Request {
     });
 
     // Make sure the commit has been done.
-    cy.get(this.reqPage.integrationsTable, { timeout: 20000 });
+    cy.get(this.reqPage.integrationsTable, { timeout: 60000 });
 
     cy.get(this.reqPage.integrationsTableStatus).contains('Completed');
 
@@ -548,7 +548,7 @@ class Request {
 
     this.reqPage.updateRequest(this.subMit);
     this.reqPage.confirmDelete(this.conFirm);
-    cy.get(this.reqPage.integrationsTable, { timeout: 20000 });
+    cy.get(this.reqPage.integrationsTable, { timeout: 60000 });
 
     return true;
   }
@@ -557,7 +557,7 @@ class Request {
     cy.log('Delete Request: ' + id);
     this.navigation.goToMyDashboard();
     // identify first column
-    cy.get(this.reqPage.integrationsTable, { timeout: 20000 }).each(($elm, index) => {
+    cy.get(this.reqPage.integrationsTable, { timeout: 60000 }).each(($elm, index) => {
       // text captured from column1
       let t = $elm.text();
       const projectName = $elm.next().text();

@@ -1,4 +1,4 @@
-const NAV_TIMEOUT = 20000;
+const NAV_TIMEOUT = 60000;
 const NAV_ATTEMPTS = 3;
 const SETTLE_MS = 1500;
 

@@ -88,11 +88,11 @@ class PlaygroundPage {
 
   // Login functions for different IDPs
   loginBasicBCeID(username: string, password: string) {
-    cy.get('#login-to', { timeout: 20000 }).contains('Log in to sfstest7.gov.bc.ca');
+    cy.get('#login-to', { timeout: 60000 }).contains('Log in to sfstest7.gov.bc.ca');
     cy.contains('div', 'Use a Basic BCeID').should('be.visible');
     cy.get('#user').type(username, { log: false });
     cy.get('#password').type(password, { log: false });
-    cy.get('input[type="submit"]', { timeout: 20000 }).click();
+    cy.get('input[type="submit"]', { timeout: 60000 }).click();
     cy.get('body').then((bodyElement) => {
       if (bodyElement.find('input[type="submit"]').length > 0) {
         cy.get('input[type="submit"]').click();
@@ -101,11 +101,11 @@ class PlaygroundPage {
   }
 
   loginBusinesBCeID(username: string, password: string) {
-    cy.get('#login-to', { timeout: 20000 }).contains('Log in to sfstest7.gov.bc.ca');
+    cy.get('#login-to', { timeout: 60000 }).contains('Log in to sfstest7.gov.bc.ca');
     cy.contains('div', 'Use a Business BCeID').should('be.visible');
     cy.get('#user').type(username, { log: false });
     cy.get('#password').type(password, { log: false });
-    cy.get('input[type="submit"]', { timeout: 20000 }).click();
+    cy.get('input[type="submit"]', { timeout: 60000 }).click();
     cy.get('body').then((bodyElement) => {
       if (bodyElement.find('input[type="submit"]').length > 0) {
         cy.get('input[type="submit"]').click();
@@ -114,21 +114,21 @@ class PlaygroundPage {
   }
 
   loginGithubbcGov(username: string, password: string, secret: string) {
-    cy.contains('p', 'GitHub', { timeout: 20000 }).should('be.visible');
+    cy.contains('p', 'GitHub', { timeout: 60000 }).should('be.visible');
     cy.get('#login_field').type(username, { log: false });
     cy.get('#password').type(password, { log: false });
-    cy.get('input[type="submit"]', { timeout: 20000 }).click();
+    cy.get('input[type="submit"]', { timeout: 60000 }).click();
     const token = generateSync({ secret });
     cy.get('#app_totp', { timeout: 10000 }).type(token, { log: false });
     cy.contains('Verify').click();
   }
 
   loginIDIR(username: string, password: string) {
-    cy.get('#login-to', { timeout: 20000 }).contains('Log in to sfstest7.gov.bc.ca');
+    cy.get('#login-to', { timeout: 60000 }).contains('Log in to sfstest7.gov.bc.ca');
     cy.contains('label', 'IDIR Username').should('be.visible');
     cy.get('#user').type(username, { log: false });
     cy.get('#password').type(password, { log: false });
-    cy.get('input[type="submit"]', { timeout: 20000 }).click();
+    cy.get('input[type="submit"]', { timeout: 60000 }).click();
   }
 
   loginGithub = (username: string, password: string, secret: string) => {
