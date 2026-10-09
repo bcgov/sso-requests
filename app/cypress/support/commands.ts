@@ -30,15 +30,14 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
     } else {
       cy.session(
         `${username}-${idp}`,
-        async () => {
+        () => {
+          if (!foundItem.otpsecret) throw new Error(`No OTP secret found for ${username}`);
+
           cy.visit(Cypress.expose('host') || '/');
           cy.contains(home.title);
           home.clickLoginButton();
 
-          if (!foundItem.otpsecret) throw new Error(`No OTP secret found for ${username}`);
-          const userToken = await utils.getOTPToken(foundItem.otpsecret);
-
-          cy.origin('login.microsoftonline.com', { args: { foundItem, userToken } }, ({ foundItem, userToken }) => {
+          cy.origin('login.microsoftonline.com', { args: { foundItem } }, ({ foundItem }) => {
             // MS pre-renders off-screen "decoy" inputs for browser autofill (class moveOffScreen, aria-hidden),
             // so target only the real, visible fields. MS's knockout bindings can also reset an input while
             // it is initializing, dropping already-typed characters, so verify the value and retype if needed.
@@ -76,8 +75,10 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
               }
             });
 
-            fillInput('input[type="tel"]', userToken);
-            cy.contains('Verify').should('be.visible').click();
+            cy.task<string>('generateOTP', foundItem.otpsecret, { log: false }).then((userToken) => {
+              fillInput('input[type="tel"]', userToken);
+              cy.contains('Verify').should('be.visible').click();
+            });
 
             // After MFA, MS posts to /SAS/ProcessAuth, which either renders the optional "Stay signed in?"
             // (KMSI) page or redirects back to the app. Wait for that page to fully load before deciding,

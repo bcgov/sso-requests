@@ -1,4 +1,10 @@
 import { defineConfig } from 'cypress';
+import { generate } from 'otplib';
+import { createGuardrails } from '@otplib/core';
+
+const TOTP_PERIOD_SECONDS = 30;
+const TOTP_MIN_REMAINING_SECONDS = 5;
+const otpGuardrails = createGuardrails({ MIN_SECRET_BYTES: 8 });
 
 export default defineConfig({
   chromeWebSecurity: false,
@@ -31,6 +37,18 @@ export default defineConfig({
         localtest: config.env.localtest ?? false,
         smoketest: config.env.smoketest ?? false,
       };
+      on('task', {
+        // Generated at the moment the code is typed so it can't expire during a slow login flow.
+        // If the current TOTP window is about to roll over, wait for the next one.
+        async generateOTP(secret: string) {
+          const elapsed = (Date.now() / 1000) % TOTP_PERIOD_SECONDS;
+          const remaining = TOTP_PERIOD_SECONDS - elapsed;
+          if (remaining < TOTP_MIN_REMAINING_SECONDS) {
+            await new Promise((resolve) => setTimeout(resolve, remaining * 1000 + 250));
+          }
+          return generate({ secret, guardrails: otpGuardrails });
+        },
+      });
       on('before:browser:launch', (browser, launchOptions) => {
         if (browser.family === 'chromium' && (browser.name === 'chrome' || browser.name === 'chromium')) {
           // If the browser is Chrome or Chromium, add the flags to expose the `gc` function and disable GPU
