@@ -219,7 +219,12 @@ export const listRoleUsers = async (
     max,
   });
 
-  const filterByIdps = users.filter((user) => integration?.devIdps?.includes(user?.username!?.split('@')[1]));
+  const filterByIdps = users.filter(
+    (user) =>
+      !!user?.username &&
+      (user.username.startsWith('service-account-') ||
+        !!integration?.devIdps?.includes(user.username.split('@')[1] ?? '')),
+  );
 
   return filterByIdps;
 };
