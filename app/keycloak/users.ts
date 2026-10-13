@@ -218,7 +218,10 @@ export const listRoleUsers = async (
     first,
     max,
   });
-  return users;
+
+  const filterByIdps = users.filter((user) => integration?.devIdps?.includes(user?.username!?.split('@')[1]));
+
+  return filterByIdps;
 };
 
 export const listUserRoles = async (
