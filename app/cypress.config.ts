@@ -17,9 +17,6 @@ export default defineConfig({
   numTestsKeptInMemory: 0,
   viewportHeight: 1080,
   pageLoadTimeout: 120000,
-  // Retry once in CI to ride out transient hangs between the Cypress proxy and Keycloak. Tests in a spec share state
-  // (e.g. a created integration), so keep this low.
-  retries: { runMode: 1, openMode: 0 },
   viewportWidth: 1920,
   video: true,
   reporter: 'mochawesome',
