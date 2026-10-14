@@ -1031,10 +1031,6 @@ export const buildGitHubRequestData = (baseData: IntegrationData) => {
     baseData.prodIdps = baseData?.prodIdps?.filter((idp) => !checkBcServicesCard(idp));
   }
 
-  if (!baseData.bcgovidirApproved && hasBcgovIdir) {
-    baseData.prodIdps = baseData?.prodIdps?.filter(checkNotBcgovIdir);
-  }
-
   // prevent the TF from creating GitHub integration in prod environment if not approved
   if (!baseData.githubApproved && hasGithub) {
     baseData.prodIdps = baseData?.prodIdps?.filter(checkNotGithubGroup);

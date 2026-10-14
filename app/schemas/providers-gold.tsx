@@ -272,6 +272,15 @@ export default function getSchema(
         content: `Provide a brief description about your project`,
       },
     };
+
+    properties.entraGuestAccountsEnabled = {
+      type: 'boolean',
+      title: 'Allow Guest Accounts',
+      tooltip: {
+        content: `Allow Guest Account users to access your application.`,
+      },
+      default: false,
+    };
   }
 
   properties.environments = {

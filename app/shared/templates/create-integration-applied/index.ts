@@ -9,6 +9,7 @@ import {
   SOCIAL_APPROVAL_EMAIL_ADDRESS,
   OTP_EMAIL_ADDRESS_CC,
   OTP_EMAIL_ADDRESS_BCC,
+  WAM_EMAIL_ADDRESS,
 } from '@app/shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
@@ -16,6 +17,7 @@ import type { RenderResult } from '../index';
 import {
   usesBcServicesCardProd,
   usesBceid,
+  usesBcgovIdir,
   usesDigitalCredentialProd,
   usesOTPProd,
   usesSocial,
@@ -32,7 +34,6 @@ interface DataProps {
   hasBceid?: boolean;
   waitingGithubProdApproval?: boolean;
   waitingBcServicesCardProdApproval?: boolean;
-  waitingBcgovIdirProdApproval?: boolean;
   waitingSocialProdApproval?: boolean;
   waitingOTPProdApproval?: boolean;
 }
@@ -61,6 +62,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   if (usesDigitalCredentialProd(integration)) {
     cc.push(DIT_EMAIL_ADDRESS, DIT_ADDITIONAL_EMAIL_ADDRESS);
   }
+  if (usesBcgovIdir(integration)) cc.push(WAM_EMAIL_ADDRESS);
 
   return sendEmail({
     code: EMAILS.CREATE_INTEGRATION_APPLIED,

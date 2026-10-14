@@ -71,6 +71,7 @@ export const createMigrator = async () => {
       await import('./migrations/2026.09.16T10.00.00.create-organizations'),
       await import('./migrations/2026.09.22T02.33.00.add-bcgov-unit-description-requests-table'),
       await import('./migrations/2026.09.25T15.00.00.add-bcgovidir-approved'),
+      await import('./migrations/2026.10.13T14.43.00.update-requests-table'),
     ],
     context: sequelize,
     storage: new SequelizeStorage({

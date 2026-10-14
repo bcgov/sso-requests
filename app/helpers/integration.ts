@@ -124,12 +124,6 @@ export const usesBcgovIdir = (integration: Integration) => {
   return devIdps.some(checkBcgovIdir);
 };
 
-export const usesBcgovIdirProd = (integration: Integration) => {
-  if (!integration) return false;
-  const { environments = [] } = integration;
-  return usesBcgovIdir(integration) && environments.includes('prod');
-};
-
 export const isApiAccountClientId = (clientId?: string | null) =>
   /^service-account-(org|team)-\d+-\d+$/.test((clientId ?? '').trim());
 

@@ -171,53 +171,6 @@ describe('bcgovidir idp permissions', () => {
   });
 });
 
-describe('bcgovidir production approval', () => {
-  const productionIntegration = {
-    ...integration,
-    environments: ['dev', 'test', 'prod'],
-    devIdps: [KC_ENTRA_IDP_REALM, 'azureidir'],
-    testIdps: [KC_ENTRA_IDP_REALM, 'azureidir'],
-    prodIdps: [KC_ENTRA_IDP_REALM, 'azureidir'],
-    bcgovidirApproved: false,
-  };
-
-  it('withholds bcgovidir from production until approved without changing dev or test', () => {
-    const processed = requests.buildGitHubRequestData({ ...productionIntegration });
-
-    expect(processed.devIdps).toContain(KC_ENTRA_IDP_REALM);
-    expect(processed.testIdps).toContain(KC_ENTRA_IDP_REALM);
-    expect(processed.prodIdps).not.toContain(KC_ENTRA_IDP_REALM);
-    expect(processed.prodIdps).toContain('azureidir');
-  });
-
-  it('keeps bcgovidir in production after approval', () => {
-    const processed = requests.buildGitHubRequestData({ ...productionIntegration, bcgovidirApproved: true });
-
-    expect(processed.prodIdps).toContain(KC_ENTRA_IDP_REALM);
-  });
-
-  it('uses the alias-matching OIDC scope only when bcgovidir is in the production IdP list', async () => {
-    const unapprovedScopes = await getDefaultClientScopes(
-      { ...productionIntegration, prodIdps: ['azureidir'] },
-      'prod',
-    );
-    const approvedScopes = await getDefaultClientScopes({ ...productionIntegration, bcgovidirApproved: true }, 'prod');
-
-    expect(unapprovedScopes).not.toContain(KC_ENTRA_IDP_REALM);
-    expect(approvedScopes.filter((scope) => scope === KC_ENTRA_IDP_REALM)).toHaveLength(1);
-  });
-
-  it('uses the standard suffixed scope for SAML', async () => {
-    const scopes = await getDefaultClientScopes(
-      { ...productionIntegration, protocol: 'saml', bcgovidirApproved: true },
-      'prod',
-    );
-
-    expect(scopes).toContain(`${KC_ENTRA_IDP_REALM}-saml`);
-    expect(scopes).not.toContain(KC_ENTRA_IDP_REALM);
-  });
-});
-
 describe('createEntraIntegration', () => {
   it('provisions, persists, and configures a new Entra integration', async () => {
     await requests.createEntraIntegration('dev', integration);
