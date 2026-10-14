@@ -3,7 +3,7 @@ import 'cypress-real-events';
 import HomePage from '../pageObjects/homePage';
 import Utilities from '../appActions/Utilities';
 import { dumpAuthDiagnostics } from './authDiagnostics';
-import { expectCheckSso, waitForCheckSso } from './checkSso';
+import { withCheckSso } from './checkSso';
 const utils = new Utilities();
 
 const SESSION_VALIDATE_TIMEOUT = 60000;
@@ -14,9 +14,7 @@ const logoutButton = '[data-testid="desktop-logout-button"]';
 // Must not log in here: anything done in validate is not saved to the session cache.
 // Visits the app and waits for its check-sso redirect, so later commands don't act on a page about to be replaced.
 const visitApp = () => {
-  expectCheckSso();
-  cy.visit(Cypress.expose('host') || '/');
-  waitForCheckSso();
+  withCheckSso(() => cy.visit(Cypress.expose('host') || '/'));
 };
 
 const validateSession = () => {

@@ -3,7 +3,7 @@
 // check-sso (e.g. the playground) fall back to this full-page redirect too. It only starts once the page has loaded and
 // keycloak-js has initialised, so cy.visit resolves first and later commands race a page that is about to be replaced.
 //
-// Usage: call expectCheckSso() before the action that loads the page, then waitForCheckSso() after it.
+// Usage: withCheckSso(() => cy.visit(...)) around the action that loads the page.
 
 const CHECK_SSO_TIMEOUT = 60000;
 const CALLBACK_PARAMS = /(^|[#&?])(state|code|error)=/;
@@ -11,18 +11,22 @@ const REDIRECTED_MARKER = '__cypressCheckSsoStarted';
 
 type MarkableWindow = Window & { [REDIRECTED_MARKER]?: boolean };
 
-export const expectCheckSso = () => {
+export const withCheckSso = (action: () => void) => {
+  // Intercepts last for the whole test and earlier check-sso redirects (e.g. the app's own, during login) can match
+  // them without being waited on. A shared alias would let cy.wait resolve on one of those stale requests, so each
+  // call gets its own.
+  const alias = Cypress._.uniqueId('checkSso');
   cy.intercept({ method: 'GET', url: '**/protocol/openid-connect/auth*', query: { prompt: 'none' } }, () => {
     // The page that started the redirect is still loaded while this request is in flight. Mark it, so we can wait for
     // the page Keycloak redirects back to (a new window, without the marker). `window:before:load` can't be used to
     // tell them apart as it doesn't fire for cross-origin pages such as the playground.
     const win = (cy as unknown as { state: (key: 'window') => MarkableWindow | undefined }).state('window');
     if (win) win[REDIRECTED_MARKER] = true;
-  }).as('checkSso');
-};
+  }).as(alias);
 
-export const waitForCheckSso = () => {
-  cy.wait('@checkSso', { requestTimeout: CHECK_SSO_TIMEOUT, responseTimeout: CHECK_SSO_TIMEOUT, log: false });
+  action();
+
+  cy.wait(`@${alias}`, { requestTimeout: CHECK_SSO_TIMEOUT, responseTimeout: CHECK_SSO_TIMEOUT, log: false });
   // The intercept resolves on Keycloak's redirect response, while the old page is still loaded (and looks settled).
   // Wait until the browser has actually loaded the page Keycloak redirected back to.
   cy.window({ timeout: CHECK_SSO_TIMEOUT, log: false }).should((win: MarkableWindow) => {
