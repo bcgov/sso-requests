@@ -6,7 +6,6 @@ import { session } from './utils/helpers';
 import { SessionContext } from '@app/utils/context';
 import { User } from 'interfaces/team';
 import { docusaurusURL, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
-import { Session } from '@app/shared/interfaces';
 
 const handleLogin = jest.fn();
 const handleLogout = jest.fn();
