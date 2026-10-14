@@ -43,8 +43,10 @@ const redact = (text: string) =>
 const describeErrorBody = (body: unknown) => {
   if (!body || typeof body !== 'object') return '';
   const { error, error_description } = body as Record<string, unknown>;
-  if (typeof error !== 'string') return '';
-  return redact(` error=${error}${typeof error_description === 'string' ? ` (${error_description})` : ''}`);
+  if (typeof error !== 'string' || !/^\w{1,40}$/.test(error)) return '';
+  // Keycloak's descriptions are short static phrases (e.g. "Code not valid"); anything else could carry user data.
+  const safeDescription = typeof error_description === 'string' && /^[A-Za-z ]{1,60}$/.test(error_description);
+  return ` error=${error}${safeDescription ? ` (${error_description})` : ''}`;
 };
 
 const record = (message: string) => {
@@ -53,26 +55,79 @@ const record = (message: string) => {
   if (log.entries.length > MAX_ENTRIES) log.entries = log.entries.slice(-MAX_ENTRIES);
 };
 
-// Objects (e.g. Axios errors carrying request headers, or API responses with user data) are never serialized.
+const GUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+
+// CI logs are public and console.error arguments can carry anything (API responses, user details), so only messages
+// known to be static library text are logged; anything else is reduced to a placeholder.
+const KNOWN_SAFE_MESSAGES = [
+  // axios / fetch
+  /^Request failed with status code \d{3}$/,
+  /^Network Error$/,
+  /^timeout of \d+ms exceeded$/,
+  /^Request aborted$/,
+  /^canceled$/,
+  /^Failed to fetch$/,
+  /^Load failed$/,
+  /^NetworkError when attempting to fetch resource\.$/,
+  // keycloak-js
+  /^Timeout when waiting for 3rd party check iframe message\.$/,
+  /^Promise is not settled within timeout of \d+ms$/,
+  /^Server responded with an invalid status\.$/,
+  /^Error while checking login iframe$/,
+  /^Invalid nonce\.$/,
+  /^Not authenticated$/,
+  /^Unable to process login\.$/,
+  /^Unable to update token, no refresh token available\.$/,
+  /^Unable to decode token, payload (not found|is not a valid (Base64URL|JSON) value)\.$/,
+  /^Failed to generate PKCE challenge\.$/,
+  /^Web Crypto API is not available\.$/,
+  /^A 'Keycloak' instance can only be initialized once\.$/,
+];
+
+const describeMessage = (message: string) =>
+  KNOWN_SAFE_MESSAGES.some((pattern) => pattern.test(message)) ? message : '<message omitted>';
+
+// Errors from the page come from its own window, so `instanceof Error` (this window's Error) is false for them.
+const isErrorLike = (arg: object): arg is { name?: unknown; message?: unknown } =>
+  Object.prototype.toString.call(arg) === '[object Error]' || ('name' in arg && 'message' in arg);
+
+// Error names and OAuth-style error codes are safe identifiers; anything else that isn't one is not logged.
+const safeIdentifier = (value: unknown) => (typeof value === 'string' && /^\w{1,40}$/.test(value) ? value : undefined);
+
+// Objects (e.g. Axios errors carrying request headers, or API responses with user data) are never serialized: only an
+// error's name and allowlisted message, or an OAuth error code, are logged.
 const stringify = (arg: unknown) => {
-  if (arg instanceof Error) return `${arg.name}: ${arg.message}`;
-  if (typeof arg === 'string') return arg;
-  if (typeof arg === 'number' || typeof arg === 'boolean' || arg == null) return String(arg);
-  return `<${Object.prototype.toString.call(arg).slice(8, -1)}>`;
+  if (typeof arg === 'string') return KNOWN_SAFE_MESSAGES.some((pattern) => pattern.test(arg)) ? arg : '<string>';
+  if (typeof arg === 'boolean' || arg == null) return String(arg);
+  if (typeof arg !== 'object') return `<${typeof arg}>`;
+  const type = Object.prototype.toString.call(arg).slice(8, -1);
+  if (isErrorLike(arg)) {
+    const name = safeIdentifier(arg.name) ?? type;
+    return typeof arg.message === 'string' ? `${name}: ${describeMessage(arg.message)}` : name;
+  }
+  const error = safeIdentifier((arg as { error?: unknown }).error);
+  return error ? `<${type} error=${error}>` : `<${type}>`;
 };
 
 // _app.tsx swallows keycloak.init() failures with console.error and renders logged out, so capture those.
 Cypress.on('window:before:load', (win) => {
   const original = win.console.error.bind(win.console);
   win.console.error = (...args: unknown[]) => {
-    record(`console.error ${redact(args.map(stringify).join(' ')).substring(0, 300)}`);
+    record(`console.error ${args.map(stringify).join(' ').substring(0, 300)}`);
     original(...args);
   };
 });
 
-// Page loads and iframes, which can hang if Cypress's proxy never releases their response.
-const DOCUMENT_REQUEST = { headers: { 'sec-fetch-dest': /^(document|iframe)$/ } };
-const GUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+// Page loads and iframes on the app and playground, which can hang if Cypress's proxy never releases their response.
+// Matched by path (no file extension, so not static assets) and then by the Accept header that browsers send for
+// navigations; matching on sec-fetch-dest never fired.
+const PLAYGROUND_ORIGIN = 'https://bcgov.github.io';
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const documentUrlMatcher = () => {
+  const host = Cypress.expose('host') || Cypress.config('baseUrl');
+  const origins = [PLAYGROUND_ORIGIN, ...(host ? [new URL(host).origin] : [])].map(escapeRegExp);
+  return new RegExp(`^(${origins.join('|')})(/(?!_next/)[^.?#]*)?([?#].*)?$`);
+};
 
 let nextRequestId = 0;
 
@@ -102,10 +157,11 @@ export const startAuthDiagnostics = () => {
     if (endpoint === '3p-cookies/step1.html') return record(`${req.method} ${endpoint} (stubbed)`);
     track(req, endpoint);
   });
-  cy.intercept(DOCUMENT_REQUEST, (req) => {
+  cy.intercept({ method: 'GET', url: documentUrlMatcher() }, (req) => {
+    const accept = req.headers['accept'];
+    if (!(Array.isArray(accept) ? accept.join(',') : accept || '').includes('text/html')) return;
     const url = new URL(req.url);
-    if (KEYCLOAK_ENDPOINT.test(url.pathname)) return;
-    track(req, `${req.headers['sec-fetch-dest']} ${url.host}${url.pathname.replace(GUID, '<guid>')}`);
+    track(req, `page ${url.host}${redact(url.pathname).replace(GUID, '<guid>')}`);
   });
 };
 

@@ -1,4 +1,5 @@
 import { generateSync } from 'otplib';
+import { expectCheckSso, waitForCheckSso } from '../support/checkSso';
 
 class PlaygroundPage {
   path: string = 'https://bcgov.github.io/keycloak-example-apps/';
@@ -27,6 +28,13 @@ class PlaygroundPage {
     cy.wait(2000);
     this.selectConfig();
   };
+
+  // The playground runs check-sso on every page load, which redirects the whole page (see support/checkSso.ts).
+  visit() {
+    expectCheckSso();
+    cy.visit(this.path);
+    waitForCheckSso();
+  }
 
   // Helper functions
   selectConfig() {
@@ -59,8 +67,11 @@ class PlaygroundPage {
     cy.get(this.idpHint).clear().type(idpHint);
   }
 
+  // Update submits a native form, which reloads the page and runs check-sso again.
   clickUpdate() {
+    expectCheckSso();
     cy.contains('button:visible', 'Update').click({ force: true });
+    waitForCheckSso();
   }
 
   clickLogin() {

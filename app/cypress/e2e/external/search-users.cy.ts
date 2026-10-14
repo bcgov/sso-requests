@@ -35,7 +35,7 @@ describe('Create Integration Requests', () => {
       // Login with bceids to link user to client
       integration?.then(() => {
         ['bceidbasic', 'bceidbusiness'].forEach((idp) => {
-          cy.visit(playground.path);
+          playground.visit();
           const clientName = kebabCase(`${req.projectName}@$${req.uid} ${Number(req.id)}`);
           playground.fillInPlayground(null, null, clientName, idp);
 

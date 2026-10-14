@@ -3,6 +3,7 @@ import 'cypress-real-events';
 import HomePage from '../pageObjects/homePage';
 import Utilities from '../appActions/Utilities';
 import { dumpAuthDiagnostics } from './authDiagnostics';
+import { expectCheckSso, waitForCheckSso } from './checkSso';
 const utils = new Utilities();
 
 const SESSION_VALIDATE_TIMEOUT = 60000;
@@ -11,10 +12,15 @@ const logoutButton = '[data-testid="desktop-logout-button"]';
 
 // Fails (so cy.session recreates and re-caches the session) if the restored cookies no longer hold a Keycloak session.
 // Must not log in here: anything done in validate is not saved to the session cache.
-const validateSession = () => {
+// Visits the app and waits for its check-sso redirect, so later commands don't act on a page about to be replaced.
+const visitApp = () => {
+  expectCheckSso();
   cy.visit(Cypress.expose('host') || '/');
-  // check-sso redirects to Keycloak and back with #state/code; wait until keycloak-js has consumed the callback.
-  cy.location('hash', { timeout: SESSION_VALIDATE_TIMEOUT }).should('not.match', /(state|code)=/);
+  waitForCheckSso();
+};
+
+const validateSession = () => {
+  visitApp();
   // Neither button renders until keycloak.init resolves, and exactly one renders afterwards.
   cy.get(`${loginButton}, ${logoutButton}`, { timeout: SESSION_VALIDATE_TIMEOUT })
     .should('be.visible')
@@ -40,6 +46,7 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
       cy.session(
         `${username}-${idp}`,
         () => {
+          dumpAuthDiagnostics(`cy.session setup started for ${idp} login (no cached session, or validation failed)`);
           cy.visit(Cypress.expose('host') || '/');
           cy.contains(home.title);
           home.clickLoginButton();
@@ -56,6 +63,7 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
         () => {
           if (!foundItem.otpsecret) throw new Error(`No OTP secret found for ${username}`);
 
+          dumpAuthDiagnostics(`cy.session setup started for ${idp} login (no cached session, or validation failed)`);
           cy.visit(Cypress.expose('host') || '/');
           cy.contains(home.title);
           home.clickLoginButton();
@@ -127,7 +135,8 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
         },
       );
     }
-    cy.visit(Cypress.expose('host') || '/');
+    visitApp();
+    cy.get(logoutButton, { timeout: SESSION_VALIDATE_TIMEOUT }).should('be.visible');
   });
 });
 

@@ -33,7 +33,7 @@ describe('Run IDP Stopper Test', () => {
         }
 
         integration?.then(() => {
-          cy.visit(playground.path);
+          playground.visit();
 
           playground.fillInPlayground(
             null,

@@ -25,7 +25,7 @@ describe('KC Single Sign on session', () => {
     // In the playground set the IDP hint to bceidbasic and click login
     // Different application, different client, different IDP
     let playground = new Playground();
-    cy.visit(playground.path);
+    playground.visit();
     cy.contains(playground.header);
 
     playground.fillInPlayground('https://dev.loginproxy.gov.bc.ca/auth', 'standard', 'test-client', 'bceidbasic');

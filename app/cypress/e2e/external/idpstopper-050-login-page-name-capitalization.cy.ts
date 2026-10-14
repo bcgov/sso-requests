@@ -30,7 +30,7 @@ describe('Create Integration Requests For login page capitalization', () => {
       }
 
       integration?.then(() => {
-        cy.visit(playground.path);
+        playground.visit();
         cy.contains(playground.header);
 
         playground.fillInPlayground(

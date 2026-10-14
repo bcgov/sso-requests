@@ -34,7 +34,7 @@ describe('SSO Tests', () => {
           return false;
         });
 
-        cy.visit(playground.path);
+        playground.visit();
 
         playground.fillInPlayground(
           null,
@@ -64,7 +64,7 @@ describe('SSO Tests', () => {
           cy.get('button', { timeout: 10000 }).contains('Logout').should('exist');
         }
 
-        cy.visit(playground.path);
+        playground.visit();
 
         playground.fillInPlayground(
           null,
