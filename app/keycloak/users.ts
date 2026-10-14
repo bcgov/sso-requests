@@ -218,7 +218,15 @@ export const listRoleUsers = async (
     first,
     max,
   });
-  return users;
+
+  const filterByIdps = users.filter(
+    (user) =>
+      !!user?.username &&
+      (user.username.startsWith('service-account-') ||
+        !!integration?.devIdps?.includes(user.username.split('@')[1] ?? '')),
+  );
+
+  return filterByIdps;
 };
 
 export const listUserRoles = async (
