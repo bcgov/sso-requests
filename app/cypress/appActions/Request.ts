@@ -11,6 +11,10 @@ const regex = new RegExp('@[0-9]{17}');
 
 // Dealing with tracking file
 const filePath = 'cypress/fixtures/createdrequest.json';
+
+// Provisioning (submitted -> planned -> applied) runs asynchronously after submit.
+const INTEGRATION_APPLY_TIMEOUT = 10 * 60 * 1000;
+const INTEGRATION_FAILED_STATUSES = ['prFailed', 'planFailed', 'applyFailed'];
 // The content to write to the file if it doesn't exist
 const fileContent: any[] = [];
 
@@ -272,6 +276,12 @@ class Request {
       cy.intercept('POST', '/api/requests-all', (req) => resolve(req)).as('adminSubmit');
     });
 
+    // The dashboard polls this while any integration is in progress. Strip If-None-Match so responses are never an
+    // empty 304, and every poll carries the current statuses.
+    cy.intercept({ method: 'GET', pathname: '/api/requests', query: { include: 'active' } }, (req) => {
+      delete req.headers['if-none-match'];
+    }).as('integrationList');
+
     this.reqPage.confirmDelete(this.conFirm);
 
     cy.wrap(firstRequest).then(() => {
@@ -281,7 +291,9 @@ class Request {
     // Make sure the commit has been done.
     cy.get(this.reqPage.integrationsTable, { timeout: 60000 });
 
-    cy.get(this.reqPage.integrationsTableStatus).contains('Completed');
+    const fullProjectName = `${this.projectName}@${uid}`;
+    this.waitForIntegrationApplied(fullProjectName);
+    cy.contains('td', fullProjectName, { timeout: 60000 }).parent().contains('td', 'Completed', { timeout: 60000 });
 
     // The role management tabs should not exist for BCSC only integrations
     const nonEmptyIDPs = this.identityProvider.filter((str) => str !== '');
@@ -1162,6 +1174,34 @@ class Request {
       cy.get('#root_prodHomePageUri').clear();
       cy.get('#root_prodHomePageUri').type(prodHomePageUrl);
     }
+  }
+
+  // The dashboard shows both in-progress and failed integrations as "Submitted", so read the real status from its
+  // polling responses. Fails as soon as provisioning fails, instead of later tests timing out on missing tabs.
+  // Only the integration id and status enum are reported, as CI logs are public.
+  waitForIntegrationApplied(fullProjectName: string, deadline?: number) {
+    cy.wait('@integrationList', { timeout: 60000, log: false }).then(({ response }) => {
+      const end = deadline ?? Date.now() + INTEGRATION_APPLY_TIMEOUT;
+      const integrations: { id?: number; projectName?: string; status?: string }[] = Array.isArray(response?.body)
+        ? response.body
+        : [];
+      const integration = integrations.find((item) => item.projectName === fullProjectName);
+      const status = integration?.status;
+      const label = integration ? `Integration ${integration.id}` : 'New integration';
+
+      if (status === 'applied') return;
+      if (status && INTEGRATION_FAILED_STATUSES.includes(status)) {
+        throw new Error(`${label} provisioning failed with status "${status}"`);
+      }
+      if (Date.now() > end) {
+        throw new Error(
+          `${label} was not applied within ${INTEGRATION_APPLY_TIMEOUT / 60000} minutes; last status "${
+            status ?? 'not listed'
+          }"`,
+        );
+      }
+      this.waitForIntegrationApplied(fullProjectName, end);
+    });
   }
 
   getID(name: string) {
