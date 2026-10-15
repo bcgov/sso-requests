@@ -1080,11 +1080,9 @@ class Request {
       .should('be.visible')
       .then(() => {
         let myuuid = uuidv4();
+        const teamFullName = this.teamName + '-' + myuuid;
         cy.log('Team Name: ' + this.teamName);
-        cy.get('[data-testid="team-name"]')
-          .clear()
-          .type(this.teamName + '-' + myuuid);
-        this.teamFullNames.push(this.teamName + '-' + myuuid);
+        cy.get('[data-testid="team-name"]').clear().type(teamFullName);
 
         selectIdirUser(0, 'pathfinder.ssotraining2', 'Pathfinder.SSOTraining2@gov.bc.ca');
 
@@ -1094,6 +1092,10 @@ class Request {
         cy.get('#team-member-role-0').click();
         cy.get('[role="option"]').contains('Admin').click();
         cy.get('[data-testid="create-team"]').scrollIntoView().click({ force: true });
+        // Only track the team for cleanup once it exists, so a failed creation doesn't also fail cleanup.
+        cy.contains('successfully created').then(() => {
+          this.teamFullNames.push(teamFullName);
+        });
       });
   }
 
