@@ -1,4 +1,5 @@
 import { dumpAuthDiagnostics } from '../support/authDiagnostics';
+import { withCheckSso } from '../support/checkSso';
 
 const NAV_TIMEOUT = 60000;
 const NAV_ATTEMPTS = 3;
@@ -43,24 +44,31 @@ class Navigation {
   }
 
   // Client-side route changes only update the URL once the target page's code/data has loaded, which can take longer
-  // than SETTLE_MS on a slow connection. Wait for the URL to leave `fromPath`, but don't fail if it doesn't; the
-  // caller checks where we ended up and retries.
-  private waitForPathChange(fromPath: string, deadline = Date.now() + ROUTE_CHANGE_TIMEOUT) {
+  // than SETTLE_MS on a slow connection, and some pages (e.g. /my-dashboard) redirect onwards after rendering. Wait for
+  // the URL to reach the target, but don't fail if it doesn't; the caller checks where we ended up and retries.
+  private waitForPath(expectedPath: string, deadline = Date.now() + ROUTE_CHANGE_TIMEOUT) {
     cy.location('pathname', { log: false }).then((pathname) => {
-      if (pathname !== fromPath || Date.now() > deadline) return;
+      if (pathname.startsWith(expectedPath) || Date.now() > deadline) return;
       cy.wait(ROUTE_CHANGE_POLL_MS, { log: false });
-      this.waitForPathChange(fromPath, deadline);
+      this.waitForPath(expectedPath, deadline);
     });
   }
 
   // Click a link, let the app settle, and retry if a reload/SSO redirect bounced us back to another page.
+  // The last attempt loads the page directly: clicking a link to the page we are already on (e.g. when a redirect from
+  // /my-dashboard never happened) does nothing.
   private navigate(click: () => void, expectedPath: string, attempts = NAV_ATTEMPTS) {
     this.settle();
     cy.location('pathname').then((pathname) => {
       if (pathname.startsWith(expectedPath)) return;
 
-      click();
-      this.waitForPathChange(pathname);
+      if (attempts <= 1) {
+        cy.log(`Loading ${expectedPath} directly, as clicking through left us on ${pathname}`);
+        withCheckSso(() => cy.visit(expectedPath));
+      } else {
+        click();
+      }
+      this.waitForPath(expectedPath);
       this.settle();
 
       cy.location('pathname').then((finalPath) => {
