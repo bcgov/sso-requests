@@ -1,5 +1,6 @@
 import data from '../../fixtures/capitalization-fixtures.json'; // The data file will drive the tests
 import Request from '../../appActions/Request';
+import { skipUnlessCreated } from '../../support/skip';
 import Utilities from '../../appActions/Utilities';
 import Playground from '../../pageObjects/playgroundPage';
 import DashboardPage from '../../pageObjects/dashboardPage';
@@ -46,7 +47,8 @@ describe('Create Integration Requests For login page capitalization', () => {
       });
     });
 
-    it('Delete the request', () => {
+    it('Delete the request', function () {
+      skipUnlessCreated(this, req);
       cy.login();
       req.deleteRequest(req.id);
     });

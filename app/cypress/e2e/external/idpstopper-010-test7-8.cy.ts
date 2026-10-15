@@ -2,6 +2,7 @@
 
 import data from '../../fixtures/idpstopper.json';
 import Request from '../../appActions/Request';
+import { skipUnlessCreated } from '../../support/skip';
 import { kebabCase } from 'lodash';
 import Utilities from '../../appActions/Utilities';
 import Playground from '../../pageObjects/playgroundPage';
@@ -62,7 +63,8 @@ describe('Run IDP Stopper Test', () => {
         });
       });
 
-      it('Delete the request', () => {
+      it('Delete the request', function () {
+        skipUnlessCreated(this, req);
         cy.login();
         req.deleteRequest(req.id);
       });

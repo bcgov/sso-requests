@@ -570,6 +570,8 @@ class Request {
   }
 
   deleteRequest(id: string) {
+    // No id means the integration was never created; an empty id would also match every row.
+    if (!id) return;
     cy.log('Delete Request: ' + id);
     this.navigation.goToMyDashboard();
     // identify first column

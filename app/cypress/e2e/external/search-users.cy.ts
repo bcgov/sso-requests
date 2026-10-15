@@ -5,6 +5,7 @@ import Playground from '../../pageObjects/playgroundPage';
 import Utilities from '../../appActions/Utilities';
 import { kebabCase } from 'lodash';
 import DashboardPage from '../../pageObjects/dashboardPage';
+import { skipUnlessCreated } from '../../support/skip';
 
 let util = new Utilities();
 let playground = new Playground();
@@ -58,7 +59,8 @@ describe('Create Integration Requests', () => {
     if (util.runOk(value)) {
       it(`Search for user: "${value.id + '@' + util.getDate()}": ${value.environment} - ${value.idp} - ${
         value.criterion
-      }`, () => {
+      }`, function () {
+        skipUnlessCreated(this, req);
         cy.login();
 
         let searchValue = value.search_value;

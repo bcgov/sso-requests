@@ -3,6 +3,7 @@
 import data from '../../fixtures/requests-roles.json'; // The data file will drive the tests
 import Request from '../../appActions/Request';
 import Utilities from '../../appActions/Utilities';
+import { skipUnlessCreated } from '../../support/skip';
 let util = new Utilities();
 let testData = data;
 
@@ -38,19 +39,23 @@ describe('Create Integration Requests for Roles Testing', () => {
         req.createRequest();
       });
 
-      it(`Can add roles to the request`, () => {
+      it(`Can add roles to the request`, function () {
+        skipUnlessCreated(this, req);
         req.addRoles();
       });
 
-      it(`Can add users to the roles`, () => {
+      it(`Can add users to the roles`, function () {
+        skipUnlessCreated(this, req);
         req.addUserToRoles();
       });
 
-      it(`Can create composite roles`, () => {
+      it(`Can create composite roles`, function () {
+        skipUnlessCreated(this, req);
         req.createCompositeRoles();
       });
 
-      it(`Can remove roles`, () => {
+      it(`Can remove roles`, function () {
+        skipUnlessCreated(this, req);
         req.removeRoles();
       });
     }

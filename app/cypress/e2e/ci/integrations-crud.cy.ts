@@ -4,6 +4,7 @@ import data from '../../fixtures/requests.json'; // The data file will drive the
 import Request from '../../appActions/Request';
 import Utilities from '../../appActions/Utilities';
 import DashboardPage from '../../pageObjects/dashboardPage';
+import { skipUnlessCreated } from '../../support/skip';
 let testData = data;
 let util = new Utilities();
 const dashboardPage = new DashboardPage();
@@ -38,7 +39,8 @@ describe('Create Integration Requests', () => {
         creation = req.createRequest();
       });
 
-      it(`Validate creation of ${data.create.projectname}`, () => {
+      it(`Validate creation of ${data.create.projectname}`, function () {
+        skipUnlessCreated(this, req);
         // Ensure async cypress operations (e.g setting the id) are complete
         // Before attempting validation.
         creation?.then(() => {
@@ -48,7 +50,8 @@ describe('Create Integration Requests', () => {
       });
 
       if (data.approvals) {
-        it('Approves the required idps', () => {
+        it('Approves the required idps', function () {
+          skipUnlessCreated(this, req);
           cy.login(util.cssAdmin);
 
           if (data.approvals.bceid) {
@@ -69,13 +72,15 @@ describe('Create Integration Requests', () => {
         });
       }
 
-      it(`Update ${data.create.projectname}`, () => {
+      it(`Update ${data.create.projectname}`, function () {
+        skipUnlessCreated(this, req);
         cy.login();
         req.populateUpdateContent(data);
         req.updateRequest(req.id);
       });
 
-      it(`Validate update of ${data.create.projectname}`, () => {
+      it(`Validate update of ${data.create.projectname}`, function () {
+        skipUnlessCreated(this, req);
         cy.login();
         req.populateUpdateValidationContent(data);
         req.validateRequest(req.id);
