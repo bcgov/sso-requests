@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import TeamPage from '../pageObjects/teamPage';
 import Navigation from './Navigation';
+import { selectIdirUser } from '../support/idirSearch';
 const regex = new RegExp('[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}');
 
 interface User {
@@ -45,10 +46,7 @@ class Team {
             if (n > 0) {
               cy.get(this.teamPage.addUser, { timeout: 10000 }).first().scrollIntoView().click({ force: true });
             }
-            cy.get(`[data-testid="team-member-email-input-${n}"]`, { timeout: 10000 })
-              .type(this.userEmail[n], { delay: 50 })
-              .trigger('select');
-            cy.get('[role="option"]').contains(new RegExp(this.userEmail[n], 'i')).click();
+            selectIdirUser(n, this.userEmail[n], new RegExp(this.userEmail[n], 'i'));
             cy.realPress('Tab');
             cy.get(`#team-member-role-${n}`).click();
             cy.get('[role="option"]').contains(new RegExp(this.userRole[n], 'i')).click();
@@ -137,12 +135,8 @@ class Team {
               cy.get(this.teamPage.addUser, { timeout: 10000 }).first().scrollIntoView().trigger('click');
             }
 
-            cy.get(`[data-testid="team-member-email-input-${n}"]`).closest('[class*="select"]').click();
-
-            cy.get(`[data-testid="team-member-email-input-${n}"]`).type(this.addUser[n]['useremail'].toString(), {
-              delay: 50,
-            });
-            cy.get('[role="option"]').contains(new RegExp(this.addUser[n]['useremail'].toString(), 'i')).click();
+            const email = this.addUser[n]['useremail'].toString();
+            selectIdirUser(n, email, new RegExp(email, 'i'));
             cy.realPress('Tab');
             cy.get(`#team-member-role-${n}`).click();
             cy.get('[role="option"]')

@@ -4,6 +4,8 @@ const NAV_TIMEOUT = 60000;
 const NAV_ATTEMPTS = 3;
 const SETTLE_MS = 1500;
 const AUTH_RELOAD_ATTEMPTS = 2;
+const ROUTE_CHANGE_TIMEOUT = 30000;
+const ROUTE_CHANGE_POLL_MS = 250;
 
 const loginButton = '[data-testid="desktop-login-button"]';
 const logoutButton = '[data-testid="desktop-logout-button"]';
@@ -40,6 +42,17 @@ class Navigation {
     this.waitForAppReady();
   }
 
+  // Client-side route changes only update the URL once the target page's code/data has loaded, which can take longer
+  // than SETTLE_MS on a slow connection. Wait for the URL to leave `fromPath`, but don't fail if it doesn't; the
+  // caller checks where we ended up and retries.
+  private waitForPathChange(fromPath: string, deadline = Date.now() + ROUTE_CHANGE_TIMEOUT) {
+    cy.location('pathname', { log: false }).then((pathname) => {
+      if (pathname !== fromPath || Date.now() > deadline) return;
+      cy.wait(ROUTE_CHANGE_POLL_MS, { log: false });
+      this.waitForPathChange(fromPath, deadline);
+    });
+  }
+
   // Click a link, let the app settle, and retry if a reload/SSO redirect bounced us back to another page.
   private navigate(click: () => void, expectedPath: string, attempts = NAV_ATTEMPTS) {
     this.settle();
@@ -47,6 +60,7 @@ class Navigation {
       if (pathname.startsWith(expectedPath)) return;
 
       click();
+      this.waitForPathChange(pathname);
       this.settle();
 
       cy.location('pathname').then((finalPath) => {

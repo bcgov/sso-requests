@@ -5,6 +5,7 @@ import DashboardPage from '../pageObjects/dashboardPage';
 import HomePage from '../pageObjects/homePage';
 import Utilities from '../appActions/Utilities';
 import Navigation from './Navigation';
+import { selectIdirUser } from '../support/idirSearch';
 let util = new Utilities();
 
 const regex = new RegExp('@[0-9]{17}');
@@ -1085,13 +1086,7 @@ class Request {
           .type(this.teamName + '-' + myuuid);
         this.teamFullNames.push(this.teamName + '-' + myuuid);
 
-        cy.get('[data-testid="team-member-email-input-0"]').focus().clear();
-        cy.get('[data-testid="team-member-email-input-0"]').type('pathfinder.ssotraining2', {
-          force: true,
-          delay: 20,
-        });
-
-        cy.contains('[role="option"]', 'Pathfinder.SSOTraining2@gov.bc.ca').click();
+        selectIdirUser(0, 'pathfinder.ssotraining2', 'Pathfinder.SSOTraining2@gov.bc.ca');
 
         cy.realPress('Tab');
         cy.realPress('Tab');
