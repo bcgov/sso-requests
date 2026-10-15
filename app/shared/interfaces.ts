@@ -42,7 +42,7 @@ export interface UserTeam {
 
 export interface Session {
   idir_userid: string;
-  email?: string;
+  email: string;
   client_roles: string[];
   given_name: string;
   family_name: string;
