@@ -13,6 +13,7 @@ const regex = new RegExp('@[0-9]{17}');
 const filePath = 'cypress/fixtures/createdrequest.json';
 
 // Provisioning (submitted -> planned -> applied) runs asynchronously after submit.
+const PROJECT_NAME_MAX_LENGTH = 50;
 const INTEGRATION_APPLY_TIMEOUT = 10 * 60 * 1000;
 const INTEGRATION_FAILED_STATUSES = ['prFailed', 'planFailed', 'applyFailed'];
 // The content to write to the file if it doesn't exist
@@ -174,8 +175,11 @@ class Request {
     // Appending timestamp as a unique identifier to prevent name clashes when running in parallel
     const uid = util.getDate();
     this.uid = uid;
+    // The form limits project names to 50 characters and truncates longer typed input, so the name must be cut here
+    // to match what is saved and listed.
+    const fullProjectName = `${this.projectName}@${uid}`.slice(0, PROJECT_NAME_MAX_LENGTH);
 
-    this.reqPage.setProjectName(this.projectName + '@' + uid);
+    this.reqPage.setProjectName(fullProjectName);
     this.reqPage.setTeam(this.usesTeam);
     if (this.usesTeam) {
       if (this.newteam) {
@@ -291,7 +295,6 @@ class Request {
     // Make sure the commit has been done.
     cy.get(this.reqPage.integrationsTable, { timeout: 60000 });
 
-    const fullProjectName = `${this.projectName}@${uid}`;
     this.waitForIntegrationApplied(fullProjectName);
     cy.contains('td', fullProjectName, { timeout: 60000 }).parent().contains('td', 'Completed', { timeout: 60000 });
 
