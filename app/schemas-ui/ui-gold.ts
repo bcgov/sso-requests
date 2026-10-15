@@ -369,6 +369,9 @@ const getUISchema = ({
     description: {
       'ui:widget': 'textarea',
     },
+    entraGuestAccountsEnabled: {
+      'ui:widget': SwitchWidget,
+    },
     ...bcServicesCardFields,
     ...tokenFields,
   };

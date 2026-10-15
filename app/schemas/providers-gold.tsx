@@ -277,7 +277,7 @@ export default function getSchema(
       type: 'boolean',
       title: 'Allow Guest Accounts',
       tooltip: {
-        content: `Allow Guest Account users to access your application.`,
+        content: `Allow Guest Account users to access your project.`,
       },
       default: false,
     };

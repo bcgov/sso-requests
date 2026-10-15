@@ -194,6 +194,10 @@ describe('should allow searching and importing azure idir users', () => {
       },
     });
     const result = await searchAzureIdirUsers('mail', 'search');
+    // verify that the decoded url contains userType filter
+    expect(decodeURIComponent((axios.request as jest.Mock).mock.calls[0][0].url)).toContain(
+      " and (userType eq 'Member')",
+    );
     expect(result.status).toBe(200);
     expect(result.body.length).toEqual(2);
   });

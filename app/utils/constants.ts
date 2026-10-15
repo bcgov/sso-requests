@@ -491,8 +491,6 @@ export const SDX_ENVIRONMENTS = {
 
 export const KC_ENTRA_IDP_REALM = 'bcgovidir';
 
-export const ENTRA_CUSTOM_CLAIM_MAPPING_POLICY_ID = '600bfa8b-1ae5-4d5c-ba03-56f63c490ff7';
-
 export const KC_PS256_KEY_PROVIDER_ID = 'entra-rsa-generated-ps256-4096';
 
 export const DISCONTINUED_IDPS = ['idir', 'azureidir'];
