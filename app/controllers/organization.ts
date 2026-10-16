@@ -197,11 +197,11 @@ export const addOrganizationMember = async (
     defaults: { organizationId, userId: user.id, role: data.role },
   });
 
+  if (!created) throw new createHttpError.Conflict('user is already a member of this organization');
+
   orgEvent(session, organizationId, EVENTS.ORGANIZATION_MEMBER_ADDED, { userId: user.id, role: data.role });
-  if (created) {
-    const organization = await getOrganizationById(organizationId);
-    if (organization) await notifyOrganizationTeam(organization, { action: 'member-added', member: user });
-  }
+  const organization = await getOrganizationById(organizationId);
+  if (organization) await notifyOrganizationTeam(organization, { action: 'member-added', member: user });
   return member;
 };
 

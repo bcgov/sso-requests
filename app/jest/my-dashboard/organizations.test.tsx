@@ -1,8 +1,10 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import OrganizationList from '@app/page-partials/my-dashboard/OrganizationList';
 import OrganizationInfoTabs from '@app/page-partials/my-dashboard/OrganizationInfoTabs';
+import TopAlertProvider, { TopAlert } from '@app/layout/TopAlert';
 import { PRESETS } from '@sso/authz';
 import {
+  addOrganizationMember,
   createOrganizationApiAccount,
   deleteOrganization,
   deleteOrganizationApiAccount,
@@ -16,6 +18,10 @@ import {
   getTeamIntegrationsForOrganization,
   updateOrganizationApiAccountSecret,
 } from '@app/services/organization';
+
+jest.mock('@app/utils/users', () => ({
+  throttledIdirSearch: jest.fn(async () => [{ value: 'member-12@gov.bc.ca', label: 'member-12@gov.bc.ca' }]),
+}));
 
 jest.mock('@app/services/organization', () => ({
   addOrganizationMember: jest.fn(),
@@ -40,6 +46,7 @@ const organization = { id: 1, name: 'Alpha', description: 'Alpha organization', 
 const cssAdmin = { email: 'admin@gov.bc.ca', isAdmin: true, client_roles: ['sso-admin'] };
 const organizationAdmin = { email: 'org-admin@gov.bc.ca', isAdmin: false, client_roles: ['user'] };
 
+const mockedAddOrganizationMember = jest.mocked(addOrganizationMember);
 const mockedCreateOrganizationApiAccount = jest.mocked(createOrganizationApiAccount);
 const mockedDeleteOrganization = jest.mocked(deleteOrganization);
 const mockedDeleteOrganizationApiAccount = jest.mocked(deleteOrganizationApiAccount);
@@ -321,6 +328,54 @@ describe('Organization management', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'remove-organization-member-11' }));
     expect(mockedRemoveOrganizationMember).not.toHaveBeenCalled();
+  });
+
+  it('tells the admin when the person they add is already a member', async () => {
+    // The list the screen holds is stale, so only the server can say they are already in.
+    mockedGetOrganizationMembers.mockResolvedValue([[member(11, 'admin')], null]);
+    mockedAddOrganizationMember.mockResolvedValue([null, 'user is already a member of this organization' as any]);
+    render(
+      <TopAlertProvider>
+        <TopAlert>
+          <OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />
+        </TopAlert>
+      </TopAlertProvider>,
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: '+ Add Member' }));
+    const input = document.getElementById('org-member-email') as HTMLElement;
+    fireEvent.change(input, { target: { value: 'member-12' } });
+    fireEvent.click(await screen.findByRole('option', { name: 'member-12@gov.bc.ca' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+
+    await waitFor(() =>
+      expect(mockedAddOrganizationMember).toHaveBeenCalledWith(organization.id, {
+        idirEmail: 'member-12@gov.bc.ca',
+        role: 'member',
+      }),
+    );
+    expect(
+      await screen.findByText('member-12@gov.bc.ca is already a member of this organization.'),
+    ).toBeInTheDocument();
+  });
+
+  it('flags an existing member as soon as they are picked, without calling the server', async () => {
+    render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
+
+    fireEvent.click(await screen.findByRole('button', { name: '+ Add Member' }));
+    const input = document.getElementById('org-member-email') as HTMLElement;
+    fireEvent.change(input, { target: { value: 'member-12' } });
+    fireEvent.click(await screen.findByRole('option', { name: 'member-12@gov.bc.ca' }));
+
+    expect(
+      await screen.findByText('member-12@gov.bc.ca is already a member of this organization.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add' })).toBeDisabled();
+    expect(mockedAddOrganizationMember).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.click(await screen.findByRole('button', { name: '+ Add Member' }));
+    expect(screen.queryByText(/is already a member of this organization/)).not.toBeInTheDocument();
   });
 
   it('changes a member’s role', async () => {

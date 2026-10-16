@@ -42,6 +42,7 @@ import {
   hasOrganizationPermission,
   organizationPermissions,
 } from '@app/utils/authorize';
+import ErrorText from 'components/ErrorText';
 import { throttledIdirSearch } from '@app/utils/users';
 
 const Panel = styled.div`
@@ -201,11 +202,28 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
 
   const fail = (content: string) => alert.show({ variant: 'danger', fadeOut: 10000, closable: true, content });
 
-  const handleAddMember = async () => {
-    const [, err] = await addOrganizationMember(organization.id, { idirEmail: memberEmail, role: memberRole });
-    if (err) return fail('Could not add that member.');
-    setMemberEmail('');
+  const memberAlreadyAdded = members.some(
+    (member) => memberEmail !== '' && member.user?.idirEmail?.toLowerCase() === memberEmail.toLowerCase(),
+  );
+
+  const closeMemberModal = () => {
     setOpenMemberModal(false);
+    setMemberEmail('');
+    setMemberRole('member');
+  };
+
+  const handleAddMember = async () => {
+    if (memberAlreadyAdded) return;
+    const [, err] = await addOrganizationMember(organization.id, { idirEmail: memberEmail, role: memberRole });
+    if (err) {
+      const message = String(err);
+      return fail(
+        message.includes('already a member')
+          ? `${memberEmail} is already a member of this organization.`
+          : 'Could not add that member.',
+      );
+    }
+    closeMemberModal();
     reload();
   };
 
@@ -438,11 +456,12 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
       <CenteredModal
         id="add-org-member-modal"
         openModal={openMemberModal}
-        handleClose={() => setOpenMemberModal(false)}
+        handleClose={closeMemberModal}
         title="Add Organization Member"
         icon={false}
         closable
         confirmText="Add"
+        disableConfirm={memberAlreadyAdded}
         onConfirm={handleAddMember}
         content={
           <div>
@@ -462,6 +481,11 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
                 Input: (props) => <components.Input {...props} data-testid="org-member-email-input" />,
               }}
             />
+            {memberAlreadyAdded && (
+              <div>
+                <ErrorText>{memberEmail} is already a member of this organization.</ErrorText>
+              </div>
+            )}
             <label htmlFor="org-member-role">Role</label>
             <Dropdown
               inputId="org-member-role"

@@ -410,7 +410,7 @@ describe('organizations', () => {
       expect(members.map((member: any) => member.role).sort()).toEqual(['admin', 'member']);
     });
 
-    it('notifies a member when they are newly added or removed', async () => {
+    it('notifies a member when they are added or removed, and refuses a duplicate add', async () => {
       const emailList = createMockSendEmail();
       const id = await throwaway('Ministry of Membership Notifications');
 
@@ -422,7 +422,9 @@ describe('organizations', () => {
       });
       expect(emailList[0].body).toContain('You have been added to organization Ministry of Membership Notifications');
 
-      await addOrganizationMember(await asSsoAdmin(), id, { idirEmail: ORG_MEMBER_EMAIL, role: 'admin' });
+      await expect(
+        addOrganizationMember(await asSsoAdmin(), id, { idirEmail: ORG_MEMBER_EMAIL, role: 'admin' }),
+      ).rejects.toThrow(/already a member/);
       expect(emailList).toHaveLength(1);
 
       await removeOrganizationMember(await asSsoAdmin(), id, (await asOrgMember()).user!.id as number);
