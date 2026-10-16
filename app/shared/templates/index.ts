@@ -22,6 +22,7 @@ import orphanIntegration from './orphan-integration';
 import { getEmailTemplate, isNonProdDigitalCredentialRequest } from './helpers';
 import disableBcscIdp from './disable-bcsc-idp';
 import teamMemberAdded from './team-member-added';
+import organizationTeamNotification from './organization-team-notification';
 
 import { logger } from '@app/utils/logger';
 
@@ -127,6 +128,9 @@ const getBuilder = (key: string) => {
       break;
     case EMAILS.TEAM_MEMBER_ADDED:
       builder = teamMemberAdded;
+      break;
+    case EMAILS.ORGANIZATION_TEAM_NOTIFICATION:
+      builder = organizationTeamNotification;
       break;
     case EMAILS.TEAM_MEMBER_DELETED_ADMINS:
       builder = teamMemberDeletedAdmins;
