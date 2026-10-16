@@ -16,7 +16,7 @@ export default defineConfig({
   experimentalModifyObstructiveThirdPartyCode: true,
   numTestsKeptInMemory: 0,
   viewportHeight: 1080,
-  pageLoadTimeout: 120000,
+  pageLoadTimeout: 60000,
   viewportWidth: 1920,
   video: false,
   reporter: 'mochawesome',

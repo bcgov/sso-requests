@@ -146,3 +146,73 @@ jobs:
           name: keycloak-e2e-mochawesome
           path: app/mochawesome-report/
           if-no-files-found: warn
+
+  integrations:
+    runs-on: ubuntu-latest
+    needs: [pre-reqs]
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Mask sensitive Cypress user fields
+        shell: bash
+        env:
+          CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
+        run: |
+          set -euo pipefail
+          # Values are base64-encoded by jq so that credentials containing
+          # newlines survive the read loop intact; ::add-mask:: needs each
+          # value on a single line with %-escaped control characters.
+          encoded=$(jq -r '.[] | (.username, .password, .otpsecret, .email)
+                           | select(. != null and . != "") | @base64' <<< "$CYPRESS_users")
+          if [ -z "$encoded" ]; then
+            echo "::error::No Cypress credentials found to mask; refusing to run with unmasked secrets."
+            exit 1
+          fi
+          while IFS= read -r b64; do
+            val=$(printf '%s' "$b64" | base64 -d)
+            escaped=$(printf '%s' "$val" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g')
+            printf '::add-mask::%s\n' "$escaped"
+          done <<< "$encoded"
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Install app dependencies
+        run: yarn install --frozen-lockfile --ignore-scripts
+        working-directory: app
+
+      - name: Install Cypress binary
+        run: ./node_modules/.bin/cypress install
+        working-directory: app
+
+      - name: E2E Tests
+        uses: cypress-io/github-action@be1bab96b388bbd9ce3887e397d373c8557e15af # v6.9.2
+        id: smoke
+        continue-on-error: false
+        env:
+          CYPRESS_users: ${{ secrets.CYPRESS_USERS }}
+          CYPRESS_guid: ${{ secrets.CYPRESS_GUID }}
+          CYPRESS_loginproxy: ${{ secrets.CYPRESS_LOGINPROXY }}
+          CYPRESS_siteminder: ${{ secrets.CYPRESS_SITEMINDER }}
+        with:
+          summary-title: 'E2E tests'
+          wait-on: 'https://sso-requests-sandbox.apps.gold.devops.gov.bc.ca/'
+          wait-on-timeout: 360
+          install: false
+          working-directory: app
+          spec: |
+            cypress/e2e/ci/integrations-crud.cy.ts
+            cypress/e2e/external/integration-roles.cy.ts
+            cypress/e2e/external/search-users.cy.ts
+          browser: chrome
+
+      - name: Upload E2E Mochawesome report
+        if: ${{ !cancelled() && steps.smoke.outcome != 'skipped' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: keycloak-e2e-mochawesome
+          path: app/mochawesome-report/
+          if-no-files-found: warn
