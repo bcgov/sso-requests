@@ -157,8 +157,10 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
     setMembers(memberResult || []);
     const [linkResult] = await getOrganizationTeams(organization.id);
     setLinks(linkResult || []);
-    const [accountResult] = await getOrganizationApiAccounts(organization.id);
-    setAccounts(accountResult || []);
+    if (canManageApiAccounts) {
+      const [accountResult] = await getOrganizationApiAccounts(organization.id);
+      setAccounts(accountResult || []);
+    }
   };
 
   useEffect(() => {
@@ -427,7 +429,9 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
         items={[
           { key: 'members', label: 'Members', children: membersTab },
           { key: 'teams', label: 'Teams', children: teamsTab },
-          { key: 'api-accounts', label: 'CSS API Account', children: apiAccountsTab },
+          ...(canManageApiAccounts
+            ? [{ key: 'api-accounts', label: 'CSS API Account', children: apiAccountsTab }]
+            : []),
         ]}
       />
 

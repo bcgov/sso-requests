@@ -259,17 +259,12 @@ describe('Organization deletion', () => {
     expect(screen.getByRole('button', { name: 'copy-credentials' })).toHaveAttribute('aria-disabled', 'false');
   });
 
-  it('holds the API account actions back from an ordinary organization member', async () => {
+  it('hides the API account from an ordinary organization member', async () => {
     render(<OrganizationInfoTabs organization={{ ...organization, role: 'member' }} currentUser={organizationAdmin} />);
 
-    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
-    expect(await screen.findByText('service-account-org-1-11')).toBeInTheDocument();
-    ['copy-credentials', 'download-credentials', 'update-secret', 'delete-api-account'].forEach((name) => {
-      expect(screen.getByRole('button', { name })).toHaveAttribute('aria-disabled', 'true');
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: 'delete-api-account' }));
-    expect(screen.queryByText(/Are you sure that you want to delete this CSS API Account/)).not.toBeInTheDocument();
+    await screen.findByRole('tab', { name: 'Members' });
+    expect(screen.queryByRole('tab', { name: 'CSS API Account' })).not.toBeInTheDocument();
+    expect(mockedGetOrganizationApiAccounts).not.toHaveBeenCalled();
   });
 });
 

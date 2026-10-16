@@ -611,6 +611,10 @@ describe('organizations', () => {
   });
 
   describe('the api account', () => {
+    it('is not listed to an ordinary organization member', async () => {
+      await expect(listOrganizationApiAccounts(await asOrgMember(), organizationId)).rejects.toThrow();
+    });
+
     it('is held once per organization, as a team holds one', async () => {
       const session = await asOrgAdmin();
       const account = await createOrganizationApiAccount(session, organizationId);

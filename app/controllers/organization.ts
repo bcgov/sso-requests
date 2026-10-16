@@ -410,7 +410,7 @@ const API_ACCOUNT_ATTRIBUTES = [
 ];
 
 export const listOrganizationApiAccounts = async (session: Session, organizationId: number) => {
-  await assertOrganization(session, organizationId, organizationPermissions.VIEW_ORGANIZATION);
+  await assertOrganization(session, organizationId, organizationPermissions.MANAGE_ORG_API_ACCOUNTS);
   return models.request.findAll({
     where: { organizationId, apiServiceAccount: true, archived: false },
     attributes: API_ACCOUNT_ATTRIBUTES,
