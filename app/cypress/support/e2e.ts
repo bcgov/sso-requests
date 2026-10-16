@@ -15,7 +15,6 @@
 
 // Import commands.js using ES2015 syntax:
 import './commands';
-import { startAuthDiagnostics } from './authDiagnostics';
 
 // keycloak-js loads Keycloak's 3p-cookies/step1.html in an iframe on every page load. That response sets a cookie, and
 // Cypress's proxy holds cross-origin Set-Cookie responses until the runner acknowledges them, with no timeout. If the
@@ -30,20 +29,8 @@ const stubThirdPartyCookieCheck = () => {
   });
 };
 
-// In CI, requests through Cypress's proxy intermittently never get a response (token POSTs, page loads), always after
-// the connection had been idle for a while. That fits the proxy reusing a keep-alive connection that something on the
-// network path silently dropped. Asking the upstream to close each connection stops it being reused.
-const disableUpstreamKeepAlive = () => {
-  cy.intercept({ url: /^https:\/\//, middleware: true }, (req) => {
-    req.headers['connection'] = 'close';
-  });
-};
-
 beforeEach(() => {
-  disableUpstreamKeepAlive();
-  // Registered before the diagnostics intercept so the diagnostics handler still sees (and logs) the request.
   stubThirdPartyCookieCheck();
-  startAuthDiagnostics();
 });
 
 // Alternatively you can use CommonJS syntax:

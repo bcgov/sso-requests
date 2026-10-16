@@ -2,7 +2,6 @@ import 'cypress-plugin-api';
 import 'cypress-real-events';
 import HomePage from '../pageObjects/homePage';
 import Utilities from '../appActions/Utilities';
-import { dumpAuthDiagnostics } from './authDiagnostics';
 import { withCheckSso } from './checkSso';
 const utils = new Utilities();
 
@@ -23,11 +22,7 @@ const validateSession = () => {
   cy.get(`${loginButton}, ${logoutButton}`, { timeout: SESSION_VALIDATE_TIMEOUT })
     .should('be.visible')
     .then(($button) => {
-      if ($button.is(loginButton)) {
-        dumpAuthDiagnostics('Restored session is not authenticated').then(() => {
-          throw new Error('Restored session is not authenticated');
-        });
-      }
+      if ($button.is(loginButton)) throw new Error('Restored session is not authenticated');
     });
 };
 
@@ -44,7 +39,6 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
       cy.session(
         `${username}-${idp}`,
         () => {
-          dumpAuthDiagnostics(`cy.session setup started for ${idp} login (no cached session, or validation failed)`);
           cy.visit(Cypress.expose('host') || '/');
           cy.contains(home.title);
           home.clickLoginButton();
@@ -61,7 +55,6 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
         () => {
           if (!foundItem.otpsecret) throw new Error(`No OTP secret found for ${username}`);
 
-          dumpAuthDiagnostics(`cy.session setup started for ${idp} login (no cached session, or validation failed)`);
           cy.visit(Cypress.expose('host') || '/');
           cy.contains(home.title);
           home.clickLoginButton();

@@ -38,10 +38,6 @@ export default defineConfig({
         smoketest: config.env.smoketest ?? false,
       };
       on('task', {
-        log(message: string) {
-          console.log(message);
-          return null;
-        },
         // Generated at the moment the code is typed so it can't expire during a slow login flow.
         // If the current TOTP window is about to roll over, wait for the next one.
         async generateOTP(secret: string) {
@@ -52,14 +48,6 @@ export default defineConfig({
           }
           return generate({ secret, guardrails: otpGuardrails });
         },
-      });
-      on('before:browser:launch', (browser, launchOptions) => {
-        if (browser.family === 'chromium' && (browser.name === 'chrome' || browser.name === 'chromium')) {
-          // If the browser is Chrome or Chromium, add the flags to expose the `gc` function and disable GPU
-          launchOptions.args.push('--js-flags=--expose-gc');
-          launchOptions.args.push('--disable-gpu');
-        }
-        return launchOptions;
       });
       return config;
     },
