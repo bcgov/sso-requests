@@ -1,13 +1,6 @@
 import { models } from '@app/shared/sequelize/models/models';
 import { Session } from '@app/shared/interfaces';
-import {
-  getAllowedIdpsForApprover,
-  isBceidApprover,
-  isBcServicesCardApprover,
-  isBcgovIdirApprover,
-  isGithubApprover,
-  isOTPApprover,
-} from '@app/utils/helpers';
+import { isBceidApprover, isBcServicesCardApprover, isGithubApprover, isOTPApprover } from '@app/utils/helpers';
 import { Op } from 'sequelize';
 import { isSocialApprover } from '@app/utils/helpers';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
@@ -67,8 +60,6 @@ export const getEvents = async (
     if (isOTPApprover(session)) approvedKeys.push('otpApproved');
 
     if (isBcServicesCardApprover(session)) approvedKeys.push('bcServicesCardApproved');
-
-    if (isBcgovIdirApprover(session)) approvedKeys.push('bcgovidirApproved');
 
     if (isSocialApprover(session)) approvedKeys.push('socialApproved');
 

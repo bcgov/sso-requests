@@ -100,10 +100,6 @@ export const approvalResetsForRemovedIdps = (originalData: any, updatedData: any
     changedAttrs.bcServicesCardApproved = false;
   }
 
-  if (originalData.bcgovidirApproved && !updatedData.devIdps.some(checkBcgovIdir)) {
-    changedAttrs.bcgovidirApproved = false;
-  }
-
   if (originalData.socialApproved && !updatedData.devIdps.some(checkSocial)) {
     changedAttrs.socialApproved = false;
   }

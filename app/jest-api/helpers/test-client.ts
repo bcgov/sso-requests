@@ -117,7 +117,7 @@ export const testClient = (handler: NextApiHandler, bodyParser = true) => {
       }),
     );
   } catch (err) {
-    console.log('EXCEPTION : ', err);
+    console.error('EXCEPTION : ', err);
     throw new Error('Error creating test client');
   }
 };
