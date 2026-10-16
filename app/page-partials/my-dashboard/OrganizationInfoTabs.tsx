@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Tabs } from '@bcgov-sso/common-react-components';
-import Select from 'react-select';
+import Select, { components, SingleValue } from 'react-select';
 import AsyncSelect from 'react-select/async';
-import { components, SingleValue } from 'react-select';
 import CenteredModal from 'components/CenteredModal';
 import Dropdown from 'components/Dropdown';
 import PresetPicker from 'components/PresetPicker';
