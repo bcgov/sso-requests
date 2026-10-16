@@ -39,13 +39,15 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
       cy.session(
         `${username}-${idp}`,
         () => {
-          cy.visit(Cypress.expose('host') || '/');
+          visitApp();
           cy.contains(home.title);
           home.clickLoginButton();
           cy.get('#user').type(foundItem.username, { log: false });
           cy.get('#password').type(foundItem.password, { log: false });
           cy.get('input[name=btnSubmit]').click();
           cy.contains(home.title);
+          // Wait for keycloak.init to finish, so cy.session doesn't clear the page mid-request.
+          cy.get(logoutButton, { timeout: SESSION_VALIDATE_TIMEOUT }).should('be.visible');
         },
         { cacheAcrossSpecs: true, validate: validateSession },
       );
@@ -55,7 +57,7 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
         () => {
           if (!foundItem.otpsecret) throw new Error(`No OTP secret found for ${username}`);
 
-          cy.visit(Cypress.expose('host') || '/');
+          visitApp();
           cy.contains(home.title);
           home.clickLoginButton();
 
@@ -119,6 +121,7 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
             });
           });
           cy.contains(home.title);
+          cy.get(logoutButton, { timeout: SESSION_VALIDATE_TIMEOUT }).should('be.visible');
         },
         {
           cacheAcrossSpecs: username !== utils.cssAdmin,
@@ -133,14 +136,14 @@ Cypress.Commands.add('login', (username: string = utils.cssUser, idp: 'idir' | '
 
 Cypress.Commands.add('logout', (host) => {
   // Make sure you are on page with log out and logout
-  cy.visit(host || Cypress.expose('host') || '/');
+  withCheckSso(() => cy.visit(host || Cypress.expose('host') || '/'));
   cy.contains('Common Hosted Single Sign-on (CSS)', { timeout: 10000 });
-  cy.get('[data-testid="desktop-logout-button"]', { timeout: 20000 }).should('be.visible');
-  cy.get('[data-testid="desktop-logout-button"]').click({ force: true });
-  // Return to home page
-  cy.visit(host || Cypress.expose('host') || '/');
+  cy.get(logoutButton, { timeout: 20000 }).should('be.visible');
+  // Logout redirects through Keycloak back to the app, which then runs check-sso. Wait for that instead of visiting
+  // the home page again, which would interrupt the redirect.
+  withCheckSso(() => cy.get(logoutButton).click({ force: true }));
   cy.contains('Common Hosted Single Sign-on (CSS)');
-  cy.get('[data-testid="desktop-login-button"]', { timeout: 10000 }).should('be.visible');
+  cy.get(loginButton, { timeout: SESSION_VALIDATE_TIMEOUT }).should('be.visible');
 
   cy.log('Logged out');
 });

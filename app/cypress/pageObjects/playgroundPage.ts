@@ -74,8 +74,11 @@ class PlaygroundPage {
     cy.contains(this.commonButton, 'Login', { timeout: 10000 }).click({ force: true });
   }
 
+  // Logout redirects through Keycloak and back, where the playground runs check-sso again. Wait for it all to finish so
+  // the next command doesn't tear down the page mid-redirect.
   clickLogout() {
-    cy.contains(this.commonButton, 'Logout', { timeout: 10000 }).click({ force: true });
+    withCheckSso(() => cy.contains(this.commonButton, 'Logout', { timeout: 10000 }).click({ force: true }));
+    cy.contains(this.commonButton, 'Login', { timeout: 60000 }).should('be.visible');
   }
 
   checkProviders(providers: string[]) {

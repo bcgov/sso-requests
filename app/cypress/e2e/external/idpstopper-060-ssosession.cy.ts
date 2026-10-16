@@ -6,6 +6,7 @@ with same client without displaying the login page
 with a client and if the same user when authenticates with different client and a different IDP through KC_IDP_HINT,
 the previous session should be removed and allowed to login */
 
+import { withCheckSso } from '../../support/checkSso';
 import Playground from '../../pageObjects/playgroundPage';
 import Utilities from '../../appActions/Utilities';
 let util = new Utilities();
@@ -17,7 +18,7 @@ describe('KC Single Sign on session', () => {
 
   it('Go to CSS App', function () {
     // Same application, same client, same IDP
-    cy.visit('');
+    withCheckSso(() => cy.visit(''));
     cy.get('button', { timeout: 10000 }).contains('Logout').should('exist');
   });
 
@@ -41,7 +42,7 @@ describe('KC Single Sign on session', () => {
   });
 
   it('Go back to CSS App', function () {
-    cy.visit('');
+    withCheckSso(() => cy.visit(''));
     // This tells us that NO session is attached to the user
     cy.get('button', { timeout: 10000 }).contains('Login').should('exist');
     cy.get('button', { timeout: 10000 }).contains('Login').click({ force: true });

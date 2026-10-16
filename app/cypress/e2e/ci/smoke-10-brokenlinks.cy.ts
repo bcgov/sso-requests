@@ -2,9 +2,11 @@
 // This spec is used to check for broken links on the home page, which includes the header and the footer. It checks if the specified links are operational.
 // It does not test if the the links are correct.
 
+import { withCheckSso } from '../../support/checkSso';
+
 describe('Check for Broken Static Link', () => {
   it('Check All Static Links', () => {
-    cy.visit(Cypress.expose('host') || '/');
+    withCheckSso(() => cy.visit(Cypress.expose('host') || '/'));
 
     // Iterate through all the links on the page
     // If the link has an url specified, then check if the link is operational
