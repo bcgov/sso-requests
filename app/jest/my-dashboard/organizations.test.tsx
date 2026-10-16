@@ -10,6 +10,7 @@ import {
   getOrganizationMembers,
   getOrganizationTeams,
   removeOrganizationMember,
+  updateOrganizationMemberRole,
   removeTeamFromOrganization,
   searchTeamsForOrganization,
   getTeamIntegrationsForOrganization,
@@ -29,6 +30,7 @@ jest.mock('@app/services/organization', () => ({
   getTeamIntegrationsForOrganization: jest.fn(),
   inviteTeamToOrganization: jest.fn(),
   removeOrganizationMember: jest.fn(),
+  updateOrganizationMemberRole: jest.fn(),
   removeTeamFromOrganization: jest.fn(),
   searchTeamsForOrganization: jest.fn(),
   updateOrganizationApiAccountSecret: jest.fn(),
@@ -45,6 +47,7 @@ const mockedGetOrganizationApiAccounts = jest.mocked(getOrganizationApiAccounts)
 const mockedGetOrganizationMembers = jest.mocked(getOrganizationMembers);
 const mockedGetOrganizationTeams = jest.mocked(getOrganizationTeams);
 const mockedRemoveOrganizationMember = jest.mocked(removeOrganizationMember);
+const mockedUpdateOrganizationMemberRole = jest.mocked(updateOrganizationMemberRole);
 const mockedRemoveTeamFromOrganization = jest.mocked(removeTeamFromOrganization);
 const mockedSearchTeams = jest.mocked(searchTeamsForOrganization);
 const mockedUpdateOrganizationApiAccountSecret = jest.mocked(updateOrganizationApiAccountSecret);
@@ -323,6 +326,28 @@ describe('Organization management', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'remove-organization-member-11' }));
     expect(mockedRemoveOrganizationMember).not.toHaveBeenCalled();
+  });
+
+  it('changes a member’s role', async () => {
+    mockedGetOrganizationMembers.mockResolvedValue([[member(11, 'admin'), member(12, 'member')], null]);
+    mockedUpdateOrganizationMemberRole.mockResolvedValue([{}, null] as any);
+    render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
+
+    await screen.findByLabelText('organization-member-role-12');
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const select = screen.getByLabelText('organization-member-role-12');
+    fireEvent.mouseDown(select.closest('div[class*="control"]') as HTMLElement);
+    fireEvent.click(await screen.findByRole('option', { name: 'Admin' }));
+
+    await waitFor(() => expect(mockedUpdateOrganizationMemberRole).toHaveBeenCalledWith(organization.id, 12, 'admin'));
+  });
+
+  it('offers no role change for the only admin', async () => {
+    mockedGetOrganizationMembers.mockResolvedValue([[member(11, 'admin'), member(12, 'member')], null]);
+    render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
+
+    await screen.findByLabelText('organization-member-role-12');
+    expect(screen.queryByLabelText('organization-member-role-11')).not.toBeInTheDocument();
   });
 
   it('removes an admin once a second one is there', async () => {

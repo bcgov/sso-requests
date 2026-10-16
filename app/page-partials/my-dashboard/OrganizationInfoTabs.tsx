@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Tabs } from '@bcgov-sso/common-react-components';
+import Select from 'react-select';
 import AsyncSelect from 'react-select/async';
 import { components, SingleValue } from 'react-select';
 import CenteredModal from 'components/CenteredModal';
@@ -27,6 +28,7 @@ import {
   getOrganizationTeams,
   inviteTeamToOrganization,
   removeOrganizationMember,
+  updateOrganizationMemberRole,
   removeTeamFromOrganization,
   searchTeamsForOrganization,
   getTeamIntegrationsForOrganization,
@@ -145,6 +147,7 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
   const canManage = (permission: string) => isSsoAdmin || hasOrganizationPermission(organization.role, permission);
   const canAddMember = canManage(organizationPermissions.ADD_ORG_MEMBER);
   const canRemoveMember = canManage(organizationPermissions.REMOVE_ORG_MEMBER);
+  const canUpdateMemberRole = canManage(organizationPermissions.UPDATE_ORG_MEMBER_ROLE);
   const canInviteTeam = canManage(organizationPermissions.INVITE_TEAM);
   const canRemoveTeam = canManage(organizationPermissions.REMOVE_TEAM);
   const canManageApiAccounts = canManage(organizationPermissions.MANAGE_ORG_API_ACCOUNTS);
@@ -215,6 +218,12 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
     reload();
   };
 
+  const handleChangeRole = async (member: OrganizationMember, role: string) => {
+    const [, err] = await updateOrganizationMemberRole(organization.id, member.userId, role);
+    if (err) return fail('Could not change that member’s role.');
+    reload();
+  };
+
   const handleRemoveMember = async () => {
     if (!memberToRemove) return;
     const [, err] = await removeOrganizationMember(organization.id, memberToRemove.userId);
@@ -264,7 +273,33 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
         enablePagination={false}
         columns={[
           { accessorKey: 'email', header: 'Email' },
-          { accessorKey: 'role', header: 'Role' },
+          {
+            accessorKey: 'role',
+            header: 'Role',
+            cell: (props) => {
+              const member = props.row.original as OrganizationMember;
+              const lastAdmin = member.role === 'admin' && admins.length === 1;
+              const label = member.role === 'admin' ? 'Admin' : 'Member';
+              if (!canUpdateMemberRole || lastAdmin) return label;
+              return (
+                <Select
+                  aria-label={`organization-member-role-${member.userId}`}
+                  options={[
+                    { value: 'member', label: 'Member' },
+                    { value: 'admin', label: 'Admin' },
+                  ]}
+                  value={{ value: member.role, label }}
+                  onChange={(option: { value: string; label: string } | null) =>
+                    option && handleChangeRole(member, option.value)
+                  }
+                  styles={{ menuPortal: (base: any) => ({ ...base, zIndex: 9999 }) }}
+                  menuPortalTarget={document.body}
+                  isSearchable={false}
+                  isClearable={false}
+                />
+              );
+            },
+          },
           {
             accessorKey: 'actions',
             header: () => <ActionsHeader />,
