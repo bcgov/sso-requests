@@ -3,7 +3,8 @@ import { Op } from 'sequelize';
 import { ORG_CONSENTABLE_PERMISSIONS, Permission, isSubset, isValidPermissionSet, sortPermissions } from '@sso/authz';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session } from '@app/shared/interfaces';
-import { EVENTS } from '@app/shared/enums';
+import { EMAILS, EVENTS } from '@app/shared/enums';
+import { sendTemplate } from '@app/shared/templates';
 import { getDisplayName } from '@app/utils/helpers';
 import { lowcase } from '@app/helpers/string';
 import { appPermissions, hasAppPermission, organizationPermissions, teamPermissions } from '@app/utils/authorize';
@@ -47,6 +48,15 @@ const orgEvent = (session: Session, organizationId: number, eventCode: string, d
     idirUserDisplayName: getDisplayName(session),
     details,
   });
+
+const notifyOrganizationTeam = (
+  organization: { id: number; name: string },
+  data: {
+    action: 'invited' | 'accepted' | 'declined' | 'left' | 'removed' | 'member-added' | 'member-removed';
+    team?: { id: number; name: string };
+    member?: { idirEmail: string; additionalEmail?: string | null };
+  },
+) => sendTemplate(EMAILS.ORGANIZATION_TEAM_NOTIFICATION, { organization, ...data });
 
 const validateConsent = (permissions: unknown): Permission[] => {
   if (!isValidPermissionSet(permissions)) {
@@ -182,12 +192,16 @@ export const addOrganizationMember = async (
   const user = await models.user.findOne({ where: { idirEmail: lowcase(data.idirEmail) } });
   if (!user) throw new createHttpError.NotFound(`no user found for ${data.idirEmail}`);
 
-  const [member] = await models.organizationMember.findOrCreate({
+  const [member, created] = await models.organizationMember.findOrCreate({
     where: { organizationId, userId: user.id },
     defaults: { organizationId, userId: user.id, role: data.role },
   });
 
+  if (!created) throw new createHttpError.Conflict('user is already a member of this organization');
+
   orgEvent(session, organizationId, EVENTS.ORGANIZATION_MEMBER_ADDED, { userId: user.id, role: data.role });
+  const organization = await getOrganizationById(organizationId);
+  if (organization) await notifyOrganizationTeam(organization, { action: 'member-added', member: user });
   return member;
 };
 
@@ -222,10 +236,12 @@ export const updateOrganizationMemberRole = async (
 };
 
 export const removeOrganizationMember = async (session: Session, organizationId: number, userId: number) => {
-  await assertOrganization(session, organizationId, organizationPermissions.REMOVE_ORG_MEMBER);
+  const organization = await assertOrganization(session, organizationId, organizationPermissions.REMOVE_ORG_MEMBER);
   await assertNotLastAdmin(organizationId, userId);
-  await models.organizationMember.destroy({ where: { organizationId, userId } });
+  const member = await models.user.findOne({ where: { id: userId } });
+  const deleted = await models.organizationMember.destroy({ where: { organizationId, userId } });
   orgEvent(session, organizationId, EVENTS.ORGANIZATION_MEMBER_REMOVED, { userId });
+  if (deleted && member) await notifyOrganizationTeam(organization, { action: 'member-removed', member });
   return { success: true };
 };
 
@@ -241,7 +257,7 @@ export const inviteTeam = async (
   organizationId: number,
   data: { teamId: number; permissions?: Permission[] },
 ) => {
-  await assertOrganization(session, organizationId, organizationPermissions.INVITE_TEAM);
+  const organization = await assertOrganization(session, organizationId, organizationPermissions.INVITE_TEAM);
 
   const team = await models.team.findOne({ where: { id: data.teamId } });
   if (!team) throw new createHttpError.NotFound(`team #${data.teamId} not found`);
@@ -275,15 +291,19 @@ export const inviteTeam = async (
     }));
 
   orgEvent(session, organizationId, EVENTS.ORGANIZATION_TEAM_INVITED, { teamId: data.teamId, permissions });
+  await notifyOrganizationTeam(organization, { team, action: 'invited' });
   return link;
 };
 
 export const removeTeamFromOrganization = async (session: Session, organizationId: number, teamId: number) => {
-  await assertOrganization(session, organizationId, organizationPermissions.REMOVE_TEAM);
+  const organization = await assertOrganization(session, organizationId, organizationPermissions.REMOVE_TEAM);
   const link = await getOrganizationTeamLink(organizationId, teamId);
   if (!link) throw new createHttpError.NotFound('team is not linked to this organization');
+  const team = await models.team.findOne({ where: { id: teamId } });
+  if (!team) throw new createHttpError.NotFound('team not found');
   await link.destroy();
   orgEvent(session, organizationId, EVENTS.ORGANIZATION_TEAM_LEFT, { teamId, removedBy: 'organization' });
+  await notifyOrganizationTeam(organization, { team, action: 'removed' });
   return { success: true };
 };
 
@@ -300,7 +320,9 @@ export const respondToOrganizationInvitation = async (
   organizationId: number,
   data: { accept: boolean; permissions?: Permission[] },
 ) => {
-  await assertTeamAdmin(session, teamId);
+  const team = await assertTeamAdmin(session, teamId);
+  const organization = await getOrganizationById(organizationId);
+  if (!organization) throw new createHttpError.NotFound('organization not found');
 
   const link = await getOrganizationTeamLink(organizationId, teamId);
   if (!link?.pending) throw new createHttpError.NotFound('no pending invitation');
@@ -308,6 +330,7 @@ export const respondToOrganizationInvitation = async (
   if (!data.accept) {
     await link.destroy();
     orgEvent(session, organizationId, EVENTS.ORGANIZATION_TEAM_DECLINED, { teamId });
+    await notifyOrganizationTeam(organization, { team, action: 'declined' });
     return { success: true, accepted: false };
   }
 
@@ -326,6 +349,7 @@ export const respondToOrganizationInvitation = async (
   link.pending = false;
   const saved = await link.save();
   orgEvent(session, organizationId, EVENTS.ORGANIZATION_TEAM_JOINED, { teamId, permissions: saved.permissions });
+  await notifyOrganizationTeam(organization, { team, action: 'accepted' });
   return { success: true, accepted: true, link: saved };
 };
 
@@ -361,11 +385,14 @@ export const updateIntegrationOverrides = async (
 };
 
 export const leaveOrganization = async (session: Session, teamId: number, organizationId: number) => {
-  await assertTeamAdmin(session, teamId);
+  const team = await assertTeamAdmin(session, teamId);
+  const organization = await getOrganizationById(organizationId);
+  if (!organization) throw new createHttpError.NotFound('organization not found');
   const link = await getOrganizationTeamLink(organizationId, teamId);
   if (!link) throw new createHttpError.NotFound('team is not linked to this organization');
   await link.destroy();
   orgEvent(session, organizationId, EVENTS.ORGANIZATION_TEAM_LEFT, { teamId, removedBy: 'team' });
+  await notifyOrganizationTeam(organization, { team, action: 'left' });
   return { success: true };
 };
 
@@ -383,7 +410,7 @@ const API_ACCOUNT_ATTRIBUTES = [
 ];
 
 export const listOrganizationApiAccounts = async (session: Session, organizationId: number) => {
-  await assertOrganization(session, organizationId, organizationPermissions.VIEW_ORGANIZATION);
+  await assertOrganization(session, organizationId, organizationPermissions.MANAGE_ORG_API_ACCOUNTS);
   return models.request.findAll({
     where: { organizationId, apiServiceAccount: true, archived: false },
     attributes: API_ACCOUNT_ATTRIBUTES,

@@ -1,5 +1,6 @@
 import { Op } from 'sequelize';
 import { Permission, PRESETS } from '@sso/authz';
+import { EMAILS } from '@app/shared/enums';
 import {
   TEAM_ADMIN_IDIR_USERID_01,
   TEAM_ADMIN_IDIR_EMAIL_01,
@@ -16,6 +17,7 @@ import { buildIntegration } from './helpers/modules/common';
 import { getIntegration, updateIntegration } from './helpers/modules/integrations';
 import { createTeam } from './helpers/modules/teams';
 import { cleanUpDatabaseTables } from './helpers/utils';
+import { createMockSendEmail } from './mocks/mail';
 import { createMockAuth } from './mocks/authenticate';
 import { models } from '@app/shared/sequelize/models/models';
 import { Session, User } from '@app/shared/interfaces';
@@ -312,6 +314,44 @@ describe('organizations', () => {
     });
   });
 
+  describe('team relationship notifications', () => {
+    afterEach(async () => {
+      await models.organizationTeam.destroy({ where: {} });
+    });
+
+    it('notifies the other party for invitation, acceptance, decline, leave, and removal', async () => {
+      const emailList = createMockSendEmail();
+      const lastEmail = () => emailList[emailList.length - 1];
+
+      await inviteTeam(await asOrgAdmin(), organizationId, { teamId, permissions: [...PRESETS.viewer] });
+      expect(lastEmail()).toMatchObject({
+        code: EMAILS.ORGANIZATION_TEAM_NOTIFICATION,
+        to: expect.arrayContaining([TEAM_ADMIN_IDIR_EMAIL_01]),
+        cc: [],
+      });
+      expect(lastEmail().subject).toContain('Ministry of Tests');
+      expect(lastEmail().body).toContain(`invited team team_01 (#${teamId}) to join`);
+      expect(lastEmail().to).not.toContain(ORG_MEMBER_EMAIL);
+
+      await respondToOrganizationInvitation(await asTeamAdmin(), teamId, organizationId, { accept: true });
+      expect(lastEmail().to).toEqual(expect.arrayContaining([ORG_ADMIN_EMAIL]));
+      expect(lastEmail().to).not.toContain(ORG_MEMBER_EMAIL);
+
+      await leaveOrganization(await asTeamAdmin(), teamId, organizationId);
+      expect(lastEmail().to).toEqual(expect.arrayContaining([ORG_ADMIN_EMAIL]));
+
+      await inviteTeam(await asOrgAdmin(), organizationId, { teamId, permissions: [...PRESETS.viewer] });
+      await respondToOrganizationInvitation(await asTeamAdmin(), teamId, organizationId, { accept: false });
+      expect(lastEmail().to).toEqual(expect.arrayContaining([ORG_ADMIN_EMAIL]));
+
+      await inviteTeam(await asOrgAdmin(), organizationId, { teamId, permissions: [...PRESETS.viewer] });
+      await respondToOrganizationInvitation(await asTeamAdmin(), teamId, organizationId, { accept: true });
+      await removeTeamFromOrganization(await asOrgAdmin(), organizationId, teamId);
+      expect(lastEmail().to).toEqual(expect.arrayContaining([TEAM_ADMIN_IDIR_EMAIL_01]));
+      expect(emailList.map((email: any) => email.code)).toEqual(Array(8).fill(EMAILS.ORGANIZATION_TEAM_NOTIFICATION));
+    });
+  });
+
   describe('membership', () => {
     const throwaway = async (name: string) => {
       const organization = await createOrganization(await asSsoAdmin(), { name });
@@ -368,6 +408,34 @@ describe('organizations', () => {
 
       const members = await listOrganizationMembers(ssoAdmin, id);
       expect(members.map((member: any) => member.role).sort()).toEqual(['admin', 'member']);
+    });
+
+    it('notifies a member when they are added or removed, and refuses a duplicate add', async () => {
+      const emailList = createMockSendEmail();
+      const id = await throwaway('Ministry of Membership Notifications');
+
+      await addOrganizationMember(await asSsoAdmin(), id, { idirEmail: ORG_MEMBER_EMAIL, role: 'member' });
+      expect(emailList).toHaveLength(1);
+      expect(emailList[0]).toMatchObject({
+        code: EMAILS.ORGANIZATION_TEAM_NOTIFICATION,
+        to: expect.arrayContaining([ORG_MEMBER_EMAIL]),
+      });
+      expect(emailList[0].body).toContain('You have been added to organization Ministry of Membership Notifications');
+
+      await expect(
+        addOrganizationMember(await asSsoAdmin(), id, { idirEmail: ORG_MEMBER_EMAIL, role: 'admin' }),
+      ).rejects.toThrow(/already a member/);
+      expect(emailList).toHaveLength(1);
+
+      await removeOrganizationMember(await asSsoAdmin(), id, (await asOrgMember()).user!.id as number);
+      expect(emailList).toHaveLength(2);
+      expect(emailList[1]).toMatchObject({
+        code: EMAILS.ORGANIZATION_TEAM_NOTIFICATION,
+        to: expect.arrayContaining([ORG_MEMBER_EMAIL]),
+      });
+      expect(emailList[1].body).toContain(
+        'You have been removed from organization Ministry of Membership Notifications',
+      );
     });
   });
 
@@ -545,6 +613,10 @@ describe('organizations', () => {
   });
 
   describe('the api account', () => {
+    it('is not listed to an ordinary organization member', async () => {
+      await expect(listOrganizationApiAccounts(await asOrgMember(), organizationId)).rejects.toThrow();
+    });
+
     it('is held once per organization, as a team holds one', async () => {
       const session = await asOrgAdmin();
       const account = await createOrganizationApiAccount(session, organizationId);

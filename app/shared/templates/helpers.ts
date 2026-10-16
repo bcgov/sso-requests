@@ -17,6 +17,14 @@ export const processTeam = async (team: any) => {
   return team;
 };
 
+export const processOrganization = async (organization: any) => {
+  if (organization instanceof models.organization) {
+    organization = organization.get({ plain: true, clone: true });
+  }
+
+  return organization;
+};
+
 export const processUser = async (user: any) => {
   if (user instanceof models.user) {
     user = user.get({ plain: true, clone: true });
@@ -102,6 +110,15 @@ export const getTeamEmails = async (teamId: number, primaryEmailOnly = false, ro
   });
 
   return uniq(flatten(map(users, (user) => getUserEmails(user, primaryEmailOnly))));
+};
+
+export const getOrganizationAdminEmails = async (organizationId: number): Promise<string[]> => {
+  const admins = await models.organizationMember.findAll({
+    where: { organizationId, role: 'admin' },
+    include: [{ model: models.user, attributes: ['idirEmail', 'additionalEmail'], required: true }],
+  });
+
+  return uniq(flatten(admins.map((admin: any) => getUserEmails(admin.user)))) as string[];
 };
 
 export const getIntegrationEmails = async (integration: IntegrationData, primaryEmailOnly = false) => {
