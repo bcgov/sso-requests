@@ -331,7 +331,9 @@ describe('Organization management', () => {
 
     await screen.findByRole('button', { name: 'remove-organization-member-11' });
     fireEvent.click(screen.getByRole('button', { name: 'remove-organization-member-11' }));
+    expect(mockedRemoveOrganizationMember).not.toHaveBeenCalled();
 
+    fireEvent.click(await screen.findByRole('button', { name: 'Remove Member' }));
     await waitFor(() => expect(mockedRemoveOrganizationMember).toHaveBeenCalledWith(organization.id, 11));
   });
 

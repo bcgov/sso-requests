@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import CenteredModal from 'components/CenteredModal';
+import WarningModalContents from 'components/WarningModalContents';
 import PresetPicker from 'components/PresetPicker';
 import { ActionButtonContainer, VerticalLine } from 'components/ActionButtons';
 import { IntegrationOverride, OrganizationTeamLink, TeamIntegration } from 'interfaces/organization';
@@ -87,6 +88,7 @@ function TeamOrganizations({ teamId, alert }: Readonly<Props>) {
   const [activeLink, setActiveLink] = useState<OrganizationTeamLink | null>(null);
   const [consent, setConsent] = useState<Permission[]>([]);
   const [overrides, setOverrides] = useState<IntegrationOverride[]>([]);
+  const [linkToLeave, setLinkToLeave] = useState<OrganizationTeamLink | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [integrations, setIntegrations] = useState<TeamIntegration[]>([]);
 
@@ -132,6 +134,17 @@ function TeamOrganizations({ teamId, alert }: Readonly<Props>) {
     reload();
   };
 
+  const handleLeave = async () => {
+    if (!linkToLeave) return;
+    const link = linkToLeave;
+    setLinkToLeave(null);
+    const [, err] = link.pending
+      ? await respondToOrganizationInvitation(teamId, link.organizationId, { accept: false })
+      : await leaveOrganization(teamId, link.organizationId);
+    if (err) return fail('Could not complete that action.');
+    reload();
+  };
+
   return (
     <Panel>
       <p>
@@ -173,16 +186,7 @@ function TeamOrganizations({ teamId, alert }: Readonly<Props>) {
                     {link.pending ? 'Review' : 'Change'}
                   </button>
                   <VerticalLine />
-                  <button
-                    className="secondary"
-                    onClick={async () => {
-                      const [, err] = link.pending
-                        ? await respondToOrganizationInvitation(teamId, link.organizationId, { accept: false })
-                        : await leaveOrganization(teamId, link.organizationId);
-                      if (err) return fail('Could not complete that action.');
-                      reload();
-                    }}
-                  >
+                  <button className="secondary" onClick={() => setLinkToLeave(link)}>
                     {link.pending ? 'Decline' : 'Leave'}
                   </button>
                 </Actions>
@@ -257,6 +261,33 @@ function TeamOrganizations({ teamId, alert }: Readonly<Props>) {
               </>
             )}
           </div>
+        }
+      />
+
+      <CenteredModal
+        id="team-leave-organization-modal"
+        openModal={Boolean(linkToLeave)}
+        handleClose={() => setLinkToLeave(null)}
+        title={linkToLeave?.pending ? 'Decline Invitation' : 'Leave Organization'}
+        icon={null}
+        closable
+        confirmText={linkToLeave?.pending ? 'Decline Invitation' : 'Leave Organization'}
+        buttonStyle="danger"
+        skipCloseOnConfirm
+        onConfirm={handleLeave}
+        content={
+          <WarningModalContents
+            title={
+              linkToLeave?.pending
+                ? `Are you sure that you want to decline the invitation from ${linkToLeave.organization?.name}?`
+                : `Are you sure that you want to leave ${linkToLeave?.organization?.name}?`
+            }
+            content={
+              linkToLeave?.pending
+                ? 'The organization will need to invite this team again.'
+                : 'The organization will immediately lose the access this team granted.'
+            }
+          />
         }
       />
     </Panel>

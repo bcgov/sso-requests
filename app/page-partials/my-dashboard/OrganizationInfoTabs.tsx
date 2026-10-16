@@ -133,6 +133,7 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
   const [inviteTeamId, setInviteTeamId] = useState<number | undefined>(undefined);
   const [proposed, setProposed] = useState<Permission[]>([...PRESETS.viewer]);
 
+  const [memberToRemove, setMemberToRemove] = useState<OrganizationMember | null>(null);
   const [linkToRemove, setLinkToRemove] = useState<OrganizationTeamLink | null>(null);
 
   const activeLinks = links.filter((link) => !link.pending);
@@ -214,6 +215,14 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
     reload();
   };
 
+  const handleRemoveMember = async () => {
+    if (!memberToRemove) return;
+    const [, err] = await removeOrganizationMember(organization.id, memberToRemove.userId);
+    setMemberToRemove(null);
+    if (err) return fail('Could not remove that member.');
+    reload();
+  };
+
   const handleRemoveTeam = async () => {
     if (!linkToRemove) return;
     const [, err] = await removeTeamFromOrganization(organization.id, linkToRemove.teamId);
@@ -273,11 +282,9 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
                     title={lastAdmin ? 'Add a second admin before removing this one' : 'Remove organization member'}
                     size="lg"
                     activeColor={PRIMARY_RED}
-                    onClick={async () => {
+                    onClick={() => {
                       if (!canRemoveMember || lastAdmin) return;
-                      const [, err] = await removeOrganizationMember(organization.id, member.userId);
-                      if (err) return fail('Could not remove that member.');
-                      reload();
+                      setMemberToRemove(member);
                     }}
                   />
                 </Actions>
@@ -525,6 +532,27 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
               organization.name
             }?`}
             content={`Removing this team will immediately revoke access to its integrations from organization members and API accounts.`}
+          />
+        }
+      />
+
+      <CenteredModal
+        id="remove-organization-member-modal"
+        openModal={Boolean(memberToRemove)}
+        handleClose={() => setMemberToRemove(null)}
+        title="Remove Member"
+        icon={null}
+        closable
+        confirmText="Remove Member"
+        buttonStyle="danger"
+        skipCloseOnConfirm
+        onConfirm={handleRemoveMember}
+        content={
+          <WarningModalContents
+            title={`Are you sure that you want to remove ${memberToRemove?.user?.idirEmail ?? 'this member'} from ${
+              organization.name
+            }?`}
+            content="They will immediately lose access to this organization and its teams' integrations."
           />
         }
       />
