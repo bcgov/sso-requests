@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import CenteredModal from 'components/CenteredModal';
 import WarningModalContents from 'components/WarningModalContents';
+import Link from '@app/components/Link';
+import { docusaurusURL } from '@app/utils/constants';
 import PresetPicker from 'components/PresetPicker';
 import { ActionButtonContainer, VerticalLine } from 'components/ActionButtons';
 import { IntegrationOverride, OrganizationTeamLink, TeamIntegration } from 'interfaces/organization';
@@ -209,9 +211,12 @@ function TeamOrganizations({ teamId, alert }: Readonly<Props>) {
           <div>
             <p>
               {activeLink?.pending
-                ? 'Lower anything you are not willing to grant. You cannot go above what was requested.'
+                ? 'Lower any permissions you are not willing to grant. You cannot go above what was requested.'
                 : 'This is yours to change. The organization cannot raise it — it can only ask again.'}{' '}
-              Changes apply immediately.
+              Changes apply immediately.{' '}
+              <Link external href={`${docusaurusURL}/css-application/organizations#overview`}>
+                What does each access level mean?
+              </Link>
             </p>
             <label htmlFor="team-consent-level">Access level for all integrations</label>
             <PresetPicker

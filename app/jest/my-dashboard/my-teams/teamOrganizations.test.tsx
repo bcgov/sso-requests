@@ -140,6 +140,17 @@ describe('a team reviewing an organization', () => {
     });
   });
 
+  it('links to the documentation on what each access level means', async () => {
+    mockedGetTeamOrganizations.mockResolvedValue([[link()] as any, null]);
+    render(<TeamOrganizations teamId={TEAM_ID} />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
+    expect(screen.getByRole('link', { name: /What does each access level mean/ })).toHaveAttribute(
+      'href',
+      'https://bcgov.github.io/sso-docs/css-application/organizations#overview',
+    );
+  });
+
   it('leaves an accepted consent the team’s own to change', async () => {
     mockedGetTeamOrganizations.mockResolvedValue([
       [link({ pending: false, permissions: [...PRESETS.viewer] })] as any,
