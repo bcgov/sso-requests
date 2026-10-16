@@ -78,7 +78,6 @@ describe('integration email updates for individual users', () => {
       let integrationRes = await buildIntegration({ projectName, submitted: true });
       expect(integrationRes.status).toEqual(200);
       integration = integrationRes.body;
-      console.log('🚀 ~ integration:', integration);
 
       const template = await renderTemplate(EMAILS.CREATE_INTEGRATION_APPLIED, {
         integration,

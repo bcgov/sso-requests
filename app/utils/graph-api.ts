@@ -1,4 +1,10 @@
-import { CYPRESS_MOCKED_IDIR_LOOKUP, KC_ENTRA_IDP_REALM, MS_GRAPH_API_VERSION, MS_GRAPH_URL } from './constants';
+import {
+  CYPRESS_MOCKED_IDIR_LOOKUP,
+  ENTRA_GRAPH_API_APPLICATION_ID,
+  KC_ENTRA_IDP_REALM,
+  MS_GRAPH_API_VERSION,
+  MS_GRAPH_URL,
+} from './constants';
 import createHttpError from 'http-errors';
 import axios, { AxiosRequestConfig, AxiosResponse, Method, ResponseType } from 'axios';
 import { createAzureIdirUser } from '@app/keycloak/users';
@@ -469,6 +475,23 @@ export const setupEntraIntegration = async (
     );
   }
 
+  const grantedScopePermissions = await getGrantedScopePermissions(servicePrincipal.id!);
+
+  const scopesRequired = 'openid profile email';
+
+  if (
+    grantedScopePermissions.length === 0 ||
+    !grantedScopePermissions.some((permission) => permission.scope === scopesRequired)
+  ) {
+    const graphServicePrincipal = await getServicePrincipal(ENTRA_GRAPH_API_APPLICATION_ID as string);
+
+    if (!graphServicePrincipal) {
+      throw new Error('Unable to find the Microsoft Graph API service principal');
+    }
+
+    await grantScopePermissions(servicePrincipal.id!, graphServicePrincipal.id as string, scopesRequired);
+  }
+
   return {
     appId: appReg?.appId!,
     servicePrincipalId: servicePrincipal.id!,
@@ -857,5 +880,39 @@ export const removeAppRoleAssignment = async (appId: string, id: string): Promis
   } catch (error) {
     log.error({ err: error }, 'removeAppRoleAssignment failed');
     throw new Error(`Unable to remove app role assignment for application with objectId: ${appId}`);
+  }
+};
+
+export const grantScopePermissions = async (servicePrincipalOid: string, resourceId: string, scope: string) => {
+  try {
+    await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/oauth2PermissionGrants`, {
+      method: 'POST',
+      data: {
+        clientId: servicePrincipalOid,
+        consentType: 'AllPrincipals',
+        resourceId: resourceId,
+        scope,
+      },
+    });
+  } catch (error) {
+    log.error({ err: error }, 'grantScopePermissions failed');
+    throw new Error(`Unable to grant scope permissions for service principal with objectId: ${servicePrincipalOid}`);
+  }
+};
+
+export const getGrantedScopePermissions = async (servicePrincipalOid: string): Promise<any[]> => {
+  try {
+    const response = await callAzureGraphApi(
+      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/servicePrincipals/${servicePrincipalOid}/oauth2PermissionGrants`,
+      {
+        method: 'GET',
+      },
+    );
+    return response.value ?? [];
+  } catch (error) {
+    log.error({ err: error }, 'getGrantedScopePermissions failed');
+    throw new Error(
+      `Unable to get granted scope permissions for service principal with objectId: ${servicePrincipalOid}`,
+    );
   }
 };

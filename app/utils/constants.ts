@@ -495,6 +495,8 @@ export const KC_PS256_KEY_PROVIDER_ID = 'entra-rsa-generated-ps256-4096';
 
 export const DISCONTINUED_IDPS = ['idir', 'azureidir'];
 
+export const ENTRA_GRAPH_API_APPLICATION_ID = '00000003-0000-0000-c000-000000000000';
+
 // IdPs only an admin may add. Removing one, or keeping one that is already
 // there, is a plain edit.
 export const RESTRICTED_IDPS = ['githubpublic', 'otp'];

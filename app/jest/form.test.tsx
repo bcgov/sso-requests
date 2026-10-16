@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within, queryByTestId } from '@testing-library/react';
 import FormTemplate from 'form-components/FormTemplate';
 import { isRequestBcscExcluded, updateRequest } from 'services/request';
 import { Integration } from 'interfaces/Request';
@@ -87,6 +87,30 @@ const sampleAttributes = [
   },
 ];
 
+const sampleBcgovUnits = [
+  {
+    id: 1,
+    name: 'Ministry of Citizen Services',
+  },
+  {
+    id: 2,
+    name: 'Ministry of Post Secondary Education',
+  },
+];
+
+const sampleDivisions = [
+  {
+    id: 1,
+    bcgovUnitId: 1,
+    name: 'Division 1',
+  },
+  {
+    id: 2,
+    bcgovUnitId: 2,
+    name: 'Division 2',
+  },
+];
+
 jest.mock('services/bc-services-card', () => {
   return {
     fetchPrivacyZones: jest.fn(() => {
@@ -94,6 +118,22 @@ jest.mock('services/bc-services-card', () => {
     }),
     fetchAttributes: jest.fn(() => {
       return Promise.resolve([sampleAttributes, null]);
+    }),
+  };
+});
+
+jest.mock('services/bcgov-unit', () => {
+  return {
+    listBcgovUnits: jest.fn(() => {
+      return Promise.resolve([sampleBcgovUnits, null]);
+    }),
+  };
+});
+
+jest.mock('services/division', () => {
+  return {
+    listDivisions: jest.fn(() => {
+      return Promise.resolve([sampleDivisions, null]);
     }),
   };
 });
@@ -1491,5 +1531,85 @@ describe('BCSC Excluded Clients', () => {
       expect(checkbox).toBeDisabled();
       expect(screen.getByText('Disabled as client is in bc services card exclusion list')).toBeInTheDocument();
     });
+  });
+});
+
+describe('BCGOV IDIR', () => {
+  const defaultRender = {
+    id: 0,
+    serviceType: 'gold',
+    protocol: 'oidc',
+    status: 'draft',
+    environments: ['dev', 'test', 'prod'],
+  };
+  const userSession = { email: 'user-session@gov.bc.ca', client_roles: [] };
+
+  it('displays bcgovidir option upon setting the environment variable', async () => {
+    process.env.NEXT_PUBLIC_INCLUDE_BCGOVIDIR = 'true';
+    const { queryByText } = setUpRender(defaultRender, userSession);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    await waitFor(() => {
+      expect(queryByText('BCGOV IDIR')).toBeInTheDocument();
+    });
+  });
+
+  it('does not display bcgovidir option when the environment variable is not set', async () => {
+    process.env.NEXT_PUBLIC_INCLUDE_BCGOVIDIR = 'false';
+    const { queryByText } = setUpRender(defaultRender, userSession);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    await waitFor(() => {
+      expect(queryByText('BCGOV IDIR')).not.toBeInTheDocument();
+    });
+  });
+
+  it('shows all required fields when BCGOV IDIR is enabled', async () => {
+    process.env.NEXT_PUBLIC_INCLUDE_BCGOVIDIR = 'true';
+    setUpRender({ ...defaultRender, devIdps: ['bcgovidir'] }, userSession);
+
+    fireEvent.click(sandbox.basicInfoBox);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('root_bcgovUnitId_title')).not.toBeNull();
+      expect(screen.queryByTestId('root_divisionId_title')).not.toBeNull();
+      expect(screen.queryByTestId('root_description_title')).not.toBeNull();
+      expect(screen.queryByTestId('root_entraGuestAccountsEnabled_title')).not.toBeNull();
+    });
+  });
+
+  it('shows errors when required fields are missing', async () => {
+    process.env.NEXT_PUBLIC_INCLUDE_BCGOVIDIR = 'true';
+    setUpRender({ ...defaultRender, devIdps: ['bcgovidir'] }, userSession);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    fireEvent.click(screen.getByText('Next'));
+    fireEvent.click(sandbox.basicInfoBox);
+
+    expect(screen.getByText('BC Government Unit is required')).toBeInTheDocument();
+    expect(screen.getByText('Division is required')).toBeInTheDocument();
+    expect(screen.getByText('Project description is required')).toBeInTheDocument();
+  });
+
+  it('list sample bcgov units and divisions and shows right division per selected bcgov unit', async () => {
+    process.env.NEXT_PUBLIC_INCLUDE_BCGOVIDIR = 'true';
+    setUpRender({ ...defaultRender, devIdps: ['bcgovidir'] }, userSession);
+
+    fireEvent.click(sandbox.basicInfoBox);
+    const bcgovUnit = document.getElementById('root_bcgovUnitId') as HTMLSelectElement;
+    const division = document.getElementById('root_divisionId') as HTMLSelectElement;
+    fireEvent.keyDown(bcgovUnit as HTMLElement, { keyCode: 40 });
+    fireEvent.click(await screen.findByText(sampleBcgovUnits[0].name));
+
+    fireEvent.keyDown(division as HTMLElement, { keyCode: 40 });
+    expect(await screen.findByText(sampleDivisions[0].name)).toBeInTheDocument();
+    expect(await screen.queryByText(sampleDivisions[1].name)).not.toBeInTheDocument();
+
+    fireEvent.keyDown(bcgovUnit as HTMLElement, { keyCode: 40 });
+    fireEvent.click(await screen.findByText(sampleBcgovUnits[1].name));
+
+    fireEvent.keyDown(division as HTMLElement, { keyCode: 40 });
+    expect(await screen.findByText(sampleDivisions[1].name)).toBeInTheDocument();
+    expect(await screen.queryByText(sampleDivisions[0].name)).not.toBeInTheDocument();
   });
 });

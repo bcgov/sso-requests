@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { KC_ENTRA_IDP_REALM, bcgovIdirIdpMappers } from '@app/utils/constants';
+import { ENTRA_GRAPH_API_APPLICATION_ID, KC_ENTRA_IDP_REALM, bcgovIdirIdpMappers } from '@app/utils/constants';
 import { formDataDev } from './helpers/fixtures';
 import { cleanUpDatabaseTables } from './helpers/utils';
 import { getEntraClientByRequestId, saveEntraClient } from '@app/queries/entra-client';
@@ -237,14 +237,18 @@ const graphPaths = {
   servicePrincipal: (id = entraApp.servicePrincipalId) => `/v1.0/servicePrincipals/${id}`,
   claimsMappingPolicies: (spId: string) => `/v1.0/servicePrincipals/${spId}/claimsMappingPolicies`,
   appRoleAssignedTo: `/v1.0/servicePrincipals(appId='${entraApp.appId}')/appRoleAssignedTo`,
+  oauth2PermissionGrants: '/v1.0/oauth2PermissionGrants',
+  servicePrincipalOauth2PermissionGrants: (spId: string) => `/v1.0/servicePrincipals/${spId}/oauth2PermissionGrants`,
 };
 
 // Routes mocked Graph calls by "<METHOD> <pathname>" to a response body; unrouted calls resolve with `{}`.
-// A route may return a rejected promise to simulate a Graph failure.
-const mockGraphRoutes = (routes: Record<string, () => unknown>) =>
+// A route may return a rejected promise to simulate a Graph failure, and receives the parsed URL when it
+// needs to inspect the query string.
+const mockGraphRoutes = (routes: Record<string, (url: URL) => unknown>) =>
   (axios.request as jest.Mock).mockImplementation(async ({ method, url }) => {
-    const route = routes[`${method} ${new URL(url).pathname}`];
-    return { data: route ? await route() : {} };
+    const parsedUrl = new URL(url);
+    const route = routes[`${method} ${parsedUrl.pathname}`];
+    return { data: route ? await route(parsedUrl) : {} };
   });
 
 // Graph calls made so far, optionally filtered by method and pathname.
@@ -556,12 +560,19 @@ describe('Microsoft Graph API', () => {
   });
 
   describe('setupEntraIntegration', () => {
-    // Graph state for an app whose registration, key credential and claim mapping policy are already in place,
-    // so each test only varies the service principal and app role assignment it cares about.
+    const requiredScopes = 'openid profile email';
+    const graphServicePrincipal = { id: 'graph-service-principal-id', appId: ENTRA_GRAPH_API_APPLICATION_ID };
+
+    // Graph state for an app whose registration, key credential, claim mapping policy and delegated scopes are
+    // already in place, so each test only varies the service principal, app role assignment and scope grants it
+    // cares about.
     const mockExistingApp = ({
       servicePrincipals = [{ id: entraApp.servicePrincipalId, appId: entraApp.appId }],
       appRoleAssignments = [] as unknown[],
       grantError = undefined as unknown,
+      grantedScopes = [{ id: 'grant-id', scope: requiredScopes }] as unknown[],
+      graphServicePrincipals = [graphServicePrincipal] as unknown[],
+      scopeGrantError = undefined as unknown,
     } = {}) => {
       const servicePrincipalId = servicePrincipals[0]?.id ?? 'new-service-principal-id';
       mockGraphRoutes({
@@ -576,15 +587,30 @@ describe('Microsoft Graph API', () => {
             },
           ],
         }),
-        [`GET ${graphPaths.servicePrincipals}`]: () => ({ value: servicePrincipals }),
+        [`GET ${graphPaths.servicePrincipals}`]: (url) => ({
+          value: url.searchParams.get('$filter')?.includes(ENTRA_GRAPH_API_APPLICATION_ID)
+            ? graphServicePrincipals
+            : servicePrincipals,
+        }),
         [`POST ${graphPaths.servicePrincipals}`]: () => ({ id: servicePrincipalId, appId: entraApp.appId }),
         [`GET ${graphPaths.claimsMappingPolicies(servicePrincipalId)}`]: () => ({
           value: [{ id: 'claim-mapping-policy-id' }],
         }),
         [`GET ${graphPaths.appRoleAssignedTo}`]: () => ({ value: appRoleAssignments }),
         ...(grantError ? { [`POST ${graphPaths.appRoleAssignedTo}`]: () => Promise.reject(grantError) } : {}),
+        [`GET ${graphPaths.servicePrincipalOauth2PermissionGrants(servicePrincipalId)}`]: () => ({
+          value: grantedScopes,
+        }),
+        ...(scopeGrantError
+          ? { [`POST ${graphPaths.oauth2PermissionGrants}`]: () => Promise.reject(scopeGrantError) }
+          : {}),
       });
     };
+
+    const graphServicePrincipalLookups = () =>
+      graphCalls('GET', graphPaths.servicePrincipals).filter((config) =>
+        new URL(config.url).searchParams.get('$filter')?.includes(ENTRA_GRAPH_API_APPLICATION_ID),
+      );
 
     const setup = () =>
       actualGraphApi.setupEntraIntegration(
@@ -651,6 +677,104 @@ describe('Microsoft Graph API', () => {
         );
 
         expect(logger.error).toHaveBeenCalledWith({ err: error }, 'grantAppRoleAssignment failed');
+      });
+    });
+
+    // Every Entra app must have tenant-wide admin consent for the Microsoft Graph OIDC scopes so users are never
+    // prompted for consent at login.
+    describe('delegated scope permissions', () => {
+      it('grants admin consent for the OIDC scopes on Microsoft Graph when the app has no grants', async () => {
+        mockExistingApp({ grantedScopes: [] });
+
+        await setup();
+
+        expect(
+          graphCalls('GET', graphPaths.servicePrincipalOauth2PermissionGrants(entraApp.servicePrincipalId)),
+        ).toHaveLength(1);
+        expect(graphServicePrincipalLookups()).toHaveLength(1);
+        const grants = graphCalls('POST', graphPaths.oauth2PermissionGrants);
+        expect(grants).toHaveLength(1);
+        expect(grants[0].data).toEqual({
+          clientId: entraApp.servicePrincipalId,
+          consentType: 'AllPrincipals',
+          resourceId: graphServicePrincipal.id,
+          scope: requiredScopes,
+        });
+      });
+
+      it('grants the OIDC scopes when the existing grants do not include them', async () => {
+        mockExistingApp({ grantedScopes: [{ id: 'grant-id', scope: 'User.Read' }] });
+
+        await setup();
+
+        const grants = graphCalls('POST', graphPaths.oauth2PermissionGrants);
+        expect(grants).toHaveLength(1);
+        expect(grants[0].data).toEqual(expect.objectContaining({ scope: requiredScopes }));
+      });
+
+      it('does not look up Microsoft Graph or grant again when the OIDC scopes are already granted', async () => {
+        mockExistingApp();
+
+        await setup();
+
+        expect(
+          graphCalls('GET', graphPaths.servicePrincipalOauth2PermissionGrants(entraApp.servicePrincipalId)),
+        ).toHaveLength(1);
+        expect(graphServicePrincipalLookups()).toHaveLength(0);
+        expect(graphCalls('POST', graphPaths.oauth2PermissionGrants)).toHaveLength(0);
+      });
+
+      it('grants the OIDC scopes to a newly created service principal', async () => {
+        mockExistingApp({ servicePrincipals: [], grantedScopes: [] });
+
+        await setup();
+
+        expect(
+          graphCalls('GET', graphPaths.servicePrincipalOauth2PermissionGrants('new-service-principal-id')),
+        ).toHaveLength(1);
+        const grants = graphCalls('POST', graphPaths.oauth2PermissionGrants);
+        expect(grants).toHaveLength(1);
+        expect(grants[0].data).toEqual(
+          expect.objectContaining({ clientId: 'new-service-principal-id', resourceId: graphServicePrincipal.id }),
+        );
+      });
+
+      it('throws without granting when the Microsoft Graph service principal cannot be found', async () => {
+        mockExistingApp({ grantedScopes: [], graphServicePrincipals: [] });
+
+        await expect(setup()).rejects.toThrow('Unable to find the Microsoft Graph API service principal');
+
+        expect(graphCalls('POST', graphPaths.oauth2PermissionGrants)).toHaveLength(0);
+      });
+
+      it('logs and throws when the scope permissions cannot be granted', async () => {
+        const error = new Error('graph failure');
+        mockExistingApp({ grantedScopes: [], scopeGrantError: error });
+
+        await expect(setup()).rejects.toThrow(
+          `Unable to grant scope permissions for service principal with objectId: ${entraApp.servicePrincipalId}`,
+        );
+
+        expect(logger.error).toHaveBeenCalledWith({ err: error }, 'grantScopePermissions failed');
+      });
+
+      it('logs and throws when the existing scope grants cannot be read', async () => {
+        const error = new Error('graph failure');
+        mockExistingApp();
+        const defaultRouting = (axios.request as jest.Mock).getMockImplementation()!;
+        (axios.request as jest.Mock).mockImplementation((config) =>
+          new URL(config.url).pathname ===
+          graphPaths.servicePrincipalOauth2PermissionGrants(entraApp.servicePrincipalId)
+            ? Promise.reject(error)
+            : defaultRouting(config),
+        );
+
+        await expect(setup()).rejects.toThrow(
+          `Unable to get granted scope permissions for service principal with objectId: ${entraApp.servicePrincipalId}`,
+        );
+
+        expect(logger.error).toHaveBeenCalledWith({ err: error }, 'getGrantedScopePermissions failed');
+        expect(graphCalls('POST', graphPaths.oauth2PermissionGrants)).toHaveLength(0);
       });
     });
   });
