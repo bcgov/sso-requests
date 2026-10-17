@@ -1243,7 +1243,7 @@ export const createEntraIntegration = async (environment: string, request: Integ
           storeToken: false,
           providerId: 'oidc',
           realm: KC_ENTRA_IDP_REALM,
-          firstBrokerLoginFlowAlias: 'first broker login - auto link existing user',
+          firstBrokerLoginFlowAlias: 'first broker login - multiple federated links',
           postBrokerLoginFlowAlias: '',
           config: {
             clientId: entraClient.appId,
