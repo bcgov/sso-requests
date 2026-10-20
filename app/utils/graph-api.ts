@@ -90,10 +90,36 @@ function sleepWithAbort(ms: number, signal?: AbortSignal): Promise<void> {
 
 function getGraphRequestUrl(endpoint: string): URL {
   const graphBaseUrl = new URL(MS_GRAPH_URL);
+  const queryStart = endpoint.indexOf('?');
+  let endpointWithEncodedQueryHashes = endpoint;
+
+  if (queryStart !== -1) {
+    let inODataString = false;
+    let query = '';
+
+    for (let i = queryStart; i < endpoint.length; i += 1) {
+      const character = endpoint[i];
+
+      if (character === "'" && inODataString && endpoint[i + 1] === "'") {
+        query += "''";
+        i += 1;
+        continue;
+      }
+
+      if (character === "'") {
+        inODataString = !inODataString;
+      }
+
+      query += character === '#' && inODataString ? '%23' : character;
+    }
+
+    endpointWithEncodedQueryHashes = `${endpoint.slice(0, queryStart)}${query}`;
+  }
+
   let requestUrl: URL;
 
   try {
-    requestUrl = new URL(endpoint, graphBaseUrl);
+    requestUrl = new URL(endpointWithEncodedQueryHashes, graphBaseUrl);
   } catch {
     throw new createHttpError.BadRequest('Invalid Graph API endpoint');
   }
@@ -267,7 +293,7 @@ export const validateIdirEmail = async (email: string) => {
   }
 };
 
-const formatUser = (data: MsGraphUserValue, idp?: string) => {
+const formatUser = (data: MsGraphUserValue) => {
   const id = data.id;
   const userId = data.mailNickname;
   const guid = data.onPremisesExtensionAttributes.extensionAttribute12;
@@ -297,14 +323,26 @@ const formatUser = (data: MsGraphUserValue, idp?: string) => {
 };
 
 /** Search for an IDIR user by any field and value. Search expects the actual value to start with the provided value. */
-export const searchIdirUsers = async ({ field, search, idp }: { field: string; search: string; idp: string }) => {
+export const searchIdirUsers = async ({
+  field,
+  search,
+  idp,
+  includeGuestAccounts,
+}: {
+  field: string;
+  search: string;
+  idp: string;
+  includeGuestAccounts: boolean;
+}) => {
   if (!['givenName', 'surname', 'mail', 'mailNickname'].includes(field)) {
     throw new Error('Allowed search fields are givenName, surname, mail, mailNickname');
   }
   try {
-    let url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=startswith(${field},'${search}') and (userType eq 'Member')&$top=100&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName,id`;
+    let url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=startswith(${field},'${search}')${
+      includeGuestAccounts && idp === KC_ENTRA_IDP_REALM ? '' : " and (userType eq 'Member')"
+    }&$top=100&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName,id`;
     const response = (await callAzureGraphApi(url)) as MsGraphUserResponse;
-    const formattedUsers = response.value.map((user) => formatUser(user, idp));
+    const formattedUsers = response.value.map((user) => formatUser(user));
     return formattedUsers;
   } catch (err) {
     log.error({ err }, 'Failed searching Azure IDIR users from Graph API');
@@ -347,7 +385,7 @@ export const importIdirUser = async ({
   idirGuid: string;
   idp: string;
 }) => {
-  if (!guid || !userId || !idirGuid || !idp) {
+  if (!guid || !userId || !idp) {
     throw new Error('Missing required user data');
   }
 

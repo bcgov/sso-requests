@@ -381,6 +381,23 @@ describe('integration validations', () => {
     expect(updateIntegrationRes.status).toEqual(200);
     expect(updateIntegrationRes.body.devIdps).toEqual(['azureidir', 'bceidbasic', 'idir']);
   });
+
+  it('should not allow entra guest accounts for non bcgovidir IDPs', async () => {
+    const MOCK_USER_ID = -2;
+    const MOCK_USER_EMAIL = 'test2@user.com';
+    createMockAuth(MOCK_USER_ID.toString(), MOCK_USER_EMAIL);
+    await models.user.create({
+      id: MOCK_USER_ID,
+      idirEmail: MOCK_USER_EMAIL,
+    });
+    const integration = getUpdateIntegrationData({
+      integration: { projectName: 'Entra Guest Accounts', projectLead: true, usesTeam: false },
+      identityProviders: ['azureidir'],
+      entraGuestAccountsEnabled: true,
+    });
+    const response = await updateIntegration(integration, true);
+    expect(response.status).toEqual(422);
+  });
 });
 
 describe('Approval Resets', () => {

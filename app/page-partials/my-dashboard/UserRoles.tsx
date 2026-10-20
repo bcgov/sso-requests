@@ -23,6 +23,7 @@ import ActionButton from '@app/components/ActionButton';
 import { searchIdirUsers, importIdirUser } from 'services/bceid-webservice';
 import { importAzureIdirUser, searchAzureIdirUsers } from '@app/services/ms-graph';
 import { KC_ENTRA_IDP_REALM } from '@app/utils/constants';
+import { IntegrationData } from '@app/shared/interfaces';
 
 const Label = styled.label`
   font-weight: bold;
@@ -183,7 +184,15 @@ interface Props {
   alert: TopAlert;
 }
 
-const fetchIdpUsers = async ({ idp, userQuery }: { idp: string; userQuery: { property: string; value: string } }) => {
+const fetchIdpUsers = async ({
+  integration,
+  idp,
+  userQuery,
+}: {
+  integration: IntegrationData;
+  idp: string;
+  userQuery: { property: string; value: string };
+}) => {
   if (idp == 'idir') {
     if (userQuery.property === 'idir_username') userQuery.property = 'userId';
     const [data, err] = await searchIdirUsers({
@@ -213,6 +222,7 @@ const fetchIdpUsers = async ({ idp, userQuery }: { idp: string; userQuery: { pro
       field: userQuery.property,
       search: userQuery.value,
       idp,
+      includeGuestAccounts: integration.entraGuestAccountsEnabled || false,
     });
     if (err) return [null, err];
     return [data, null];
@@ -234,7 +244,7 @@ const importUserToKeycloak = async (user: KeycloakUser & { source: string }) => 
     await importAzureIdirUser({
       guid: user.username.split('@')[0].toUpperCase(),
       userId: user.attributes['idir_username'] || '',
-      idirGuid: user.attributes['idir_user_id'].toUpperCase() || '',
+      idirGuid: user?.attributes['idir_user_id']?.toUpperCase() || '',
       idp: user.username.split('@')[1],
     });
   }
@@ -471,6 +481,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       const [idpUsers, err] = await fetchIdpUsers({
         idp: selectedIdp,
         userQuery: { property, value: searchKey },
+        integration: selectedRequest,
       });
 
       if (!err && idpUsers && idpUsers?.length > 0) {

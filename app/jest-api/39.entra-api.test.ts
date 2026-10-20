@@ -874,6 +874,26 @@ describe('Microsoft Graph API', () => {
       (axios.isAxiosError as unknown as jest.Mock).mockReset();
     });
 
+    it('encodes hash characters inside OData query string literals', async () => {
+      (axios.request as jest.Mock).mockResolvedValue({ data: { value: [] } });
+
+      const endpoint =
+        "https://graph.microsoft.com/v1.0/users?$filter=mailNickname eq 'ggurvi_deloitte.ca#EXT#'&$select=onPremisesExtensionAttributes,displayName,mail,givenName,surname,userPrincipalName,id";
+
+      await expect(actualGraphApi.callAzureGraphApi(endpoint)).resolves.toEqual({ value: [] });
+
+      const requestUrl = new URL((axios.request as jest.Mock).mock.calls[0][0].url);
+      expect(requestUrl.searchParams.get('$filter')).toBe("mailNickname eq 'ggurvi_deloitte.ca#EXT#'");
+      expect(requestUrl.hash).toBe('');
+    });
+
+    it('continues to reject URL fragments', async () => {
+      const endpoint = 'https://graph.microsoft.com/v1.0/users?$select=id#fragment';
+
+      await expect(actualGraphApi.callAzureGraphApi(endpoint)).rejects.toThrow('Invalid Graph API endpoint');
+      expect(axios.request).not.toHaveBeenCalled();
+    });
+
     // Fails each call with the given statuses in order, then succeeds with `data`.
     const mockGraphResponses = (statuses: number[], data: unknown) => {
       const request = axios.request as jest.Mock;
