@@ -878,12 +878,12 @@ describe('Microsoft Graph API', () => {
       (axios.request as jest.Mock).mockResolvedValue({ data: { value: [] } });
 
       const endpoint =
-        "https://graph.microsoft.com/v1.0/users?$filter=mailNickname eq 'ggurvi_deloitte.ca#EXT#'&$select=onPremisesExtensionAttributes,displayName,mail,givenName,surname,userPrincipalName,id";
+        "https://graph.microsoft.com/v1.0/users?$filter=mailNickname eq 'guest_user.ca#EXT#'&$select=onPremisesExtensionAttributes,displayName,mail,givenName,surname,userPrincipalName,id";
 
       await expect(actualGraphApi.callAzureGraphApi(endpoint)).resolves.toEqual({ value: [] });
 
       const requestUrl = new URL((axios.request as jest.Mock).mock.calls[0][0].url);
-      expect(requestUrl.searchParams.get('$filter')).toBe("mailNickname eq 'ggurvi_deloitte.ca#EXT#'");
+      expect(requestUrl.searchParams.get('$filter')).toBe("mailNickname eq 'guest_user.ca#EXT#'");
       expect(requestUrl.hash).toBe('');
     });
 
