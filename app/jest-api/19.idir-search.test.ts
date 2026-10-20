@@ -155,7 +155,7 @@ describe('should allow searching and importing azure idir users', () => {
 
   it('should throw error upon searching users with invalid fields', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-    const result = await searchAzureIdirUsers('invalidField', 'search');
+    const result = await searchAzureIdirUsers('invalidField', 'search', 'azureidir');
     expect(result.status).toBe(422);
   });
 
@@ -193,7 +193,7 @@ describe('should allow searching and importing azure idir users', () => {
         ],
       },
     });
-    const result = await searchAzureIdirUsers('mail', 'search');
+    const result = await searchAzureIdirUsers('mail', 'search', 'azureidir');
     // verify that the decoded url contains userType filter
     expect(decodeURIComponent((axios.request as jest.Mock).mock.calls[0][0].url)).toContain(
       " and (userType eq 'Member')",
@@ -248,11 +248,11 @@ describe('should allow searching and importing bcgov idir users', () => {
 
   it('should throw error upon searching users with invalid fields', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
-    const result = await searchAzureIdirUsers('invalidField', 'search');
+    const result = await searchAzureIdirUsers('invalidField', 'search', 'bcgovidir');
     expect(result.status).toBe(422);
   });
 
-  it('should return bcgov idir search results', async () => {
+  it('should return bcgov idir search results without guest accounts', async () => {
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
     (axios.request as jest.Mock).mockResolvedValueOnce({
       data: {
@@ -286,7 +286,54 @@ describe('should allow searching and importing bcgov idir users', () => {
         ],
       },
     });
-    const result = await searchAzureIdirUsers('mail', 'search');
+    const result = await searchAzureIdirUsers('mail', 'search', 'bcgovidir');
+    // verify that the decoded url contains userType filter
+    expect(decodeURIComponent((axios.request as jest.Mock).mock.calls[0][0].url)).toContain(
+      " and (userType eq 'Member')",
+    );
+    expect(result.status).toBe(200);
+    expect(result.body.length).toEqual(2);
+  });
+
+  it('should return bcgov idir search results with guest accounts', async () => {
+    createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+    (axios.request as jest.Mock).mockResolvedValueOnce({
+      data: {
+        value: [
+          {
+            onPremisesExtensionAttributes: { extensionAttribute12: '1234' },
+            mailNickname: 'idirUser1',
+            displayName: 'Idir User 1',
+            mail: 'idiruser1@email.com',
+            jobTitle: 'Developer',
+            givenName: 'idir',
+            surname: 'user1',
+            companyName: 'Company A',
+            department: 'IT',
+            mobilePhone: '123-456-7890',
+            userPrincipalName: 'IDIRUSER1',
+          },
+          {
+            onPremisesExtensionAttributes: { extensionAttribute12: '5678' },
+            mailNickname: 'idirUser2',
+            displayName: 'Idir User 2',
+            mail: 'idiruser2@email.com',
+            jobTitle: 'Manager',
+            givenName: 'idir',
+            surname: 'user2',
+            companyName: 'Company B',
+            department: 'HR',
+            mobilePhone: '987-654-3210',
+            userPrincipalName: 'IDIRUSER2',
+          },
+        ],
+      },
+    });
+    const result = await searchAzureIdirUsers('mail', 'search', 'bcgovidir', true);
+    // verify that the decoded url contains userType filter
+    expect(decodeURIComponent((axios.request as jest.Mock).mock.calls[0][0].url)).not.toContain(
+      " and (userType eq 'Member')",
+    );
     expect(result.status).toBe(200);
     expect(result.body.length).toEqual(2);
   });

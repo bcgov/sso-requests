@@ -65,6 +65,7 @@ export const customValidate = (formData: any, errors: any, uiSchema: any, fields
     bcgovUnitId,
     divisionId,
     description,
+    entraGuestAccountsEnabled,
   } = formData;
   const sessionIdleTimeout = (value: number, key: string) => {
     return () => {
@@ -182,18 +183,23 @@ export const customValidate = (formData: any, errors: any, uiSchema: any, fields
       }
     },
     description: () => {
-      if (devIdps.some((idp: string) => ['bcgovidir'].includes(idp)) && (!description || description.trim() === '')) {
+      if (devIdps.includes('bcgovidir') && (!description || description.trim() === '')) {
         errors['description']?.addError('Project description is required');
       }
     },
     bcgovUnitId: () => {
-      if (devIdps.some((idp: string) => ['bcgovidir'].includes(idp)) && (!bcgovUnitId || bcgovUnitId === 0)) {
+      if (devIdps.includes('bcgovidir') && (!bcgovUnitId || bcgovUnitId === 0)) {
         errors['bcgovUnitId']?.addError('BC Government Unit is required');
       }
     },
     divisionId: () => {
-      if (devIdps.some((idp: string) => ['bcgovidir'].includes(idp)) && (!divisionId || divisionId === 0)) {
+      if (devIdps.includes('bcgovidir') && (!divisionId || divisionId === 0)) {
         errors['divisionId']?.addError('Division is required');
+      }
+    },
+    entraGuestAccountsEnabled: () => {
+      if (!devIdps.includes('bcgovidir') && entraGuestAccountsEnabled === true) {
+        errors['entraGuestAccountsEnabled']?.addError('Guest accounts are not allowed for non bcgovidir IDPs');
       }
     },
   };

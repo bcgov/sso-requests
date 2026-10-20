@@ -163,6 +163,7 @@ export const getUpdateIntegrationData = (args: {
   devHomePageUri?: string;
   testHomePageUri?: string;
   prodHomePageUri?: string;
+  entraGuestAccountsEnabled?: boolean;
 }) => {
   const {
     projectName = args.integration.projectName,
@@ -181,6 +182,7 @@ export const getUpdateIntegrationData = (args: {
     devHomePageUri = args.integration.devHomePageUri || '',
     testHomePageUri = args.integration.testHomePageUri || '',
     prodHomePageUri = args.integration.prodHomePageUri || '',
+    entraGuestAccountsEnabled = args.integration.entraGuestAccountsEnabled || false,
   } = args;
 
   const samlIntegration = protocol === 'saml';
@@ -207,6 +209,7 @@ export const getUpdateIntegrationData = (args: {
     bcServicesCardApproved,
     socialApproved,
     otpApproved,
+    entraGuestAccountsEnabled,
     devSamlLogoutPostBindingUri: samlIntegration ? 'https://a' : undefined,
     testSamlLogoutPostBindingUri: samlIntegration && envs?.includes('test') ? 'https://a' : undefined,
     prodSamlLogoutPostBindingUri: samlIntegration && envs?.includes('prod') ? 'https://a' : undefined,
