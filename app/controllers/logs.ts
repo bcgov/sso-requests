@@ -3,6 +3,7 @@ import { Session } from '@app/shared/interfaces';
 import { clientEventsAggregationQuery, queryGrafana } from '@app/utils/grafana';
 import { createEvent } from '@app/queries/event';
 import { EVENTS } from '@app/shared/enums';
+import { buildLogsQuery, getLogSourceRanges, LogSchemas } from '@sso/logs-query';
 
 import { logger } from '@app/utils/logger';
 
@@ -10,11 +11,18 @@ const log = logger.child({ module: 'controllers/logs' });
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
-// Loki limit lower in sandbox.
+// Log limit lower in sandbox.
 const LOG_SIZE_LIMIT = app_env === 'production' ? 25000 : 5000;
 const MAX_DAYS = 3;
 
 const allowedEnvs = ['dev', 'test', 'prod'];
+
+const getLogSchemas = (): LogSchemas => {
+  const retention = process.env.TRINO_RETENTION_SCHEMA;
+  const live = process.env.TRINO_LIVE_SCHEMA;
+  if (!retention || !live) throw new Error('TRINO_RETENTION_SCHEMA and TRINO_LIVE_SCHEMA must be set');
+  return { retention, live };
+};
 
 export const fetchLogs = async (
   env: string,
@@ -31,6 +39,9 @@ export const fetchLogs = async (
   }
   if (!allowedEnvs.includes(env)) {
     return { status: 400, message: `The env parameter must be one of ${allowedEnvs.join(', ')}.` };
+  }
+  if (!clientId) {
+    return { status: 400, message: 'This integration does not have a client ID yet.' };
   }
 
   const unixStartTime = new Date(start).getTime();
@@ -63,7 +74,12 @@ export const fetchLogs = async (
   };
 
   try {
-    const query = `{environment="${env}"}  |= \`clientId=${clientId}\` |= \`realmId=standard\``;
+    const query = buildLogsQuery(
+      env,
+      getLogSourceRanges(unixStartTime, unixEndTime, Date.now(), getLogSchemas()),
+      clientId,
+      process.env.NEXT_PUBLIC_APP_ENV,
+    );
     const allLogs = await queryGrafana(query, unixStartTime, unixEndTime, LOG_SIZE_LIMIT);
     let message = 'All logs retrieved';
     if (allLogs.length === LOG_SIZE_LIMIT)
@@ -75,7 +91,7 @@ export const fetchLogs = async (
     });
     return { status: 200, message, data: parsedLogs };
   } catch (err) {
-    log.info({ err }, 'Error while fetching logs from loki');
+    log.info({ err }, 'Error while fetching logs from trino');
     await createEvent({
       eventCode: EVENTS.LOGS_DOWNLOADED_FAILURE,
       ...eventMeta,

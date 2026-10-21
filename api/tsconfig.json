@@ -19,11 +19,12 @@
     "emitDecoratorMetadata": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@sso/authz": ["../packages/authz/src"]
+      "@sso/authz": ["../packages/authz/src"],
+      "@sso/logs-query": ["../packages/logs-query/src"]
     },
     "types": ["node", "jest"]
   },
-  "include": ["src/**/*.ts", "../packages/authz/src/**/*.ts"],
+  "include": ["src/**/*.ts", "../packages/authz/src/**/*.ts", "../packages/logs-query/src/**/*.ts"],
   "exclude": ["node_modules", "**/*.spec.ts", "src/tests/**/*"],
   "ts-node": {
     "files": true

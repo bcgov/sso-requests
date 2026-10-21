@@ -7,6 +7,9 @@ import * as rateLimiters from '@app/utils/rate-limiters';
 import { getLogs } from './helpers/modules/logs';
 import { createMockAuth } from './mocks/authenticate';
 
+process.env.TRINO_RETENTION_SCHEMA = 'retention.schema';
+process.env.TRINO_LIVE_SCHEMA = 'live.schema';
+
 jest.mock('@app/utils/grafana', () => {
   return {
     queryGrafana: jest.fn(() => Promise.resolve(['{"log": "log"}', '{"log": "log"}'])),
@@ -39,7 +42,10 @@ const teamAuthResponse = {
 const MOCK_USER_ID = -1;
 const MOCK_USER_EMAIL = 'test@user.com';
 const INTEGRATION_ID = -1;
-const integration = getUpdateIntegrationData({ integration: { projectName: 'test_project' } });
+const integration = {
+  ...getUpdateIntegrationData({ integration: { projectName: 'test_project' } }),
+  clientId: 'test-project-1',
+};
 
 // Create integration owned by mock user to test against
 const setupIntegrationAndUser = async () => {
@@ -196,5 +202,21 @@ describe('Fetch SSO Logs', () => {
     const response = await getLogs(INTEGRATION_ID, queryString);
 
     expect(response.status).toBe(429);
+  });
+
+  it('Queries both retention and live schemas when the range crosses the cutover', async () => {
+    await setupIntegrationAndUser();
+    createMockAuth('2', MOCK_USER_EMAIL);
+    const end = new Date().toISOString();
+    const start = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+    (queryGrafana as jest.Mock).mockClear();
+
+    const response = await getLogs(INTEGRATION_ID, `env=dev&start=${start}&end=${end}`);
+
+    expect(response.status).toBe(200);
+    const sql = (queryGrafana as jest.Mock).mock.calls[0][0];
+    expect(sql).toContain('retention.schema');
+    expect(sql).toContain('live.schema');
+    expect(sql).toContain('UNION ALL');
   });
 });

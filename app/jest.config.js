@@ -4,6 +4,7 @@ module.exports = {
   moduleNameMapper: {
     '^@app/(.*)$': '<rootDir>/$1',
     '^@sso/authz$': '<rootDir>/../packages/authz/src',
+    '^@sso/logs-query$': '<rootDir>/../packages/logs-query/src',
     '^@components(.*)$': '<rootDir>/components$1',
     '^@pages(.*)$': '<rootDir>/pages$1',
     '^@utils(.*)$': '<rootDir>/utils$1',

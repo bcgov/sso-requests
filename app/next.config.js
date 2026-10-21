@@ -26,6 +26,7 @@ module.exports = {
       // directory: Turbopack resolves a relative alias against the importer's
       // project directory and does no index resolution for it.
       '@sso/authz': '../packages/authz/src/index.ts',
+      '@sso/logs-query': '../packages/logs-query/src/index.ts',
     },
   },
   output: 'standalone',

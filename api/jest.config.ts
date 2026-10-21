@@ -12,6 +12,7 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@sso/authz$': '<rootDir>/../packages/authz/src',
+    '^@sso/logs-query$': '<rootDir>/../packages/logs-query/src',
   },
   verbose: true,
   coverageReporters: ['json', 'html'],
