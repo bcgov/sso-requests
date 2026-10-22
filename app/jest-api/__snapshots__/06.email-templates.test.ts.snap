@@ -458,7 +458,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_TE
 "
 `;
 
-exports[`Email template snapshots Should return the expected email for DELETE_INACTIVE_IDIR_USER 1`] = `"[DEV] In-active IDIR User Removed"`;
+exports[`Email template snapshots Should return the expected email for DELETE_INACTIVE_IDIR_USER 1`] = `"[DEV] Inactive IDIR User Removed"`;
 
 exports[`Email template snapshots Should return the expected email for DELETE_INACTIVE_IDIR_USER 2`] = `
 "<h3>Dear SSO friend,</h3>
