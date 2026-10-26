@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node build/api/src/server.js",
     "dev": "nodemon",
-    "build": "tsc && tsc-alias",
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "test": "NODE_ENV=test jest --detectOpenHandles --forceExit --runInBand"

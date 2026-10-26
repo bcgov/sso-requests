@@ -356,6 +356,16 @@ router.get(`/:environment/azure-idir/users`, async (req: Request, res: Response)
   }
 });
 
+router.get(`/:environment/bcgov-idir/users`, async (req: Request, res: Response) => {
+  try {
+    const { environment } = req.params as Record<string, string>;
+    const result = await userController.listUsers(environment, 'bcgovidir', req.query);
+    res.status(200).json({ data: result });
+  } catch (err) {
+    handleError(res, err);
+  }
+});
+
 router.get(`/:environment/github-bcgov/users`, async (req: Request, res: Response) => {
   try {
     const { environment } = req.params as Record<string, string>;
