@@ -88,3 +88,37 @@ export const clientEventsAggregationQuery = async (
 
   return result;
 };
+
+export const fetchKeycloakRoleUsersCount = async (clientId: string, roleName: string) => {
+  try {
+    const keycloakDatasourceUID = await fetchDatasourceUID('SSO Keycloak Dev');
+
+    const query = {
+      queries: [
+        {
+          datasource: { type: 'grafana-postgresql-datasource', uid: keycloakDatasourceUID },
+          rawSql: `SELECT COUNT(DISTINCT urm.USER_ID) AS user_count\nFROM USER_ROLE_MAPPING urm\nJOIN KEYCLOAK_ROLE kr\n    ON kr.ID = urm.ROLE_ID\nJOIN CLIENT c\n    ON c.ID = kr.CLIENT\nJOIN REALM r\n    ON r.ID = c.REALM_ID\nWHERE kr.NAME = ${escapeLiteral(
+            roleName,
+          )}\n  AND c.CLIENT_ID = ${escapeLiteral(clientId)}\n  AND r.NAME = 'standard'`,
+          format: 'table',
+        },
+      ],
+    };
+
+    const headers = {
+      Authorization: `Bearer ${process.env.GRAFANA_API_TOKEN}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    };
+
+    const res: any = await axios.post(`${process.env.GRAFANA_API_URL}/ds/query`, query, { headers });
+    const values = res?.data?.results?.A?.frames[0]?.data?.values;
+    if (values && values.length > 0) {
+      return Number(values[0][0]);
+    }
+    return 0;
+  } catch (err) {
+    console.error('Failed to fetch Keycloak role users count:', err);
+    return 0;
+  }
+};

@@ -150,7 +150,6 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const [savingMessage, setSavingMessage] = useState('');
   const [searchKey, setSearchKey] = useState('');
   const [firstUser, setFirstUser] = useState(0);
-  const [maxUser, setMaxUser] = useState(20);
   const [hasMoreUser, setHasMoreUser] = useState(true);
   const [roles, setRoles] = useState<string[]>([]);
   const [users, setUsers] = useState<KeycloakUser[]>([]);
@@ -163,6 +162,9 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const [rightPanelTab, setRightPanelTab] = useState<string>('');
   const [serviceAccountIntMap, setServiceAccountIntMap] = useState<SvcAcctUserIntegrationMapType[]>([]);
   const [compositeRoleError, setCompositeRoleError] = useState(false);
+  const [roleUsersPage, setRoleUsersPage] = useState(1);
+  const [roleUsersCount, setRoleUsersCount] = useState(0);
+  const [roleUsersLimit, setRoleUsersLimit] = useState<number>(5);
 
   // Roles (idir -> MFA) replication
   const replicationModalRef = useRef<ModalRef>(emptyRef);
@@ -239,6 +241,10 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   };
 
   useEffect(() => {
+    fetchUsers(selectedRole as string);
+  }, [roleUsersPage, roleUsersLimit]);
+
+  useEffect(() => {
     setServiceAccountIntMap([]);
     populateTabs();
     setCurrentIntegrationID(integration.id);
@@ -248,10 +254,11 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   useEffect(() => {
     setServiceAccountIntMap([]);
     if (!selectedRole) return;
-    fetchUsers(true, selectedRole);
+    fetchUsers(selectedRole);
     fetchComposite(selectedRole);
     setSaving(false);
     setSavingMessage('');
+    setRoleUsersPage(1);
   }, [selectedRole]);
 
   const replicationPreviewHasUsersToAttempt = useMemo(() => {
@@ -308,28 +315,21 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     }
   };
 
-  const fetchUsers = async (loadFirst: boolean, roleName: string) => {
+  const fetchUsers = async (roleName: string) => {
     if (userLoading) return;
-    if (roleName.length < 2) return;
+    if (!roleName || roleName?.length < 2) return;
 
-    let _first = 0;
+    let _first = (roleUsersPage - 1) * roleUsersLimit;
     let _users: KeycloakUser[] = [];
 
     setUserLoading(true);
-
-    if (loadFirst) {
-      setFirstUser(_first);
-    } else {
-      _first = firstUser;
-      _users = users;
-    }
 
     const [data, err] = await listRoleUsers({
       environment,
       integrationId: integration.id as number,
       roleName,
       first: _first,
-      max: maxUser,
+      max: roleUsersLimit,
     });
 
     if (err) {
@@ -339,7 +339,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       });
     }
 
-    let _data = data || [];
+    let _data = data?.data || [];
 
     if (_data.length > 0) {
       _data.map(async (user) => {
@@ -356,9 +356,9 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       setServiceAccountIntMap([]);
     }
 
-    setHasMoreUser(_data.length === maxUser);
+    setHasMoreUser(_data.length === roleUsersLimit);
+    setRoleUsersCount(data?.totalCount || 0);
     setUsers(_users.concat(_data));
-    setFirstUser(_first + maxUser);
     setSelectedRole(roleName);
     setUserLoading(false);
   };
@@ -373,7 +373,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         integrationId: integration.id as number,
         roleName: selectedRole as string,
         first: data.length,
-        max: maxUser,
+        max: 100,
       });
       if (err) {
         alert.show({
@@ -383,9 +383,9 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         setUserLoading(false);
         return;
       }
-      if (!users || users.length === 0) break;
+      if (!users?.data || users?.data?.length === 0) break;
       data.push(
-        ...users.map((user) => {
+        ...users?.data?.map((user) => {
           const [userGuid, identityProvider] = user.username.split('@');
           const githubOrBceidUser =
             identityProvider && (identityProvider.startsWith('bceid') || identityProvider.startsWith('github'));
@@ -511,7 +511,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     setReplicationPhase('result');
 
     if (selectedRole && (!replicationTargetRole || replicationTargetRole === selectedRole)) {
-      fetchUsers(true, selectedRole);
+      fetchUsers(selectedRole);
     }
 
     return false;
@@ -535,9 +535,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   };
 
   let rightPanel = null;
-  if (firstUser === 0 && userLoading) {
-    rightPanel = <LoaderContainer />;
-  } else if (selectedRole) {
+  if (selectedRole) {
     const filterUsers = users.filter((user) => !user.username.startsWith('service-account-'));
     const filterServiceAccounts = filterServiceAccountUsers(users);
     if (rightPanelTab === 'Users') {
@@ -636,10 +634,13 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
                   };
                 }) || []
               }
+              loading={userLoading}
               enableGlobalSearch={false}
               noDataFoundMessage={<span>No users found.</span>}
-              loading={userLoading}
-              enablePagination={false}
+              serverPageIndex={roleUsersPage}
+              onPageChange={setRoleUsersPage}
+              totalRowCount={roleUsersCount}
+              onPageSizeChange={setRoleUsersLimit}
             ></TableNew>
           </div>
         </>
@@ -868,7 +869,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
             });
           }
 
-          fetchUsers(true, selectedRole);
+          fetchUsers(selectedRole);
         }}
         confirmButtonText="Remove"
         confirmButtonVariant="primary"
@@ -899,7 +900,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
             });
           }
 
-          fetchUsers(true, selectedRole);
+          fetchUsers(selectedRole);
         }}
         confirmButtonText="Remove"
         confirmButtonVariant="primary"

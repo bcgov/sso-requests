@@ -225,7 +225,7 @@ export const listRoleUsers = async ({
   roleName: string;
   first?: number;
   max?: number;
-}): Promise<(KeycloakUser[] | null)[]> => {
+}): Promise<({ totalCount: number; data: KeycloakUser[] } | null)[]> => {
   try {
     const result = await instance
       .post('keycloak/role-users', { environment, integrationId, roleName, first, max })

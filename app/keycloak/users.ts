@@ -11,6 +11,7 @@ import { IntegrationData } from '@app/shared/interfaces';
 import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
 
 import { logger } from '@app/utils/logger';
+import { fetchKeycloakRoleUsersCount } from '@app/utils/grafana';
 
 const log = logger.child({ module: 'keycloak/users' });
 
@@ -211,6 +212,10 @@ export const listRoleUsers = async (
 
   if (!roles.some((role) => role.name === roleName)) throw new createHttpError.NotFound(`role ${roleName} not found`);
 
+  const totalCount = await fetchKeycloakRoleUsersCount(integration.clientId!, roleName);
+
+  if (totalCount === 0) return { totalCount, data: [] };
+
   const users = await kcAdminClient.clients.findUsersWithRole({
     realm: 'standard',
     id: client?.id!,
@@ -226,7 +231,7 @@ export const listRoleUsers = async (
         !!integration?.devIdps?.includes(user.username.split('@')[1] ?? '')),
   );
 
-  return filterByIdps;
+  return { totalCount, data: filterByIdps };
 };
 
 export const listUserRoles = async (
