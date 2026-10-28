@@ -3,7 +3,7 @@ import { authenticate } from '@app/utils/authenticate';
 import { Session } from '@app/shared/interfaces';
 import { handleError, withApiLogging } from '@app/utils/api';
 import { processUserSession } from '@app/controllers/user';
-import { listClientRolesByUsers, updateUserRoleMappings } from '@app/controllers/user';
+import { listClientRolesByUsers, updateUserRoleMapping, updateUserRoleMappings } from '@app/controllers/user';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
@@ -15,7 +15,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const result = await listClientRolesByUsers(session as Session, req.body);
       return res.status(200).json(result);
     } else if (req.method === 'PUT') {
-      const result = await updateUserRoleMappings(session as Session, req.body);
+      const isSingleRoleRequest =
+        req.body && typeof req.body === 'object' && ('roleName' in req.body || 'mode' in req.body);
+      const result = isSingleRoleRequest
+        ? await updateUserRoleMapping(session as Session, req.body)
+        : await updateUserRoleMappings(session as Session, req.body);
       return res.status(200).json(result);
     } else {
       res.setHeader('Allow', ['POST', 'PUT']);

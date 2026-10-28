@@ -32,11 +32,11 @@ export default function EventContent({ events }: Props) {
               <strong>Created Time: </strong>
               {getReadableDateTime(event.createdAt)}
             </div>
-            {event.idirUserDisplayName && (
+            {(event.idirUserDisplayName || event.actorType || event.actorId) && (
               <>
                 <div>
                   <strong>Created By: </strong>
-                  {event.idirUserDisplayName}
+                  {event.idirUserDisplayName || [event.actorType, event.actorId].filter(Boolean).join(': ')}
                 </div>
               </>
             )}

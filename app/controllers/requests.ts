@@ -100,7 +100,7 @@ import { Event } from '@app/interfaces/Event';
 import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
 import { createSdxRequest } from './sdx-services';
 import { getEntraClientByRequestId, saveEntraClient } from '@app/queries/entra-client';
-import { createEvent } from '@app/queries/event';
+import { completeLifecycleEvent, createEvent } from '@app/queries/event';
 import { enqueueRequestWorkflow } from '@app/workflow/request-workflow';
 import { KeyCredential } from '@microsoft/microsoft-graph-types';
 import { createPS256Key, getActivePS256KeyCert } from '@app/keycloak/keys';
@@ -532,6 +532,9 @@ export const updateRequest = async (
   // let's skip this logic for now and see if we might need it back later
   // await checkIfHasFailedRequests();
   let addingProd = false;
+  let workflowId: string | undefined;
+  let submissionEventId: number | undefined;
+  let submissionEventData: Event | undefined;
   const { id, comment, ...rest } = data;
   const isMerged = await checkIfRequestMerged(id!);
 
@@ -675,28 +678,8 @@ export const updateRequest = async (
 
     current.lastChanges = changes || null;
 
-    let updated = await current.save();
-
-    if (!updated) {
-      throw new createHttpError.UnprocessableEntity('update failed');
-    }
-
-    // team id column is referencing id of teams table so it can only be set to null using `update` method
-    if (updated?.usesTeam === false && updated?.teamId) {
-      await models.request.update(
-        { teamId: null },
-        {
-          where: {
-            id: updated.id,
-          },
-          returning: true,
-          omitNull: false,
-        },
-      );
-    }
-
     if (submit) {
-      const eventData: Event = {
+      submissionEventData = {
         eventCode: EVENTS.REQUEST_CREATE_SUCCESS,
         requestId: id,
         idirUserid: session?.idir_userid,
@@ -709,13 +692,35 @@ export const updateRequest = async (
           details.comment = comment;
         }
 
-        eventData.eventCode = EVENTS.REQUEST_UPDATE_SUCCESS;
-        eventData.details = details;
+        submissionEventData.eventCode = EVENTS.REQUEST_UPDATE_SUCCESS;
+        submissionEventData.details = details;
       }
+    }
 
-      await createEvent(eventData);
+    // Switching off team ownership clears teamId: the client may still submit its prior value.
+    if (current.usesTeam === false && current.teamId) {
+      current.teamId = null;
+    }
 
-      await processIntegrationRequest(updated, false, existingClientId, addingProd);
+    let updated = await sequelize.transaction(async (transaction) => {
+      const saved = await current.save({ transaction });
+      if (!saved) throw new createHttpError.UnprocessableEntity('update failed');
+
+      if (submissionEventData) {
+        submissionEventId = await createEvent(submissionEventData, transaction);
+      }
+      return saved;
+    });
+
+    if (submit) {
+      const workflow = await processIntegrationRequest(updated, false, existingClientId, addingProd);
+      workflowId = workflow?.workflowId;
+      await completeLifecycleEvent(submissionEventId, {
+        eventCode: submissionEventData!.eventCode,
+        details: submissionEventData!.details,
+        requestId: id,
+        workflowId,
+      });
 
       const refreshed = await authorizeIntegration(session, id!, 'integrations:read');
       if (!refreshed) throw new Error('Request not found');
@@ -726,14 +731,22 @@ export const updateRequest = async (
   } catch (err) {
     log.error({ err }, 'updateRequest failed');
     if (submit) {
-      const eventData = {
-        eventCode: isMerged ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
-        requestId: id,
-        idirUserid: session?.idir_userid,
-        idirUserDisplayName: session?.user?.displayName || '',
-      };
-
-      await createEvent(eventData);
+      if (submissionEventId !== undefined) {
+        await completeLifecycleEvent(submissionEventId, {
+          eventCode: isMerged ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
+          details: submissionEventData?.details,
+          requestId: id,
+          workflowId,
+        });
+      } else {
+        await createEvent({
+          eventCode: isMerged ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
+          requestId: id,
+          workflowId,
+          idirUserid: session?.idir_userid,
+          idirUserDisplayName: session?.user?.displayName || '',
+        });
+      }
     }
 
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
@@ -936,6 +949,8 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
   const { integration: current, access } = readable;
   const transition = authorizeTransition(current, deleteIntentFor(current.status), access);
 
+  let workflowId: string | undefined;
+  let deleteEventId: number | undefined;
   try {
     current.requester = getRequester(session, access);
     current.archived = true;
@@ -947,9 +962,22 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     current.status = transition.to;
 
-    const result = await current.save();
+    const result = await sequelize.transaction(async (transaction) => {
+      const saved = await current.save({ transaction });
+      deleteEventId = await createEvent(
+        {
+          eventCode: EVENTS.REQUEST_DELETE_SUCCESS,
+          requestId: id,
+          idirUserid: session?.idir_userid,
+          idirUserDisplayName: session?.user?.displayName || '',
+        },
+        transaction,
+      );
+      return saved;
+    });
 
-    await processIntegrationRequest(result);
+    const workflow = await processIntegrationRequest(result);
+    workflowId = workflow?.workflowId;
 
     const integration = result.get({ plain: true });
 
@@ -958,23 +986,31 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     await sendTemplate(emailCode, emailData);
 
-    await createEvent({
+    await completeLifecycleEvent(deleteEventId, {
       eventCode: EVENTS.REQUEST_DELETE_SUCCESS,
       requestId: id,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session?.user?.displayName || '',
+      workflowId,
     });
 
     return integration;
   } catch (err) {
     log.error({ err }, 'deleteRequest failed');
 
-    await createEvent({
-      eventCode: EVENTS.REQUEST_DELETE_FAILURE,
-      requestId: id,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session?.user?.displayName || '',
-    });
+    if (deleteEventId !== undefined) {
+      await completeLifecycleEvent(deleteEventId, {
+        eventCode: EVENTS.REQUEST_DELETE_FAILURE,
+        requestId: id,
+        workflowId,
+      });
+    } else {
+      await createEvent({
+        eventCode: EVENTS.REQUEST_DELETE_FAILURE,
+        requestId: id,
+        workflowId,
+        idirUserid: session?.idir_userid,
+        idirUserDisplayName: session?.user?.displayName || '',
+      });
+    }
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };
@@ -1099,6 +1135,14 @@ export const processIntegrationRequest = async (
     addingProd,
     awaitCompletion: options.awaitCompletion,
   });
+};
+
+export const assertWorkflowCompleted = (workflow: Awaited<ReturnType<typeof processIntegrationRequest>>) => {
+  if (workflow && workflow.state !== 'COMPLETED') {
+    throw new createHttpError.UnprocessableEntity(
+      `integration workflow ${workflow.workflowId} ended in ${workflow.state}`,
+    );
+  }
 };
 
 export const getListOfDescrepencies = async () => {

@@ -7,6 +7,20 @@ const init = (sequelize: any, DataTypes: any) => {
         references: { model: 'requests', key: 'id' },
         allowNull: true,
       },
+      teamId: {
+        type: DataTypes.INTEGER,
+        references: { model: 'teams', key: 'id' },
+        onDelete: 'SET NULL',
+        allowNull: true,
+        field: 'team_id',
+      },
+      workflowId: {
+        type: DataTypes.UUID,
+        references: { model: 'request_workflows', key: 'id' },
+        onDelete: 'SET NULL',
+        allowNull: true,
+        field: 'workflow_id',
+      },
       eventCode: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -14,6 +28,17 @@ const init = (sequelize: any, DataTypes: any) => {
       idirUserid: {
         type: DataTypes.STRING,
         allowNull: true,
+      },
+      actorType: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'user',
+        field: 'actor_type',
+      },
+      actorId: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        field: 'actor_id',
       },
       // Organization events have no request to hang from, so they are recorded
       // against the organization instead.

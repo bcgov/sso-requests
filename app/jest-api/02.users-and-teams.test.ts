@@ -331,12 +331,15 @@ describe('Admin Removal and Events', () => {
 
     await models.usersTeam.update({ pending: false }, { where: { teamId: team.id, userId: additionalAdmin.id } });
     await updateTeamMember(team.id, additionalAdmin.id, { role: 'member' });
-    const event = await models.event.findOne({ where: { eventCode: EVENTS.TEAM_ADMIN_REMOVAL } });
+    const roleEvent = await models.event.findOne({ where: { eventCode: EVENTS.TEAM_MEMBER_ROLE_UPDATED } });
 
-    // Event trigerred by the authenticated user
-    expect(event.details.removerId).toBe(authenticatedUser.id);
-    expect(event.details.removedMemberId).toBe(additionalAdmin.id);
-    expect(event.details.teamId).toBe(team.id);
+    expect(await models.event.findOne({ where: { eventCode: EVENTS.TEAM_ADMIN_REMOVAL } })).toBeNull();
+    expect(roleEvent.details).toMatchObject({
+      teamId: team.id,
+      userId: additionalAdmin.id,
+      before: 'admin',
+      after: 'member',
+    });
   });
 
   it('Logs an event when an admin is removed from a team', async () => {
@@ -352,10 +355,8 @@ describe('Admin Removal and Events', () => {
     await models.usersTeam.update({ pending: false }, { where: { teamId: team.id, userId: additionalAdmin.id } });
 
     await deleteMembersOfTeam(team.id, additionalAdmin.id);
-    const event = await models.event.findOne({ where: { eventCode: EVENTS.TEAM_ADMIN_REMOVAL } });
-    // Event trigerred by the authenticated user
-    expect(event.details.removerId).toBe(authenticatedUser.id);
-    expect(event.details.removedMemberId).toBe(additionalAdmin.id);
-    expect(event.details.teamId).toBe(team.id);
+    const memberEvent = await models.event.findOne({ where: { eventCode: EVENTS.TEAM_MEMBER_REMOVED } });
+    expect(await models.event.findOne({ where: { eventCode: EVENTS.TEAM_ADMIN_REMOVAL } })).toBeNull();
+    expect(memberEvent.details).toMatchObject({ teamId: team.id, userId: additionalAdmin.id, role: 'admin' });
   });
 });

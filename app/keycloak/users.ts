@@ -309,6 +309,11 @@ export const manageUserRole = async (
   return roles;
 };
 
+export interface UserRoleMappingChanges {
+  assigned: string[];
+  unassigned: string[];
+}
+
 export const manageUserRoles = async (
   integration: Integration,
   {
@@ -320,6 +325,7 @@ export const manageUserRoles = async (
     username: string;
     roleNames: string[];
   },
+  auditChanges?: (changes: UserRoleMappingChanges, applyChanges: () => Promise<boolean>) => Promise<boolean>,
 ) => {
   if (!checkIfUserIsServiceAccount(username)) {
     const idp = username.split('@')[1];
@@ -353,19 +359,29 @@ export const manageUserRoles = async (
   const findRole = (roleName: string) =>
     kcAdminClient.clients.findRole({ realm: 'standard', id: client?.id!, roleName });
 
-  const addPromise = Promise.all(rolesToAdd.map((roleName) => findRole(roleName!))).then((roles) =>
-    // @ts-ignore
-    kcAdminClient.users.addClientRoleMappings({ ...roleMapping, roles }),
+  const applyChanges = async () => {
+    const addPromise = Promise.all(rolesToAdd.map((roleName) => findRole(roleName!))).then((roles) =>
+      // @ts-ignore
+      kcAdminClient.users.addClientRoleMappings({ ...roleMapping, roles }),
+    );
+
+    const delPromise = Promise.all(rolesToDel.map((roleName) => findRole(roleName!))).then((roles) =>
+      // @ts-ignore
+      kcAdminClient.users.delClientRoleMappings({ ...roleMapping, roles }),
+    );
+
+    await Promise.all([addPromise, delPromise]);
+    return true;
+  };
+
+  if (!auditChanges) return applyChanges();
+  return auditChanges(
+    {
+      assigned: rolesToAdd.filter((roleName): roleName is string => typeof roleName === 'string'),
+      unassigned: rolesToDel.filter((roleName): roleName is string => typeof roleName === 'string'),
+    },
+    applyChanges,
   );
-
-  const delPromise = Promise.all(rolesToDel.map((roleName) => findRole(roleName!))).then((roles) =>
-    // @ts-ignore
-    kcAdminClient.users.delClientRoleMappings({ ...roleMapping, roles }),
-  );
-
-  await Promise.all([addPromise, delPromise]);
-
-  return true;
 };
 
 export const createRole = async (

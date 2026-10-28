@@ -202,6 +202,7 @@ const failWorkflow = async (
 
   const eventCode = (() => {
     if (failedDuringPlanning) return EVENTS.REQUEST_PLAN_FAILURE;
+    if (workflow.type === WorkflowType.INTEGRATION_DELETE) return EVENTS.WORKFLOW_DELETE_FAILURE;
     return isRestore ? EVENTS.REQUEST_RESTORE_FAILURE : EVENTS.REQUEST_APPLY_FAILURE;
   })();
 

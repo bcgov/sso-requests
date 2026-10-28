@@ -3,7 +3,7 @@ import { SDXResourceServer } from '@app/shared/interfaces';
 import { getIntegrationById } from '@app/queries/request';
 import { authorizeIntegration } from '@app/queries/integrationAccess';
 import { EVENTS } from '@app/shared/enums';
-import { createEvent } from '@app/queries/event';
+import { runAuditedOperation } from '@app/queries/event';
 import { getAdminClient } from '@app/keycloak/adminClient';
 import { getClientScopes } from '@app/keycloak/clientScopes';
 import ClientScopeRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientScopeRepresentation';
@@ -197,21 +197,34 @@ export const createSdxRequest = async (session: Session, request: Integration) =
       privacyZone: privacyZoneUri,
     };
 
-    const response = await fetch(`${process.env.SDX_API || ''}/integrations/${request.id!}/access-requests`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${await getToken()}`,
+    const responseData = await runAuditedOperation(
+      {
+        eventCode: EVENTS.SDX_REQUEST_CREATE_REQUESTED,
+        requestId: request.id,
+        idirUserid: session?.idir_userid,
+        idirUserDisplayName: user?.displayName || '',
+        details: { services: request.sdxServices },
       },
-      body: JSON.stringify(sdxRequestData),
-    });
+      EVENTS.SDX_REQUEST_CREATE_SUCCESS,
+      EVENTS.SDX_REQUEST_CREATE_FAILURE,
+      async () => {
+        const response = await fetch(`${process.env.SDX_API || ''}/integrations/${request.id!}/access-requests`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${await getToken()}`,
+          },
+          body: JSON.stringify(sdxRequestData),
+        });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to create SDX request: ${errorText}`);
-    }
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to create SDX request: ${errorText}`);
+        }
 
-    const responseData = await response.json();
+        return response.json();
+      },
+    );
 
     await createSdxAccessRequest(responseData.submissionId || '', user?.displayName || '', request.id!, sdxRequestData);
 
@@ -321,28 +334,35 @@ export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAcce
     throw new Error(`Integration with ID ${requestId} is not in applied state`);
   }
 
-  await createEvent({
-    eventCode: EVENTS.SDX_ACCESS_REQUEST_UPDATE,
-    requestId,
-    details: data,
-  });
-
-  if (data.resourceServers && data.resourceServers.length > 0) {
-    for (const rs of data.resourceServers) {
-      for (const service of rs.services || []) {
-        if (service.scopes && service.scopes.length > 0) {
-          const scopes = service.scopes.map(getScopeLabel);
-          if (isProductionSdxEnvironment(rs.environment)) {
-            await manageKeycloakScopes(integrationData.clientId, 'prod', scopes);
-          } else {
-            await Promise.all(
-              ['dev', 'test'].map(async (env) => await manageKeycloakScopes(integrationData.clientId, env, scopes)),
-            );
+  await runAuditedOperation(
+    {
+      eventCode: EVENTS.SDX_ACCESS_REQUEST_UPDATE,
+      requestId,
+      actorType: 'system',
+      actorId: 'sdx-callback',
+      details: { ...data, triggeredBy: 'sdx-callback' },
+    },
+    EVENTS.SDX_ACCESS_REQUEST_UPDATE_SUCCESS,
+    EVENTS.SDX_ACCESS_REQUEST_UPDATE_FAILURE,
+    async () => {
+      if (data.resourceServers && data.resourceServers.length > 0) {
+        for (const rs of data.resourceServers) {
+          for (const service of rs.services || []) {
+            if (service.scopes && service.scopes.length > 0) {
+              const scopes = service.scopes.map(getScopeLabel);
+              if (isProductionSdxEnvironment(rs.environment)) {
+                await manageKeycloakScopes(integrationData.clientId, 'prod', scopes);
+              } else {
+                await Promise.all(
+                  ['dev', 'test'].map(async (env) => await manageKeycloakScopes(integrationData.clientId, env, scopes)),
+                );
+              }
+            }
           }
         }
       }
-    }
-  }
+    },
+  );
 };
 
 export const manageKeycloakScopes = async (clientId: string, environment: string, scopes: string[]) => {

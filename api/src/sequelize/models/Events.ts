@@ -7,8 +7,13 @@ export interface EventsAttributes {
   createdAt: Date;
   updatedAt: Date;
   requestId?: number;
+  teamId?: number | null;
+  organizationId?: number | null;
+  workflowId?: string | null;
   eventCode: string;
   idirUserid?: string;
+  actorType: string;
+  actorId?: string | null;
   details?: object;
   idirUserDisplayName?: string;
 }
@@ -20,7 +25,12 @@ export type EventsOptionalAttributes =
   | 'createdAt'
   | 'updatedAt'
   | 'requestId'
+  | 'teamId'
+  | 'organizationId'
+  | 'workflowId'
   | 'idirUserid'
+  | 'actorType'
+  | 'actorId'
   | 'details'
   | 'idirUserDisplayName';
 export type EventsCreationAttributes = Optional<EventsAttributes, EventsOptionalAttributes>;
@@ -30,8 +40,13 @@ export class Events extends Model<EventsAttributes, EventsCreationAttributes> im
   createdAt!: Date;
   updatedAt!: Date;
   requestId?: number;
+  teamId?: number | null;
+  organizationId?: number | null;
+  workflowId?: string | null;
   eventCode!: string;
   idirUserid?: string;
+  actorType!: string;
+  actorId?: string | null;
   details?: object;
   idirUserDisplayName?: string;
 
@@ -60,6 +75,25 @@ export class Events extends Model<EventsAttributes, EventsCreationAttributes> im
           },
           field: 'request_id',
         },
+        teamId: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+          references: { model: 'teams', key: 'id' },
+          onDelete: 'SET NULL',
+          field: 'team_id',
+        },
+        organizationId: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+          field: 'organization_id',
+        },
+        workflowId: {
+          type: DataTypes.UUID,
+          allowNull: true,
+          references: { model: 'request_workflows', key: 'id' },
+          onDelete: 'SET NULL',
+          field: 'workflow_id',
+        },
         eventCode: {
           type: DataTypes.STRING(255),
           allowNull: false,
@@ -69,6 +103,17 @@ export class Events extends Model<EventsAttributes, EventsCreationAttributes> im
           type: DataTypes.STRING(255),
           allowNull: true,
           field: 'idir_userid',
+        },
+        actorType: {
+          type: DataTypes.STRING(32),
+          allowNull: false,
+          defaultValue: 'user',
+          field: 'actor_type',
+        },
+        actorId: {
+          type: DataTypes.STRING(255),
+          allowNull: true,
+          field: 'actor_id',
         },
         details: {
           type: DataTypes.JSONB,

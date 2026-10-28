@@ -6,13 +6,14 @@ import { Tabs, Alert, LastSavedMessage } from '@bcgov-sso/common-react-component
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
-import { listClientRoles, listUserRoles, manageUserRoles } from 'services/keycloak';
+import { listClientRoles, listUserRoles, manageUserRole } from 'services/keycloak';
 import TopAlertWrapper from '@app/components/TopAlertWrapper';
 import Link from '@app/components/Link';
 import { getServiceAccountUsername } from '@app/helpers/users';
 import { docusaurusURL } from '@app/utils/constants';
 import TableNew from '@app/components/TableNew';
 import { Col, Row } from 'react-bootstrap';
+import { RoleChanges, applyRoleChanges, diffRoles, hasFailures, resolveRoles } from '@app/helpers/roles';
 
 const Label = styled.label`
   font-weight: bold;
@@ -69,25 +70,27 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
 
   const throttleUpdate = useCallback(
     throttle(
-      async (roleNames: string[]) => {
+      async (changes: RoleChanges) => {
         setSaving(true);
         setSavingMessage('Assigning role...');
         setUserAssignmentError(false);
-        const [, err] = await manageUserRoles({
-          environment: environment,
-          integrationId: selectedRequest.id as number,
-          username: getServiceAccountUsername(selectedRequest.clientId as string),
-          roleNames,
-        });
+        const failed = await applyRoleChanges(changes, (roleName, mode) =>
+          manageUserRole({
+            environment: environment,
+            integrationId: selectedRequest.id as number,
+            username: getServiceAccountUsername(selectedRequest.clientId as string),
+            roleName,
+            mode,
+          }),
+        );
         setSaving(false);
-        if (err) {
+        if (hasFailures(failed)) {
           setUserAssignmentError(true);
           setSavingMessage('Failed to update roles.');
-          return false;
         } else {
           setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
-          return true;
         }
+        return failed;
       },
       2000,
       { trailing: true },
@@ -113,10 +116,8 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
     }
 
     if (userRoles.length !== newRoles.length) {
-      const success = await throttleUpdate(newRoles);
-      if (success) {
-        setUserRoles(newRoles);
-      }
+      const failed = await throttleUpdate(diffRoles(userRoles, newRoles));
+      if (failed) setUserRoles(resolveRoles(newRoles, failed));
     }
   };
 

@@ -5,6 +5,8 @@ import { KeycloakService } from '@/services/keycloak-service';
 import { BceidWebserviceService } from '@/services/bceid-webservice';
 import { MsGraphService } from '@/services/ms-graph-idir';
 import { seedApiAccount, seedIntergrations, seedTeamAndMembers } from './helpers/seeder';
+import models from '@/sequelize/models/models';
+import { EVENTS } from '../../../app/shared/enums';
 
 const API_BASE_PATH = '/api/v1';
 let team: any;
@@ -87,6 +89,30 @@ describe('roles-new endpoint', () => {
     expect(createUserMock).not.toHaveBeenCalled();
     expect(bceidVerifyMock).not.toHaveBeenCalled();
     expect(result.body.data[0].name).toBe('role1');
+  });
+
+  it('records one assignment event per role in a multi-role request', async () => {
+    mockRoleAssignment();
+    const username = 'event-query-user@idir';
+    jest
+      .spyOn(KeycloakService.prototype, 'getUser')
+      .mockImplementation(() => Promise.resolve({ id: 'user-1', username }));
+
+    const lastEventId = Number((await models.event.max('id')) || 0);
+    await supertest(app)
+      .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/${username}/roles`)
+      .send([{ name: 'role1' }, { name: 'role2' }])
+      .set('Accept', 'application/json')
+      .expect(201);
+
+    const events = await models.event.findAll({
+      where: { requestId: integration.id, eventCode: EVENTS.ROLE_ASSIGN_SUCCESS },
+      raw: true,
+    });
+    const roleEvents = events.filter((event: any) => event.id > lastEventId && event.details?.username === username);
+
+    expect(roleEvents.map((event: any) => event.details.roleName).sort()).toEqual(['role1', 'role2']);
+    expect(roleEvents.every((event: any) => !('roleNames' in event.details))).toBe(true);
   });
 
   it('verifies and imports a new idir user via the BCeID webservice, then assigns the role', async () => {

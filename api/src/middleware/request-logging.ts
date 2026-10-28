@@ -30,7 +30,10 @@ export const requestLogging = (req: Request, res: Response, next: NextFunction) 
       const level = status >= 500 ? 'error' : status >= 400 ? 'warn' : 'info';
       if (level === 'info' && QUIET_PATHS.some((p) => p.test(path))) return;
       const durationMs = Number(process.hrtime.bigint() - start) / 1e6;
-      httpLog[level]({ method: req.method, path, status, durationMs: Math.round(durationMs) }, 'request completed');
+      httpLog[level](
+        { method: req.method, path, status, durationMs: Math.round(durationMs), apiClientId: req.apiClientId },
+        'request completed',
+      );
     });
     next();
   });

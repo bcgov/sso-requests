@@ -10,7 +10,7 @@ import { Header, LastSavedMessage, SearchBar } from '@bcgov-sso/common-react-com
 import { ActionButtonContainer } from 'components/ActionButtons';
 import { ModalRef, emptyRef } from 'components/GenericModal';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
-import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles } from 'services/keycloak';
+import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRole } from 'services/keycloak';
 import { canManageUserRoleMappings } from 'helpers/permissions';
 import InfoOverlay from 'components/InfoOverlay';
 import { idpMap } from 'helpers/meta';
@@ -24,6 +24,7 @@ import { searchIdirUsers, importIdirUser } from 'services/bceid-webservice';
 import { importAzureIdirUser, searchAzureIdirUsers } from '@app/services/ms-graph';
 import { KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 import { IntegrationData } from '@app/shared/interfaces';
+import { RoleChanges, applyRoleChanges, diffRoles, hasFailures, resolveRoles } from '@app/helpers/roles';
 
 const Label = styled.label`
   font-weight: bold;
@@ -289,7 +290,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
   const throttleUpdate = useCallback(
     throttle(
-      async (roleNames: string[]) => {
+      async (changes: RoleChanges) => {
         setSaving(true);
 
         if (selectedUser?.source === 'idp') {
@@ -300,28 +301,30 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
             setSaving(false);
             setUserAssignmentError(true);
             setSavingMessage('Failed to import user to Keycloak.');
-            return false;
+            return changes;
           }
         }
 
         setSavingMessage('Assigning role...');
         setUserAssignmentError(false);
-        const [, err] = await manageUserRoles({
-          environment: selectedEnvironment,
-          integrationId: selectedRequest.id as number,
-          username: selectedUser?.username as string,
-          roleNames,
-        });
+        const failed = await applyRoleChanges(changes, (roleName, mode) =>
+          manageUserRole({
+            environment: selectedEnvironment,
+            integrationId: selectedRequest.id as number,
+            username: selectedUser?.username as string,
+            roleName,
+            mode,
+          }),
+        );
         setSaving(false);
-        if (err) {
+        if (hasFailures(failed)) {
           setUserAssignmentError(true);
           setSavingMessage('Failed to update roles.');
-          return false;
         } else {
           setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
           surveyContext?.setShowSurvey(true, 'addUserToRole');
-          return true;
         }
+        return failed;
       },
       2000,
       { trailing: true },
@@ -551,10 +554,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
     // Only send update if roles have been added or removed. Prevents excessive API calls if jamming backspace button when empty.
     if (newRoles.length !== userRoles.length) {
-      const succeeded = await throttleUpdate(newRoles);
-      if (succeeded) {
-        setUserRoles(newRoles);
-      }
+      const failed = await throttleUpdate(diffRoles(userRoles, newRoles));
+      if (failed) setUserRoles(resolveRoles(newRoles, failed));
     }
   };
 

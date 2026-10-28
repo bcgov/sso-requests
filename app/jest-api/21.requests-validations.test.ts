@@ -99,6 +99,21 @@ describe('integration validations', () => {
       expect(stored.body.projectLead).toEqual(false);
     });
 
+    it('clears teamId when a draft integration is switched away from team ownership', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      const draftRes = await createIntegration(getCreateIntegrationData({ teamIntegration: true, teamId }));
+      expect(draftRes.body.teamId).toEqual(teamId);
+
+      const updateableDraft = getUpdateIntegrationData({ integration: draftRes.body });
+      // The client still submits the prior (now stale) teamId alongside usesTeam: false.
+      const updateRes = await updateIntegration({ ...updateableDraft, usesTeam: false, projectLead: true }, false);
+      expect(updateRes.status).toEqual(200);
+
+      const stored = await getIntegration(draftRes.body.id);
+      expect(stored.body.usesTeam).toEqual(false);
+      expect(stored.body.teamId).toBeNull();
+    });
+
     it('should allow changing the team after the integration is applied', async () => {
       createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
       const newTeam = await createTeam({

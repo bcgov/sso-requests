@@ -24,13 +24,10 @@ const setRequestStatus = async (requestId: number, status: string) => {
   await models.request.update({ status }, { where: { id: requestId } });
 };
 
-/**
- * Writes an event at most once per workflow. The workflow id is stamped into `details` so a replay after a
- * crash between the insert and the step-state commit does not duplicate the audit trail.
- */
+/** Writes an event at most once per workflow, including after a replay following a crash. */
 export const emitWorkflowEventOnce = async (workflow: WorkflowRecord, eventCode: string, details: any = {}) => {
   const existing = await models.event.count({
-    where: { requestId: workflow.requestId, eventCode, details: { workflowId: workflow.id } },
+    where: { requestId: workflow.requestId, eventCode, workflowId: workflow.id },
   });
 
   if (existing > 0) return;
@@ -38,7 +35,8 @@ export const emitWorkflowEventOnce = async (workflow: WorkflowRecord, eventCode:
   await createEvent({
     eventCode,
     requestId: workflow.requestId,
-    details: { ...details, workflowId: workflow.id },
+    workflowId: workflow.id,
+    details,
   } as any);
 };
 
@@ -88,7 +86,13 @@ const finalizeStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
   label: 'Finalizing integration',
   execute: async () => {
     const isRestore = workflow.type === WorkflowType.INTEGRATION_RESTORE;
-    await emitWorkflowEventOnce(workflow, isRestore ? EVENTS.REQUEST_RESTORE_SUCCESS : EVENTS.REQUEST_APPLY_SUCCESS);
+    const eventCode =
+      workflow.type === WorkflowType.INTEGRATION_DELETE
+        ? EVENTS.WORKFLOW_DELETE_SUCCESS
+        : isRestore
+        ? EVENTS.REQUEST_RESTORE_SUCCESS
+        : EVENTS.REQUEST_APPLY_SUCCESS;
+    await emitWorkflowEventOnce(workflow, eventCode);
     await setRequestStatus(workflow.requestId, 'applied');
     return { finalized: true };
   },

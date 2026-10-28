@@ -537,13 +537,14 @@ describe('Event Logging', () => {
     const team2 = await createTeam({ name: 'team2', members: [] }).then((res) => res.body);
 
     await deleteInactiveUsers(testUser);
-    const events = (await models.event.findAll({ where: { eventCode: EVENTS.TEAM_ADMIN_REMOVAL } })) as any[];
+    const events = (await models.event.findAll({ where: { eventCode: EVENTS.TEAM_MEMBER_REMOVED } })) as any[];
     expect(events.length).toBe(2);
 
     events.forEach((event, i) => {
-      expect(event.details.removerId).toBe('delete-user-cron');
-      expect(event.details.removedMemberId).toBe(authenticatedUser.id);
-      expect(event.details.teamId).toBe(i === 0 ? team1.id : team2.id);
+      expect(event.details.userId).toBe(authenticatedUser.id);
+      expect(event.details.role).toBe('admin');
+      expect(event.details.reason).toBe('user-deleted');
+      expect(event.teamId).toBe(i === 0 ? team1.id : team2.id);
     });
   });
 });

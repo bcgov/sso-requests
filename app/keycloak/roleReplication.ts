@@ -223,10 +223,16 @@ export const replicateRolesToMfa = async (
   const roleNames = await resolveRoleNames(kcAdminClient, client, roleName);
 
   const allResults: RoleReplicationResultRow[] = [];
-  for (const rName of roleNames) {
-    const idirUsers = await listIdirUsersForRole(kcAdminClient, client, rName);
-    const rows = await replicateRoleForUsers(environment, kcAdminClient, client, rName, idirUsers, false);
-    allResults.push(...rows);
+  try {
+    for (const rName of roleNames) {
+      const idirUsers = await listIdirUsersForRole(kcAdminClient, client, rName);
+      const rows = await replicateRoleForUsers(environment, kcAdminClient, client, rName, idirUsers, false);
+      allResults.push(...rows);
+    }
+  } catch (err: any) {
+    // Preserve what was already applied so the audit trail still reflects it.
+    if (err && typeof err === 'object') err.partialResults = allResults;
+    throw err;
   }
   return allResults;
 };

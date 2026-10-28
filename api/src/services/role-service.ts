@@ -6,10 +6,11 @@ import { getAllowedRoleProps, updateRoleProps } from '@/helpers/roles';
 import { Role, RolePayload } from '@/types';
 import { AuthContext } from '@/modules/authorization';
 import { ACTIONS, RESOURCES } from '@sso/authz';
-import { parseErrors } from '@/utils';
+import { parseErrors, runAuditedOperation } from '@/utils';
 import { KeycloakServiceFactory } from './keycloak-service';
 import models from '@/sequelize/models/models';
 import { createCompositeRolesDB, deleteCompositeRolesDB, destroyRequestRole } from '@/sequelize/queries/requestRoles';
+import { EVENTS } from '../../../app/shared/enums';
 
 @singleton()
 export class RoleService {
@@ -44,7 +45,18 @@ export class RoleService {
       action: ACTIONS.WRITE,
     });
     const KeycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-    const kcRole = await KeycloakService.createClientRole(int.clientId, role);
+    const kcRole = await runAuditedOperation(
+      {
+        eventCode: EVENTS.ROLE_CREATE_REQUESTED,
+        requestId: integrationId,
+        actorType: 'service-account',
+        actorId: authz.apiClientId,
+        details: { roleName: role.name, environment },
+      },
+      EVENTS.ROLE_CREATE_SUCCESS,
+      EVENTS.ROLE_CREATE_FAILURE,
+      () => KeycloakService.createClientRole(int.clientId, role),
+    );
     if (kcRole) {
       await models.requestRole.create({
         name: role?.name,
@@ -61,7 +73,18 @@ export class RoleService {
       action: ACTIONS.WRITE,
     });
     const KeycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-    await KeycloakService.deleteClientRole(int.clientId, roleName);
+    await runAuditedOperation(
+      {
+        eventCode: EVENTS.ROLE_DELETE_REQUESTED,
+        requestId: integrationId,
+        actorType: 'service-account',
+        actorId: authz.apiClientId,
+        details: { roleName, environment },
+      },
+      EVENTS.ROLE_DELETE_SUCCESS,
+      EVENTS.ROLE_DELETE_FAILURE,
+      () => KeycloakService.deleteClientRole(int.clientId, roleName),
+    );
     await destroyRequestRole(int?.id, roleName, environment);
   }
 
@@ -78,7 +101,18 @@ export class RoleService {
       action: ACTIONS.WRITE,
     });
     const KeycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-    const updatedRole = await KeycloakService.updateClientRole(int.clientId, roleName, role);
+    const updatedRole = await runAuditedOperation(
+      {
+        eventCode: EVENTS.ROLE_UPDATE_REQUESTED,
+        requestId: integrationId,
+        actorType: 'service-account',
+        actorId: authz.apiClientId,
+        details: { roleName, environment, update: true },
+      },
+      EVENTS.ROLE_UPDATE_SUCCESS,
+      EVENTS.ROLE_UPDATE_FAILURE,
+      () => KeycloakService.updateClientRole(int.clientId, roleName, role),
+    );
     if (updatedRole) {
       const dbRole = await models.requestRole.findOne({
         where: {
@@ -137,7 +171,18 @@ export class RoleService {
       if (role.name.trim().length === 0) throw new createHttpError[400]('invalid role');
       if (role.name === roleName) throw new createHttpError[400](`role ${roleName} cannot be associated with itself`);
     }
-    const updatedRole = await KeycloakService.createCompositeRole(int.clientId, roleName, compositeRoles);
+    const updatedRole = await runAuditedOperation(
+      {
+        eventCode: EVENTS.ROLE_UPDATE_REQUESTED,
+        requestId: integrationId,
+        actorType: 'service-account',
+        actorId: authz.apiClientId,
+        details: { roleName, composite: true, compositeRoleNames: compositeRoles.map(({ name }) => name), environment },
+      },
+      EVENTS.ROLE_UPDATE_SUCCESS,
+      EVENTS.ROLE_UPDATE_FAILURE,
+      () => KeycloakService.createCompositeRole(int.clientId, roleName, compositeRoles),
+    );
 
     if (updatedRole) {
       await createCompositeRolesDB(
@@ -199,7 +244,18 @@ export class RoleService {
     if (roleName === compositeRoleName)
       throw new createHttpError[400](`role name and composite role name cannot be same`);
 
-    await keycloakService.deleteCompositeRole(int.clientId, roleName, compositeRoleName);
+    await runAuditedOperation(
+      {
+        eventCode: EVENTS.ROLE_UNASSIGN_REQUESTED,
+        requestId: integrationId,
+        actorType: 'service-account',
+        actorId: authz.apiClientId,
+        details: { roleName, compositeRoleName, environment },
+      },
+      EVENTS.ROLE_UNASSIGN_SUCCESS,
+      EVENTS.ROLE_UNASSIGN_FAILURE,
+      () => keycloakService.deleteCompositeRole(int.clientId, roleName, compositeRoleName),
+    );
     await deleteCompositeRolesDB(roleName, compositeRoleName, int?.id, environment);
   }
 }

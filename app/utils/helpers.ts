@@ -488,7 +488,6 @@ export const omitNonFormFields = (data: Integration) =>
     'createdAt',
     'archived',
     'status',
-    'environments',
     'actionNumber',
     'prNumber',
     'userId',
@@ -586,6 +585,7 @@ export const normalizeRequest = (data: Integration, isMerged: boolean) => {
 
 export const getDifferences = (newData: any, originalData: Integration) => {
   newData = canonicalizeArrayFields(newData);
+  originalData = canonicalizeArrayFields(originalData);
   if (newData.usesTeam === true) newData.teamId = parseInt(newData.teamId);
   return diff(omitNonFormFields(originalData), omitNonFormFields(newData));
 };

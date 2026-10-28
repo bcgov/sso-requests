@@ -12,6 +12,8 @@ import { BceidWebserviceService, BCEID_SOAP_IDPS, BceidSoapIdp, BceidAccount } f
 import { MsGraphService, AzureIdirAccount } from '@/services/ms-graph-idir';
 import { AuthContext } from '@/modules/authorization';
 import { ACTIONS, RESOURCES } from '@sso/authz';
+import { runAuditedOperation, runAuditedOperations } from '@/utils';
+import { EVENTS } from '../../../app/shared/enums';
 
 /** IDPs supported for the auto-provisioning ("roles-new") flow, and how each is verified. */
 const AUTO_PROVISION_IDPS = [...BCEID_SOAP_IDPS, 'azureidir'] as const;
@@ -151,27 +153,43 @@ export class UserRoleMappingService {
 
     const { username, roleName, operation } = userRoleMapping;
 
-    const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-
-    if (roleName) {
-      roles = updateRoleProps(await keycloakService.listClientRoles(int.clientId));
-      const roleExists = roles.find((role: RolePayload) => role.name === roleName);
-      if (!roleExists) throw new createHttpError[404](`role ${roleName} not found`);
-    }
-
-    if (username) {
-      users = (await keycloakService.getUser(username)) as User[];
-      if (users.length === 0) throw new createHttpError[404](`user ${username} not found`);
-    }
-
     if (!['add', 'del'].includes(operation))
       throw new createHttpError[400](`invalid operation #${operation}. valid values are (add, del)`);
 
-    if (operation === 'del') {
-      const users = await this.usersByRole(int, environment, roleName);
-      if (users.length === 0) throw new createHttpError[404]('no user role mappings found');
-    }
-    roles = (await this.manageUserRole(int, { environment, username, roleName, mode: operation })) as Role[];
+    const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
+    const assigned = operation === 'add';
+
+    // Keycloak lookups run inside the audited operation so an unreachable Keycloak still leaves an event trail.
+    roles = (await runAuditedOperation(
+      {
+        eventCode: assigned ? EVENTS.ROLE_ASSIGN_REQUESTED : EVENTS.ROLE_UNASSIGN_REQUESTED,
+        requestId: integrationId,
+        actorType: 'service-account',
+        actorId: authz.apiClientId,
+        details: { username, roleName, environment },
+      },
+      assigned ? EVENTS.ROLE_ASSIGN_SUCCESS : EVENTS.ROLE_UNASSIGN_SUCCESS,
+      assigned ? EVENTS.ROLE_ASSIGN_FAILURE : EVENTS.ROLE_UNASSIGN_FAILURE,
+      async () => {
+        if (roleName) {
+          const clientRoles = updateRoleProps(await keycloakService.listClientRoles(int.clientId));
+          const roleExists = clientRoles.find((role: RolePayload) => role.name === roleName);
+          if (!roleExists) throw new createHttpError[404](`role ${roleName} not found`);
+        }
+
+        if (username) {
+          users = (await keycloakService.getUser(username)) as User[];
+          if (users.length === 0) throw new createHttpError[404](`user ${username} not found`);
+        }
+
+        if (operation === 'del') {
+          const roleUsers = await this.usersByRole(int, environment, roleName);
+          if (roleUsers.length === 0) throw new createHttpError[404]('no user role mappings found');
+        }
+
+        return this.manageUserRole(int, { environment, username, roleName, mode: operation });
+      },
+    )) as Role[];
 
     return {
       users: updateUserProps(users),
@@ -223,8 +241,24 @@ export class UserRoleMappingService {
       this.roleService.validateRole(role);
     }
 
+    const events = roles.map(({ name }) => ({
+      requestedEvent: {
+        eventCode: EVENTS.ROLE_ASSIGN_REQUESTED,
+        requestId: integrationId,
+        actorType: 'service-account',
+        actorId: authz.apiClientId,
+        details: { username: parsedUsername, roleName: name, environment },
+      },
+      successEventCode: EVENTS.ROLE_ASSIGN_SUCCESS,
+      failureEventCode: EVENTS.ROLE_ASSIGN_FAILURE,
+    }));
+
     return {
-      data: updateRoleProps(await keycloakService.addClientUserRoleMapping(int.clientId, parsedUsername, roles)),
+      data: updateRoleProps(
+        await runAuditedOperations(events, () =>
+          keycloakService.addClientUserRoleMapping(int.clientId, parsedUsername, roles),
+        ),
+      ),
     };
   }
 
@@ -257,34 +291,44 @@ export class UserRoleMappingService {
     }
 
     const isServiceAccount = parsedUsername.startsWith('service-account-');
-
-    if (!isServiceAccount) {
-      const parts = parsedUsername.split('@');
-      if (parts.length !== 2 || !parts[0] || !parts[1]) {
-        throw new createHttpError.BadRequest(`invalid username ${parsedUsername}`);
-      }
-      const [, idp] = parts;
-
-      if (AUTO_PROVISION_IDPS.includes(idp as AutoProvisionIdp)) {
-        const userExists = await keycloakService
-          .getUser(parsedUsername)
-          .then(() => true)
-          .catch((err) => {
-            if (err instanceof createHttpError.NotFound) return false;
-            throw err;
-          });
-
-        if (!userExists) {
-          await this.provisionUpstreamUser(keycloakService, int, parsedUsername, environment);
+    const events = roles.map(({ name }) => ({
+      requestedEvent: {
+        eventCode: EVENTS.ROLE_ASSIGN_REQUESTED,
+        requestId: integrationId,
+        actorType: 'service-account',
+        actorId: authz.apiClientId,
+        details: { username: parsedUsername, roleName: name, environment },
+      },
+      successEventCode: EVENTS.ROLE_ASSIGN_SUCCESS,
+      failureEventCode: EVENTS.ROLE_ASSIGN_FAILURE,
+    }));
+    const added = await runAuditedOperations(events, async () => {
+      if (!isServiceAccount) {
+        const parts = parsedUsername.split('@');
+        if (parts.length !== 2 || !parts[0] || !parts[1]) {
+          throw new createHttpError.BadRequest(`invalid username ${parsedUsername}`);
         }
-      } else if (!(ROLE_ONLY_IDPS as readonly string[]).includes(idp)) {
-        throw new createHttpError.BadRequest(`invalid idp ${idp}`);
-      }
-      // else: idp is in ROLE_ONLY_IDPS (e.g. github) - skip provisioning; addClientUserRoleMapping
-      // below will look the user up itself and 404 if they don't already exist in Keycloak.
-    }
+        const [, idp] = parts;
 
-    const added = await keycloakService.addClientUserRoleMapping(int.clientId, parsedUsername, roles);
+        if (AUTO_PROVISION_IDPS.includes(idp as AutoProvisionIdp)) {
+          const userExists = await keycloakService
+            .getUser(parsedUsername)
+            .then(() => true)
+            .catch((err) => {
+              if (err instanceof createHttpError.NotFound) return false;
+              throw err;
+            });
+
+          if (!userExists) {
+            await this.provisionUpstreamUser(keycloakService, int, parsedUsername, environment);
+          }
+        } else if (!(ROLE_ONLY_IDPS as readonly string[]).includes(idp)) {
+          throw new createHttpError.BadRequest(`invalid idp ${idp}`);
+        }
+      }
+
+      return keycloakService.addClientUserRoleMapping(int.clientId, parsedUsername, roles);
+    });
     const data = updateRoleProps(added);
     return {
       data,
@@ -348,7 +392,18 @@ export class UserRoleMappingService {
     });
     const parsedUsername = this.parseUsername(int.clientId, username);
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-    await keycloakService.deleteClientUserRoleMapping(int.clientId, parsedUsername, roleName);
+    await runAuditedOperation(
+      {
+        eventCode: EVENTS.ROLE_UNASSIGN_REQUESTED,
+        requestId: integrationId,
+        actorType: 'service-account',
+        actorId: authz.apiClientId,
+        details: { username: parsedUsername, roleName, environment },
+      },
+      EVENTS.ROLE_UNASSIGN_SUCCESS,
+      EVENTS.ROLE_UNASSIGN_FAILURE,
+      () => keycloakService.deleteClientUserRoleMapping(int.clientId, parsedUsername, roleName),
+    );
   }
 
   public async manageUserRole(

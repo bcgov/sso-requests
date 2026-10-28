@@ -24,7 +24,7 @@ const HYPERLINK = `${docusaurusURL}/css-application/roles#service-account-role-m
 jest.mock('services/keycloak', () => ({
   listClientRoles: jest.fn(() => Promise.resolve([[{ name: listClientRolesResponse }], null])),
   listUserRoles: jest.fn(() => Promise.resolve([[], null])),
-  manageUserRoles: jest.fn(() => Promise.resolve([true, null])),
+  manageUserRole: jest.fn(() => Promise.resolve([true, null])),
 }));
 
 describe('assign service accounts to roles', () => {

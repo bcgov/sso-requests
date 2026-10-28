@@ -190,29 +190,6 @@ export const manageUserRole = async ({
   }
 };
 
-export const manageUserRoles = async ({
-  environment,
-  integrationId,
-  username,
-  roleNames,
-}: {
-  environment: string;
-  integrationId: number;
-  username: string;
-  roleNames: string[];
-}): Promise<(string[] | null)[]> => {
-  try {
-    const result = await instance
-      .put('keycloak/user-roles', { environment, integrationId, username, roleNames })
-      .then((res) => res.data);
-
-    return [result, null];
-  } catch (err: any) {
-    console.error(err);
-    return [null, err];
-  }
-};
-
 export const listRoleUsers = async ({
   environment,
   integrationId,

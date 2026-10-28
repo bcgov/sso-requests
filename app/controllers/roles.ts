@@ -16,7 +16,9 @@ import { destroyRequestRole, createCompositeRolesDB } from '@app/queries/roles';
 import createHttpError from 'http-errors';
 import { Session } from '@app/shared/interfaces';
 import { Integration } from '@app/interfaces/Request';
-import { previewRoleReplication, replicateRolesToMfa } from '@app/keycloak/roleReplication';
+import { previewRoleReplication, replicateRolesToMfa, RoleReplicationResultRow } from '@app/keycloak/roleReplication';
+import { beginLifecycleEvent, completeLifecycleEvent, runAuditedOperation } from '@app/queries/event';
+import { EVENTS } from '@app/shared/enums';
 
 import { logger } from '@app/utils/logger';
 
@@ -52,7 +54,18 @@ export const createClientRole = async (
     lastUpdatedBy: sessionUserId,
   });
   if (!dbRole) throw new createHttpError.UnprocessableEntity(`unable to save the role ${role?.roleName}`);
-  return await createRole(integration, role);
+  return await runAuditedOperation(
+    {
+      eventCode: EVENTS.ROLE_CREATE_REQUESTED,
+      requestId: integration.id,
+      idirUserid: session?.idir_userid,
+      idirUserDisplayName: session?.user?.displayName,
+      details: { roleName: role.roleName, environment: role.environment },
+    },
+    EVENTS.ROLE_CREATE_SUCCESS,
+    EVENTS.ROLE_CREATE_FAILURE,
+    () => createRole(integration, role),
+  );
 };
 
 export const bulkCreateClientRoles = async (
@@ -73,7 +86,50 @@ export const bulkCreateClientRoles = async (
 
     if (roles.length > 20) throw new createHttpError.TooManyRequests('only 20 roles can be created at a time');
 
-    const envResults = await bulkCreateRole(integration, roles);
+    const auditEvents = await Promise.all(
+      roles.flatMap((role) =>
+        (role.envs || []).map(async (environment) => {
+          const roleName = role.name;
+          return {
+            roleName,
+            environment,
+            eventId: await beginLifecycleEvent({
+              eventCode: EVENTS.ROLE_CREATE_REQUESTED,
+              requestId: integrationId,
+              idirUserid: session?.idir_userid,
+              idirUserDisplayName: session?.user?.displayName,
+              details: { roleName, environment, bulk: true },
+            }),
+          };
+        }),
+      ),
+    );
+    let envResults: Awaited<ReturnType<typeof bulkCreateRole>>;
+    try {
+      envResults = await bulkCreateRole(integration, roles);
+      await Promise.all(
+        auditEvents.map(({ roleName, environment, eventId }) => {
+          const result = envResults.find((entry) => entry.env === environment);
+          const success = result?.success.includes(roleName);
+          return completeLifecycleEvent(eventId, {
+            eventCode: success ? EVENTS.ROLE_CREATE_SUCCESS : EVENTS.ROLE_CREATE_FAILURE,
+            requestId: integrationId,
+            details: { roleName, environment, bulk: true },
+          });
+        }),
+      );
+    } catch (err) {
+      await Promise.all(
+        auditEvents.map(({ roleName, environment, eventId }) =>
+          completeLifecycleEvent(eventId, {
+            eventCode: EVENTS.ROLE_CREATE_FAILURE,
+            requestId: integrationId,
+            details: { roleName, environment, bulk: true },
+          }),
+        ),
+      );
+      throw err;
+    }
 
     if (envResults.length > 0) {
       for (const res of envResults) {
@@ -122,7 +178,18 @@ export const deleteRoles = async (session: Session, role: any) => {
   const integration = await authorizedIntegration(session, role?.integrationId, 'roles:write', denied);
   if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden(denied);
 
-  await deleteRole(integration, role);
+  await runAuditedOperation(
+    {
+      eventCode: EVENTS.ROLE_DELETE_REQUESTED,
+      requestId: integration.id,
+      idirUserid: session?.idir_userid,
+      idirUserDisplayName: session?.user?.displayName,
+      details: { roleName: role?.roleName, environment: role?.environment },
+    },
+    EVENTS.ROLE_DELETE_SUCCESS,
+    EVENTS.ROLE_DELETE_FAILURE,
+    () => deleteRole(integration, role),
+  );
 
   const deletedRole = await getClientRole(session, role);
 
@@ -151,11 +218,18 @@ export const setCompositeRoles = async (
   const integration = await authorizedIntegration(session, integrationId, 'roles:write', denied);
   if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden(denied);
 
-  const result = await setCompositeClientRoles(integration, {
-    environment,
-    roleName,
-    compositeRoleNames,
-  });
+  const result = await runAuditedOperation(
+    {
+      eventCode: EVENTS.ROLE_UPDATE_REQUESTED,
+      requestId: integration.id,
+      idirUserid: session?.idir_userid,
+      idirUserDisplayName: session?.user?.displayName,
+      details: { roleName, composite: true, compositeRoleNames, environment },
+    },
+    EVENTS.ROLE_UPDATE_SUCCESS,
+    EVENTS.ROLE_UPDATE_FAILURE,
+    () => setCompositeClientRoles(integration, { environment, roleName, compositeRoleNames }),
+  );
 
   await createCompositeRolesDB(result?.name as string, result?.composites as string[], integration?.id, environment);
   return result;
@@ -204,6 +278,22 @@ export const previewRoleMfaReplication = async (
   return await previewRoleReplication(integration, { environment, roleName });
 };
 
+/** Full per-user snapshot plus per-status counts, stored in the audit event for point-in-time review. */
+const summarizeReplication = (rows: RoleReplicationResultRow[]) => ({
+  resultCount: rows.length,
+  statusCounts: rows.reduce<Record<string, number>>((acc, row) => {
+    acc[row.status] = (acc[row.status] || 0) + 1;
+    return acc;
+  }, {}),
+  assignments: rows.map(({ role, idirUsername, guid, status, detail }) => ({
+    role,
+    idirUsername,
+    guid,
+    status,
+    ...(detail ? { detail } : {}),
+  })),
+});
+
 /**
  * Runs the "Replicate Roles" (idir -> MFA) operation. If `roleName` is omitted, replicates every client role
  * in the environment ("Replicate All Roles"). Requires the manage-roles permission since it creates
@@ -217,5 +307,34 @@ export const replicateRoleMfa = async (
   const integration = await authorizedIntegration(session, integrationId, 'roles:write', denied);
   if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden(denied);
   assertRoleReplicationSupported(integration, environment);
-  return await replicateRolesToMfa(integration, { environment, roleName });
+  const details = { roleName: roleName || '*', sourceEnv: 'idir', targetEnv: 'azureidir', environment };
+  const eventId = await beginLifecycleEvent({
+    eventCode: EVENTS.ROLE_REPLICATE_REQUESTED,
+    requestId: integrationId,
+    idirUserid: session?.idir_userid,
+    idirUserDisplayName: session?.user?.displayName,
+    details,
+  });
+  try {
+    const result = await replicateRolesToMfa(integration, { environment, roleName });
+    const failedCount = result.filter((row) => row.status === 'ERROR').length;
+    await completeLifecycleEvent(eventId, {
+      eventCode: failedCount > 0 ? EVENTS.ROLE_REPLICATE_FAILURE : EVENTS.ROLE_REPLICATE_SUCCESS,
+      requestId: integrationId,
+      details: { ...details, ...summarizeReplication(result), failedCount },
+    });
+    return result;
+  } catch (err: any) {
+    const partial: RoleReplicationResultRow[] = err?.partialResults || [];
+    await completeLifecycleEvent(eventId, {
+      eventCode: EVENTS.ROLE_REPLICATE_FAILURE,
+      requestId: integrationId,
+      details: {
+        ...details,
+        ...summarizeReplication(partial),
+        failedCount: partial.filter((row) => row.status === 'ERROR').length,
+      },
+    });
+    throw err;
+  }
 };

@@ -20,6 +20,7 @@ export class LogsService {
     start: string | ParsedQs | (string | ParsedQs)[],
     end: string | ParsedQs | (string | ParsedQs)[],
     userId?: string,
+    actorId?: string,
   ) {
     const hasRequiredParams = start && end && env;
 
@@ -59,6 +60,8 @@ export class LogsService {
     const eventMeta = {
       requestId,
       idirUserid: userId,
+      actorType: actorId ? 'service-account' : undefined,
+      actorId,
       details: {
         environment: env,
         clientId,

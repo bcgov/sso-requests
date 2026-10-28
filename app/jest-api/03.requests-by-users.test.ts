@@ -25,8 +25,11 @@ import { buildIntegration } from './helpers/modules/common';
 import { models } from '@app/shared/sequelize/models/models';
 import { EVENTS } from '@app/shared/enums';
 import { keycloakClient } from '@app/keycloak/integration';
+import { manageUserRole, manageUserRoles } from '@app/keycloak/users';
 import { validateIdirEmail } from '@app/utils/graph-api';
 import { createMockAuth } from './mocks/authenticate';
+import { testClient } from './helpers/test-client';
+import userRolesHandler from '@app/pages/api/keycloak/user-roles';
 
 const integrationRoles = [
   {
@@ -105,6 +108,8 @@ jest.mock('@app/keycloak/users', () => {
     ),
     deleteRole: jest.fn(() => Promise.resolve()),
     findClientRole: jest.fn(() => Promise.resolve(null)),
+    manageUserRole: jest.fn(() => Promise.resolve([{ name: 'single-role' }])),
+    manageUserRoles: jest.fn(),
   };
 });
 
@@ -171,6 +176,95 @@ describe('create/manage integration by authenticated user', () => {
       expect(result.status).toEqual(200);
       expect(result.body.id).toEqual(integration.id);
       expect(sendEmail).toHaveBeenCalled();
+    });
+
+    it('records a bulk reconciliation as a single event listing the role changes', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      (manageUserRoles as jest.Mock).mockImplementation((_integration, _request, auditChanges) =>
+        auditChanges({ assigned: ['role-added'], unassigned: ['role-removed'] }, async () => true),
+      );
+
+      const result = await testClient(userRolesHandler)
+        .put('/api/keycloak/user-roles')
+        .send({
+          environment: 'dev',
+          integrationId: integration.id,
+          username: 'test-user@idir',
+          roleNames: ['role-added'],
+        })
+        .set('Accept', 'application/json');
+
+      expect(result.status).toBe(200);
+      const events = await getEventsByRequestId(integration.id!);
+      const userEvents = events.filter((event: any) => event.details?.username === 'test-user@idir');
+
+      expect(userEvents).toHaveLength(1);
+      expect(userEvents[0]).toEqual(
+        expect.objectContaining({
+          eventCode: EVENTS.ROLE_BULK_RECONCILE_SUCCESS,
+          details: expect.objectContaining({
+            roleNames: ['role-added'],
+            assigned: ['role-added'],
+            unassigned: ['role-removed'],
+          }),
+        }),
+      );
+    });
+
+    it('records a failed bulk reconciliation event when keycloak is unreachable', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      (manageUserRoles as jest.Mock).mockRejectedValue(new Error('keycloak down'));
+
+      const result = await testClient(userRolesHandler)
+        .put('/api/keycloak/user-roles')
+        .send({
+          environment: 'dev',
+          integrationId: integration.id,
+          username: 'down-user@idir',
+          roleNames: ['role-a'],
+        })
+        .set('Accept', 'application/json');
+
+      expect(result.status).not.toBe(200);
+      const events = await getEventsByRequestId(integration.id!);
+      const userEvents = events.filter((event: any) => event.details?.username === 'down-user@idir');
+      expect(userEvents).toHaveLength(1);
+      expect(userEvents[0]).toEqual(
+        expect.objectContaining({
+          eventCode: EVENTS.ROLE_BULK_RECONCILE_FAILURE,
+          details: expect.objectContaining({ roleNames: ['role-a'] }),
+        }),
+      );
+    });
+
+    it('routes a single-role removal to the unassignment audit path', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+
+      const result = await testClient(userRolesHandler)
+        .put('/api/keycloak/user-roles')
+        .send({
+          environment: 'dev',
+          integrationId: integration.id,
+          username: 'test-user@idir',
+          roleName: 'single-role',
+          mode: 'del',
+        })
+        .set('Accept', 'application/json');
+
+      expect(result.status).toBe(200);
+      expect(manageUserRole).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ roleName: 'single-role', mode: 'del' }),
+      );
+      const events = await getEventsByRequestId(integration.id!);
+      expect(events).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            eventCode: EVENTS.ROLE_UNASSIGN_SUCCESS,
+            details: expect.objectContaining({ username: 'test-user@idir', roleName: 'single-role' }),
+          }),
+        ]),
+      );
     });
 
     it('should fetch an integration by userId when a draft team integration has not selected a team yet', async () => {

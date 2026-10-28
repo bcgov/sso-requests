@@ -109,6 +109,9 @@ describe('Integration workflow - happy path', () => {
     const eventCodes = events.map((event: any) => event.eventCode);
     expect(eventCodes).toContain(EVENTS.REQUEST_PLAN_SUCCESS);
     expect(eventCodes).toContain(EVENTS.REQUEST_APPLY_SUCCESS);
+    const applyEvent = events.find((event: any) => event.eventCode === EVENTS.REQUEST_APPLY_SUCCESS);
+    expect(applyEvent.workflowId).toBe(workflowId);
+    expect(applyEvent.details).not.toHaveProperty('workflowId');
 
     kcClientSpy.mockRestore();
   });
@@ -178,10 +181,27 @@ describe('Integration workflow - idempotency and de-duplication', () => {
     const { workflowId } = await enqueue();
     await runWorkflow(workflowId);
     expect(kcClientSpy).toHaveBeenCalledTimes(3);
+    expect(await models.event.count({ where: { workflowId, eventCode: EVENTS.REQUEST_APPLY_SUCCESS } })).toBe(1);
 
     // A redelivered command must not re-apply anything.
     await runWorkflow(workflowId);
     expect(kcClientSpy).toHaveBeenCalledTimes(3);
+
+    kcClientSpy.mockRestore();
+  });
+
+  it('records delete workflow completion separately from the delete request event', async () => {
+    const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient').mockImplementation(() => Promise.resolve(true));
+    const payload = { ...formDataProd, archived: true };
+    const request = await generateRequest(payload);
+    const { workflowId } = await enqueueRequestWorkflow({ ...payload, id: request.id } as any);
+
+    await runWorkflow(workflowId);
+
+    const event = await models.event.findOne({
+      where: { workflowId, eventCode: EVENTS.WORKFLOW_DELETE_SUCCESS },
+    });
+    expect(event.eventCode).toBe(EVENTS.WORKFLOW_DELETE_SUCCESS);
 
     kcClientSpy.mockRestore();
   });
