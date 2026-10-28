@@ -112,7 +112,7 @@ export const fetchKeycloakRoleUsersCount = async (
           )} AND c.CLIENT_ID = ${escapeLiteral(
             clientId,
           )} AND r.NAME = 'standard' AND u.SERVICE_ACCOUNT_CLIENT_LINK IS NULL AND u.USERNAME IS NOT NULL AND SPLIT_PART(u.USERNAME, '@', 2) IN (${idps
-            .map(escapeLiteral)
+            .map((idp) => escapeLiteral(idp))
             .join(', ')});`,
           format: 'table',
         },
