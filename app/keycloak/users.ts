@@ -212,7 +212,12 @@ export const listRoleUsers = async (
 
   if (!roles.some((role) => role.name === roleName)) throw new createHttpError.NotFound(`role ${roleName} not found`);
 
-  const totalCount = await fetchKeycloakRoleUsersCount(integration.clientId!, roleName);
+  const totalCount = await fetchKeycloakRoleUsersCount(
+    environment,
+    integration?.devIdps ?? [],
+    integration.clientId!,
+    roleName,
+  );
 
   if (totalCount === 0) return { totalCount, data: [] };
 
@@ -467,7 +472,7 @@ export const bulkCreateRole = async (integration: Integration, roles: NewRole[])
           })
           .then(() => result.success.push(roleName))
           .catch((error) => {
-            const msg = get(error, 'response.data.errorMessage');
+            const msg = get(error, 'responseData.errorMessage');
             if (msg.endsWith('already exists')) {
               result.duplicate.push(roleName);
             } else {

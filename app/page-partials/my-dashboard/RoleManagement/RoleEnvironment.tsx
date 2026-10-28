@@ -254,7 +254,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   useEffect(() => {
     setServiceAccountIntMap([]);
     if (!selectedRole) return;
-    void fetchUsers(selectedRole);
+    if (roleUsersPage === 1) void fetchUsers(selectedRole);
     void fetchComposite(selectedRole);
     setSaving(false);
     setSavingMessage('');

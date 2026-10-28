@@ -89,17 +89,30 @@ export const clientEventsAggregationQuery = async (
   return result;
 };
 
-export const fetchKeycloakRoleUsersCount = async (clientId: string, roleName: string) => {
+export const fetchKeycloakRoleUsersCount = async (
+  kcEnv: string,
+  idps: string[],
+  clientId: string,
+  roleName: string,
+) => {
   try {
-    const keycloakDatasourceUID = await fetchDatasourceUID('SSO Keycloak Dev');
+    if (!kcEnv || !idps?.length || !clientId || !roleName)
+      throw new Error('Missing required parameters for looking up Keycloak role users count');
+    const dataSourceName =
+      kcEnv === 'prod' ? 'SSO Keycloak Prod' : kcEnv === 'test' ? 'SSO Keycloak Test' : 'SSO Keycloak Dev';
+    const keycloakDatasourceUID = await fetchDatasourceUID(dataSourceName);
 
     const query = {
       queries: [
         {
           datasource: { type: 'grafana-postgresql-datasource', uid: keycloakDatasourceUID },
-          rawSql: `SELECT COUNT(DISTINCT urm.USER_ID) AS user_count\nFROM USER_ROLE_MAPPING urm\nJOIN KEYCLOAK_ROLE kr\n    ON kr.ID = urm.ROLE_ID\nJOIN CLIENT c\n    ON c.ID = kr.CLIENT\nJOIN REALM r\n    ON r.ID = c.REALM_ID\nWHERE kr.NAME = ${escapeLiteral(
+          rawSql: `SELECT COUNT(DISTINCT urm.USER_ID) AS user_count FROM USER_ROLE_MAPPING urm JOIN KEYCLOAK_ROLE kr ON kr.ID = urm.ROLE_ID JOIN CLIENT c ON c.ID = kr.CLIENT JOIN REALM r ON r.ID = c.REALM_ID JOIN USER_ENTITY u ON u.ID = urm.USER_ID WHERE kr.NAME = ${escapeLiteral(
             roleName,
-          )}\n  AND c.CLIENT_ID = ${escapeLiteral(clientId)}\n  AND r.NAME = 'standard'`,
+          )} AND c.CLIENT_ID = ${escapeLiteral(
+            clientId,
+          )} AND r.NAME = 'standard' AND u.SERVICE_ACCOUNT_CLIENT_LINK IS NULL AND u.USERNAME IS NOT NULL AND SPLIT_PART(u.USERNAME, '@', 2) IN (${idps
+            .map(escapeLiteral)
+            .join(', ')});`,
           format: 'table',
         },
       ],
@@ -116,9 +129,9 @@ export const fetchKeycloakRoleUsersCount = async (clientId: string, roleName: st
     if (values && values.length > 0) {
       return Number(values[0][0]);
     }
-    return 0;
+    throw new Error('Failed to fetch Keycloak role users count');
   } catch (err) {
     console.error('Failed to fetch Keycloak role users count:', err);
-    return 0;
+    throw err;
   }
 };
