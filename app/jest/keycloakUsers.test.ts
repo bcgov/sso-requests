@@ -1,4 +1,5 @@
 import { listRoleUsers } from '@app/keycloak/users';
+import * as grafanaModule from '@app/utils/grafana';
 
 const CLIENT_ID = 'client-1';
 const ROLE_NAME = 'editor';
@@ -26,9 +27,11 @@ const integration = { clientId: CLIENT_ID, devIdps: ['idir', 'azureidir'] } as a
 
 describe('listRoleUsers', () => {
   it('only returns users whose idp is included in the integration devIdps', async () => {
+    jest.spyOn(grafanaModule, 'fetchKeycloakRoleUsersCount').mockResolvedValue(roleUsers.length);
     const users = await listRoleUsers(integration, { environment: 'dev', roleName: ROLE_NAME });
 
-    expect(users.map((user) => user.username)).toEqual(['guid-1@idir', 'guid-2@azureidir']);
-    expect(users.find((user) => user.username === 'guid-3@bceidbasic')).toBeUndefined();
+    expect(users?.data?.map((user) => user.username)).toEqual(['guid-1@idir', 'guid-2@azureidir']);
+    expect(users?.data?.find((user) => user.username === 'guid-3@bceidbasic')).toBeUndefined();
+    expect(users?.totalCount).toBe(roleUsers.length);
   });
 });
