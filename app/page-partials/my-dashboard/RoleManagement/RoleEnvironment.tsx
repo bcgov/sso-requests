@@ -320,7 +320,6 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     if (!roleName || roleName?.length < 2) return;
 
     let _first = (roleUsersPage - 1) * roleUsersLimit;
-    let _users: KeycloakUser[] = [];
 
     setUserLoading(true);
 
@@ -358,7 +357,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
 
     setHasMoreUser(_data.length === roleUsersLimit);
     setRoleUsersCount(data?.totalCount || 0);
-    setUsers(_users.concat(_data));
+    setUsers(_data);
     setSelectedRole(roleName);
     setUserLoading(false);
   };
@@ -511,7 +510,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     setReplicationPhase('result');
 
     if (selectedRole && (!replicationTargetRole || replicationTargetRole === selectedRole)) {
-      fetchUsers(selectedRole);
+      await fetchUsers(selectedRole);
     }
 
     return false;
@@ -869,7 +868,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
             });
           }
 
-          fetchUsers(selectedRole);
+          await fetchUsers(selectedRole);
         }}
         confirmButtonText="Remove"
         confirmButtonVariant="primary"
@@ -900,7 +899,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
             });
           }
 
-          fetchUsers(selectedRole);
+          await fetchUsers(selectedRole);
         }}
         confirmButtonText="Remove"
         confirmButtonVariant="primary"
