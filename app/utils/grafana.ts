@@ -91,3 +91,51 @@ export const clientEventsAggregationQuery = async (
 
   return result;
 };
+
+export const fetchKeycloakRoleUsersCount = async (
+  kcEnv: string,
+  idps: string[],
+  clientId: string,
+  roleName: string,
+) => {
+  try {
+    if (!kcEnv || !idps?.length || !clientId || !roleName)
+      throw new Error('Missing required parameters for looking up Keycloak role users count');
+    let dataSourceName = 'SSO Keycloak Prod';
+    if (kcEnv === 'test') dataSourceName = 'SSO Keycloak Test';
+    if (kcEnv === 'dev') dataSourceName = 'SSO Keycloak Dev';
+    const keycloakDatasourceUID = await fetchDatasourceUID(dataSourceName);
+
+    const query = {
+      queries: [
+        {
+          datasource: { type: 'grafana-postgresql-datasource', uid: keycloakDatasourceUID },
+          rawSql: `SELECT COUNT(DISTINCT urm.USER_ID) AS user_count FROM USER_ROLE_MAPPING urm JOIN KEYCLOAK_ROLE kr ON kr.ID = urm.ROLE_ID JOIN CLIENT c ON c.ID = kr.CLIENT JOIN REALM r ON r.ID = c.REALM_ID JOIN USER_ENTITY u ON u.ID = urm.USER_ID WHERE kr.NAME = ${escapeLiteral(
+            roleName,
+          )} AND c.CLIENT_ID = ${escapeLiteral(
+            clientId,
+          )} AND r.NAME = 'standard' AND u.SERVICE_ACCOUNT_CLIENT_LINK IS NULL AND u.USERNAME IS NOT NULL AND SPLIT_PART(u.USERNAME, '@', 2) IN (${idps
+            .map((idp) => escapeLiteral(idp))
+            .join(', ')});`,
+          format: 'table',
+        },
+      ],
+    };
+
+    const headers = {
+      Authorization: `Bearer ${process.env.GRAFANA_API_TOKEN}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    };
+
+    const res: any = await axios.post(`${process.env.GRAFANA_API_URL}/ds/query`, query, { headers });
+    const values = res?.data?.results?.A?.frames[0]?.data?.values;
+    if (values && values.length > 0) {
+      return Number(values[0][0]);
+    }
+    throw new Error('Failed to fetch Keycloak role users count');
+  } catch (err) {
+    console.error('Failed to fetch Keycloak role users count:', err);
+    throw err;
+  }
+};

@@ -24,36 +24,39 @@ function RoleEnvironmentWithMfaComponent() {
   return <RoleEnvironment environment={'dev'} integration={{ ...mockResult(), devIdps: ['idir', 'azureidir'] }} />;
 }
 
-const testUsers = [
-  {
-    id: '01',
-    username: 'user01@idir',
-    enabled: true,
-    totp: false,
-    emailVerified: false,
-    firstName: 'fn',
-    lastName: 'ln',
-    email: 'role1@gov.bc.ca',
-    attributes: { idir_userid: ['01'] },
-    disableableCredentialTypes: [],
-    requiredActions: [],
-    notBefore: 0,
-  },
-  {
-    id: '02',
-    username: 'service-account-user02',
-    enabled: true,
-    totp: false,
-    emailVerified: false,
-    firstName: '',
-    lastName: '',
-    email: '',
-    attributes: {},
-    disableableCredentialTypes: [],
-    requiredActions: [],
-    notBefore: 0,
-  },
-];
+const testUsers = {
+  totalCount: 2,
+  data: [
+    {
+      id: '01',
+      username: 'user01@idir',
+      enabled: true,
+      totp: false,
+      emailVerified: false,
+      firstName: 'fn',
+      lastName: 'ln',
+      email: 'role1@gov.bc.ca',
+      attributes: { idir_userid: ['01'] },
+      disableableCredentialTypes: [],
+      requiredActions: [],
+      notBefore: 0,
+    },
+    {
+      id: '02',
+      username: 'service-account-user02',
+      enabled: true,
+      totp: false,
+      emailVerified: false,
+      firstName: '',
+      lastName: '',
+      email: '',
+      attributes: {},
+      disableableCredentialTypes: [],
+      requiredActions: [],
+      notBefore: 0,
+    },
+  ],
+};
 
 jest.mock('services/request', () => {
   return {
@@ -76,6 +79,7 @@ jest.mock('services/keycloak', () => ({
 describe('role management tab', () => {
   afterEach(() => {
     jest.clearAllMocks();
+    (listRoleUsers as jest.Mock).mockImplementation(() => Promise.resolve([testUsers, null]));
   });
 
   it('Should match the expected button name, environment names, select/unselected env, table headers, table contents, place-holder-text in search bar', async () => {
@@ -157,7 +161,7 @@ describe('role management tab', () => {
     render(<RoleEnvironmentComponent />);
 
     await waitFor(() => {
-      expect(screen.getByRole('cell', { name: 'role-1' }));
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
     });
 
     const deleteButton = await screen.findAllByTestId('delete-role');
@@ -171,7 +175,7 @@ describe('role management tab', () => {
     render(<RoleEnvironmentComponent />);
 
     await waitFor(() => {
-      expect(screen.getByRole('cell', { name: 'role-1' }));
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
@@ -187,6 +191,94 @@ describe('role management tab', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Export' }));
     await waitFor(() => {
       expect(listRoleUsers).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('Should be able to navigate pages, change page size, and display the correct rows in the users table', async () => {
+    const buildUser = (idx: number) => {
+      const guid = String(idx).padStart(2, '0');
+      return {
+        id: guid,
+        username: `user${guid}@idir`,
+        enabled: true,
+        totp: false,
+        emailVerified: false,
+        firstName: `fn${guid}`,
+        lastName: `ln${guid}`,
+        email: `role${guid}@gov.bc.ca`,
+        attributes: { idir_userid: [guid] },
+        disableableCredentialTypes: [],
+        requiredActions: [],
+        notBefore: 0,
+      };
+    };
+    // 12 users spread across 3 pages of 5 (default page size).
+    const allUsers = Array.from({ length: 12 }, (_, i) => buildUser(i + 1));
+
+    (listRoleUsers as jest.Mock).mockImplementation(({ first, max }: any) =>
+      Promise.resolve([{ totalCount: allUsers.length, data: allUsers.slice(first, first + max) }, null]),
+    );
+
+    render(<RoleEnvironmentComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
+    fireEvent.click(await screen.findByRole('tab', { name: 'Users' }));
+
+    // Page 1: default page size of 5, first page of 12 total users across 3 pages.
+    await waitFor(() => {
+      expect(listRoleUsers).toHaveBeenCalledWith(expect.objectContaining({ first: 0, max: 5, roleName: 'role-1' }));
+    });
+    await waitFor(() => {
+      const usersTable = screen.getByTestId('role-users-table');
+      expect(within(usersTable).getByRole('cell', { name: 'user01' })).toBeInTheDocument();
+      expect(within(usersTable).getByRole('cell', { name: 'user05' })).toBeInTheDocument();
+      expect(within(usersTable).queryByRole('cell', { name: 'user06' })).not.toBeInTheDocument();
+    });
+    expect(screen.getByText('5 per page')).toBeInTheDocument();
+    expect(screen.getByText('1 of 3')).toBeInTheDocument();
+
+    // Navigate to page 2.
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => {
+      expect(listRoleUsers).toHaveBeenCalledWith(expect.objectContaining({ first: 5, max: 5, roleName: 'role-1' }));
+    });
+    await waitFor(() => {
+      const usersTable = screen.getByTestId('role-users-table');
+      expect(within(usersTable).getByRole('cell', { name: 'user06' })).toBeInTheDocument();
+      expect(within(usersTable).getByRole('cell', { name: 'user10' })).toBeInTheDocument();
+    });
+    expect(screen.getByText('2 of 3')).toBeInTheDocument();
+
+    // Navigate back to page 1.
+    fireEvent.click(screen.getByRole('button', { name: 'Previous' }));
+    await waitFor(() => {
+      expect(listRoleUsers).toHaveBeenCalledWith(expect.objectContaining({ first: 0, max: 5, roleName: 'role-1' }));
+    });
+    await waitFor(() => {
+      const usersTable = screen.getByTestId('role-users-table');
+      expect(within(usersTable).getByRole('cell', { name: 'user01' })).toBeInTheDocument();
+    });
+    expect(screen.getByText('1 of 3')).toBeInTheDocument();
+
+    // Change page size to 10 rows per page.
+    const pageSelection = screen.getByTestId('page-select');
+    const pageSizeInput = pageSelection.firstChild;
+    fireEvent.keyDown(pageSizeInput as HTMLElement, { keyCode: 40 });
+    fireEvent.click(await screen.findByText('10 per page'));
+
+    await waitFor(() => {
+      expect(listRoleUsers).toHaveBeenCalledWith(expect.objectContaining({ first: 0, max: 10, roleName: 'role-1' }));
+    });
+    expect(screen.getByText('10 per page')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('1 of 2')).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      const usersTable = screen.getByTestId('role-users-table');
+      expect(within(usersTable).getAllByText(/^user\d{2}$/)).toHaveLength(10);
     });
   });
 

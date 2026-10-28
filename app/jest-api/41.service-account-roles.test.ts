@@ -20,6 +20,11 @@ jest.mock('@app/keycloak/client', () => {
   };
 });
 
+jest.mock('@app/utils/grafana', () => ({
+  ...jest.requireActual('@app/utils/grafana'),
+  fetchKeycloakRoleUsersCount: jest.fn(() => Promise.resolve(1)),
+}));
+
 // Mock at the admin client level so the real keycloak/users logic runs.
 const mockKcAdminClient = {
   clients: {
@@ -61,7 +66,8 @@ describe.each(['service-account', 'both'])('Role management for %s integrations'
     createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
     const res = await listClientRoleUsers(integration.id!, 'role1');
     expect(res.status).toEqual(200);
-    expect(res.body).toEqual([expect.objectContaining({ username: 'service-account-my-client-1' })]);
+    expect(res.body.data).toEqual([expect.objectContaining({ username: 'service-account-my-client-1' })]);
+    expect(res.body?.totalCount).toBe(1);
   });
 
   it('lists the composite roles of a role', async () => {
