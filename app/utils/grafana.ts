@@ -98,8 +98,9 @@ export const fetchKeycloakRoleUsersCount = async (
   try {
     if (!kcEnv || !idps?.length || !clientId || !roleName)
       throw new Error('Missing required parameters for looking up Keycloak role users count');
-    const dataSourceName =
-      kcEnv === 'prod' ? 'SSO Keycloak Prod' : kcEnv === 'test' ? 'SSO Keycloak Test' : 'SSO Keycloak Dev';
+    let dataSourceName = 'SSO Keycloak Prod';
+    if (kcEnv === 'test') dataSourceName = 'SSO Keycloak Test';
+    if (kcEnv === 'dev') dataSourceName = 'SSO Keycloak Dev';
     const keycloakDatasourceUID = await fetchDatasourceUID(dataSourceName);
 
     const query = {

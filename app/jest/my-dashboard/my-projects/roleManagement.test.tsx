@@ -161,7 +161,7 @@ describe('role management tab', () => {
     render(<RoleEnvironmentComponent />);
 
     await waitFor(() => {
-      expect(screen.getByRole('cell', { name: 'role-1' }));
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
     });
 
     const deleteButton = await screen.findAllByTestId('delete-role');
@@ -175,7 +175,7 @@ describe('role management tab', () => {
     render(<RoleEnvironmentComponent />);
 
     await waitFor(() => {
-      expect(screen.getByRole('cell', { name: 'role-1' }));
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
@@ -221,7 +221,7 @@ describe('role management tab', () => {
 
     render(<RoleEnvironmentComponent />);
     await waitFor(() => {
-      expect(screen.getByRole('cell', { name: 'role-1' }));
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));

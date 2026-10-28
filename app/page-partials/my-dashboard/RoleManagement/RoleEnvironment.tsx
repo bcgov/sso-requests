@@ -9,7 +9,7 @@ import { Integration, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import ActionButton from 'components/ActionButton';
-import { LastSavedMessage, Tabs, Tab } from '@bcgov-sso/common-react-components';
+import { LastSavedMessage, Tabs } from '@bcgov-sso/common-react-components';
 import InfoOverlay from 'components/InfoOverlay';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import {
@@ -149,8 +149,6 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const [saving, setSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('');
   const [searchKey, setSearchKey] = useState('');
-  const [firstUser, setFirstUser] = useState(0);
-  const [hasMoreUser, setHasMoreUser] = useState(true);
   const [roles, setRoles] = useState<string[]>([]);
   const [users, setUsers] = useState<KeycloakUser[]>([]);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
@@ -355,7 +353,6 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       setServiceAccountIntMap([]);
     }
 
-    setHasMoreUser(_data.length === roleUsersLimit);
     setRoleUsersCount(data?.totalCount || 0);
     setUsers(_data);
     setSelectedRole(roleName);
