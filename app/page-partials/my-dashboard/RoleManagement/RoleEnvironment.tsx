@@ -241,7 +241,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   };
 
   useEffect(() => {
-    fetchUsers(selectedRole as string);
+    void fetchUsers(selectedRole as string);
   }, [roleUsersPage, roleUsersLimit]);
 
   useEffect(() => {
@@ -254,8 +254,8 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   useEffect(() => {
     setServiceAccountIntMap([]);
     if (!selectedRole) return;
-    fetchUsers(selectedRole);
-    fetchComposite(selectedRole);
+    void fetchUsers(selectedRole);
+    void fetchComposite(selectedRole);
     setSaving(false);
     setSavingMessage('');
     setRoleUsersPage(1);
@@ -384,7 +384,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       }
       if (!users?.data || users?.data?.length === 0) break;
       data.push(
-        ...users?.data?.map((user) => {
+        ...(users?.data ?? []).map((user) => {
           const [userGuid, identityProvider] = user.username.split('@');
           const githubOrBceidUser =
             identityProvider && (identityProvider.startsWith('bceid') || identityProvider.startsWith('github'));
