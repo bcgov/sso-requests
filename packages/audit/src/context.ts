@@ -28,6 +28,18 @@ export const withAuditContext = <T>(context: AuditContext, fn: () => T): T =>
 /** Runs `fn` with `actor` as the actor of every event written inside it. Keeps the current `reqId`. */
 export const withActor = <T>(actor: Actor, fn: () => T): T => withAuditContext({ actor }, fn);
 
+/**
+ * Sets the actor on the audit context already in scope, for an edge that only
+ * learns who is acting part-way through the request (authentication inside an
+ * API route). Returns false, changing nothing, when no context is in scope.
+ */
+export const setCurrentActor = (actor: Actor): boolean => {
+  const context = store.getStore();
+  if (!context) return false;
+  context.actor = actor;
+  return true;
+};
+
 /** The actor of the current request or job. Throws rather than falling back to a default. */
 export const currentActor = (): Actor => {
   const actor = store.getStore()?.actor;

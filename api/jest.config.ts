@@ -12,6 +12,8 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@sso/authz$': '<rootDir>/../packages/authz/src',
+    '^@sso/audit$': '<rootDir>/../packages/audit/src',
+    '^@sso/audit/server$': '<rootDir>/../packages/audit/src/server',
   },
   verbose: true,
   coverageReporters: ['json', 'html'],

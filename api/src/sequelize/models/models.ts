@@ -71,8 +71,9 @@ export function models(sequelize: Sequelize) {
 
   Teams.belongsToMany(Users, { as: 'userIdUsers', through: UsersTeams, foreignKey: 'teamId', otherKey: 'userId' });
   Users.belongsToMany(Teams, { as: 'teamIdTeams', through: UsersTeams, foreignKey: 'userId', otherKey: 'teamId' });
-  Events.belongsTo(Requests, { as: 'request', foreignKey: 'requestId' });
-  Requests.hasMany(Events, { as: 'events', foreignKey: 'requestId' });
+  // No database constraint: events outlive the requests they are about.
+  Events.belongsTo(Requests, { as: 'request', foreignKey: 'requestId', constraints: false });
+  Requests.hasMany(Events, { as: 'events', foreignKey: 'requestId', constraints: false });
   RequestRoles.belongsTo(Requests, { as: 'request', foreignKey: 'requestId' });
   Requests.hasMany(RequestRoles, { as: 'requestRoles', foreignKey: 'requestId' });
   Requests.belongsTo(Teams, { as: 'team', foreignKey: 'teamId' });

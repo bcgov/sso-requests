@@ -1,9 +1,20 @@
 import { Response } from 'express';
 import createHttpError, { HttpError } from 'http-errors';
+import type { Transaction } from 'sequelize';
+import { createAuditWriter } from '@sso/audit/server';
 import models from '@/sequelize/models/models';
+import sequelize from '@/sequelize/config';
 import { logger } from '@/logger';
 
 const log = logger.child({ module: 'utils' });
+
+// The api's audit writer: @sso/audit over the api's `event` model, writing the
+// same rows the app does. Every new event goes through this.
+export const audit = createAuditWriter<Transaction>({
+  model: models.event,
+  transaction: (fn) => sequelize.transaction(fn),
+  logger: log,
+});
 const httpLog = logger.child({ module: 'http' });
 
 export const tryJSON = (str: string) => {
@@ -25,6 +36,7 @@ export const handleError = (res: Response, err: unknown) => {
   res.status(status).json({ message });
 };
 
+// Pre-@sso/audit event plumbing, until its call sites move to `audit`.
 export const createEvent = async (data: any) => {
   try {
     await models.event.create({

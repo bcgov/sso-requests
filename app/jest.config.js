@@ -4,6 +4,8 @@ module.exports = {
   moduleNameMapper: {
     '^@app/(.*)$': '<rootDir>/$1',
     '^@sso/authz$': '<rootDir>/../packages/authz/src',
+    '^@sso/audit$': '<rootDir>/../packages/audit/src',
+    '^@sso/audit/server$': '<rootDir>/../packages/audit/src/server',
     '^@components(.*)$': '<rootDir>/components$1',
     '^@pages(.*)$': '<rootDir>/pages$1',
     '^@utils(.*)$': '<rootDir>/utils$1',
@@ -20,7 +22,9 @@ module.exports = {
     '<rootDir>/node_modules/(?!(@rjsf|@keycloak|url-join|url-template|camelize-ts|keycloak-js)/)',
     '\\.pnp\\.[^\\/]+$',
   ],
-  modulePaths: ['<rootDir>'],
+  // <rootDir>/node_modules too, so source compiled from ../packages finds the babel
+  // runtime helpers the transform injects into it.
+  modulePaths: ['<rootDir>', '<rootDir>/node_modules'],
   moduleDirectories: ['node_modules'],
   testEnvironment: 'jsdom',
   rootDir: '.',

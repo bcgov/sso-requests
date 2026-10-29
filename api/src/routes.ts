@@ -36,6 +36,7 @@ import { ACTIONS, RESOURCES } from '@sso/authz';
 import { ListBceidUsersFilterQuery, ListUserRoleMappingQuery } from './types';
 import { collectApiUsageMetrics } from './middleware/api-usage';
 import { addLogContext } from './logger';
+import { serviceAccountActor, withActor } from '@sso/audit/server';
 
 const router = Router();
 
@@ -104,7 +105,8 @@ router.use(async (req: Request, res: Response, next: NextFunction) => {
     return;
   }
   req.authz = authz;
-  next();
+  // Every event written for the rest of the request is attributed to this API account.
+  withActor(serviceAccountActor(req.apiClientId!, req.teamId), next);
 });
 
 router.param('environment', (req: Request, res: Response, next: NextFunction, value: string) => {

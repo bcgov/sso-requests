@@ -13,7 +13,7 @@ import {
   toAuditEventRow,
   userActor,
 } from '../src';
-import { currentActor, currentReqId, withActor, withAuditContext } from '../src/server';
+import { currentActor, currentReqId, setCurrentActor, withActor, withAuditContext } from '../src/server';
 
 describe('vocabulary', () => {
   it('keeps actions, legacy actions and outcomes disjoint', () => {
@@ -115,6 +115,18 @@ describe('audit context', () => {
         expect(currentReqId()).toBe('r1');
       });
     });
+  });
+
+  it('sets the actor on the context in scope, and only there', async () => {
+    const alice = userActor('A', 'Alice');
+    expect(setCurrentActor(alice)).toBe(false);
+    await withAuditContext({ reqId: 'r1' }, async () => {
+      await Promise.resolve();
+      expect(setCurrentActor(alice)).toBe(true);
+      await Promise.resolve();
+      expect(currentActor()).toBe(alice);
+    });
+    expect(() => currentActor()).toThrow();
   });
 
   it('does not leak an actor outside its scope', () => {

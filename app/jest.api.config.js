@@ -27,9 +27,14 @@ module.exports = {
   moduleNameMapper: {
     '^@app/(.*)$': '<rootDir>/$1',
     '^@sso/authz$': '<rootDir>/../packages/authz/src',
+    '^@sso/audit$': '<rootDir>/../packages/audit/src',
+    '^@sso/audit/server$': '<rootDir>/../packages/audit/src/server',
     '^@pages(.*)$': '<rootDir>/pages$1',
     '^@utils(.*)$': '<rootDir>/utils$1',
   },
+  // So source compiled from ../packages finds the babel runtime helpers the
+  // transform injects into it.
+  modulePaths: ['<rootDir>/node_modules'],
   verbose: true,
   coverageReporters: ['json', 'html'],
   testEnvironment: 'node',

@@ -36,6 +36,12 @@ around a cron job or callback — and carried in context. `createEvent` reads it
 from there and **fails** when there is none: no silent `system` fallback.
 Everything the event is _about_ is passed explicitly at the call site.
 
+In the app, `withApiLogging` opens the context with the request's `reqId` and
+`authenticate` sets the user with `setCurrentActor`. In the api, the
+`requestLogging` middleware opens it and the auth middleware runs the rest of
+the request under the API account with `withActor`. Routes called by cron or by
+SDX wrap their work in `withActor(systemActor(...))`.
+
 ## Writing
 
 - `createEvent(event, tx?)` is strict: a failed write is logged as
