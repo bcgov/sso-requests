@@ -68,6 +68,15 @@ jest.mock('services/keycloak', () => ({
   listClientRoles: jest.fn(() => Promise.resolve([[{ name: 'role-1' }, { name: 'role-2' }], null])),
   listComposites: jest.fn(() => Promise.resolve([[false, false], null])),
   listRoleUsers: jest.fn(() => Promise.resolve([testUsers, null])),
+  listRoleAssignedServiceAccounts: jest.fn(() =>
+    Promise.resolve([
+      {
+        totalCount: 1,
+        data: testUsers.data.filter((user) => user.username.startsWith('service-account-')),
+      },
+      null,
+    ]),
+  ),
   getCompositeClientRoles: jest.fn(() => Promise.resolve([['compositeRole1', 'compositeRole2'], null])),
   deleteRole: jest.fn(() => Promise.resolve([[''], null])),
   manageUserRole: jest.fn(() => Promise.resolve([[''], null])),
@@ -75,6 +84,8 @@ jest.mock('services/keycloak', () => ({
   previewRoleReplication: jest.fn(() => Promise.resolve([[], null])),
   runRoleReplication: jest.fn(() => Promise.resolve([[], null])),
 }));
+
+const mockedListRoleUsers = jest.mocked(listRoleUsers);
 
 describe('role management tab', () => {
   afterEach(() => {
@@ -190,7 +201,7 @@ describe('role management tab', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Users' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Export' }));
     await waitFor(() => {
-      expect(listRoleUsers).toHaveBeenCalledTimes(2);
+      expect(listRoleUsers).toHaveBeenCalledTimes(3);
     });
   });
 
@@ -298,6 +309,33 @@ describe('role management tab', () => {
     expect(await screen.findByTitle('Additional User Info')).toBeVisible();
   });
 
+  it('Should debounce the users global search before fetching', async () => {
+    render(<RoleEnvironmentComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' }));
+    });
+
+    fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
+    await waitFor(() => {
+      expect(listRoleUsers).toHaveBeenCalledTimes(1);
+    });
+
+    const searchInput = screen.getByPlaceholderText('Search users');
+    fireEvent.change(searchInput, { target: { value: 'u' } });
+    fireEvent.change(searchInput, { target: { value: 'us' } });
+    fireEvent.change(searchInput, { target: { value: 'user01' } });
+    expect(searchInput).toHaveValue('user01');
+    expect(listRoleUsers).toHaveBeenCalledTimes(1);
+
+    await waitFor(
+      () => {
+        expect(listRoleUsers).toHaveBeenCalledTimes(2);
+      },
+      { timeout: 2000 },
+    );
+    expect(listRoleUsers).toHaveBeenLastCalledWith(expect.objectContaining({ searchKey: 'user01', first: 0 }));
+  });
+
   it('Should be able to click the Remove User button, and corresponding modal showing up', async () => {
     render(<RoleEnvironmentComponent />);
     await waitFor(() => {
@@ -321,7 +359,62 @@ describe('role management tab', () => {
     });
   });
 
+  it('Should go back to the last available page when the only user on the current page is removed', async () => {
+    let allUsers = Array.from({ length: 6 }, (_, i) => {
+      const guid = String(i + 1).padStart(2, '0');
+      return { ...testUsers.data[0], id: guid, username: `user${guid}@idir`, email: `role${guid}@gov.bc.ca` };
+    });
+
+    (listRoleUsers as jest.Mock).mockImplementation(({ first, max }: any) =>
+      Promise.resolve([{ totalCount: allUsers.length, data: allUsers.slice(first, first + max) }, null]),
+    );
+    (manageUserRole as jest.Mock).mockImplementationOnce(({ username }: any) => {
+      allUsers = allUsers.filter((user) => user.username !== username);
+      return Promise.resolve([[''], null]);
+    });
+
+    render(<RoleEnvironmentComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
+    fireEvent.click(await screen.findByRole('tab', { name: 'Users' }));
+    await waitFor(() => {
+      expect(screen.getByText('1 of 2')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => {
+      const usersTable = screen.getByTestId('role-users-table');
+      expect(within(usersTable).getByRole('cell', { name: 'user06' })).toBeInTheDocument();
+    });
+    expect(screen.getByText('2 of 2')).toBeInTheDocument();
+
+    fireEvent.click(await screen.findByRole('img', { name: 'Remove User' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Remove' }));
+
+    await waitFor(() => {
+      expect(manageUserRole).toHaveBeenCalledWith(expect.objectContaining({ username: 'user06@idir', mode: 'del' }));
+    });
+    await waitFor(() => {
+      expect(screen.getByText('1 of 1')).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      const usersTable = screen.getByTestId('role-users-table');
+      expect(within(usersTable).getByRole('cell', { name: 'user01' })).toBeInTheDocument();
+      expect(within(usersTable).getAllByText(/^user\d{2}$/)).toHaveLength(5);
+    });
+  });
+
   it('Should be able to show service accounts assigned to a role inside service accounts tab', async () => {
+    mockedListRoleUsers.mockResolvedValueOnce([testUsers, null]);
+    mockedListRoleUsers.mockResolvedValueOnce([
+      {
+        totalCount: 1,
+        data: [{ id: 'kc-service-account-user', username: 'service-account-client-1' }] as any[],
+      },
+      null,
+    ]);
     render(<RoleEnvironmentComponent />);
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
@@ -330,9 +423,6 @@ describe('role management tab', () => {
     fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
     await waitFor(async () => {
       fireEvent.click(screen.getByRole('tab', { name: 'Service Accounts' }));
-    });
-    await waitFor(() => {
-      expect(listRoleUsers).toHaveBeenCalledTimes(1);
     });
 
     await waitFor(() => {
@@ -376,6 +466,14 @@ describe('role management tab', () => {
   });
 
   it('Should be able to click the remove service account button, and corresponding modal showing up', async () => {
+    mockedListRoleUsers.mockResolvedValueOnce([testUsers, null]);
+    mockedListRoleUsers.mockResolvedValueOnce([
+      {
+        totalCount: 1,
+        data: [{ id: 'kc-service-account-user', username: 'service-account-client-1' }] as any[],
+      },
+      null,
+    ]);
     render(<RoleEnvironmentComponent />);
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
