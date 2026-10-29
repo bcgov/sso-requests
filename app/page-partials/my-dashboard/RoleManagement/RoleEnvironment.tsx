@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faExclamationTriangle, faMinusCircle, faEye, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import Select from 'react-select';
-import { throttle, debounce, get, reduce, set } from 'lodash';
+import { throttle, debounce, get, reduce, pick } from 'lodash';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
@@ -27,11 +27,8 @@ import {
 } from 'services/keycloak';
 import { canCreateOrDeleteRoles, canManageUserRoleMappings } from 'helpers/permissions';
 import { idpMap } from 'helpers/meta';
-import { getRequest } from 'services/request';
-import { checkIfUserIsServiceAccount, filterServiceAccountUsers } from 'helpers/users';
 import { KeycloakUser } from 'interfaces/team';
 import { dateTimeStringForFileName, generateXlsx, generateCsv } from '@app/utils/helpers';
-import _ from 'lodash';
 import TableNew from '@app/components/TableNew';
 import { Col, Row } from 'react-bootstrap';
 
@@ -429,7 +426,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
           const firstName = githubOrBceidUser ? '' : user.firstName;
           const lastName = githubOrBceidUser ? '' : user.lastName;
           const displayName = githubOrBceidUser ? user.firstName : user.attributes?.display_name?.[0] || '';
-          return _.pick({ ...user, username, identityProvider, firstName, lastName, displayName, userGuid }, [
+          return pick({ ...user, username, identityProvider, firstName, lastName, displayName, userGuid }, [
             'firstName',
             'lastName',
             'email',
