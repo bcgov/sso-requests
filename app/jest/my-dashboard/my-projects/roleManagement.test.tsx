@@ -11,7 +11,6 @@ import {
 } from 'services/keycloak';
 import CreateRoleContent from 'page-partials/my-dashboard/RoleManagement/CreateRoleContent';
 import RoleEnvironment from 'page-partials/my-dashboard/RoleManagement/RoleEnvironment';
-import { KeycloakUser } from '@app/interfaces/team';
 
 const mockResult = () => {
   return { ...sampleRequest, authType: 'both' };
