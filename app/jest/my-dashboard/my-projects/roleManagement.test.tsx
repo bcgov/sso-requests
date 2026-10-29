@@ -359,6 +359,53 @@ describe('role management tab', () => {
     });
   });
 
+  it('Should go back to the last available page when the only user on the current page is removed', async () => {
+    let allUsers = Array.from({ length: 6 }, (_, i) => {
+      const guid = String(i + 1).padStart(2, '0');
+      return { ...testUsers.data[0], id: guid, username: `user${guid}@idir`, email: `role${guid}@gov.bc.ca` };
+    });
+
+    (listRoleUsers as jest.Mock).mockImplementation(({ first, max }: any) =>
+      Promise.resolve([{ totalCount: allUsers.length, data: allUsers.slice(first, first + max) }, null]),
+    );
+    (manageUserRole as jest.Mock).mockImplementationOnce(({ username }: any) => {
+      allUsers = allUsers.filter((user) => user.username !== username);
+      return Promise.resolve([[''], null]);
+    });
+
+    render(<RoleEnvironmentComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
+    fireEvent.click(await screen.findByRole('tab', { name: 'Users' }));
+    await waitFor(() => {
+      expect(screen.getByText('1 of 2')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => {
+      const usersTable = screen.getByTestId('role-users-table');
+      expect(within(usersTable).getByRole('cell', { name: 'user06' })).toBeInTheDocument();
+    });
+    expect(screen.getByText('2 of 2')).toBeInTheDocument();
+
+    fireEvent.click(await screen.findByRole('img', { name: 'Remove User' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Remove' }));
+
+    await waitFor(() => {
+      expect(manageUserRole).toHaveBeenCalledWith(expect.objectContaining({ username: 'user06@idir', mode: 'del' }));
+    });
+    await waitFor(() => {
+      expect(screen.getByText('1 of 1')).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      const usersTable = screen.getByTestId('role-users-table');
+      expect(within(usersTable).getByRole('cell', { name: 'user01' })).toBeInTheDocument();
+      expect(within(usersTable).getAllByText(/^user\d{2}$/)).toHaveLength(5);
+    });
+  });
+
   it('Should be able to show service accounts assigned to a role inside service accounts tab', async () => {
     mockedListRoleUsers.mockResolvedValueOnce([testUsers, null]);
     mockedListRoleUsers.mockResolvedValueOnce([

@@ -360,7 +360,15 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       });
     }
 
-    setRoleUsersCount(data?.totalCount || 0);
+    const totalCount = data?.totalCount || 0;
+    const lastPage = Math.max(1, Math.ceil(totalCount / roleUsersLimit));
+    // The current page no longer exists (e.g. its last user was removed); the page effect refetches it
+    if (roleUsersPage > lastPage) {
+      setRoleUsersPage(lastPage);
+      return;
+    }
+
+    setRoleUsersCount(totalCount);
     setUsers(data?.data || []);
     setSelectedRole(roleName);
     setUserLoading(false);

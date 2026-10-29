@@ -165,15 +165,26 @@ export const fetchKeycloakRoleUsers = async (
                 (
                   SELECT JSON_AGG(
                     JSON_BUILD_OBJECT(
-                      'id', ID,
-                      'username', USERNAME,
-                      'email', EMAIL,
-                      'firstName', FIRST_NAME,
-                      'lastName', LAST_NAME
+                      'id', pu.ID,
+                      'username', pu.USERNAME,
+                      'email', pu.EMAIL,
+                      'firstName', pu.FIRST_NAME,
+                      'lastName', pu.LAST_NAME,
+                      'attributes', COALESCE(
+                        (
+                          SELECT JSON_OBJECT_AGG(
+                              ua.NAME,
+                              ua.VALUE
+                          )
+                          FROM USER_ATTRIBUTE ua
+                          WHERE ua.USER_ID = pu.ID
+                        ),
+                        '{}'::JSON
+                      )
                     )
-                    ORDER BY USERNAME, ID
+                    ORDER BY pu.USERNAME, pu.ID
                   )
-                  FROM paginated_users
+                  FROM paginated_users pu
                 ),
                 '[]'::JSON
               )
