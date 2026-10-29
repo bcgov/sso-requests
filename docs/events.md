@@ -49,6 +49,7 @@ change produces the same row whichever path it came through. Rows are never upda
 | `request-restore`       | Restoring an archived integration.                                                                                                                                                        |
 | `request-plan`          | A step inside one of the above (planning), under the same `operation_id`. Never the operation's outcome.                                                                                  |
 | `request-limit-reached` | A user hit the daily limit on new integrations and was refused (429). One `success` row recording that it happened, with `details.limit` and `details.count`; targets the user's app row. |
+| `request-status-update` | An admin set an integration's status directly from the dashboard, outside any workflow; `details.before` / `details.after`.                                                               |
 | `api-account-create`    | Creating a team or organization API account. Any later apply on the same account is also recorded as `api-account-create`.                                                                |
 | `api-account-delete`    | Deleting an API account. One that never reached Keycloak is deleted with a single `success` row.                                                                                          |
 | `api-account-restore`   | Restoring an API account.                                                                                                                                                                 |
@@ -161,6 +162,20 @@ WHERE (event_code IN ('team-member-remove', 'team-member-role-update')
    OR event_code = 'team-admin-removal' -- rows written before the change
 ORDER BY created_at DESC;
 ```
+
+## Keeping it complete
+
+The integration tests (app `jest-api`, and the api's suite) enforce this page:
+
+- **Route coverage.** Every write route is listed in a manifest (`app/jest-api/audit-coverage-manifest.ts`,
+  `api/src/tests/audit-coverage-manifest.ts`) with the actions it must record, or a reason it records none.
+  A test that runs last fails on a write route with no entry, a stale entry, an audited route no test saw
+  record its action, or a GET route seen writing without an entry.
+- **Invariants.** Before every wipe of the test database, `packages/audit/test-support/invariants.ts` checks
+  that each `requested` row has exactly one outcome, every row has an actor, workflow-backed operations
+  name their workflow, every parent operation exists, and no row was ever updated.
+- **App and api agree.** Both suites run the same role scenario through their own routes and assert the
+  same normalized rows (`packages/audit/test-support/matching.ts`).
 
 ## Alerts
 

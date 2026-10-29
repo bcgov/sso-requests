@@ -466,8 +466,9 @@ describe('emails for teams', () => {
         return Promise.resolve(integrationUserRoles);
       });
 
+      // As the real getUser does: the one user, not a list.
       jest.spyOn(KeycloakService.prototype, 'getUser').mockImplementation(() => {
-        return Promise.resolve(integrationRoleUsers);
+        return Promise.resolve(integrationRoleUsers[0]);
       });
 
       jest.spyOn(KeycloakService.prototype, 'getClient').mockImplementation(() => {

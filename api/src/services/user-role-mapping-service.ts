@@ -160,7 +160,8 @@ export class UserRoleMappingService {
 
     // Validation runs before anything is recorded: a 404 here stays in the request log.
     if (roleName) await assertRolesExist(keycloakService, int.clientId, [roleName]);
-    if (username) users = (await keycloakService.getUser(username)) as User[];
+    // getUser returns the one user (or 404s), not a list.
+    if (username) users = [(await keycloakService.getUser(username)) as User];
     if (operation === 'del') {
       const roleUsers = await this.usersByRole(int, environment, roleName);
       if (roleUsers.length === 0) throw new createHttpError[404]('no user role mappings found');

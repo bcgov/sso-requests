@@ -11,6 +11,8 @@ export const AUDIT_ACTIONS = [
   'request-restore',
   // A step inside a workflow operation, never its terminal outcome.
   'request-plan',
+  // An admin setting an integration's status directly, outside any workflow.
+  'request-status-update',
   // The one rejection that is audited: a user hitting the daily request limit, a sign of abusive usage.
   'request-limit-reached',
   'email-submission',

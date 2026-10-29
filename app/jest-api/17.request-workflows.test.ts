@@ -685,6 +685,16 @@ describe('Request workflow - queued resubmissions', () => {
       supersededByWorkflowId: winner.workflowId,
       supersededByOperationId: winner.operationId,
     });
+
+    // This suite drives the engine by hand; running the winner gives its operation the outcome it is owed.
+    const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient').mockImplementation(() => Promise.resolve(true));
+    await runWorkflow(winner.workflowId);
+    expect(
+      await models.event.count({
+        where: { operationId: winner.operationId, outcome: 'success', eventCode: 'request-create' },
+      }),
+    ).toBe(1);
+    kcClientSpy.mockRestore();
   });
 });
 

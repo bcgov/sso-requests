@@ -3,10 +3,11 @@ module.exports = {
   roots: ['<rootDir>/src'],
   preset: 'ts-jest',
   transform: {
-    '^.+\\.(ts|tsx|js)$': 'ts-jest',
+    '^.+\\.(ts|tsx)$': 'ts-jest',
   },
   setupFilesAfterEnv: ['<rootDir>/src/tests/jest.setup.ts'],
-  //testSequencer: '<rootDir>/jest-api/testSequencer.js',
+  testSequencer: '<rootDir>/src/tests/testSequencer.js',
+  globalSetup: '<rootDir>/src/tests/global-setup.js',
   testPathIgnorePatterns: ['/node_modules/', '/build/', '<rootDir>/jest-api/helpers/fixtures.ts'],
   //transformIgnorePatterns: ['/node_modules/(?!(@keycloak|url-join|url-template|camelize-ts)/)'],
   moduleNameMapper: {

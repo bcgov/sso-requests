@@ -21,6 +21,7 @@ export type AuditDetailsMap = {
   'request-delete': None;
   'request-restore': None;
   'request-plan': None;
+  'request-status-update': { before: string | null; after: string };
   'request-limit-reached': { limit: number; count: number };
   'email-submission': { code?: string };
   'transfer-of-ownership': { fromUserId: number; toUserId: number };
@@ -37,7 +38,7 @@ export type AuditDetailsMap = {
   'role-create': { roleName: string };
   'role-update': { roleName: string; newRoleName?: string };
   'role-delete': { roleName: string };
-  'role-composite-update': { roleName: string; add?: string[]; remove?: string[] };
+  'role-composite-update': { roleName: string; add: string[]; remove: string[] };
   // `replicatedFrom` names the idir user whose role a replicate copied to this azureidir user.
   'role-assign': { roleName: string; replicatedFrom?: string };
   'role-unassign': { roleName: string };

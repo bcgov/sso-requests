@@ -3,13 +3,17 @@ import { roleMappingOperations, roleOperation } from '../src';
 describe('roleOperation', () => {
   it('targets the role by name and keeps it in details', () => {
     expect(
-      roleOperation('role-composite-update', { requestId: 4, environment: 'dev', roleName: 'admin' }, { add: ['a'] }),
+      roleOperation(
+        'role-composite-update',
+        { requestId: 4, environment: 'dev', roleName: 'admin' },
+        { add: ['a'], remove: [] },
+      ),
     ).toEqual({
       action: 'role-composite-update',
       requestId: 4,
       environment: 'dev',
       target: { type: 'role', id: 'admin' },
-      details: { roleName: 'admin', add: ['a'] },
+      details: { roleName: 'admin', add: ['a'], remove: [] },
     });
   });
 });

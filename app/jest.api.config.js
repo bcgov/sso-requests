@@ -22,6 +22,7 @@ module.exports = {
   },
   setupFilesAfterEnv: ['<rootDir>/jest-api/jest.setup.js'],
   testSequencer: '<rootDir>/jest-api/testSequencer.js',
+  globalSetup: '<rootDir>/jest-api/global-setup.js',
   testPathIgnorePatterns: ['/node_modules/', '/build/', '<rootDir>/jest-api/helpers/fixtures.ts'],
   transformIgnorePatterns: ['/node_modules/(?!(@keycloak|url-join|url-template|camelize-ts)/)'],
   moduleNameMapper: {

@@ -194,7 +194,7 @@ export class RoleService {
       roleOperation(
         'role-composite-update',
         { requestId: int.id, environment: environment as Environment, roleName },
-        { add: compositeRoleNames },
+        { add: compositeRoleNames, remove: [] },
       ),
       () => KeycloakService.createCompositeRole(int.clientId, roleName, compositeRoles),
       {
@@ -260,7 +260,7 @@ export class RoleService {
       roleOperation(
         'role-composite-update',
         { requestId: int.id, environment: environment as Environment, roleName },
-        { remove: [compositeRoleName] },
+        { add: [], remove: [compositeRoleName] },
       ),
       () => keycloakService.deleteCompositeRole(int.clientId, roleName, compositeRoleName),
       {

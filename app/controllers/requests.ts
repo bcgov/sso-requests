@@ -963,20 +963,35 @@ export const updateRequestMetadata = async (session: Session, user: User, data: 
     throw new createHttpError.Forbidden('not allowed');
   }
   const { id, status } = data;
-  const result = await models.request.update(
-    { status },
-    {
-      where: { id },
-      returning: true,
-      plain: true,
-    },
-  );
+  const current = await models.request.findByPk(id, { attributes: ['id', 'status'], raw: true });
+  if (!current) throw new createHttpError.NotFound(`request #${id} not found`);
 
-  if (result.length < 2) {
-    throw new createHttpError.UnprocessableEntity('update failed');
-  }
+  return sequelize.transaction(async (transaction) => {
+    const result = await models.request.update(
+      { status },
+      {
+        where: { id },
+        returning: true,
+        plain: true,
+        transaction,
+      },
+    );
 
-  return result[1].dataValues;
+    if (result.length < 2) {
+      throw new createHttpError.UnprocessableEntity('update failed');
+    }
+
+    await audit.createEvent(
+      {
+        action: 'request-status-update',
+        outcome: 'success',
+        requestId: id,
+        details: { before: current.status, after: status },
+      },
+      transaction,
+    );
+    return result[1].dataValues;
+  });
 };
 
 export const buildGitHubRequestData = (baseData: IntegrationData) => {
