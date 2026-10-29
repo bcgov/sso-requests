@@ -83,6 +83,9 @@ export type OutcomeDetails = {
   keycloakApplied?: boolean;
   supersededByWorkflowId?: string;
   supersededByOperationId?: string;
+  // A workflow that failed: the step it failed at and why.
+  failedStep?: string;
+  reason?: string;
   // Batch parents, on their terminal row.
   total?: number;
   succeeded?: number;

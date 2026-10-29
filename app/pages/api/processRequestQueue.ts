@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { handleError, withApiLogging } from '@app/utils/api';
 import { drainWorkflows } from '@app/workflow/orchestrator';
-import { systemActor, withActor } from '@sso/audit/server';
 
 /**
  * Recovery tick for the integration workflow orchestrator.
@@ -19,7 +18,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return res.status(401).json({ success: false, message: 'not authorized' });
       }
 
-      const { processed } = await withActor(systemActor('workflow-engine'), () => drainWorkflows());
+      // drainWorkflows runs as the workflow-engine audit actor.
+      const { processed } = await drainWorkflows();
       return res.status(200).json({ success: true, processed });
     } else {
       res.setHeader('Allow', ['GET']);

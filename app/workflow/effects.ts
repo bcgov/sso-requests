@@ -1,8 +1,9 @@
 import { Op } from 'sequelize';
 import { models } from '@app/shared/sequelize/models/models';
 import { IntegrationData } from '@app/shared/interfaces';
-import { EMAILS, EVENTS } from '@app/shared/enums';
+import { EMAILS } from '@app/shared/enums';
 import { sendTemplate } from '@app/shared/templates';
+import { countApplyOutcomes } from './audit';
 import { getTeamById } from '@app/queries/team';
 import { getRolesWithEnvironments } from '@app/queries/roles';
 import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@app/keycloak/users';
@@ -29,8 +30,8 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
 
   integration = Object.assign(integration, updatedIntegration);
   if (integration.archived) return;
-  const isUpdate =
-    (await models.event.count({ where: { eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: integration.id } })) > 1;
+  // This apply's own success is already recorded, so an update is a second one.
+  const isUpdate = (await countApplyOutcomes(integration.id as number, { successOnly: true })) > 1;
 
   if (integration.apiServiceAccount) {
     const teamIntegrations = await models.request.findAll({

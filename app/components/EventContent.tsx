@@ -46,7 +46,7 @@ export default function EventContent({ events }: Props) {
                 <div>
                   <strong>Details</strong>
                 </div>
-                {event.eventCode === 'request-update-success' ? (
+                {event.eventCode === 'request-update' && event.details.changes ? (
                   <>
                     <FormatChangeEventDetails changes={event.details.changes} />
                     <strong>Comment: </strong>

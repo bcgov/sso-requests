@@ -29,14 +29,6 @@ import { createMockAuth } from './mocks/authenticate';
 import { cleanUpDatabaseTables } from './helpers/utils';
 import { EVENTS } from '@app/shared/enums';
 
-jest.mock('@app/controllers/requests', () => {
-  const original = jest.requireActual('@app/controllers/requests');
-  return {
-    ...original,
-    processIntegrationRequest: jest.fn(() => true),
-  };
-});
-
 jest.mock('@app/utils/ches', () => {
   return {
     ...jest.requireActual('@app/utils/ches'),

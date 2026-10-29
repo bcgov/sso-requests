@@ -405,8 +405,12 @@ describe('roles and restore integration', () => {
     expect(restoreResult.body.archived).toEqual(false);
 
     const integrationEvents = await getEventsByRequestId(integration.id!);
-    const restoreEvents = integrationEvents.filter((event: any) => event.eventCode === EVENTS.REQUEST_RESTORE_SUCCESS);
-    expect(restoreEvents.length).toBe(1);
+    const restoreEvents = integrationEvents.filter((event: any) => event.eventCode === 'request-restore');
+    expect(restoreEvents.map((event: any) => [event.outcome, event.actorType])).toEqual([
+      ['requested', 'user'],
+      ['success', 'system'],
+    ]);
+    expect(restoreEvents[0].operationId).toBe(restoreEvents[1].operationId);
   });
 
   it('logs a restore failed event if restoration fails', async () => {
@@ -418,8 +422,10 @@ describe('roles and restore integration', () => {
     await restoreIntegration(integration.id!, TEAM_ADMIN_IDIR_EMAIL_01);
 
     const integrationEvents = await getEventsByRequestId(integration.id!);
-    const restoreEvents = integrationEvents.filter((event: any) => event.eventCode === EVENTS.REQUEST_RESTORE_FAILURE);
-    expect(restoreEvents.length).toBe(1);
+    const restoreFailures = integrationEvents.filter(
+      (event: any) => event.eventCode === 'request-restore' && event.outcome === 'failure',
+    );
+    expect(restoreFailures.length).toBe(1);
   });
 });
 

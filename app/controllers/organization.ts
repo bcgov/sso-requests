@@ -10,8 +10,13 @@ import { sendTemplate } from '@app/shared/templates';
 import { getDisplayName } from '@app/utils/helpers';
 import { lowcase } from '@app/helpers/string';
 import { appPermissions, hasAppPermission, organizationPermissions, teamPermissions } from '@app/utils/authorize';
-import { processIntegrationRequest, checkIfRequestMerged, assertWorkflowCompleted } from '@app/controllers/requests';
-import { createEvent, runAuditedOperation } from '@app/queries/event';
+import {
+  checkIfRequestMerged,
+  assertWorkflowCompleted,
+  enqueueIntegrationWorkflow,
+  runIntegrationWorkflow,
+} from '@app/controllers/requests';
+import { audit, createEvent, runAuditedOperation } from '@app/queries/event';
 import { generateInstallation, updateClientSecret } from '@app/keycloak/installation';
 import { authorizeTeam } from '@app/queries/teamAccess';
 import { authorizeOrganization } from '@app/queries/organizationAccess';
@@ -558,44 +563,32 @@ export const createOrganizationApiAccount = async (session: Session, organizatio
   if (existing > 0) throw new createHttpError.Conflict('organization already has api account');
 
   const requester = getDisplayName(session);
-  const account = await models.request.create({
-    projectName: `Service Account for organization #${organizationId}`,
-    serviceType: 'gold',
-    usesTeam: false,
-    organizationId,
-    apiServiceAccount: true,
-    authType: 'service-account',
-    status: 'submitted',
-    requester,
-    environments: ['prod'],
+
+  // The account, its workflow and the `requested` event commit together.
+  const { saved, enqueued } = await sequelize.transaction(async (transaction) => {
+    const account = await models.request.create(
+      {
+        projectName: `Service Account for organization #${organizationId}`,
+        serviceType: 'gold',
+        usesTeam: false,
+        organizationId,
+        apiServiceAccount: true,
+        authType: 'service-account',
+        status: 'submitted',
+        requester,
+        environments: ['prod'],
+      },
+      { transaction },
+    );
+
+    account.clientId = `service-account-org-${organizationId}-${account.id}`;
+    const saved = await account.save({ transaction });
+    const enqueued = await enqueueIntegrationWorkflow(saved, { awaitCompletion: true }, transaction);
+    return { saved, enqueued };
   });
 
-  account.clientId = `service-account-org-${organizationId}-${account.id}`;
-  const saved = await account.save();
-
   // Service account creation stays synchronous: the caller reads the client credentials right after.
-  let workflow: Awaited<ReturnType<typeof processIntegrationRequest>> = undefined;
-  try {
-    workflow = await processIntegrationRequest(saved, false, '', false, { awaitCompletion: true });
-    assertWorkflowCompleted(workflow);
-  } catch (err) {
-    await orgEvent(
-      session,
-      organizationId,
-      EVENTS.REQUEST_CREATE_FAILURE,
-      { apiAccountId: saved.id },
-      { requestId: saved.id, workflowId: workflow?.workflowId },
-    );
-    throw err;
-  }
-
-  await orgEvent(
-    session,
-    organizationId,
-    EVENTS.REQUEST_CREATE_SUCCESS,
-    { apiAccountId: saved.id },
-    { requestId: saved.id, workflowId: workflow?.workflowId },
-  );
+  assertWorkflowCompleted(await runIntegrationWorkflow(enqueued, { awaitCompletion: true }));
   return saved;
 };
 
@@ -646,45 +639,29 @@ export const updateOrganizationApiAccountSecret = async (
 export const deleteOrganizationApiAccount = async (session: Session, organizationId: number, accountId: number) => {
   await assertOrganization(session, organizationId, organizationPermissions.MANAGE_ORG_API_ACCOUNTS);
   const account = await getOrganizationApiAccount(organizationId, accountId);
-  let workflow: Awaited<ReturnType<typeof processIntegrationRequest>> = undefined;
-  try {
-    const isMerged = await checkIfRequestMerged(accountId);
+  const isMerged = await checkIfRequestMerged(accountId);
 
-    account.requester = getDisplayName(session);
-    account.status = 'submitted';
-    account.archived = true;
-    account.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
-    const saved = await account.save();
+  account.requester = getDisplayName(session);
+  account.status = 'submitted';
+  account.archived = true;
+  account.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
 
+  // An applied account is deleted by a workflow that removes its client; one that never reached
+  // Keycloak is deleted by this change alone.
+  const { saved, enqueued } = await sequelize.transaction(async (transaction) => {
+    const saved = await account.save({ transaction });
     if (isMerged) {
-      // Trigger workflow with empty environments to delete client
-      workflow = await processIntegrationRequest(saved, false, '', false, { awaitCompletion: true });
-      assertWorkflowCompleted(workflow);
+      return { saved, enqueued: await enqueueIntegrationWorkflow(saved, { awaitCompletion: true }, transaction) };
     }
+    await audit.createEvent(
+      { action: 'api-account-delete', outcome: 'success', requestId: accountId, organizationId, details: {} },
+      transaction,
+    );
+    return { saved, enqueued: undefined };
+  });
 
-    await createEvent({
-      eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_SUCCESS,
-      requestId: accountId,
-      organizationId,
-      workflowId: workflow?.workflowId,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session.user?.displayName,
-      details: { organizationId },
-    });
-
-    return saved;
-  } catch (err) {
-    await createEvent({
-      eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_FAILURE,
-      requestId: accountId,
-      organizationId,
-      workflowId: workflow?.workflowId,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session.user?.displayName,
-      details: { organizationId },
-    });
-    throw err;
-  }
+  if (isMerged) assertWorkflowCompleted(await runIntegrationWorkflow(enqueued, { awaitCompletion: true }));
+  return saved;
 };
 
 export const searchTeams = async (session: Session, organizationId: number, query: string) => {

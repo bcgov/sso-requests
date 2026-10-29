@@ -1,7 +1,6 @@
 import { models } from '@app/shared/sequelize/models/models';
-import { EVENTS } from '@app/shared/enums';
 import { keycloakClient } from '@app/keycloak/integration';
-import { createEvent } from '@app/queries/event';
+import { recordWorkflowEvent } from '../audit';
 import { restoreIntegrationRoles, sendRestoreIntegrationEmail, updatePlannedIntegration } from '../effects';
 import { WorkflowRecord, WorkflowStepDefinition, WorkflowType, STEP_NAMES, TransientStepError } from '../types';
 
@@ -22,22 +21,6 @@ export const orderedEnvironments = (workflow: WorkflowRecord): string[] =>
 
 const setRequestStatus = async (requestId: number, status: string) => {
   await models.request.update({ status }, { where: { id: requestId } });
-};
-
-/** Writes an event at most once per workflow, including after a replay following a crash. */
-export const emitWorkflowEventOnce = async (workflow: WorkflowRecord, eventCode: string, details: any = {}) => {
-  const existing = await models.event.count({
-    where: { requestId: workflow.requestId, eventCode, workflowId: workflow.id },
-  });
-
-  if (existing > 0) return;
-
-  await createEvent({
-    eventCode,
-    requestId: workflow.requestId,
-    workflowId: workflow.id,
-    details,
-  } as any);
 };
 
 const applyEnvironmentStep = (workflow: WorkflowRecord, environment: string): WorkflowStepDefinition => {
@@ -67,7 +50,7 @@ const planStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
   label: 'Request received and validated',
   execute: async () => {
     await setRequestStatus(workflow.requestId, 'planned');
-    await emitWorkflowEventOnce(workflow, EVENTS.REQUEST_PLAN_SUCCESS);
+    await recordWorkflowEvent(workflow, { outcome: 'success', step: 'request-plan' });
     return { planned: true };
   },
 });
@@ -85,14 +68,8 @@ const finalizeStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
   name: STEP_NAMES.FINALIZE,
   label: 'Finalizing integration',
   execute: async () => {
-    const isRestore = workflow.type === WorkflowType.INTEGRATION_RESTORE;
-    const eventCode =
-      workflow.type === WorkflowType.INTEGRATION_DELETE
-        ? EVENTS.WORKFLOW_DELETE_SUCCESS
-        : isRestore
-        ? EVENTS.REQUEST_RESTORE_SUCCESS
-        : EVENTS.REQUEST_APPLY_SUCCESS;
-    await emitWorkflowEventOnce(workflow, eventCode);
+    // The operation's terminal outcome. NOTIFY after it is best effort and cannot change it.
+    await recordWorkflowEvent(workflow, { outcome: 'success' });
     await setRequestStatus(workflow.requestId, 'applied');
     return { finalized: true };
   },

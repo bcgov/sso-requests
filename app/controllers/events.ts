@@ -5,7 +5,6 @@ import { Op } from 'sequelize';
 import { isSocialApprover } from '@app/utils/helpers';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import { authorizeIntegration } from '@app/queries/integrationAccess';
-import { EVENTS } from '@app/shared/enums';
 import createHttpError from 'http-errors';
 
 /**
@@ -18,8 +17,15 @@ export const getRequestScopedEvents = async (session: Session, requestId: string
   const authorized = await authorizeIntegration(session, Number(requestId), 'integrations:read');
   if (!authorized) throw new createHttpError.Forbidden('User is not authorized to view request events');
 
+  // A submitted update records its changes on the operation's `requested` row; rows from before
+  // @sso/audit recorded them on the (now suffix-less) `success` row. Either way, the rows with changes.
   return models.event.findAndCountAll({
-    where: { requestId, eventCode: EVENTS.REQUEST_UPDATE_SUCCESS },
+    where: {
+      requestId,
+      eventCode: 'request-update',
+      outcome: { [Op.in]: ['requested', 'success'] },
+      [Op.and]: [models.event.sequelize.literal(`jsonb_exists(details, 'changes')`)],
+    },
     order: [['createdAt', 'desc']],
   });
 };

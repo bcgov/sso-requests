@@ -13,8 +13,13 @@ import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { sendTemplate } from '@app/shared/templates';
 import { EMAILS, EVENTS } from '@app/shared/enums';
 import { User, Team, Member, Session } from '@app/shared/interfaces';
-import { processIntegrationRequest, checkIfRequestMerged, assertWorkflowCompleted } from '@app/controllers/requests';
-import { createEvent, runAuditedOperation } from '@app/queries/event';
+import {
+  checkIfRequestMerged,
+  assertWorkflowCompleted,
+  enqueueIntegrationWorkflow,
+  runIntegrationWorkflow,
+} from '@app/controllers/requests';
+import { audit, createEvent, runAuditedOperation } from '@app/queries/event';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
@@ -320,54 +325,37 @@ export const requestServiceAccount = async (session: Session, teamId: number, re
   }
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
 
-  const serviceAccount = await models.request.create({
-    projectName: `Service Account for team #${teamId}`,
-    serviceType: 'gold',
-    usesTeam: true,
-    teamId: sequelize.literal(`(${teamIdLiteral})`),
-    apiServiceAccount: true,
+  // The account, its workflow and the `requested` event commit together. A team the user may not use
+  // resolves to no team, and rolling back means no account row is ever left behind for it.
+  const { serviceAccount, enqueued } = await sequelize.transaction(async (transaction) => {
+    const serviceAccount = await models.request.create(
+      {
+        projectName: `Service Account for team #${teamId}`,
+        serviceType: 'gold',
+        usesTeam: true,
+        teamId: sequelize.literal(`(${teamIdLiteral})`),
+        apiServiceAccount: true,
+      },
+      { transaction },
+    );
+
+    if (!serviceAccount.teamId) {
+      throw new createHttpError.Forbidden(`team #${teamId} is not allowed for user #${userId}`);
+    }
+
+    serviceAccount.authType = 'service-account';
+    serviceAccount.status = 'submitted';
+    serviceAccount.clientId = `service-account-team-${teamId}-${serviceAccount.id}`;
+    serviceAccount.requester = requester;
+    serviceAccount.environments = ['prod']; // service accounts are by default only created in prod
+    const saved = await serviceAccount.save({ transaction });
+
+    const enqueued = await enqueueIntegrationWorkflow(saved, { awaitCompletion: true }, transaction);
+    return { serviceAccount: saved, enqueued };
   });
 
-  if (!serviceAccount.teamId) {
-    await serviceAccount.destroy();
-    throw new createHttpError.Forbidden(`team #${teamId} is not allowed for user #${userId}`);
-  }
-
-  serviceAccount.authType = 'service-account';
-  serviceAccount.status = 'submitted';
-  serviceAccount.clientId = `service-account-team-${teamId}-${serviceAccount.id}`;
-  serviceAccount.requester = requester;
-  serviceAccount.environments = ['prod']; // service accounts are by default only created in prod
-  const saved = await serviceAccount.save();
-
   // Service account creation stays synchronous: the caller reads the client credentials right after.
-  let workflow: Awaited<ReturnType<typeof processIntegrationRequest>> = undefined;
-  try {
-    workflow = await processIntegrationRequest(saved, false, '', false, { awaitCompletion: true });
-    assertWorkflowCompleted(workflow);
-  } catch (err) {
-    await createEvent({
-      eventCode: EVENTS.REQUEST_CREATE_FAILURE,
-      requestId: saved.id,
-      teamId,
-      workflowId: workflow?.workflowId,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: requester,
-      details: { teamId },
-    });
-    throw err;
-  }
-
-  const eventData = {
-    eventCode: EVENTS.REQUEST_CREATE_SUCCESS,
-    requestId: saved?.id,
-    teamId,
-    workflowId: workflow?.workflowId,
-    idirUserid: session?.idir_userid,
-    idirUserDisplayName: requester,
-    details: { teamId },
-  };
-  await createEvent(eventData);
+  assertWorkflowCompleted(await runIntegrationWorkflow(enqueued, { awaitCompletion: true }));
 
   return serviceAccount;
 };
@@ -427,7 +415,6 @@ export const getServiceAccountCredentials = async (session: Session, teamId: num
 
 export const deleteServiceAccount = async (session: Session, teamId: number, saId: number) => {
   const userId = session?.user?.id as number;
-  let workflow: Awaited<ReturnType<typeof processIntegrationRequest>> = undefined;
   try {
     if (!(await authorizeTeam(session, teamId, teamPermissions.MANAGE_TEAM_API_ACCOUNTS))) {
       throw new createHttpError.Forbidden('not allowed to delete api account');
@@ -443,39 +430,27 @@ export const deleteServiceAccount = async (session: Session, teamId: number, saI
     serviceAccount.status = 'submitted';
     serviceAccount.archived = true;
     serviceAccount.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
-    const saved = await serviceAccount.save();
 
-    if (isMerged) {
-      // Trigger workflow with empty environments to delete client
-      workflow = await processIntegrationRequest(saved, false, '', false, { awaitCompletion: true });
-      assertWorkflowCompleted(workflow);
-    }
+    // An applied account is deleted by a workflow that removes its client; one that never reached
+    // Keycloak is deleted by this change alone.
+    const enqueued = await sequelize.transaction(async (transaction) => {
+      await serviceAccount.save({ transaction });
+      if (isMerged) return enqueueIntegrationWorkflow(serviceAccount, { awaitCompletion: true }, transaction);
+      await audit.createEvent(
+        { action: 'api-account-delete', outcome: 'success', requestId: saId, teamId, details: {} },
+        transaction,
+      );
+      return undefined;
+    });
+
+    if (isMerged) assertWorkflowCompleted(await runIntegrationWorkflow(enqueued, { awaitCompletion: true }));
 
     await sendTemplate(EMAILS.DELETE_TEAM_API_ACCOUNT_SUBMITTED, { team, requester });
 
-    await createEvent({
-      eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_SUCCESS,
-      requestId: saId,
-      teamId,
-      workflowId: workflow?.workflowId,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session.user?.displayName,
-      details: { teamId },
-    });
-
     return serviceAccount;
   } catch (err) {
+    // No event here: a failure before the commit left nothing behind, and one after it is the engine's.
     log.error({ err }, 'deleteServiceAccount failed');
-
-    await createEvent({
-      eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_FAILURE,
-      requestId: saId,
-      teamId,
-      workflowId: workflow?.workflowId,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session.user?.displayName,
-      details: { teamId },
-    });
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };
@@ -521,33 +496,12 @@ export const restoreTeamServiceAccount = async (session: Session, teamId: number
   serviceAccount.status = 'submitted';
   serviceAccount.archived = false;
   serviceAccount.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
-  const saved = await serviceAccount.save();
 
-  let workflow: Awaited<ReturnType<typeof processIntegrationRequest>> = undefined;
-  try {
-    workflow = await processIntegrationRequest(saved, true, '', false, { awaitCompletion: true });
-    assertWorkflowCompleted(workflow);
-  } catch (err) {
-    await createEvent({
-      eventCode: EVENTS.TEAM_API_ACCOUNT_RESTORE_FAILURE,
-      requestId: saId,
-      teamId,
-      workflowId: workflow?.workflowId,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session?.user?.displayName,
-      details: { teamId },
-    });
-    throw err;
-  }
-  await createEvent({
-    eventCode: EVENTS.TEAM_API_ACCOUNT_RESTORE_SUCCESS,
-    requestId: saId,
-    teamId,
-    workflowId: workflow?.workflowId,
-    idirUserid: session?.idir_userid,
-    idirUserDisplayName: session?.user?.displayName,
-    details: { teamId },
+  const enqueued = await sequelize.transaction(async (transaction) => {
+    const saved = await serviceAccount.save({ transaction });
+    return enqueueIntegrationWorkflow(saved, { restore: true, awaitCompletion: true }, transaction);
   });
+  assertWorkflowCompleted(await runIntegrationWorkflow(enqueued, { awaitCompletion: true }));
 
   const teamIntegrations = await models.request.findAll({
     where: {

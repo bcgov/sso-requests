@@ -23,7 +23,7 @@ The current branch (`ssoteam-3038`) already did most of the coverage work, but i
 
 ### Event model
 
-1. **Strict writes.** For DB changes, the event is written in the same transaction as the change: both are saved or neither is. For calls to an outside system (Keycloak, SDX), the `requested` event must be stored before the call is made; if it can't be written, the request fails before anything changes outside the app. Only the outcome event written *after* a successful outside call is best-effort (logged as `audit_event_write_failed` and alerted), because the unanswered `requested` row already shows the gap.
+1. **Strict writes.** For DB changes, the event is written in the same transaction as the change: both are saved or neither is. For calls to an outside system (Keycloak, SDX), the `requested` event must be stored before the call is made; if it can't be written, the request fails before anything changes outside the app. Only the outcome event written _after_ a successful outside call is best-effort (logged as `audit_event_write_failed` and alerted), because the unanswered `requested` row already shows the gap.
 2. **Append-only.** Event rows are never updated or deleted by the application. A `requested` row and its outcome row are separate rows linked by `operation_id` (UUID). A child operation within a batch has its own `operation_id`, plus `parent_operation_id` pointing at the batch's parent row.
 3. **Action code + outcome.** `event_code` holds the action (`role-assign`, `team-create`, …) and a new `outcome` column holds `requested | success | failure | superseded`. Actions that only change the DB write one `success` row. Actions with an outside call write `requested` and then a terminal outcome.
 4. **Plain resource columns with no foreign keys.** `request_id`, `team_id`, `organization_id` and `workflow_id` are plain indexed columns, so history survives deletes. Every event fills in its resource column directly, including delete events (e.g. `team-delete` carries `team_id`). Copies like `details.teamId` are no longer written.
@@ -42,15 +42,15 @@ The current branch (`ssoteam-3038`) already did most of the coverage work, but i
    ```
    - Request-wide context (`actor`, `reqId`) is kept in `AsyncLocalStorage`. App API routes set it after `authenticate` (inside `withApiLogging`, which already generates `reqId`). The Express API sets it in middleware after auth. Cron jobs and callbacks wrap their work in `withActor(systemActor('…'), fn)`.
    - `createEvent` reads the actor with `currentActor()`. If there is no actor, the write **fails**: no silent `system` fallback.
-   - Everything the event is *about* (action, outcome, resource ids, target, details, operation ids) is **always passed explicitly**, never taken from context.
+   - Everything the event is _about_ (action, outcome, resource ids, target, details, operation ids) is **always passed explicitly**, never taken from context.
    - `idir_userid` / `idir_user_display_name` are still filled when `actor.type === 'user'`, for the existing panels.
 9. **The workflow engine is its own actor.** The engine always runs (first run, background run, retry, replay) under `withActor(systemActor('workflow-engine'))`. The human who asked for the change is the actor on the linked `requested` row (same `operation_id`).
 
 ### Shared package
 
 10. **`packages/audit` (`@sso/audit`)**, alongside `@sso/authz`:
-    - *Pure layer* (no dependencies): the action enum, the `Outcome` type, `Actor`/`SystemActorId`, typed `details` schemas for each action, username normalization (one function used by both the app and the API so the same person always resolves to the same `target_id`), and the AsyncLocalStorage context (`withActor`, `currentActor`, `currentReqId`).
-    - *Writer layer*: `createAuditWriter(eventModel)` returns `createEvent(event, transaction?)`, `runAuditedOperation(...)` and the batch variants. The app and the API each pass in their own Sequelize `event` model.
+    - _Pure layer_ (no dependencies): the action enum, the `Outcome` type, `Actor`/`SystemActorId`, typed `details` schemas for each action, username normalization (one function used by both the app and the API so the same person always resolves to the same `target_id`), and the AsyncLocalStorage context (`withActor`, `currentActor`, `currentReqId`).
+    - _Writer layer_: `createAuditWriter(eventModel)` returns `createEvent(event, transaction?)`, `runAuditedOperation(...)` and the batch variants. The app and the API each pass in their own Sequelize `event` model.
     - The duplicate helpers in `app/queries/event.ts` and `api/src/utils.ts` are replaced, and the API's import of `../../../app/shared/enums` for events goes away. Both Event models are checked against the package's column definition.
 
 ### Role assignments (goal 3)
@@ -96,13 +96,17 @@ The current branch (`ssoteam-3038`) already did most of the coverage work, but i
     - **Adoption race inside the caller's transaction.** When two pods insert the first workflow at the same moment, the losing pod gets a `UniqueConstraintError` and uses the winner's workflow instead. Inside the controller's transaction, that error leaves the transaction unusable in Postgres, so the insert in `createWorkflow` runs in a savepoint (a Sequelize nested transaction). The losing pod still writes its own `requested` row (its own `operation_id`), plus a `superseded` outcome pointing at the winner's correlation id.
 17. **One action per operation, for both the requested row and the engine's outcomes.** Actions: `request-create`, `request-update`, `request-delete`, `request-restore`, `api-account-create`, `api-account-delete`, `api-account-restore`. No new workflow columns: a single pure `auditActionFor(workflow)` in the engine works the action out from existing columns: `type` (`INTEGRATION_APPLY | INTEGRATION_DELETE | INTEGRATION_RESTORE`), `action` (`create | update | delete`, from `resolveAction`) and `payload.apiServiceAccount`. The controller uses the same function (on the enqueue result) for its `requested` row, and every engine outcome write uses it, replacing the separate `isRestore`/`type` checks in `failWorkflow` and `steps/integration.ts`. `request-plan` stays a step-level action under the same `operation_id`, and doesn't count as the terminal outcome. `emitWorkflowEventOnce` removes duplicates on `(operation_id, event_code, outcome)`.
 18. **`superseded` terminal outcome.** When a workflow is superseded or abandoned, the engine writes `outcome: 'superseded'` for its operation (`correlation_id`) in the same transaction as the state change, with `details: { supersededByWorkflowId, supersededByOperationId }`. Paths:
+
     - `supersedeActiveWorkflows` (a delete supersedes in-flight workflows).
     - The not-claimable branch of `runNextStep` and the superseded branch of `failWorkflow`.
     - **Overwriting a queued row in `createWorkflow`** (`queued.update(fields)`, "only the newest submission is worth running"). The update replaces `correlation_id`, so the old correlation id is marked `superseded` by the new one before it is overwritten. Otherwise the earlier submission's `requested` row hangs forever.
     - The adoption race (see 16).
 
     Inline operations only ever end in `success`/`failure`.
-19. **A synchronous workflow that fails after the commit** (API accounts, `awaitCompletion: true`): the controller throws 422 including `workflowId`/`operationId`. The row stays `applyFailed`/`planFailed` (already shown as an error in `TeamInfoTabs`; teams are limited to one API account, so failed ones can't pile up), the engine has already written the failure outcome, dead-lettered the workflow and called `alertOps`, and recovery is through resubmit. Controllers do no cleanup.
+
+19. **A synchronous workflow that fails after the commit** (API accounts, `awaitCompletion: true`): the controller throws 422 including `workflowId`/`operationId`. The row stays `applyFailed`/`planFailed` (already shown as an error in `TeamInfoTabs`; teams are limited to one API account, so failed ones can't pile up), the engine has already written the failure outcome, dead-lettered the workflow and called `alertOps`. Controllers do no cleanup.
+    - **Recovery is delete and recreate**, not resubmit: integration access (`authorizeIntegration`, `accessibleIntegrationsWhere`) excludes API-account rows, so resubmit and every other integration route return 404 for them. Deleting a failed account archives the row, which frees the one-account slot (the limit counts unarchived rows only). An `applyFailed` account counts as applied, so its delete runs a delete workflow that sweeps any client the failed create left behind (`api-account-delete` operation). A `planFailed` account never reached Keycloak, so its delete is a DB-only change (one `api-account-delete` `success` row). The new account is a new row with its own `api-account-create` operation.
+    - Every apply on an API account is therefore its creation, and `auditActionFor` records it as `api-account-create` even when the engine's `action` is `update`. There is no `api-account-update` action.
 
 ### Coverage gaps closed
 
@@ -133,25 +137,27 @@ The current branch (`ssoteam-3038`) already did most of the coverage work, but i
 
 Columns on `events` (all nullable unless noted, no foreign keys):
 
-| Column | Type | Notes |
-|---|---|---|
-| `outcome` | `VARCHAR(16) NOT NULL DEFAULT 'success'` | CHECK in (`requested`,`success`,`failure`,`superseded`) |
-| `operation_id` | `UUID` | indexed |
-| `parent_operation_id` | `UUID` | indexed |
-| `team_id` | `INTEGER` | indexed, **no FK** (drop the FK/`SET NULL` from the current version) |
-| `workflow_id` | `UUID` | indexed, **no FK** |
-| `target_type` | `VARCHAR(32)` | |
-| `target_id` | `VARCHAR(255)` | composite index `(target_type, target_id)` |
-| `environment` | `VARCHAR(16)` | |
-| `actor_type` | `VARCHAR(32) NOT NULL DEFAULT 'user'` | CHECK in (`user`,`service-account`,`system`) |
-| `actor_id` | `VARCHAR(255)` | |
-| `req_id` | `VARCHAR(64)` | joins to Loki `reqId` |
+| Column                | Type                                     | Notes                                                                |
+| --------------------- | ---------------------------------------- | -------------------------------------------------------------------- |
+| `outcome`             | `VARCHAR(16) NOT NULL DEFAULT 'success'` | CHECK in (`requested`,`success`,`failure`,`superseded`)              |
+| `operation_id`        | `UUID`                                   | indexed                                                              |
+| `parent_operation_id` | `UUID`                                   | indexed                                                              |
+| `team_id`             | `INTEGER`                                | indexed, **no FK** (drop the FK/`SET NULL` from the current version) |
+| `workflow_id`         | `UUID`                                   | indexed, **no FK**                                                   |
+| `target_type`         | `VARCHAR(32)`                            |                                                                      |
+| `target_id`           | `VARCHAR(255)`                           | composite index `(target_type, target_id)`                           |
+| `environment`         | `VARCHAR(16)`                            |                                                                      |
+| `actor_type`          | `VARCHAR(32) NOT NULL DEFAULT 'user'`    | CHECK in (`user`,`service-account`,`system`)                         |
+| `actor_id`            | `VARCHAR(255)`                           |                                                                      |
+| `req_id`              | `VARCHAR(64)`                            | joins to Loki `reqId`                                                |
 
 Also:
+
 - Drop the existing foreign keys on `events.request_id` and `events.organization_id` if present, keeping or adding their indexes.
 - Add an index on `(outcome, created_at)` for the hanging-operation and failure queries.
 
 Backfill (mechanical only, `details` untouched):
+
 - `event_code` / `outcome`: strip a trailing `-success` / `-failure` into `outcome`; codes without a suffix keep `outcome = 'success'`. Legacy actions (`request-apply`, `workflow-delete`, `team-admin-removal`, …) keep their action name.
 - `actor_id ← idir_userid` where `actor_type = 'user'` (existing); rows with no `idir_userid` get `actor_type = 'system'`.
 - `workflow_id ← details->>'workflowId'` (existing), `team_id ← details->>'teamId'`, and `target_type`/`target_id` from `details.username` / `details.userId` where present.
@@ -189,12 +195,12 @@ Backfill addition: for existing workflow events with `workflow_id` set, `operati
 
 ## Required alerts (documented in `docs/audit-alerts.md`; configured in the separate Grafana repo)
 
-| Alert | Source | Condition | Severity |
-|---|---|---|---|
-| Audit write failed | Loki | `count_over_time({service="sso-requests"} \|= "audit_event_write_failed" [5m]) > 0` (also the API service) | page |
-| Hanging inline operation | SQL | `outcome = 'requested'`, older than 15 min, no terminal row with the same `operation_id`, action not workflow-backed | alert |
-| Hanging workflow operation | SQL | as above, workflow-backed actions, older than 60 min | alert |
-| Local sync failed | SQL | `outcome = 'failure' AND details->>'stage' = 'local-sync'` (Keycloak and DB disagree) | alert |
-| Inline failure rate | SQL | `outcome = 'failure'` per inline action over 1h above a threshold | warn |
+| Alert                      | Source | Condition                                                                                                            | Severity |
+| -------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- | -------- |
+| Audit write failed         | Loki   | `count_over_time({service="sso-requests"} \|= "audit_event_write_failed" [5m]) > 0` (also the API service)           | page     |
+| Hanging inline operation   | SQL    | `outcome = 'requested'`, older than 15 min, no terminal row with the same `operation_id`, action not workflow-backed | alert    |
+| Hanging workflow operation | SQL    | as above, workflow-backed actions, older than 60 min                                                                 | alert    |
+| Local sync failed          | SQL    | `outcome = 'failure' AND details->>'stage' = 'local-sync'` (Keycloak and DB disagree)                                | alert    |
+| Inline failure rate        | SQL    | `outcome = 'failure'` per inline action over 1h above a threshold                                                    | warn     |
 
 Workflow failures keep the existing `alertOps` call in `orchestrator.ts` `failWorkflow`. The doc also lists the `team-admin-removal` replacement query for any existing panel that uses it.

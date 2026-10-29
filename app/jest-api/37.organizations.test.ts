@@ -20,6 +20,7 @@ import { cleanUpDatabaseTables } from './helpers/utils';
 import { createMockSendEmail } from './mocks/mail';
 import { createMockAuth } from './mocks/authenticate';
 import { models } from '@app/shared/sequelize/models/models';
+import { userActor, withActor } from '@sso/audit/server';
 import { Session, User } from '@app/shared/interfaces';
 import { accessibleIntegrationsWhere, resolveAccessScope } from '@app/queries/accessScope';
 import { resolveAccessForIntegrations } from '@app/queries/integrationAccess';
@@ -619,27 +620,42 @@ describe('organizations', () => {
 
     it('is held once per organization, as a team holds one', async () => {
       const session = await asOrgAdmin();
-      const account = await createOrganizationApiAccount(session, organizationId);
-      expect(account.clientId).toBe(`service-account-org-${organizationId}-${account.id}`);
+      // Called directly rather than through a route, so the audit actor a route would set is set here.
+      await withActor(userActor(session.idir_userid, 'Org Admin'), async () => {
+        const account = await createOrganizationApiAccount(session, organizationId);
+        expect(account.clientId).toBe(`service-account-org-${organizationId}-${account.id}`);
 
-      await expect(createOrganizationApiAccount(session, organizationId)).rejects.toThrow(/already has api account/);
-      expect(ids(await listOrganizationApiAccounts(session, organizationId))).toEqual([account.id]);
+        // The account's operation is recorded against the organization: requested by the admin, completed by the engine.
+        const created = await models.event.findAll({
+          where: { requestId: account.id, eventCode: 'api-account-create' },
+          order: [['id', 'ASC']],
+          raw: true,
+        });
+        expect(created.map((event: any) => [event.outcome, event.actorType, event.organizationId])).toEqual([
+          ['requested', 'user', organizationId],
+          ['success', 'system', organizationId],
+        ]);
+        expect(created[0].operationId).toBe(created[1].operationId);
 
-      // Deleting it archives the row, which frees the slot again.
-      await deleteOrganizationApiAccount(session, organizationId, account.id);
-      expect(await listOrganizationApiAccounts(session, organizationId)).toEqual([]);
-      await expect(getOrganizationApiAccountCredentials(session, organizationId, account.id)).rejects.toThrow(
-        /could not find api account/,
-      );
-      await expect(updateOrganizationApiAccountSecret(session, organizationId, account.id)).rejects.toThrow(
-        /could not find api account/,
-      );
-      await expect(deleteOrganizationApiAccount(session, organizationId, account.id)).rejects.toThrow(
-        /could not find api account/,
-      );
+        await expect(createOrganizationApiAccount(session, organizationId)).rejects.toThrow(/already has api account/);
+        expect(ids(await listOrganizationApiAccounts(session, organizationId))).toEqual([account.id]);
 
-      const replacement = await createOrganizationApiAccount(session, organizationId);
-      expect(replacement.id).not.toBe(account.id);
+        // Deleting it archives the row, which frees the slot again.
+        await deleteOrganizationApiAccount(session, organizationId, account.id);
+        expect(await listOrganizationApiAccounts(session, organizationId)).toEqual([]);
+        await expect(getOrganizationApiAccountCredentials(session, organizationId, account.id)).rejects.toThrow(
+          /could not find api account/,
+        );
+        await expect(updateOrganizationApiAccountSecret(session, organizationId, account.id)).rejects.toThrow(
+          /could not find api account/,
+        );
+        await expect(deleteOrganizationApiAccount(session, organizationId, account.id)).rejects.toThrow(
+          /could not find api account/,
+        );
+
+        const replacement = await createOrganizationApiAccount(session, organizationId);
+        expect(replacement.id).not.toBe(account.id);
+      });
     });
   });
 });

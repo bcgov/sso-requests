@@ -13,13 +13,14 @@ import {
   getWorkflows,
   getDeadLetters,
 } from './helpers/modules/integrations';
-import { EMAILS, EVENTS } from '@app/shared/enums';
-import { createEvent } from '@app/queries/event';
+import { EMAILS } from '@app/shared/enums';
 import { enqueueRequestWorkflow, getIntegrationProgress } from '@app/workflow/request-workflow';
 import { drainWorkflows, runWorkflow } from '@app/workflow/orchestrator';
 import { supersedeActiveWorkflows } from '@app/workflow/store';
 import * as EffectsModule from '@app/workflow/effects';
-import { models } from '@app/shared/sequelize/models/models';
+import { models, sequelize } from '@app/shared/sequelize/models/models';
+import { userActor, withActor } from '@sso/audit/server';
+import { enqueueIntegrationWorkflow } from '@app/controllers/requests';
 
 jest.mock('@app/keycloak/adminClient');
 
@@ -105,13 +106,22 @@ describe('Integration workflow - happy path', () => {
     expect(emailResults).toHaveLength(1);
     expect(emailResults[0].code).toBe(EMAILS.CREATE_INTEGRATION_APPLIED);
 
+    // The engine records the plan step and the operation's outcome, under the workflow's correlation id.
     const events = await getEventsByRequestId(request.id);
-    const eventCodes = events.map((event: any) => event.eventCode);
-    expect(eventCodes).toContain(EVENTS.REQUEST_PLAN_SUCCESS);
-    expect(eventCodes).toContain(EVENTS.REQUEST_APPLY_SUCCESS);
-    const applyEvent = events.find((event: any) => event.eventCode === EVENTS.REQUEST_APPLY_SUCCESS);
-    expect(applyEvent.workflowId).toBe(workflowId);
-    expect(applyEvent.details).not.toHaveProperty('workflowId');
+    expect(events.map((event: any) => [event.eventCode, event.outcome])).toEqual([
+      ['request-plan', 'success'],
+      ['request-create', 'success'],
+    ]);
+    expect(
+      events.every(
+        (event: any) =>
+          event.workflowId === workflowId &&
+          event.operationId === workflow.correlationId &&
+          event.actorType === 'system' &&
+          event.actorId === 'workflow-engine',
+      ),
+    ).toBe(true);
+    expect(events[1].details).toEqual({});
 
     kcClientSpy.mockRestore();
   });
@@ -121,7 +131,13 @@ describe('Integration workflow - happy path', () => {
     kcClientSpy.mockImplementation(() => Promise.resolve(true));
 
     const request = await generateRequest(formDataProd);
-    await createEvent({ eventCode: EVENTS.REQUEST_APPLY_SUCCESS, requestId: request.id });
+    // An apply recorded before @sso/audit, as the migration leaves it.
+    await models.event.create({
+      eventCode: 'request-apply',
+      outcome: 'success',
+      actorType: 'system',
+      requestId: request.id,
+    });
 
     const emailResults = createMockSendEmail();
     const { workflowId } = await enqueueRequestWorkflow({ ...formDataProd, id: request.id } as any);
@@ -181,11 +197,14 @@ describe('Integration workflow - idempotency and de-duplication', () => {
     const { workflowId } = await enqueue();
     await runWorkflow(workflowId);
     expect(kcClientSpy).toHaveBeenCalledTimes(3);
-    expect(await models.event.count({ where: { workflowId, eventCode: EVENTS.REQUEST_APPLY_SUCCESS } })).toBe(1);
+    expect(await models.event.count({ where: { workflowId, eventCode: 'request-create', outcome: 'success' } })).toBe(
+      1,
+    );
 
     // A redelivered command must not re-apply anything.
     await runWorkflow(workflowId);
     expect(kcClientSpy).toHaveBeenCalledTimes(3);
+    expect(await models.event.count({ where: { workflowId } })).toBe(2);
 
     kcClientSpy.mockRestore();
   });
@@ -198,10 +217,8 @@ describe('Integration workflow - idempotency and de-duplication', () => {
 
     await runWorkflow(workflowId);
 
-    const event = await models.event.findOne({
-      where: { workflowId, eventCode: EVENTS.WORKFLOW_DELETE_SUCCESS },
-    });
-    expect(event.eventCode).toBe(EVENTS.WORKFLOW_DELETE_SUCCESS);
+    const event = await models.event.findOne({ where: { workflowId, eventCode: 'request-delete' } });
+    expect(event.outcome).toBe('success');
 
     kcClientSpy.mockRestore();
   });
@@ -240,8 +257,9 @@ describe('Integration workflow - idempotency and de-duplication', () => {
     await runWorkflow(workflowId);
 
     const events = await getEventsByRequestId(request.id);
-    const planEvents = events.filter((event: any) => event.eventCode === EVENTS.REQUEST_PLAN_SUCCESS);
+    const planEvents = events.filter((event: any) => event.eventCode === 'request-plan');
     expect(planEvents).toHaveLength(1);
+    expect(events.filter((event: any) => event.eventCode === 'request-create')).toHaveLength(1);
 
     kcClientSpy.mockRestore();
   });
@@ -309,7 +327,9 @@ describe('Request workflow - retries and dead lettering', () => {
     expect(alertBody.message).toContain('requires manual intervention');
 
     const events = await getEventsByRequestId(request.id);
-    expect(events.map((event: any) => event.eventCode)).toContain(EVENTS.REQUEST_APPLY_FAILURE);
+    const failure = events.find((event: any) => event.eventCode === 'request-create' && event.outcome === 'failure');
+    expect(failure.operationId).toBe(workflow.correlationId);
+    expect(failure.details).toMatchObject({ failedStep: 'APPLY_DEV', error: { message: expect.any(String) } });
 
     kcClientSpy.mockRestore();
   });
@@ -404,8 +424,9 @@ describe('Integration workflow - no rollback on failure', () => {
     expect(await getDeadLetters()).toHaveLength(0);
 
     const events = await getEventsByRequestId(request.id);
-    expect(events.map((event: any) => event.eventCode)).toContain(EVENTS.REQUEST_APPLY_SUCCESS);
-    expect(events.map((event: any) => event.eventCode)).not.toContain(EVENTS.REQUEST_APPLY_FAILURE);
+    expect(
+      events.filter((event: any) => event.eventCode === 'request-create').map((event: any) => event.outcome),
+    ).toEqual(['success']);
 
     const [, alertBody] = (axios.post as jest.Mock).mock.calls[0];
     expect(alertBody.message).toContain('skipped it');
@@ -414,6 +435,8 @@ describe('Integration workflow - no rollback on failure', () => {
     kcClientSpy.mockRestore();
   });
 });
+
+const DELETE_OPERATION = '00000000-0000-4000-8000-000000000001';
 
 describe('Integration workflow - superseding', () => {
   beforeEach(async () => {
@@ -430,7 +453,7 @@ describe('Integration workflow - superseding', () => {
     const kcClientSpy = jest.spyOn(IntegrationModule, 'keycloakClient');
     // Simulates a delete landing while the dev environment is still being configured.
     kcClientSpy.mockImplementation(async (environment: string, integration: any) => {
-      if (environment === 'dev') await supersedeActiveWorkflows(integration.id, 'superseded by delete');
+      if (environment === 'dev') await supersedeActiveWorkflows(integration.id, { operationId: DELETE_OPERATION });
       return true;
     });
 
@@ -453,6 +476,14 @@ describe('Integration workflow - superseding', () => {
     // The superseded workflow owns neither the request status nor the dead letter queue.
     expect((await getRequest(request.id)).status).not.toBe('applied');
     expect(await getDeadLetters()).toHaveLength(0);
+
+    // Its operation ends `superseded` by the delete, recorded once, and never also `success`.
+    const outcomes = await models.event.findAll({
+      where: { operationId: workflow.correlationId, eventCode: 'request-create' },
+      raw: true,
+    });
+    expect(outcomes.map((event: any) => event.outcome)).toEqual(['superseded']);
+    expect(outcomes[0].details).toEqual({ supersededByOperationId: DELETE_OPERATION });
 
     kcClientSpy.mockRestore();
   });
@@ -504,6 +535,38 @@ describe('Request workflow - queued resubmissions', () => {
 
     const queued = workflows.find((workflow: any) => workflow.state === 'QUEUED');
     expect(queued.payload.projectName).toBe('second edit');
+  });
+
+  it('Closes out the overwritten queued submission so its operation is never left hanging', async () => {
+    const { request } = await enqueue();
+    const first = await enqueueRequestWorkflow({ ...formDataProd, id: request.id, projectName: 'first edit' } as any);
+    const second = await enqueueRequestWorkflow({ ...formDataProd, id: request.id, projectName: 'second edit' } as any);
+
+    // The queued row is reused under the newer submission's correlation id.
+    expect(second.workflowId).toBe(first.workflowId);
+    expect(second.correlationId).not.toBe(first.correlationId);
+
+    const superseded = await models.event.findAll({ where: { operationId: first.correlationId }, raw: true });
+    expect(superseded.map((event: any) => [event.eventCode, event.outcome, event.actorId])).toEqual([
+      ['request-create', 'superseded', 'workflow-engine'],
+    ]);
+    expect(superseded[0].details).toEqual({
+      supersededByWorkflowId: first.workflowId,
+      supersededByOperationId: second.correlationId,
+    });
+  });
+
+  it('Supersedes in-flight work for a delete in the same transaction that enqueues it', async () => {
+    const { request, workflowId, correlationId } = await enqueue();
+    const deletion = await enqueueRequestWorkflow({ ...formDataProd, id: request.id, archived: true } as any);
+
+    expect((await getWorkflows()).find((workflow: any) => workflow.id === workflowId).state).toBe('SUPERSEDED');
+    const outcome = await models.event.findOne({ where: { operationId: correlationId }, raw: true });
+    expect(outcome).toMatchObject({ eventCode: 'request-create', outcome: 'superseded' });
+    expect(outcome.details).toEqual({
+      supersededByWorkflowId: deletion.workflowId,
+      supersededByOperationId: deletion.correlationId,
+    });
   });
 
   it('Promotes and applies the queued submission once the in-flight workflow completes', async () => {
@@ -589,6 +652,39 @@ describe('Request workflow - queued resubmissions', () => {
     const workflows = await getWorkflows();
     expect(workflows.filter((workflow: any) => workflow.state === 'PENDING')).toHaveLength(1);
     expect(workflows.length).toBeLessThanOrEqual(2);
+  });
+
+  it('Lets the losing submission adopt the winner inside its own transaction and records it superseded', async () => {
+    const request = await generateRequest(formDataProd);
+    const submit = () =>
+      withActor(userActor('RACER', 'Racer'), () =>
+        sequelize.transaction((transaction) =>
+          enqueueIntegrationWorkflow({ ...formDataProd, id: request.id }, {}, transaction),
+        ),
+      );
+
+    // The loser's insert waits on the winner's uncommitted row, then fails on the unique index inside a
+    // savepoint, which leaves its transaction usable for adopting the winner and writing its own events.
+    const results = await Promise.all([submit(), submit()]);
+    const loser = results.find((result) => !result!.created)!;
+    const winner = results.find((result) => result!.created)!;
+    expect(loser.workflowId).toBe(winner.workflowId);
+
+    expect((await getWorkflows()).map((workflow: any) => workflow.state)).toEqual(['PENDING']);
+
+    const loserEvents = await models.event.findAll({
+      where: { operationId: loser.operationId },
+      order: [['id', 'ASC']],
+      raw: true,
+    });
+    expect(loserEvents.map((event: any) => [event.eventCode, event.outcome, event.actorType])).toEqual([
+      ['request-create', 'requested', 'user'],
+      ['request-create', 'superseded', 'system'],
+    ]);
+    expect(loserEvents[1].details).toEqual({
+      supersededByWorkflowId: winner.workflowId,
+      supersededByOperationId: winner.operationId,
+    });
   });
 });
 
