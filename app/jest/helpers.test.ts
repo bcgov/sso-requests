@@ -1,4 +1,4 @@
-import { getRequestedEnvironments, canDeleteMember } from 'utils/helpers';
+import { getRequestedEnvironments, canDeleteMember, getDifferences } from 'utils/helpers';
 import { isValidKeycloakURIDev, isValidKeycloakURIProd } from 'utils/validate';
 
 describe('kecloak URIs', () => {
@@ -194,5 +194,22 @@ describe('Can Delete Member', () => {
         1,
       ),
     ).toBe(false);
+  });
+});
+
+describe('Get Differences', () => {
+  it('ignores changes between empty values', () => {
+    const original: any = { devHomePageUri: null, testHomePageUri: null, devLoginTitle: '' };
+    const updated: any = { devHomePageUri: '', testHomePageUri: undefined, devLoginTitle: null };
+    expect(getDifferences(updated, original)).toBeUndefined();
+  });
+
+  it('keeps real changes alongside empty ones', () => {
+    const original: any = { devHomePageUri: null, prodHomePageUri: null, devValidRedirectUris: ['https://a'] };
+    const updated: any = { devHomePageUri: '', prodHomePageUri: 'https://b', devValidRedirectUris: ['https://a', '*'] };
+    const changes = getDifferences(updated, original);
+    expect(new Set(changes?.map((change) => change.path?.[0]))).toEqual(
+      new Set(['prodHomePageUri', 'devValidRedirectUris']),
+    );
   });
 });
