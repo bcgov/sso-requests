@@ -82,8 +82,11 @@ export class RoleService {
       roleOperation('role-create', { requestId: int.id, environment: environment as Environment, roleName: role.name }),
       () => confirmed(KeycloakService.createClientRole(int.clientId, role), `create role ${role.name}`),
       {
-        onSuccess: (transaction) =>
-          models.requestRole.create({ name: role.name, environment, requestId: int.id }, { transaction }),
+        // A row left behind by an earlier failed create would collide with the unique (name, environment, request).
+        onSuccess: async (transaction) => {
+          await destroyRequestRole(int.id, role.name, environment, transaction);
+          await models.requestRole.create({ name: role.name, environment, requestId: int.id }, { transaction });
+        },
       },
     );
     return getAllowedRoleProps(kcRole);
@@ -136,6 +139,8 @@ export class RoleService {
       () => confirmed(KeycloakService.updateClientRole(int.clientId, roleName, role), `update role ${roleName}`),
       {
         onSuccess: async (transaction) => {
+          // Keycloak had no role under the new name, so any row holding it is stale and would collide.
+          if (renamed) await destroyRequestRole(int.id, role.name, environment, transaction);
           const dbRole = await models.requestRole.findOne({
             where: { name: roleName, environment, requestId: int.id },
             transaction,

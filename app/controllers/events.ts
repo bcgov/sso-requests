@@ -6,7 +6,7 @@ import { isSocialApprover } from '@app/utils/helpers';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import { authorizeIntegration } from '@app/queries/integrationAccess';
 import createHttpError from 'http-errors';
-import { isOutcome } from '@sso/audit';
+import { isRecordedOutcome } from '@sso/audit';
 
 /**
  * Fetch request update events for the given user session and request id. If user does not own integration throws 403.
@@ -66,7 +66,7 @@ export const getEvents = async (
     where.eventCode = eventCode;
   }
   if (outcome !== 'all') {
-    if (!isOutcome(outcome)) throw new createHttpError.BadRequest(`invalid outcome ${outcome}`);
+    if (!isRecordedOutcome(outcome)) throw new createHttpError.BadRequest(`invalid outcome ${outcome}`);
     where.outcome = outcome;
   }
 

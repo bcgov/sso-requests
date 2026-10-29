@@ -58,6 +58,7 @@ describe('replicateRoleMfa audit events', () => {
     );
     mockPlan.mockResolvedValue({
       alreadyReplicated: [{ idirUsername: 'b', guid: 'gb', role: 'editor', status: 'ALREADY_REPLICATED' }],
+      notFound: [{ idirUsername: 'd', guid: 'gd', role: 'editor', status: 'NOT_FOUND_IN_MFA' }],
       pending: [pending('ga', 'a'), pending('gc', 'c')],
       replicate,
     });
@@ -66,6 +67,7 @@ describe('replicateRoleMfa audit events', () => {
 
     expect(results.map((row) => [row.guid, row.status])).toEqual([
       ['gb', 'ALREADY_REPLICATED'],
+      ['gd', 'NOT_FOUND_IN_MFA'],
       ['ga', 'REPLICATED'],
       ['gc', 'NOT_FOUND_IN_MFA'],
     ]);
@@ -79,7 +81,7 @@ describe('replicateRoleMfa audit events', () => {
       details: { roleName: 'editor', sourceIdp: 'idir', targetIdp: 'azureidir' },
     });
 
-    // Every child is stored before any grant; the user who already holds the role is not one of them.
+    // Every child is stored before any grant; users who already hold the role or have no account are not.
     const requested = mockRows.filter((row) => row.eventCode === 'role-assign' && row.outcome === 'requested');
     expect(requested.map((row) => [row.targetId, row.details.replicatedFrom, row.parentOperationId])).toEqual([
       ['ga@azureidir', 'a', parent.operationId],
@@ -108,7 +110,7 @@ describe('replicateRoleMfa audit events', () => {
   });
 
   it('still records the parent when everyone already holds the role, so the run is visible', async () => {
-    mockPlan.mockResolvedValue({ alreadyReplicated: [], pending: [], replicate: jest.fn() });
+    mockPlan.mockResolvedValue({ alreadyReplicated: [], notFound: [], pending: [], replicate: jest.fn() });
 
     await asUser(() => replicateRoleMfa(session, params));
     expect(mockRows.map((row) => [row.eventCode, row.outcome])).toEqual([

@@ -1,4 +1,4 @@
-import { chunk } from 'lodash';
+import { chunk, uniq } from 'lodash';
 import createHttpError from 'http-errors';
 import { getAdminClient } from './adminClient';
 import { createAzureIdirUser } from './users';
@@ -62,18 +62,20 @@ const listIdirUsersForRole = async (kcAdminClient: any, client: any, roleName: s
   return users.filter((user) => user.username?.endsWith('@idir'));
 };
 
+type AzureIdirAccount = NonNullable<Awaited<ReturnType<typeof verifyAzureIdirAccountByGuid>>>;
+
 /**
  * Resolve the `azureidir` counterpart of an `idir` user by GUID. If the user doesn't exist yet in
- * Keycloak, verify against MS Graph and create it (mirrors the existing "roles-new" provisioning
- * flow). Returns `null` (does not throw) if there's no matching Azure IDIR account - this is a
- * normal "not found" outcome, not an error.
+ * Keycloak, verify against MS Graph (unless the account was already looked up) and create it (mirrors
+ * the existing "roles-new" provisioning flow). Returns `null` (does not throw) if there's no matching
+ * Azure IDIR account - this is a normal "not found" outcome, not an error.
  */
-const resolveMfaUser = async (environment: string, kcAdminClient: any, guid: string) => {
+const resolveMfaUser = async (environment: string, kcAdminClient: any, guid: string, known?: AzureIdirAccount) => {
   const mfaUsername = `${guid}@azureidir`;
   const existing = await kcAdminClient.users.find({ realm: 'standard', username: mfaUsername, max: 1 });
   if (existing.length > 0) return existing[0];
 
-  const account = await verifyAzureIdirAccountByGuid(guid);
+  const account = known ?? (await verifyAzureIdirAccountByGuid(guid));
   if (!account) return null;
   return await createAzureIdirUser({
     environment,
@@ -228,8 +230,11 @@ export const isNotFoundInMfa = (err: unknown) => (err as { notFoundInMfa?: boole
 
 /**
  * Works out, without changing anything, who still needs each role replicated: every idir user holding the
- * role whose azureidir counterpart does not already hold it. `replicate` then grants one of them, resolving
- * (and if need be creating) the azureidir user first. If `roleName` is omitted, plans every client role.
+ * role whose azureidir counterpart does not already hold it. A user with no azureidir user in Keycloak yet
+ * is looked up in MS Graph once; one with no Azure IDIR account at all has nothing to replicate to and is
+ * reported in `notFound` rather than planned. `replicate` then grants one pending row, resolving (and if
+ * need be creating) the azureidir user first, once per GUID however many roles it receives. If `roleName`
+ * is omitted, plans every client role.
  */
 export const planRoleReplication = async (
   integration: Integration,
@@ -239,25 +244,49 @@ export const planRoleReplication = async (
   const client = await getClient(kcAdminClient, integration.clientId);
   const roleNames = await resolveRoleNames(kcAdminClient, client, roleName);
 
-  const alreadyReplicated: RoleReplicationResultRow[] = [];
-  const pending: PendingReplication[] = [];
+  const rows: RoleReplicationResultRow[] = [];
   for (const rName of roleNames) {
     const idirUsers = await listIdirUsersForRole(kcAdminClient, client, rName);
-    const rows = await replicateRoleForUsers(environment, kcAdminClient, client, rName, idirUsers, true);
-    for (const row of rows) {
-      if (row.status === 'ALREADY_REPLICATED') alreadyReplicated.push(row);
-      else
-        pending.push({
-          idirUsername: row.idirUsername,
-          guid: row.guid,
-          role: row.role,
-          mfaUsername: `${row.guid}@azureidir`,
-        });
-    }
+    rows.push(...(await replicateRoleForUsers(environment, kcAdminClient, client, rName, idirUsers, true)));
   }
 
+  // The dry run reports a user with no azureidir user in Keycloak as NOT_FOUND_IN_MFA; MS Graph decides
+  // whether one can be created.
+  const unresolved = uniq(rows.filter((row) => row.status === 'NOT_FOUND_IN_MFA').map((row) => row.guid));
+  const accounts = new Map<string, AzureIdirAccount>();
+  for (const batch of chunk(unresolved, REPLICATION_BATCH_SIZE)) {
+    await Promise.all(
+      batch.map(async (guid) => {
+        const account = await verifyAzureIdirAccountByGuid(guid);
+        if (account) accounts.set(guid, account);
+      }),
+    );
+  }
+
+  const alreadyReplicated: RoleReplicationResultRow[] = [];
+  const notFound: RoleReplicationResultRow[] = [];
+  const pending: PendingReplication[] = [];
+  for (const row of rows) {
+    if (row.status === 'ALREADY_REPLICATED') alreadyReplicated.push(row);
+    else if (row.status === 'NOT_FOUND_IN_MFA' && !accounts.has(row.guid)) notFound.push(row);
+    else
+      pending.push({
+        idirUsername: row.idirUsername,
+        guid: row.guid,
+        role: row.role,
+        mfaUsername: `${row.guid}@azureidir`,
+      });
+  }
+
+  // Grants run concurrently, so one GUID's rows share a single lookup (and creation) of its azureidir user.
+  const mfaUsers = new Map<string, Promise<any>>();
+  const mfaUserFor = (guid: string) => {
+    if (!mfaUsers.has(guid)) mfaUsers.set(guid, resolveMfaUser(environment, kcAdminClient, guid, accounts.get(guid)));
+    return mfaUsers.get(guid)!;
+  };
+
   const replicate = async ({ guid, role: rName }: PendingReplication) => {
-    const mfaUser = await resolveMfaUser(environment, kcAdminClient, guid);
+    const mfaUser = await mfaUserFor(guid);
     if (!mfaUser) throw notFoundInMfa(guid);
 
     const role = await kcAdminClient.clients.findRole({ realm: 'standard', id: client.id, roleName: rName });
@@ -271,5 +300,5 @@ export const planRoleReplication = async (
     });
   };
 
-  return { alreadyReplicated, pending, replicate };
+  return { alreadyReplicated, notFound, pending, replicate };
 };

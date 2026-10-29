@@ -89,14 +89,14 @@ A batch parent ends `success` only if every child did, with `details.total`, `su
 
 ### Teams
 
-| Action                    | Meaning                                                             |
-| ------------------------- | ------------------------------------------------------------------- |
-| `team-create`             | A team was created.                                                 |
-| `team-update`             | A team's name changed; `details.before` / `details.after`.          |
-| `team-delete`             | A team was deleted.                                                 |
-| `team-member-add`         | A user joined a team, with `details.role`.                          |
-| `team-member-remove`      | A user left a team; `details.reason = 'user-deleted'` from cleanup. |
-| `team-member-role-update` | A member's team role changed; `details.before` / `details.after`.   |
+| Action                    | Meaning                                                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `team-create`             | A team was created.                                                                                           |
+| `team-update`             | A team's name changed; `details.before` / `details.after`.                                                    |
+| `team-delete`             | A team was deleted.                                                                                           |
+| `team-member-add`         | A user joined a team, with `details.role`.                                                                    |
+| `team-member-remove`      | A user left a team; `details.reason` is `'user-deleted'` from cleanup or `'team-deleted'` when the team went. |
+| `team-member-role-update` | A member's team role changed; `details.before` / `details.after`.                                             |
 
 ### Users
 
@@ -110,20 +110,20 @@ A batch parent ends `success` only if every child did, with `details.total`, `su
 
 ### Organizations
 
-| Action                            | Meaning                                               |
-| --------------------------------- | ----------------------------------------------------- |
-| `organization-create`             | An organization was created.                          |
-| `organization-update`             | An organization was renamed.                          |
-| `organization-delete`             | An organization was deleted.                          |
-| `organization-member-add`         | A user joined an organization.                        |
-| `organization-member-remove`      | A user left an organization.                          |
-| `organization-member-role-update` | A member's organization role changed.                 |
-| `organization-team-invite`        | A team was invited, with the permissions on offer.    |
-| `organization-team-join`          | A team accepted, consenting to `details.permissions`. |
-| `organization-team-decline`       | A team declined an invitation.                        |
-| `organization-team-leave`         | A team left, or was removed; `details.removedBy`.     |
-| `organization-consent-update`     | A team changed the permissions it consents to.        |
-| `organization-overrides-update`   | A team changed its per-integration overrides.         |
+| Action                            | Meaning                                                                                                                     |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `organization-create`             | An organization was created.                                                                                                |
+| `organization-update`             | An organization was renamed.                                                                                                |
+| `organization-delete`             | An organization was deleted.                                                                                                |
+| `organization-member-add`         | A user joined an organization.                                                                                              |
+| `organization-member-remove`      | A user left an organization; `details.reason = 'organization-deleted'` when the organization went.                          |
+| `organization-member-role-update` | A member's organization role changed.                                                                                       |
+| `organization-team-invite`        | A team was invited, with the permissions on offer.                                                                          |
+| `organization-team-join`          | A team accepted, consenting to `details.permissions`.                                                                       |
+| `organization-team-decline`       | A team declined an invitation.                                                                                              |
+| `organization-team-leave`         | A team left, or was removed; `details.removedBy`, and `details.reason = 'organization-deleted'` when the organization went. |
+| `organization-consent-update`     | A team changed the permissions it consents to.                                                                              |
+| `organization-overrides-update`   | A team changed its per-integration overrides.                                                                               |
 
 ### Email
 
@@ -138,17 +138,22 @@ The 2026-10-21 migration split every `-success` / `-failure` suffix into `outcom
 keep older `details` shapes, and the actor of a row with no IDIR user is `system` with no id. Codes whose
 name changed are listed in `LEGACY_AUDIT_ACTIONS` and are still offered as filters in the admin panel.
 
-| Code as stored                                                   | Meaning, and what records it now                                                                                                                            |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `request-apply`                                                  | The Keycloak apply of an integration. Now the engine's outcome on `request-create` / `request-update`. Cannot be split into create and update mechanically. |
-| `request-create`, `request-update` with no `workflow_id`         | The submission itself, recorded `success` at submit time. Now the `requested` row of the same action.                                                       |
-| `request-delete` with no `workflow_id`                           | A delete recorded at submit time. Now `requested`, answered by the engine.                                                                                  |
-| `request-pr`                                                     | A step of the retired pull-request pipeline.                                                                                                                |
-| `team-admin-removal`                                             | An admin removed from a team. Now `team-member-remove` or `team-member-role-update`; see below.                                                             |
-| `organization-member-added`, `-removed`, `-role-updated`         | Now `organization-member-add`, `-remove`, `-role-update`.                                                                                                   |
-| `organization-team-invited`, `-joined`, `-declined`, `-left`     | Now `organization-team-invite`, `-join`, `-decline`, `-leave`.                                                                                              |
-| `organization-consent-updated`, `organization-overrides-updated` | Now `organization-consent-update`, `organization-overrides-update`.                                                                                         |
-| `email-submission` with `outcome = 'failure'`                    | Unchanged in meaning; older rows have `details.emailCode` and a plain `error` string.                                                                       |
+The app used to record a submission as `-success` before anything reached Keycloak. Those rows (no
+`workflow_id`, on `request-create`, `-update`, `-delete`, `-restore` and `api-account-delete`) were given
+`outcome = 'submitted'` instead, listed in `LEGACY_OUTCOMES`, so `success` on these actions always means
+applied. A `failure` on one of them with no `workflow_id` is the app failing to submit, not a failed apply.
+
+| Code as stored                                                                     | Meaning, and what records it now                                                                                                                            |
+| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `request-apply`                                                                    | The Keycloak apply of an integration. Now the engine's outcome on `request-create` / `request-update`. Cannot be split into create and update mechanically. |
+| `request-create`, `request-update` with outcome `submitted`                        | The submission itself, recorded at submit time. Now the `requested` row of the same action.                                                                 |
+| `request-delete`, `request-restore`, `api-account-delete` with outcome `submitted` | A change recorded at submit time. Now `requested`, answered by the engine.                                                                                  |
+| `request-pr`                                                                       | A step of the retired pull-request pipeline.                                                                                                                |
+| `team-admin-removal`                                                               | An admin removed from a team. Now `team-member-remove` or `team-member-role-update`; see below.                                                             |
+| `organization-member-added`, `-removed`, `-role-updated`                           | Now `organization-member-add`, `-remove`, `-role-update`.                                                                                                   |
+| `organization-team-invited`, `-joined`, `-declined`, `-left`                       | Now `organization-team-invite`, `-join`, `-decline`, `-leave`.                                                                                              |
+| `organization-consent-updated`, `organization-overrides-updated`                   | Now `organization-consent-update`, `organization-overrides-update`.                                                                                         |
+| `email-submission` with `outcome = 'failure'`                                      | Unchanged in meaning; older rows have `details.emailCode` and a plain `error` string.                                                                       |
 
 ### Finding admins removed from a team
 

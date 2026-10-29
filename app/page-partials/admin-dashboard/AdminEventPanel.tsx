@@ -6,7 +6,7 @@ import { Event } from 'interfaces/Event';
 import { getEvents } from 'services/event';
 import EventContent from 'components/EventContent';
 import Select from 'react-select';
-import { AUDIT_ACTIONS, LEGACY_AUDIT_ACTIONS, OUTCOMES } from '@sso/audit';
+import { AUDIT_ACTIONS, LEGACY_AUDIT_ACTIONS, LEGACY_OUTCOMES, OUTCOMES } from '@sso/audit';
 import { actionLabel } from '@app/helpers/events';
 
 const AlignCenter = styled.div`
@@ -26,7 +26,7 @@ const actionFilterItems = [
 
 const outcomeFilterItems = [
   { value: 'all', label: 'All Outcomes' },
-  ...OUTCOMES.map((outcome) => ({ value: outcome, label: actionLabel(outcome) })),
+  ...[...OUTCOMES, ...LEGACY_OUTCOMES].map((outcome) => ({ value: outcome, label: actionLabel(outcome) })),
 ];
 
 const selectStyles = {

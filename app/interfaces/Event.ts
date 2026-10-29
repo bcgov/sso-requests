@@ -1,4 +1,4 @@
-import type { ActorType, Environment, Outcome, TargetType } from '@sso/audit';
+import type { ActorType, Environment, RecordedOutcome, TargetType } from '@sso/audit';
 
 // An `events` row as read back. Rows written before @sso/audit may lack the
 // newer columns and carry older `details` shapes, so readers treat both as
@@ -6,7 +6,7 @@ import type { ActorType, Environment, Outcome, TargetType } from '@sso/audit';
 export interface Event {
   id?: number;
   eventCode?: string;
-  outcome?: Outcome;
+  outcome?: RecordedOutcome;
   operationId?: string | null;
   parentOperationId?: string | null;
   requestId?: number | null;

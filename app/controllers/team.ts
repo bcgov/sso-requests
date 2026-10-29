@@ -11,6 +11,7 @@ import { getDisplayName } from '@app/utils/helpers';
 import { lowcase } from '@app/helpers/string';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { sendTemplate } from '@app/shared/templates';
+import { getTeamEmails } from '@app/shared/templates/helpers';
 import { EMAILS } from '@app/shared/enums';
 import { User, Team, Member, Session } from '@app/shared/interfaces';
 import {
@@ -202,14 +203,30 @@ export const deleteTeam = async (session: Session, teamId: number) => {
     }
   }
 
+  // Destroying the team cascades to its memberships, so the recipients are resolved first.
+  const emails = await getTeamEmails(team.id);
+
   await sequelize.transaction(async (transaction) => {
     // Clear fkey from teams archived requests
     await models.request.update(
       { teamId: null },
       { where: { teamId, archived: true }, returning: true, omitNull: false, transaction },
     );
+    const memberships = await models.usersTeam.findAll({ where: { teamId }, transaction });
     await team.destroy({ transaction });
-    // team_id has no foreign key, so the event keeps naming the team after its row is gone.
+    // team_id has no foreign key, so the events keep naming the team after its row is gone.
+    for (const membership of memberships) {
+      await audit.createEvent(
+        {
+          action: 'team-member-remove',
+          outcome: 'success',
+          teamId: Number(teamId),
+          target: memberTarget(membership.userId),
+          details: { role: membership.role, reason: 'team-deleted' },
+        },
+        transaction,
+      );
+    }
     await audit.createEvent(
       {
         action: 'team-delete',
@@ -221,7 +238,7 @@ export const deleteTeam = async (session: Session, teamId: number) => {
       transaction,
     );
   });
-  await sendTemplate(EMAILS.TEAM_DELETED, { team });
+  await sendTemplate(EMAILS.TEAM_DELETED, { team, emails });
   return true;
 };
 

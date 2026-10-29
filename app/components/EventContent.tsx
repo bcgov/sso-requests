@@ -14,6 +14,7 @@ const OUTCOME_COLOURS: Record<string, string> = {
   success: '#2e8540',
   failure: '#d8292f',
   superseded: '#a8a8a8',
+  submitted: '#5f6368',
 };
 
 const OutcomeLabel = styled.span<{ outcome: string }>`

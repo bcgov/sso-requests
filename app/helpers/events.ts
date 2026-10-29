@@ -1,5 +1,5 @@
 import { Event } from 'interfaces/Event';
-import { Outcome } from '@sso/audit';
+import { RecordedOutcome } from '@sso/audit';
 
 // How the event panels describe a row. Rows written before @sso/audit have no actor, target or outcome
 // columns of their own, so each of these falls back to what those rows did record.
@@ -39,7 +39,7 @@ export const eventTarget = (event: Event): string | null => {
 };
 
 /** Older rows that never had an outcome recorded one implicitly: they were written once the change was made. */
-export const eventOutcome = (event: Event): Outcome => event.outcome ?? 'success';
+export const eventOutcome = (event: Event): RecordedOutcome => event.outcome ?? 'success';
 
 /** `role-assign` → `Role assign`. */
 export const actionLabel = (action: string) => {

@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef, useCallback, useContext } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
-import { get, startCase, throttle, reduce } from 'lodash';
+import { get, startCase, reduce } from 'lodash';
 import { faExclamationCircle, faEye } from '@fortawesome/free-solid-svg-icons';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
@@ -24,7 +24,8 @@ import { searchIdirUsers, importIdirUser } from 'services/bceid-webservice';
 import { importAzureIdirUser, searchAzureIdirUsers } from '@app/services/ms-graph';
 import { KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 import { IntegrationData } from '@app/shared/interfaces';
-import { diffRoles, hasChanges } from '@app/helpers/roles';
+import { hasChanges } from '@app/helpers/roles';
+import { useRoleSync } from '@app/hooks/useRoleSync';
 
 const Label = styled.label`
   font-weight: bold;
@@ -271,13 +272,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [allUsers, setAllUsers] = useState<(KeycloakUser & { source: string })[]>([]);
   const [rows, setRows] = useState<(KeycloakUser & { source: string })[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
-  const [userRoles, setUserRoles] = useState<string[]>([]);
-  // What the server last said the user holds. The selection can run ahead of it while an update is throttled.
-  const savedRoles = useRef<string[]>([]);
-  const showSavedRoles = (roles: string[]) => {
-    savedRoles.current = roles;
-    setUserRoles(roles);
-  };
   const [compositeResult, setCompositeResult] = useState<boolean[]>([]);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('dev');
   //@ts-ignore
@@ -294,50 +288,43 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
   const sliceRows = (page: number, rows: any[]) => rows.slice((page - 1) * limit, page * limit);
 
-  const throttleUpdate = useCallback(
-    throttle(
-      async (newRoles: string[]) => {
-        // Diffed against what was saved, not the previous selection, so a throttled-away change is still sent.
-        const changes = diffRoles(savedRoles.current, newRoles);
-        if (!hasChanges(changes)) return;
-        setSaving(true);
+  const {
+    roles: userRoles,
+    select: selectRoles,
+    load: showSavedRoles,
+  } = useRoleSync(async (changes) => {
+    setSaving(true);
 
-        if (selectedUser?.source === 'idp') {
-          try {
-            await importUserToKeycloak(selectedUser);
-          } catch (err) {
-            console.error('Failed to import user to Keycloak:', err);
-            setSaving(false);
-            setUserAssignmentError(true);
-            setSavingMessage('Failed to import user to Keycloak.');
-            showSavedRoles(savedRoles.current);
-            return;
-          }
-        }
-
-        setSavingMessage('Assigning role...');
-        setUserAssignmentError(false);
-        const [result, err] = await updateUserRoles({
-          environment: selectedEnvironment,
-          integrationId: selectedRequest.id as number,
-          username: selectedUser?.username as string,
-          ...changes,
-        });
+    if (selectedUser?.source === 'idp') {
+      try {
+        await importUserToKeycloak(selectedUser);
+      } catch (err) {
+        console.error('Failed to import user to Keycloak:', err);
         setSaving(false);
-        showSavedRoles(result ? result.roles : savedRoles.current);
-        if (err || hasChanges(result!.failed)) {
-          setUserAssignmentError(true);
-          setSavingMessage('Failed to update roles.');
-        } else {
-          setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
-          surveyContext?.setShowSurvey(true, 'addUserToRole');
-        }
-      },
-      2000,
-      { trailing: true },
-    ),
-    [selectedRequest?.id, selectedEnvironment, selectedUser?.username, surveyContext],
-  );
+        setUserAssignmentError(true);
+        setSavingMessage('Failed to import user to Keycloak.');
+        return null;
+      }
+    }
+
+    setSavingMessage('Assigning role...');
+    setUserAssignmentError(false);
+    const [result, err] = await updateUserRoles({
+      environment: selectedEnvironment,
+      integrationId: selectedRequest.id as number,
+      username: selectedUser?.username as string,
+      ...changes,
+    });
+    setSaving(false);
+    if (err || hasChanges(result!.failed)) {
+      setUserAssignmentError(true);
+      setSavingMessage('Failed to update roles.');
+    } else {
+      setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
+      surveyContext?.setShowSurvey(true, 'addUserToRole');
+    }
+    return result ? result.roles : null;
+  });
 
   const getRoles = async () => {
     if (!selectedRequest) return;
@@ -561,8 +548,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
     // Only send update if roles have been added or removed. Prevents excessive API calls if jamming backspace button when empty.
     if (newRoles.length !== userRoles.length) {
-      setUserRoles(newRoles);
-      await throttleUpdate(newRoles);
+      selectRoles(newRoles);
     }
   };
 

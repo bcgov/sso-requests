@@ -120,6 +120,15 @@ export const OUTCOMES = ['requested', 'success', 'failure', 'superseded'] as con
 
 export type Outcome = typeof OUTCOMES[number];
 
+// Outcomes that exist in released rows but are never written again. `submitted` is a submission the app
+// recorded before the workflow engine reported outcomes: it says nothing about whether Keycloak applied it.
+export const LEGACY_OUTCOMES = ['submitted'] as const;
+
+export type LegacyOutcome = typeof LEGACY_OUTCOMES[number];
+
+// What a reader may find in `outcome`.
+export type RecordedOutcome = Outcome | LegacyOutcome;
+
 // Every `requested` row is answered by exactly one of these.
 export type TerminalOutcome = Exclude<Outcome, 'requested'>;
 
@@ -152,5 +161,7 @@ export const isLegacyAuditAction = (value: unknown): value is LegacyAuditAction 
   includes(LEGACY_AUDIT_ACTIONS, value);
 export const isWorkflowAction = (value: unknown): value is WorkflowAction => includes(WORKFLOW_ACTIONS, value);
 export const isOutcome = (value: unknown): value is Outcome => includes(OUTCOMES, value);
+export const isRecordedOutcome = (value: unknown): value is RecordedOutcome =>
+  isOutcome(value) || includes(LEGACY_OUTCOMES, value);
 export const isTargetType = (value: unknown): value is TargetType => includes(TARGET_TYPES, value);
 export const isEnvironment = (value: unknown): value is Environment => includes(ENVIRONMENTS, value);

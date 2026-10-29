@@ -53,7 +53,7 @@ export type AuditDetailsMap = {
   'team-update': { before?: Record<string, unknown>; after?: Record<string, unknown> };
   'team-delete': { name: string };
   'team-member-add': { role: MemberRole };
-  'team-member-remove': { role: MemberRole; reason?: 'user-deleted' };
+  'team-member-remove': { role: MemberRole; reason?: 'user-deleted' | 'team-deleted' };
   'team-member-role-update': { before: MemberRole; after: MemberRole };
 
   'user-create': None;
@@ -66,12 +66,12 @@ export type AuditDetailsMap = {
   'organization-update': { name: string };
   'organization-delete': { name: string };
   'organization-member-add': { role: MemberRole };
-  'organization-member-remove': None;
+  'organization-member-remove': { reason?: 'organization-deleted' };
   'organization-member-role-update': { role: MemberRole };
   'organization-team-invite': { permissions: string[] };
   'organization-team-join': { permissions: string[] };
   'organization-team-decline': None;
-  'organization-team-leave': { removedBy: 'organization' | 'team' };
+  'organization-team-leave': { removedBy: 'organization' | 'team'; reason?: 'organization-deleted' };
   'organization-consent-update': { permissions: string[] };
   'organization-overrides-update': { count: number };
 };

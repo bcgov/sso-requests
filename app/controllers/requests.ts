@@ -682,7 +682,8 @@ export const updateRequest = async (
       }
     }
 
-    // Switching off team ownership clears teamId: the client may still submit its prior value.
+    // Switching off team ownership clears teamId: the client may still submit its prior value. The
+    // global `omitNull` would drop the null from the UPDATE, so the save below opts out of it.
     if (current.usesTeam === false && current.teamId) {
       current.teamId = null;
     }
@@ -691,7 +692,7 @@ export const updateRequest = async (
     // neither audited nor enqueued.
     let enqueued: EnqueuedIntegrationWorkflow;
     let updated = await sequelize.transaction(async (transaction) => {
-      const saved = await current.save({ transaction });
+      const saved = await current.save({ transaction, omitNull: false });
       if (!saved) throw new createHttpError.UnprocessableEntity('update failed');
 
       if (submit) {

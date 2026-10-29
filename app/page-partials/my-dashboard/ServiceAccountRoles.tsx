@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
-import { startCase, throttle } from 'lodash';
+import { startCase } from 'lodash';
 import { Tabs, Alert, LastSavedMessage } from '@bcgov-sso/common-react-components';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
@@ -13,7 +13,8 @@ import { getServiceAccountUsername } from '@app/helpers/users';
 import { docusaurusURL } from '@app/utils/constants';
 import TableNew from '@app/components/TableNew';
 import { Col, Row } from 'react-bootstrap';
-import { diffRoles, hasChanges } from '@app/helpers/roles';
+import { hasChanges } from '@app/helpers/roles';
+import { useRoleSync } from '@app/hooks/useRoleSync';
 
 const Label = styled.label`
   font-weight: bold;
@@ -61,48 +62,35 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
   const [saving, setSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('');
   const [roles, setRoles] = useState<string[]>([]);
-  const [userRoles, setUserRoles] = useState<string[]>([]);
-  // What the server last said the account holds. The selection can run ahead of it while an update is throttled.
-  const savedRoles = useRef<string[]>([]);
-  const showSavedRoles = (roles: string[]) => {
-    savedRoles.current = roles;
-    setUserRoles(roles);
-  };
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [environment, setEnvironment] = useState('dev');
   const [userAssignmentError, setUserAssignmentError] = useState(false);
 
   const environments = selectedRequest?.environments || [];
 
-  const throttleUpdate = useCallback(
-    throttle(
-      async (newRoles: string[]) => {
-        // Diffed against what was saved, not the previous selection, so a throttled-away change is still sent.
-        const changes = diffRoles(savedRoles.current, newRoles);
-        if (!hasChanges(changes)) return;
-        setSaving(true);
-        setSavingMessage('Assigning role...');
-        setUserAssignmentError(false);
-        const [result, err] = await updateUserRoles({
-          environment: environment,
-          integrationId: selectedRequest.id as number,
-          username: getServiceAccountUsername(selectedRequest.clientId as string),
-          ...changes,
-        });
-        setSaving(false);
-        showSavedRoles(result ? result.roles : savedRoles.current);
-        if (err || hasChanges(result!.failed)) {
-          setUserAssignmentError(true);
-          setSavingMessage('Failed to update roles.');
-        } else {
-          setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
-        }
-      },
-      2000,
-      { trailing: true },
-    ),
-    [selectedRequest?.id, environment, selectedId],
-  );
+  const {
+    roles: userRoles,
+    select: selectRoles,
+    load: showSavedRoles,
+  } = useRoleSync(async (changes) => {
+    setSaving(true);
+    setSavingMessage('Assigning role...');
+    setUserAssignmentError(false);
+    const [result, err] = await updateUserRoles({
+      environment: environment,
+      integrationId: selectedRequest.id as number,
+      username: getServiceAccountUsername(selectedRequest.clientId as string),
+      ...changes,
+    });
+    setSaving(false);
+    if (err || hasChanges(result!.failed)) {
+      setUserAssignmentError(true);
+      setSavingMessage('Failed to update roles.');
+    } else {
+      setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
+    }
+    return result ? result.roles : null;
+  });
 
   const handleRoleChange = async (
     newValue: MultiValue<{ value: string; label: string }>,
@@ -122,8 +110,7 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
     }
 
     if (userRoles.length !== newRoles.length) {
-      setUserRoles(newRoles);
-      await throttleUpdate(newRoles);
+      selectRoles(newRoles);
     }
   };
 

@@ -166,6 +166,10 @@ export class UserRoleMappingService {
       const roleUsers = await this.usersByRole(int, environment, roleName);
       if (roleUsers.length === 0) throw new createHttpError[404]('no user role mappings found');
     }
+    if (!username.startsWith('service-account-')) {
+      const idp = username.split('@')[1];
+      if (!int.devIdps.includes(idp)) throw new createHttpError.BadRequest(`invalid idp ${idp}`);
+    }
 
     roles = await this.applyRoleMappingChanges(int, environment, username, {
       add: operation === 'add' ? [roleName] : [],
@@ -203,14 +207,18 @@ export class UserRoleMappingService {
       remove: remove.filter((roleName) => current.includes(roleName)),
     });
 
+    // Every grant goes to Keycloak in one request, which applies all of them or none; each role's operation
+    // waits on that shared request, so the roles are recorded one by one but share its outcome.
+    const added = changes.filter(({ mode }) => mode === 'add').map(({ roleName }) => ({ name: roleName }));
+    let grant: Promise<unknown> | undefined;
+    const grantAll = () => (grant ??= keycloakService.addClientUserRoleMapping(int.clientId, username, added));
+
     const results = await audit.runAuditedBatch(
       parent,
       changes.map(({ roleName, mode, operation }) => ({
         operation,
         call: () =>
-          mode === 'add'
-            ? keycloakService.addClientUserRoleMapping(int.clientId, username, [{ name: roleName }])
-            : keycloakService.deleteClientUserRoleMapping(int.clientId, username, roleName),
+          mode === 'add' ? grantAll() : keycloakService.deleteClientUserRoleMapping(int.clientId, username, roleName),
       })),
     );
     const rejected = results.find((result) => result.status === 'rejected');

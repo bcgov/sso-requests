@@ -66,8 +66,10 @@ export const createClientRole = async (
     roleOperation('role-create', { requestId: integration.id, environment, roleName: role.roleName }),
     () => createRole(integration, role),
     {
-      onSuccess: (transaction) =>
-        models.requestRole.create(
+      // A row left behind by an earlier failed create would collide with the unique (name, environment, request).
+      onSuccess: async (transaction) => {
+        await destroyRequestRole(integration.id, role.roleName, environment, transaction);
+        return models.requestRole.create(
           {
             name: role.roleName,
             environment,
@@ -76,7 +78,8 @@ export const createClientRole = async (
             lastUpdatedBy: sessionUserId,
           },
           { transaction },
-        ),
+        );
+      },
     },
   );
 };
@@ -153,8 +156,9 @@ export const bulkCreateClientRoles = async (
       attempts.map(({ environment, roleName }) => ({
         operation: roleOperation('role-create', { requestId: integration.id, environment, roleName }),
         call: () => createRole(integration, { environment, integrationId, roleName }),
-        onSuccess: (transaction) =>
-          models.requestRole.create(
+        onSuccess: async (transaction) => {
+          await destroyRequestRole(integration.id, roleName, environment, transaction);
+          await models.requestRole.create(
             {
               name: roleName,
               environment,
@@ -163,7 +167,8 @@ export const bulkCreateClientRoles = async (
               lastUpdatedBy: sessionUserId,
             },
             { transaction },
-          ),
+          );
+        },
       })),
     );
 
@@ -315,8 +320,8 @@ export const previewRoleMfaReplication = async (
  *
  * Recorded as a `role-replicate` parent with one `role-assign` child per user and role still to replicate,
  * all stored before anything is granted: a crash part-way leaves exactly the unfinished grants unanswered,
- * and rerunning skips everyone already replicated. Users who already hold the role are not changes and
- * are not recorded.
+ * and rerunning skips everyone already replicated. Users who already hold the role, and users with no Azure
+ * IDIR account to replicate to, are not changes and are not recorded.
  */
 export const replicateRoleMfa = async (
   session: Session,
@@ -367,5 +372,5 @@ export const replicateRoleMfa = async (
         }
       : { idirUsername, guid, role, status: 'ERROR' };
   });
-  return [...plan.alreadyReplicated, ...attempted];
+  return [...plan.alreadyReplicated, ...plan.notFound, ...attempted];
 };

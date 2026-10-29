@@ -37,7 +37,7 @@ export const AUDIT_COVERAGE: Record<string, CoverageEntry> = {
   // Teams and their API accounts
   'POST /api/teams': { actions: ['team-create', 'team-member-add'] },
   'PUT /api/teams/[teamId]': { actions: ['team-update'] },
-  'DELETE /api/teams/[teamId]': { actions: ['team-delete'] },
+  'DELETE /api/teams/[teamId]': { actions: ['team-delete', 'team-member-remove'] },
   'POST /api/teams/[teamId]/members': { actions: ['team-member-add'] },
   'PUT /api/teams/[teamId]/members/[memberId]': { actions: ['team-member-role-update'] },
   'DELETE /api/teams/[teamId]/members/[memberId]': { actions: ['team-member-remove'] },

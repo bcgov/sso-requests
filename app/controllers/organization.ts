@@ -199,7 +199,26 @@ export const deleteOrganization = async (session: Session, organizationId: numbe
       { organizationId: null },
       { where: { organizationId, apiServiceAccount: true, archived: true }, transaction },
     );
+    // Destroying the organization cascades to its members and team links, which are recorded as removals.
+    const [members, links] = await Promise.all([
+      models.organizationMember.findAll({ where: { organizationId }, transaction }),
+      models.organizationTeam.findAll({ where: { organizationId }, transaction }),
+    ]);
     await organization.destroy({ transaction });
+    for (const member of members) {
+      await orgEvent(organizationId, 'organization-member-remove', { reason: 'organization-deleted' }, transaction, {
+        userId: member.userId,
+      });
+    }
+    for (const link of links) {
+      await orgEvent(
+        organizationId,
+        'organization-team-leave',
+        { removedBy: 'organization', reason: 'organization-deleted' },
+        transaction,
+        { teamId: link.teamId },
+      );
+    }
     await orgEvent(organizationId, 'organization-delete', { name: organization.name }, transaction);
   });
   return { success: true };
@@ -264,6 +283,8 @@ export const updateOrganizationMemberRole = async (
 
   if (role !== 'admin') await assertNotLastAdmin(organizationId, userId);
 
+  if (member.role === role) return member;
+
   const saved = await sequelize.transaction(async (transaction) => {
     member.role = role;
     const updated = await member.save({ transaction });
@@ -279,7 +300,7 @@ export const removeOrganizationMember = async (session: Session, organizationId:
   const member = await models.user.findOne({ where: { id: userId } });
   const deleted = await sequelize.transaction(async (transaction) => {
     const count = await models.organizationMember.destroy({ where: { organizationId, userId }, transaction });
-    await orgEvent(organizationId, 'organization-member-remove', {}, transaction, { userId });
+    if (count) await orgEvent(organizationId, 'organization-member-remove', {}, transaction, { userId });
     return count;
   });
   if (deleted && member) await notifyOrganizationTeam(organization, { action: 'member-removed', member });

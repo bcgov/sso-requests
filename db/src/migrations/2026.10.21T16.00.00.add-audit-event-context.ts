@@ -9,9 +9,22 @@ export const name = '2026.10.21T16.00.00.add-audit-event-context';
 //
 // The backfill is mechanical: it splits a `-success`/`-failure` suffix into
 // `outcome` and copies values the old `details` hold directly. `details` itself
-// is never rewritten.
+// is never rewritten. The one exception to the suffix rule is a submission the
+// app recorded as `-success` before anything was applied: it becomes
+// `submitted`, so `success` on those actions only ever means applied.
 
 const UUID_PATTERN = '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$';
+
+// Released codes the app wrote as `-success` when a change was submitted, not
+// when it was applied. The engine stamped `details.workflowId` on the rows it
+// wrote, so a row without one came from the app.
+const SUBMISSION_CODES = [
+  'request-create-success',
+  'request-update-success',
+  'request-delete-success',
+  'request-restore-success',
+  'api-account-delete-success',
+];
 
 // Released codes that never had a `-success` suffix, for `down`.
 const UNSUFFIXED_CODES = [
@@ -76,7 +89,7 @@ export const up = async ({ context: sequelize }) => {
   await sequelize.query(`
     ALTER TABLE events
       ADD CONSTRAINT events_outcome_check
-      CHECK (outcome IN ('requested', 'success', 'failure', 'superseded'))
+      CHECK (outcome IN ('requested', 'success', 'failure', 'superseded', 'submitted'))
   `);
   await sequelize.query(`
     ALTER TABLE events
@@ -85,6 +98,12 @@ export const up = async ({ context: sequelize }) => {
   `);
 
   // Action and outcome. Codes without a suffix keep the default `success`.
+  await sequelize.query(
+    `UPDATE events
+     SET outcome = 'submitted', event_code = left(event_code, length(event_code) - length('-success'))
+     WHERE event_code IN (:submissions) AND details->>'workflowId' IS NULL`,
+    { replacements: { submissions: SUBMISSION_CODES } },
+  );
   await sequelize.query(`
     UPDATE events
     SET outcome = 'failure', event_code = left(event_code, length(event_code) - length('-failure'))
@@ -152,6 +171,7 @@ export const down = async ({ context: sequelize }) => {
   // released code never did. `requested` and `superseded` rows have no older
   // code to return to and keep theirs.
   await sequelize.query(`UPDATE events SET event_code = event_code || '-failure' WHERE outcome = 'failure'`);
+  await sequelize.query(`UPDATE events SET event_code = event_code || '-success' WHERE outcome = 'submitted'`);
   await sequelize.query(
     `UPDATE events SET event_code = event_code || '-success'
      WHERE outcome = 'success' AND event_code NOT IN (:unsuffixed)`,
