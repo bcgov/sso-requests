@@ -145,6 +145,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const isFetchingRolesRef = useRef(false);
   const [roleLoading, setRoleLoading] = useState(false);
   const [userLoading, setUserLoading] = useState(false);
+  const [serviceAccountLoading, setServiceAccountLoading] = useState(false);
   const [compositeLoading, setCompositeLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('');
@@ -244,8 +245,6 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   }, [roleUsersPage, roleUsersLimit]);
 
   useEffect(() => {
-    setUsers([]);
-    setServiceAccounts([]);
     populateTabs();
     setCurrentIntegrationID(integration.id);
     if (integration.id !== currentIntegrationID) reset();
@@ -254,11 +253,9 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   useEffect(() => {
     setRoleUsersPage(1);
     if (!selectedRole) return;
-    setUserLoading(true);
     void fetchUsers(selectedRole);
     void fetchComposite(selectedRole);
     void fetchServiceAccounts(selectedRole);
-    setUserLoading(false);
     setSaving(false);
     setSavingMessage('');
   }, [selectedRole]);
@@ -319,6 +316,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
 
   const fetchUsers = async (roleName: string) => {
     if (!roleName || roleName?.length < 2) return;
+    setUserLoading(true);
 
     let _first = (roleUsersPage - 1) * roleUsersLimit;
 
@@ -340,11 +338,12 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     setRoleUsersCount(data?.totalCount || 0);
     setUsers(data?.data || []);
     setSelectedRole(roleName);
+    setUserLoading(false);
   };
 
   const fetchServiceAccounts = async (roleName: string) => {
     if (!roleName || roleName?.length < 2) return;
-
+    setServiceAccountLoading(true);
     const [serviceAccounts, err] = await listRoleUsers({
       environment,
       integrationId: integration.id as number,
@@ -360,6 +359,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     }
 
     setServiceAccounts(serviceAccounts?.data || []);
+    setServiceAccountLoading(false);
   };
 
   const exportRoleUsers = async () => {
@@ -681,7 +681,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
           }
           enableGlobalSearch={false}
           noDataFoundMessage="No service accounts found."
-          loading={userLoading}
+          loading={serviceAccountLoading}
           hiddenColumns={['username']}
           enablePagination={false}
         />
