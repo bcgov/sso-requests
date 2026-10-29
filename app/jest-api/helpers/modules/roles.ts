@@ -28,7 +28,7 @@ export const listClientCompositeRoles = async (integrationId: number, roleName: 
     .set('Accept', 'application/json');
 };
 
-export const listClientRoleUsers = async (integrationId: number, roleName: string) => {
+export const listClientRoleUsers = async (integrationId: number, roleName: string, serviceAccount: boolean = false) => {
   return await testClient(kcRoleUsersHandler)
     .post(`${API_BASE_PATH}/keycloak/role-users`)
     .send({
@@ -37,6 +37,7 @@ export const listClientRoleUsers = async (integrationId: number, roleName: strin
       roleName,
       first: 0,
       max: 50,
+      serviceAccount,
     })
     .set('Accept', 'application/json');
 };

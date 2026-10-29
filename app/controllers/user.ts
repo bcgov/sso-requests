@@ -101,12 +101,14 @@ export const listUsersByRole = async (
     roleName,
     first = 0,
     max = 50,
+    serviceAccount,
   }: {
     environment: string;
     integrationId: number;
     roleName: string;
     first: number;
     max: number;
+    serviceAccount?: boolean;
   },
 ) => {
   const integration = await authorizedIntegration(session, integrationId, 'user-role-mappings:read');
@@ -115,6 +117,7 @@ export const listUsersByRole = async (
     roleName,
     first,
     max,
+    serviceAccount,
   });
 };
 

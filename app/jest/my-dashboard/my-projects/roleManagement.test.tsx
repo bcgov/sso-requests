@@ -11,6 +11,7 @@ import {
 } from 'services/keycloak';
 import CreateRoleContent from 'page-partials/my-dashboard/RoleManagement/CreateRoleContent';
 import RoleEnvironment from 'page-partials/my-dashboard/RoleManagement/RoleEnvironment';
+import { KeycloakUser } from '@app/interfaces/team';
 
 const mockResult = () => {
   return { ...sampleRequest, authType: 'both' };
@@ -75,6 +76,8 @@ jest.mock('services/keycloak', () => ({
   previewRoleReplication: jest.fn(() => Promise.resolve([[], null])),
   runRoleReplication: jest.fn(() => Promise.resolve([[], null])),
 }));
+
+const mockedListRoleUsers = jest.mocked(listRoleUsers);
 
 describe('role management tab', () => {
   afterEach(() => {
@@ -180,7 +183,7 @@ describe('role management tab', () => {
 
     fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
     await waitFor(() => {
-      expect(listRoleUsers).toHaveBeenCalledTimes(1);
+      expect(listRoleUsers).toHaveBeenCalledTimes(2);
     });
 
     (listRoleUsers as jest.Mock).mockResolvedValueOnce([testUsers, null]);
@@ -190,7 +193,7 @@ describe('role management tab', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Users' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Export' }));
     await waitFor(() => {
-      expect(listRoleUsers).toHaveBeenCalledTimes(2);
+      expect(listRoleUsers).toHaveBeenCalledTimes(3);
     });
   });
 
@@ -290,7 +293,7 @@ describe('role management tab', () => {
 
     fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
     await waitFor(() => {
-      expect(listRoleUsers).toHaveBeenCalledTimes(1);
+      expect(listRoleUsers).toHaveBeenCalledTimes(2);
     });
     fireEvent.click(screen.getByRole('tab', { name: 'Users' }));
     fireEvent.click(screen.getByRole('img', { name: 'User Detail' }));
@@ -322,6 +325,14 @@ describe('role management tab', () => {
   });
 
   it('Should be able to show service accounts assigned to a role inside service accounts tab', async () => {
+    mockedListRoleUsers.mockResolvedValueOnce([testUsers, null]);
+    mockedListRoleUsers.mockResolvedValueOnce([
+      {
+        totalCount: 1,
+        data: [{ id: 'kc-service-account-user', username: 'service-account-client-1' }] as any[],
+      },
+      null,
+    ]);
     render(<RoleEnvironmentComponent />);
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
@@ -330,9 +341,6 @@ describe('role management tab', () => {
     fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
     await waitFor(async () => {
       fireEvent.click(screen.getByRole('tab', { name: 'Service Accounts' }));
-    });
-    await waitFor(() => {
-      expect(listRoleUsers).toHaveBeenCalledTimes(1);
     });
 
     await waitFor(() => {
@@ -376,6 +384,14 @@ describe('role management tab', () => {
   });
 
   it('Should be able to click the remove service account button, and corresponding modal showing up', async () => {
+    mockedListRoleUsers.mockResolvedValueOnce([testUsers, null]);
+    mockedListRoleUsers.mockResolvedValueOnce([
+      {
+        totalCount: 1,
+        data: [{ id: 'kc-service-account-user', username: 'service-account-client-1' }] as any[],
+      },
+      null,
+    ]);
     render(<RoleEnvironmentComponent />);
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));

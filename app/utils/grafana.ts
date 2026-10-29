@@ -94,12 +94,12 @@ export const clientEventsAggregationQuery = async (
 
 export const fetchKeycloakRoleUsersCount = async (
   kcEnv: string,
-  idps: string[],
   clientId: string,
   roleName: string,
+  serviceAccount: boolean = false,
 ) => {
   try {
-    if (!kcEnv || !idps?.length || !clientId || !roleName)
+    if (!kcEnv || !clientId || !roleName)
       throw new Error('Missing required parameters for looking up Keycloak role users count');
     let dataSourceName = 'SSO Keycloak Prod';
     if (kcEnv === 'test') dataSourceName = 'SSO Keycloak Test';
@@ -112,11 +112,9 @@ export const fetchKeycloakRoleUsersCount = async (
           datasource: { type: 'grafana-postgresql-datasource', uid: keycloakDatasourceUID },
           rawSql: `SELECT COUNT(DISTINCT urm.USER_ID) AS user_count FROM USER_ROLE_MAPPING urm JOIN KEYCLOAK_ROLE kr ON kr.ID = urm.ROLE_ID JOIN CLIENT c ON c.ID = kr.CLIENT JOIN REALM r ON r.ID = c.REALM_ID JOIN USER_ENTITY u ON u.ID = urm.USER_ID WHERE kr.NAME = ${escapeLiteral(
             roleName,
-          )} AND c.CLIENT_ID = ${escapeLiteral(
-            clientId,
-          )} AND r.NAME = 'standard' AND u.SERVICE_ACCOUNT_CLIENT_LINK IS NULL AND u.USERNAME IS NOT NULL AND SPLIT_PART(u.USERNAME, '@', 2) IN (${idps
-            .map((idp) => escapeLiteral(idp))
-            .join(', ')});`,
+          )} AND c.CLIENT_ID = ${escapeLiteral(clientId)} AND r.NAME = 'standard' AND u.USERNAME IS NOT NULL ${
+            serviceAccount ? "AND u.USERNAME LIKE 'service-account-%'" : "AND u.USERNAME NOT LIKE 'service-account-%'"
+          };`,
           format: 'table',
         },
       ],

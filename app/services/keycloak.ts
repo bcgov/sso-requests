@@ -219,16 +219,18 @@ export const listRoleUsers = async ({
   roleName,
   first = 0,
   max = 50,
+  serviceAccount = false,
 }: {
   environment: string;
   integrationId: number;
   roleName: string;
   first?: number;
   max?: number;
+  serviceAccount?: boolean;
 }): Promise<({ totalCount: number; data: KeycloakUser[] } | null)[]> => {
   try {
     const result = await instance
-      .post('keycloak/role-users', { environment, integrationId, roleName, first, max })
+      .post('keycloak/role-users', { environment, integrationId, roleName, first, max, serviceAccount })
       .then((res) => res.data);
 
     return [result, null];

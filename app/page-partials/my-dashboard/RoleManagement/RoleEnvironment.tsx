@@ -158,7 +158,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const [currentIntegrationID, setCurrentIntegrationID] = useState<number>();
   const [canCreateOrDeleteRole, setCanCreateOrDeleteRole] = useState(false);
   const [rightPanelTab, setRightPanelTab] = useState<string>('');
-  const [serviceAccountIntMap, setServiceAccountIntMap] = useState<SvcAcctUserIntegrationMapType[]>([]);
+  const [serviceAccounts, setServiceAccounts] = useState<KeycloakUser[]>([]);
   const [compositeRoleError, setCompositeRoleError] = useState(false);
   const [roleUsersPage, setRoleUsersPage] = useState(1);
   const [roleUsersCount, setRoleUsersCount] = useState(0);
@@ -233,6 +233,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const reset = () => {
     fetchRoles();
     setUsers([]);
+    setServiceAccounts([]);
     setRoles([]);
     setSelectedRole(null);
     setCanCreateOrDeleteRole(canCreateOrDeleteRoles(integration));
@@ -243,20 +244,23 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   }, [roleUsersPage, roleUsersLimit]);
 
   useEffect(() => {
-    setServiceAccountIntMap([]);
+    setUsers([]);
+    setServiceAccounts([]);
     populateTabs();
     setCurrentIntegrationID(integration.id);
     if (integration.id !== currentIntegrationID) reset();
   }, [integration]);
 
   useEffect(() => {
-    setServiceAccountIntMap([]);
+    setRoleUsersPage(1);
     if (!selectedRole) return;
-    if (roleUsersPage === 1) void fetchUsers(selectedRole);
+    setUserLoading(true);
+    void fetchUsers(selectedRole);
     void fetchComposite(selectedRole);
+    void fetchServiceAccounts(selectedRole);
+    setUserLoading(false);
     setSaving(false);
     setSavingMessage('');
-    setRoleUsersPage(1);
   }, [selectedRole]);
 
   const replicationPreviewHasUsersToAttempt = useMemo(() => {
@@ -314,14 +318,11 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   };
 
   const fetchUsers = async (roleName: string) => {
-    if (userLoading) return;
     if (!roleName || roleName?.length < 2) return;
 
     let _first = (roleUsersPage - 1) * roleUsersLimit;
 
-    setUserLoading(true);
-
-    const [data, err] = await listRoleUsers({
+    const [data, usersErr] = await listRoleUsers({
       environment,
       integrationId: integration.id as number,
       roleName,
@@ -329,34 +330,36 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       max: roleUsersLimit,
     });
 
-    if (err) {
+    if (usersErr) {
       return alert.show({
         variant: 'danger',
         content: 'Failed to fetch users.',
       });
     }
 
-    let _data = data?.data || [];
+    setRoleUsersCount(data?.totalCount || 0);
+    setUsers(data?.data || []);
+    setSelectedRole(roleName);
+  };
 
-    if (_data.length > 0) {
-      _data.map(async (user) => {
-        if (checkIfUserIsServiceAccount(user?.username)) {
-          const a = user.username.split('-');
-          const [data] = await getRequest(a[a.length - 1]);
-          setServiceAccountIntMap([
-            ...serviceAccountIntMap,
-            { username: user.username, integration: data as Integration },
-          ]);
-        }
+  const fetchServiceAccounts = async (roleName: string) => {
+    if (!roleName || roleName?.length < 2) return;
+
+    const [serviceAccounts, err] = await listRoleUsers({
+      environment,
+      integrationId: integration.id as number,
+      roleName,
+      serviceAccount: true,
+    });
+
+    if (err) {
+      return alert.show({
+        variant: 'danger',
+        content: 'Failed to fetch service accounts.',
       });
-    } else {
-      setServiceAccountIntMap([]);
     }
 
-    setRoleUsersCount(data?.totalCount || 0);
-    setUsers(_data);
-    setSelectedRole(roleName);
-    setUserLoading(false);
+    setServiceAccounts(serviceAccounts?.data || []);
   };
 
   const exportRoleUsers = async () => {
@@ -442,10 +445,6 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     else return role;
   };
 
-  const handleSearchKeyChange = (value: string) => {
-    setSearchKey(value);
-  };
-
   const handleDelete = async (roleName: string) => {
     confirmModalRef.current.open(roleName);
   };
@@ -508,6 +507,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
 
     if (selectedRole && (!replicationTargetRole || replicationTargetRole === selectedRole)) {
       await fetchUsers(selectedRole);
+      await fetchServiceAccounts(selectedRole);
     }
 
     return false;
@@ -533,7 +533,6 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   let rightPanel = null;
   if (selectedRole) {
     const filterUsers = users.filter((user) => !user.username.startsWith('service-account-'));
-    const filterServiceAccounts = filterServiceAccountUsers(users);
     if (rightPanelTab === 'Users') {
       rightPanel = (
         <>
@@ -673,9 +672,9 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
             },
           ]}
           data={
-            filterServiceAccounts.map((user) => {
+            serviceAccounts.map((user) => {
               return {
-                projectName: serviceAccountIntMap.find((u) => u.username == user.username)?.integration?.projectName,
+                projectName: integration.projectName,
                 username: user.username,
               };
             }) || []
@@ -896,7 +895,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
             });
           }
 
-          await fetchUsers(selectedRole);
+          await fetchServiceAccounts(selectedRole);
         }}
         confirmButtonText="Remove"
         confirmButtonVariant="primary"

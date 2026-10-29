@@ -189,35 +189,24 @@ export const listRoleUsers = async (
     roleName,
     first = 0,
     max = 50,
+    serviceAccount = false,
   }: {
     environment: string;
     roleName: string;
     first?: number;
     max?: number;
+    serviceAccount?: boolean;
   },
 ) => {
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-  if (clients.length === 0) throw new createHttpError.NotFound(`client ${integration.clientId} not found`);
-  const client = clients[0];
 
-  const roles: any[] = await kcAdminClient.clients.listRoles({
-    realm: 'standard',
-    id: client?.id!,
-    // @ts-ignore
-    search: '',
-    first: 0,
-    max: MAX_CLIENT_ROLE_COUNT,
-  });
+  const client = (await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 }))[0];
+  if (!client) throw new createHttpError.NotFound(`client ${integration.clientId} not found`);
 
-  if (!roles.some((role) => role.name === roleName)) throw new createHttpError.NotFound(`role ${roleName} not found`);
+  const clientRole = await kcAdminClient.clients.findRole({ realm: 'standard', id: client?.id!, roleName });
+  if (!clientRole) throw new createHttpError.NotFound(`role ${roleName} not found`);
 
-  const totalCount = await fetchKeycloakRoleUsersCount(
-    environment,
-    integration?.devIdps ?? [],
-    integration.clientId!,
-    roleName,
-  );
+  const totalCount = await fetchKeycloakRoleUsersCount(environment, integration.clientId!, roleName, serviceAccount);
 
   if (totalCount === 0) return { totalCount, data: [] };
 
@@ -229,14 +218,18 @@ export const listRoleUsers = async (
     max,
   });
 
-  const filterByIdps = users.filter(
+  const filteredUsers = users.filter(
     (user) =>
       !!user?.username &&
-      (user.username.startsWith('service-account-') ||
-        !!integration?.devIdps?.includes(user.username.split('@')[1] ?? '')),
+      (serviceAccount
+        ? user.username.startsWith('service-account-')
+        : !!integration?.devIdps?.includes(user.username.split('@')[1] ?? '')),
   );
 
-  return { totalCount, data: filterByIdps };
+  return {
+    totalCount,
+    data: filteredUsers,
+  };
 };
 
 export const listUserRoles = async (
