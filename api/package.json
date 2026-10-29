@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node build/api/src/server.js",
     "dev": "nodemon",
-    "build": "tsc && tsc-alias",
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "test": "NODE_ENV=test jest --detectOpenHandles --forceExit --runInBand"
@@ -88,6 +88,9 @@
     "fast-uri": ">=4.1.4",
     "ip-address": ">=10.3.1",
     "browserslist": ">=4.28.7",
-    "axios": ">=1.20.0"
+    "axios": ">=1.20.0",
+    "proxy-addr": ">=2.0.8",
+    "handlebars": ">=4.7.10",
+    "follow-redirects": ">=1.16.1"
   }
 }

@@ -28,6 +28,7 @@ module.exports = {
       '@sso/authz': '../packages/authz/src/index.ts',
       '@sso/audit': '../packages/audit/src/index.ts',
       '@sso/audit/server': '../packages/audit/src/server.ts',
+      '@sso/logs-query': '../packages/logs-query/src/index.ts',
     },
   },
   output: 'standalone',

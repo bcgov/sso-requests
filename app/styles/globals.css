@@ -232,36 +232,27 @@ legend {
   row-gap: 0.5em;
 }
 
-/* Relative spacing the textarea is pushed over */
-:root {
-  --textarea-spacer: 5em;
+/* The field is only rendered when "other" is checked (see schemas/requester-info.ts) */
+.other-details {
+  width: 50%;
+  margin: 0.5em 0 1.5em auto;
 }
 
-/* Blank out description to prevent blocking */
 .other-details > div:first-child {
-  width: 0;
+  display: none;
 }
 
 .other-details textarea {
-  width: calc(100% - var(--textarea-spacer));
-}
-
-.other-details {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  position: relative;
-  bottom: 2.4em;
-  left: var(--textarea-spacer);
-  height: 0;
-  margin-bottom: 3em;
+  display: block;
+  /* The Textarea component sets an inline width, so this needs !important */
+  width: 100% !important;
+  min-height: 5em;
 }
 
 .other-details::after {
   content: '100 characters max.';
-  grid-column: 2;
-  margin-left: auto;
-  position: relative;
-  right: var(--textarea-spacer);
+  display: block;
+  text-align: right;
   color: #abafb2;
 }
 

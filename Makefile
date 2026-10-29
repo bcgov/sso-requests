@@ -24,6 +24,10 @@ authz_install:
 audit_install:
 	yarn --cwd ./packages/audit install
 
+.PHONY: logs_query_install
+logs_query_install:
+	yarn --cwd ./packages/logs-query install
+
 .PHONY: db_compile
 db_compile:
 	yarn --cwd ./db compile
@@ -56,6 +60,10 @@ authz_test:
 .PHONY: audit_test
 audit_test:
 	yarn --cwd ./packages/audit test
+
+.PHONY: logs_query_test
+logs_query_test:
+	yarn --cwd ./packages/logs-query test
 
 .PHONY: app
 app:

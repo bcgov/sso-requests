@@ -12,6 +12,7 @@ WORKDIR /app
 COPY api ./api
 COPY packages/authz ./packages/authz
 COPY packages/audit ./packages/audit
+COPY packages/logs-query ./packages/logs-query
 
 WORKDIR /app/api
 

@@ -6,7 +6,7 @@ import type { RenderResult } from '../index';
 import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { getIntegrationEmails, getEmailTemplate } from '../helpers';
 
-const SUBJECT_TEMPLATE = `In-active IDIR User Removed`;
+const SUBJECT_TEMPLATE = `Inactive IDIR User Removed`;
 const template = getEmailTemplate('delete-inactive-idir-users/delete-inactive-idir-users.html');
 
 const subjectHandler = Handlebars.compile(SUBJECT_TEMPLATE, { noEscape: true });

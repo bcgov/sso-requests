@@ -30,6 +30,7 @@ module.exports = {
     '^@sso/authz$': '<rootDir>/../packages/authz/src',
     '^@sso/audit$': '<rootDir>/../packages/audit/src',
     '^@sso/audit/server$': '<rootDir>/../packages/audit/src/server',
+    '^@sso/logs-query$': '<rootDir>/../packages/logs-query/src',
     '^@pages(.*)$': '<rootDir>/pages$1',
     '^@utils(.*)$': '<rootDir>/utils$1',
   },

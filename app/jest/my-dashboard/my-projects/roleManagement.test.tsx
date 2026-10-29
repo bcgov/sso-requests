@@ -24,36 +24,39 @@ function RoleEnvironmentWithMfaComponent() {
   return <RoleEnvironment environment={'dev'} integration={{ ...mockResult(), devIdps: ['idir', 'azureidir'] }} />;
 }
 
-const testUsers = [
-  {
-    id: '01',
-    username: 'user01@idir',
-    enabled: true,
-    totp: false,
-    emailVerified: false,
-    firstName: 'fn',
-    lastName: 'ln',
-    email: 'role1@gov.bc.ca',
-    attributes: { idir_userid: ['01'] },
-    disableableCredentialTypes: [],
-    requiredActions: [],
-    notBefore: 0,
-  },
-  {
-    id: '02',
-    username: 'service-account-user02',
-    enabled: true,
-    totp: false,
-    emailVerified: false,
-    firstName: '',
-    lastName: '',
-    email: '',
-    attributes: {},
-    disableableCredentialTypes: [],
-    requiredActions: [],
-    notBefore: 0,
-  },
-];
+const testUsers = {
+  totalCount: 2,
+  data: [
+    {
+      id: '01',
+      username: 'user01@idir',
+      enabled: true,
+      totp: false,
+      emailVerified: false,
+      firstName: 'fn',
+      lastName: 'ln',
+      email: 'role1@gov.bc.ca',
+      attributes: { idir_userid: ['01'] },
+      disableableCredentialTypes: [],
+      requiredActions: [],
+      notBefore: 0,
+    },
+    {
+      id: '02',
+      username: 'service-account-user02',
+      enabled: true,
+      totp: false,
+      emailVerified: false,
+      firstName: '',
+      lastName: '',
+      email: '',
+      attributes: {},
+      disableableCredentialTypes: [],
+      requiredActions: [],
+      notBefore: 0,
+    },
+  ],
+};
 
 jest.mock('services/request', () => {
   return {
@@ -65,6 +68,15 @@ jest.mock('services/keycloak', () => ({
   listClientRoles: jest.fn(() => Promise.resolve([[{ name: 'role-1' }, { name: 'role-2' }], null])),
   listComposites: jest.fn(() => Promise.resolve([[false, false], null])),
   listRoleUsers: jest.fn(() => Promise.resolve([testUsers, null])),
+  listRoleAssignedServiceAccounts: jest.fn(() =>
+    Promise.resolve([
+      {
+        totalCount: 1,
+        data: testUsers.data.filter((user) => user.username.startsWith('service-account-')),
+      },
+      null,
+    ]),
+  ),
   getCompositeClientRoles: jest.fn(() => Promise.resolve([['compositeRole1', 'compositeRole2'], null])),
   deleteRole: jest.fn(() => Promise.resolve([[''], null])),
   updateUserRoles: jest.fn(({ add = [] }: { add?: string[] }) =>
@@ -75,9 +87,12 @@ jest.mock('services/keycloak', () => ({
   runRoleReplication: jest.fn(() => Promise.resolve([[], null])),
 }));
 
+const mockedListRoleUsers = jest.mocked(listRoleUsers);
+
 describe('role management tab', () => {
   afterEach(() => {
     jest.clearAllMocks();
+    (listRoleUsers as jest.Mock).mockImplementation(() => Promise.resolve([testUsers, null]));
   });
 
   it('Should match the expected button name, environment names, select/unselected env, table headers, table contents, place-holder-text in search bar', async () => {
@@ -159,7 +174,7 @@ describe('role management tab', () => {
     render(<RoleEnvironmentComponent />);
 
     await waitFor(() => {
-      expect(screen.getByRole('cell', { name: 'role-1' }));
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
     });
 
     const deleteButton = await screen.findAllByTestId('delete-role');
@@ -173,7 +188,7 @@ describe('role management tab', () => {
     render(<RoleEnvironmentComponent />);
 
     await waitFor(() => {
-      expect(screen.getByRole('cell', { name: 'role-1' }));
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
@@ -188,7 +203,95 @@ describe('role management tab', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Users' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Export' }));
     await waitFor(() => {
-      expect(listRoleUsers).toHaveBeenCalledTimes(2);
+      expect(listRoleUsers).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  it('Should be able to navigate pages, change page size, and display the correct rows in the users table', async () => {
+    const buildUser = (idx: number) => {
+      const guid = String(idx).padStart(2, '0');
+      return {
+        id: guid,
+        username: `user${guid}@idir`,
+        enabled: true,
+        totp: false,
+        emailVerified: false,
+        firstName: `fn${guid}`,
+        lastName: `ln${guid}`,
+        email: `role${guid}@gov.bc.ca`,
+        attributes: { idir_userid: [guid] },
+        disableableCredentialTypes: [],
+        requiredActions: [],
+        notBefore: 0,
+      };
+    };
+    // 12 users spread across 3 pages of 5 (default page size).
+    const allUsers = Array.from({ length: 12 }, (_, i) => buildUser(i + 1));
+
+    (listRoleUsers as jest.Mock).mockImplementation(({ first, max }: any) =>
+      Promise.resolve([{ totalCount: allUsers.length, data: allUsers.slice(first, first + max) }, null]),
+    );
+
+    render(<RoleEnvironmentComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
+    fireEvent.click(await screen.findByRole('tab', { name: 'Users' }));
+
+    // Page 1: default page size of 5, first page of 12 total users across 3 pages.
+    await waitFor(() => {
+      expect(listRoleUsers).toHaveBeenCalledWith(expect.objectContaining({ first: 0, max: 5, roleName: 'role-1' }));
+    });
+    await waitFor(() => {
+      const usersTable = screen.getByTestId('role-users-table');
+      expect(within(usersTable).getByRole('cell', { name: 'user01' })).toBeInTheDocument();
+      expect(within(usersTable).getByRole('cell', { name: 'user05' })).toBeInTheDocument();
+      expect(within(usersTable).queryByRole('cell', { name: 'user06' })).not.toBeInTheDocument();
+    });
+    expect(screen.getByText('5 per page')).toBeInTheDocument();
+    expect(screen.getByText('1 of 3')).toBeInTheDocument();
+
+    // Navigate to page 2.
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => {
+      expect(listRoleUsers).toHaveBeenCalledWith(expect.objectContaining({ first: 5, max: 5, roleName: 'role-1' }));
+    });
+    await waitFor(() => {
+      const usersTable = screen.getByTestId('role-users-table');
+      expect(within(usersTable).getByRole('cell', { name: 'user06' })).toBeInTheDocument();
+      expect(within(usersTable).getByRole('cell', { name: 'user10' })).toBeInTheDocument();
+    });
+    expect(screen.getByText('2 of 3')).toBeInTheDocument();
+
+    // Navigate back to page 1.
+    fireEvent.click(screen.getByRole('button', { name: 'Previous' }));
+    await waitFor(() => {
+      expect(listRoleUsers).toHaveBeenCalledWith(expect.objectContaining({ first: 0, max: 5, roleName: 'role-1' }));
+    });
+    await waitFor(() => {
+      const usersTable = screen.getByTestId('role-users-table');
+      expect(within(usersTable).getByRole('cell', { name: 'user01' })).toBeInTheDocument();
+    });
+    expect(screen.getByText('1 of 3')).toBeInTheDocument();
+
+    // Change page size to 10 rows per page.
+    const pageSelection = screen.getByTestId('page-select');
+    const pageSizeInput = pageSelection.firstChild;
+    fireEvent.keyDown(pageSizeInput as HTMLElement, { keyCode: 40 });
+    fireEvent.click(await screen.findByText('10 per page'));
+
+    await waitFor(() => {
+      expect(listRoleUsers).toHaveBeenCalledWith(expect.objectContaining({ first: 0, max: 10, roleName: 'role-1' }));
+    });
+    expect(screen.getByText('10 per page')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('1 of 2')).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      const usersTable = screen.getByTestId('role-users-table');
+      expect(within(usersTable).getAllByText(/^user\d{2}$/)).toHaveLength(10);
     });
   });
 
@@ -206,6 +309,33 @@ describe('role management tab', () => {
     fireEvent.click(screen.getByRole('img', { name: 'User Detail' }));
 
     expect(await screen.findByTitle('Additional User Info')).toBeVisible();
+  });
+
+  it('Should debounce the users global search before fetching', async () => {
+    render(<RoleEnvironmentComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' }));
+    });
+
+    fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
+    await waitFor(() => {
+      expect(listRoleUsers).toHaveBeenCalledTimes(1);
+    });
+
+    const searchInput = screen.getByPlaceholderText('Search users');
+    fireEvent.change(searchInput, { target: { value: 'u' } });
+    fireEvent.change(searchInput, { target: { value: 'us' } });
+    fireEvent.change(searchInput, { target: { value: 'user01' } });
+    expect(searchInput).toHaveValue('user01');
+    expect(listRoleUsers).toHaveBeenCalledTimes(1);
+
+    await waitFor(
+      () => {
+        expect(listRoleUsers).toHaveBeenCalledTimes(2);
+      },
+      { timeout: 2000 },
+    );
+    expect(listRoleUsers).toHaveBeenLastCalledWith(expect.objectContaining({ searchKey: 'user01', first: 0 }));
   });
 
   it('Should be able to click the Remove User button, and corresponding modal showing up', async () => {
@@ -232,7 +362,62 @@ describe('role management tab', () => {
     });
   });
 
+  it('Should go back to the last available page when the only user on the current page is removed', async () => {
+    let allUsers = Array.from({ length: 6 }, (_, i) => {
+      const guid = String(i + 1).padStart(2, '0');
+      return { ...testUsers.data[0], id: guid, username: `user${guid}@idir`, email: `role${guid}@gov.bc.ca` };
+    });
+
+    (listRoleUsers as jest.Mock).mockImplementation(({ first, max }: any) =>
+      Promise.resolve([{ totalCount: allUsers.length, data: allUsers.slice(first, first + max) }, null]),
+    );
+    (manageUserRole as jest.Mock).mockImplementationOnce(({ username }: any) => {
+      allUsers = allUsers.filter((user) => user.username !== username);
+      return Promise.resolve([[''], null]);
+    });
+
+    render(<RoleEnvironmentComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
+    fireEvent.click(await screen.findByRole('tab', { name: 'Users' }));
+    await waitFor(() => {
+      expect(screen.getByText('1 of 2')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(() => {
+      const usersTable = screen.getByTestId('role-users-table');
+      expect(within(usersTable).getByRole('cell', { name: 'user06' })).toBeInTheDocument();
+    });
+    expect(screen.getByText('2 of 2')).toBeInTheDocument();
+
+    fireEvent.click(await screen.findByRole('img', { name: 'Remove User' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Remove' }));
+
+    await waitFor(() => {
+      expect(manageUserRole).toHaveBeenCalledWith(expect.objectContaining({ username: 'user06@idir', mode: 'del' }));
+    });
+    await waitFor(() => {
+      expect(screen.getByText('1 of 1')).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      const usersTable = screen.getByTestId('role-users-table');
+      expect(within(usersTable).getByRole('cell', { name: 'user01' })).toBeInTheDocument();
+      expect(within(usersTable).getAllByText(/^user\d{2}$/)).toHaveLength(5);
+    });
+  });
+
   it('Should be able to show service accounts assigned to a role inside service accounts tab', async () => {
+    mockedListRoleUsers.mockResolvedValueOnce([testUsers, null]);
+    mockedListRoleUsers.mockResolvedValueOnce([
+      {
+        totalCount: 1,
+        data: [{ id: 'kc-service-account-user', username: 'service-account-client-1' }] as any[],
+      },
+      null,
+    ]);
     render(<RoleEnvironmentComponent />);
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));
@@ -241,9 +426,6 @@ describe('role management tab', () => {
     fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
     await waitFor(async () => {
       fireEvent.click(screen.getByRole('tab', { name: 'Service Accounts' }));
-    });
-    await waitFor(() => {
-      expect(listRoleUsers).toHaveBeenCalledTimes(1);
     });
 
     await waitFor(() => {
@@ -287,6 +469,14 @@ describe('role management tab', () => {
   });
 
   it('Should be able to click the remove service account button, and corresponding modal showing up', async () => {
+    mockedListRoleUsers.mockResolvedValueOnce([testUsers, null]);
+    mockedListRoleUsers.mockResolvedValueOnce([
+      {
+        totalCount: 1,
+        data: [{ id: 'kc-service-account-user', username: 'service-account-client-1' }] as any[],
+      },
+      null,
+    ]);
     render(<RoleEnvironmentComponent />);
     await waitFor(() => {
       expect(screen.getByRole('cell', { name: 'role-1' }));

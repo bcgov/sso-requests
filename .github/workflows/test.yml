@@ -59,6 +59,12 @@ jobs:
       - name: Run audit package tests
         run: make audit_test
 
+      - name: Install dependencies for the logs-query package
+        run: make logs_query_install
+
+      - name: Run logs-query package tests
+        run: make logs_query_test
+
       - name: Install dependencies for frontend
         run: make app_install
 

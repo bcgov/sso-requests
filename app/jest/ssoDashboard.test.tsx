@@ -100,36 +100,25 @@ jest.mock('services/keycloak', () => ({
   listComposites: jest.fn(() => Promise.resolve([[false, false], null])),
   listRoleUsers: jest.fn(() =>
     Promise.resolve([
-      [
-        {
-          id: '01',
-          username: 'user01@idir',
-          enabled: true,
-          totp: false,
-          emailVerified: false,
-          firstName: 'fn',
-          lastName: 'ln',
-          email: 'role1@gov.bc.ca',
-          attributes: { idir_userid: ['01'] },
-          disableableCredentialTypes: [],
-          requiredActions: [],
-          notBefore: 0,
-        },
-        {
-          id: '02',
-          username: 'service-account-user02',
-          enabled: true,
-          totp: false,
-          emailVerified: false,
-          firstName: '',
-          lastName: '',
-          email: '',
-          attributes: {},
-          disableableCredentialTypes: [],
-          requiredActions: [],
-          notBefore: 0,
-        },
-      ],
+      {
+        totalCount: 1,
+        data: [
+          {
+            id: '01',
+            username: 'user01@idir',
+            enabled: true,
+            totp: false,
+            emailVerified: false,
+            firstName: 'fn',
+            lastName: 'ln',
+            email: 'role1@gov.bc.ca',
+            attributes: { idir_userid: ['01'] },
+            disableableCredentialTypes: [],
+            requiredActions: [],
+            notBefore: 0,
+          },
+        ],
+      },
       null,
     ]),
   ),
@@ -139,6 +128,30 @@ jest.mock('services/keycloak', () => ({
     Promise.resolve([{ roles: add, failed: { add: [], remove: [] } }, null]),
   ),
   bulkCreateRole: jest.fn(() => Promise.resolve([{}, null])),
+  listRoleAssignedServiceAccounts: jest.fn(() =>
+    Promise.resolve([
+      {
+        totalCount: 1,
+        data: [
+          {
+            id: '02',
+            username: 'service-account-user02',
+            enabled: true,
+            totp: false,
+            emailVerified: false,
+            firstName: '',
+            lastName: '',
+            email: '',
+            attributes: {},
+            disableableCredentialTypes: [],
+            requiredActions: [],
+            notBefore: 0,
+          },
+        ],
+      },
+      null,
+    ]),
+  ),
 }));
 
 const getFirstRow = () => {

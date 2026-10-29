@@ -3,13 +3,13 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faExclamationTriangle, faMinusCircle, faEye, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import Select from 'react-select';
-import { throttle, get, reduce } from 'lodash';
+import { throttle, debounce, get, reduce, pick } from 'lodash';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import ActionButton from 'components/ActionButton';
-import { LastSavedMessage, Tabs, Tab } from '@bcgov-sso/common-react-components';
+import { LastSavedMessage, Tabs } from '@bcgov-sso/common-react-components';
 import InfoOverlay from 'components/InfoOverlay';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
 import {
@@ -23,6 +23,7 @@ import {
   runRoleReplication,
   RoleReplicationPreview,
   RoleReplicationResultRow,
+  listRoleAssignedServiceAccounts,
 } from 'services/keycloak';
 import { canCreateOrDeleteRoles, canManageUserRoleMappings } from 'helpers/permissions';
 import { idpMap } from 'helpers/meta';
@@ -31,7 +32,6 @@ import { getRequest } from 'services/request';
 import { checkIfUserIsServiceAccount, filterServiceAccountUsers } from 'helpers/users';
 import { KeycloakUser } from 'interfaces/team';
 import { dateTimeStringForFileName, generateXlsx, generateCsv } from '@app/utils/helpers';
-import _ from 'lodash';
 import TableNew from '@app/components/TableNew';
 import { Col, Row } from 'react-bootstrap';
 
@@ -146,13 +146,11 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const isFetchingRolesRef = useRef(false);
   const [roleLoading, setRoleLoading] = useState(false);
   const [userLoading, setUserLoading] = useState(false);
+  const [serviceAccountLoading, setServiceAccountLoading] = useState(false);
   const [compositeLoading, setCompositeLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('');
   const [searchKey, setSearchKey] = useState('');
-  const [firstUser, setFirstUser] = useState(0);
-  const [maxUser, setMaxUser] = useState(20);
-  const [hasMoreUser, setHasMoreUser] = useState(true);
   const [roles, setRoles] = useState<string[]>([]);
   const [users, setUsers] = useState<KeycloakUser[]>([]);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
@@ -162,8 +160,14 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const [currentIntegrationID, setCurrentIntegrationID] = useState<number>();
   const [canCreateOrDeleteRole, setCanCreateOrDeleteRole] = useState(false);
   const [rightPanelTab, setRightPanelTab] = useState<string>('');
-  const [serviceAccountIntMap, setServiceAccountIntMap] = useState<SvcAcctUserIntegrationMapType[]>([]);
+  const [serviceAccounts, setServiceAccounts] = useState<KeycloakUser[]>([]);
   const [compositeRoleError, setCompositeRoleError] = useState(false);
+  const [roleUsersPage, setRoleUsersPage] = useState(1);
+  const [roleUsersCount, setRoleUsersCount] = useState(0);
+  const [roleUsersLimit, setRoleUsersLimit] = useState<number>(5);
+  const [roleUsersSearchKey, setRoleUsersSearchKey] = useState('');
+  const [debouncedRoleUsersSearchKey, setDebouncedRoleUsersSearchKey] = useState('');
+  const latestUsersRequestRef = useRef(0);
 
   // Roles (idir -> MFA) replication
   const replicationModalRef = useRef<ModalRef>(emptyRef);
@@ -234,23 +238,44 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const reset = () => {
     fetchRoles();
     setUsers([]);
+    setServiceAccounts([]);
     setRoles([]);
     setSelectedRole(null);
     setCanCreateOrDeleteRole(canCreateOrDeleteRoles(integration));
   };
 
+  const debouncedApplyRoleUsersSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        setRoleUsersPage(1);
+        setDebouncedRoleUsersSearchKey(value);
+      }, 500),
+    [],
+  );
+
+  useEffect(() => () => debouncedApplyRoleUsersSearch.cancel(), [debouncedApplyRoleUsersSearch]);
+
+  const handleRoleUsersSearchChange = (value: string) => {
+    setRoleUsersSearchKey(value);
+    debouncedApplyRoleUsersSearch(value);
+  };
+
   useEffect(() => {
-    setServiceAccountIntMap([]);
+    void fetchUsers(selectedRole as string);
+  }, [roleUsersPage, roleUsersLimit, debouncedRoleUsersSearchKey]);
+
+  useEffect(() => {
     populateTabs();
     setCurrentIntegrationID(integration.id);
     if (integration.id !== currentIntegrationID) reset();
   }, [integration]);
 
   useEffect(() => {
-    setServiceAccountIntMap([]);
+    setRoleUsersPage(1);
     if (!selectedRole) return;
-    fetchUsers(true, selectedRole);
-    fetchComposite(selectedRole);
+    void fetchUsers(selectedRole);
+    void fetchComposite(selectedRole);
+    void fetchServiceAccounts(selectedRole);
     setSaving(false);
     setSavingMessage('');
   }, [selectedRole]);
@@ -309,59 +334,64 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     }
   };
 
-  const fetchUsers = async (loadFirst: boolean, roleName: string) => {
-    if (userLoading) return;
-    if (roleName.length < 2) return;
-
-    let _first = 0;
-    let _users: KeycloakUser[] = [];
-
+  const fetchUsers = async (roleName: string) => {
+    if (!roleName || roleName?.length < 2) return;
     setUserLoading(true);
+    const requestId = ++latestUsersRequestRef.current;
 
-    if (loadFirst) {
-      setFirstUser(_first);
-    } else {
-      _first = firstUser;
-      _users = users;
-    }
+    let _first = (roleUsersPage - 1) * roleUsersLimit;
 
-    const [data, err] = await listRoleUsers({
+    const [data, usersErr] = await listRoleUsers({
       environment,
       integrationId: integration.id as number,
       roleName,
+      searchKey: debouncedRoleUsersSearchKey,
       first: _first,
-      max: maxUser,
+      max: roleUsersLimit,
     });
 
-    if (err) {
+    // Ignore responses from searches that have since been superseded
+    if (requestId !== latestUsersRequestRef.current) return;
+
+    if (usersErr) {
       return alert.show({
         variant: 'danger',
         content: 'Failed to fetch users.',
       });
     }
 
-    let _data = data || [];
-
-    if (_data.length > 0) {
-      _data.map(async (user) => {
-        if (checkIfUserIsServiceAccount(user?.username)) {
-          const a = user.username.split('-');
-          const [data] = await getRequest(a[a.length - 1]);
-          setServiceAccountIntMap([
-            ...serviceAccountIntMap,
-            { username: user.username, integration: data as Integration },
-          ]);
-        }
-      });
-    } else {
-      setServiceAccountIntMap([]);
+    const totalCount = data?.totalCount || 0;
+    const lastPage = Math.max(1, Math.ceil(totalCount / roleUsersLimit));
+    // The current page no longer exists (e.g. its last user was removed); the page effect refetches it
+    if (roleUsersPage > lastPage) {
+      setRoleUsersPage(lastPage);
+      return;
     }
 
-    setHasMoreUser(_data.length === maxUser);
-    setUsers(_users.concat(_data));
-    setFirstUser(_first + maxUser);
+    setRoleUsersCount(totalCount);
+    setUsers(data?.data || []);
     setSelectedRole(roleName);
     setUserLoading(false);
+  };
+
+  const fetchServiceAccounts = async (roleName: string) => {
+    if (!roleName || roleName?.length < 2) return;
+    setServiceAccountLoading(true);
+    const [serviceAccounts, err] = await listRoleAssignedServiceAccounts({
+      environment,
+      integrationId: integration.id as number,
+      roleName,
+    });
+
+    if (err) {
+      return alert.show({
+        variant: 'danger',
+        content: 'Failed to fetch service accounts.',
+      });
+    }
+
+    setServiceAccounts(serviceAccounts?.data || []);
+    setServiceAccountLoading(false);
   };
 
   const exportRoleUsers = async () => {
@@ -373,8 +403,9 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         environment,
         integrationId: integration.id as number,
         roleName: selectedRole as string,
+        searchKey: '',
         first: data.length,
-        max: maxUser,
+        max: 100,
       });
       if (err) {
         alert.show({
@@ -384,9 +415,9 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         setUserLoading(false);
         return;
       }
-      if (!users || users.length === 0) break;
+      if (!users?.data || users?.data?.length === 0) break;
       data.push(
-        ...users.map((user) => {
+        ...(users?.data ?? []).map((user) => {
           const [userGuid, identityProvider] = user.username.split('@');
           const githubOrBceidUser =
             identityProvider && (identityProvider.startsWith('bceid') || identityProvider.startsWith('github'));
@@ -398,7 +429,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
           const firstName = githubOrBceidUser ? '' : user.firstName;
           const lastName = githubOrBceidUser ? '' : user.lastName;
           const displayName = githubOrBceidUser ? user.firstName : user.attributes?.display_name?.[0] || '';
-          return _.pick({ ...user, username, identityProvider, firstName, lastName, displayName, userGuid }, [
+          return pick({ ...user, username, identityProvider, firstName, lastName, displayName, userGuid }, [
             'firstName',
             'lastName',
             'email',
@@ -445,10 +476,6 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const updateRoleName = (role: string, index: number) => {
     if (compositeResult[index] == true) return `${role} (Composite role)`;
     else return role;
-  };
-
-  const handleSearchKeyChange = (value: string) => {
-    setSearchKey(value);
   };
 
   const handleDelete = async (roleName: string) => {
@@ -512,7 +539,8 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     setReplicationPhase('result');
 
     if (selectedRole && (!replicationTargetRole || replicationTargetRole === selectedRole)) {
-      fetchUsers(true, selectedRole);
+      await fetchUsers(selectedRole);
+      await fetchServiceAccounts(selectedRole);
     }
 
     return false;
@@ -528,6 +556,12 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   };
 
   const handleRightPanelTabSelect = (key: any) => {
+    if (key === 'Users' && selectedRole) {
+      setRoleUsersPage(1);
+      setRoleUsersSearchKey('');
+      setDebouncedRoleUsersSearchKey('');
+      setRoleUsersLimit(5);
+    }
     setRightPanelTab(key);
   };
 
@@ -536,11 +570,8 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   };
 
   let rightPanel = null;
-  if (firstUser === 0 && userLoading) {
-    rightPanel = <LoaderContainer />;
-  } else if (selectedRole) {
+  if (selectedRole) {
     const filterUsers = users.filter((user) => !user.username.startsWith('service-account-'));
-    const filterServiceAccounts = filterServiceAccountUsers(users);
     if (rightPanelTab === 'Users') {
       rightPanel = (
         <>
@@ -637,10 +668,16 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
                   };
                 }) || []
               }
-              enableGlobalSearch={false}
-              noDataFoundMessage={<span>No users found.</span>}
               loading={userLoading}
-              enablePagination={false}
+              enableGlobalSearch={true}
+              noDataFoundMessage={<span>No users found.</span>}
+              serverPageIndex={roleUsersPage}
+              onPageChange={setRoleUsersPage}
+              totalRowCount={roleUsersCount}
+              onPageSizeChange={setRoleUsersLimit}
+              globalSearchPlaceholder="Search users"
+              globalSearchOnChange={handleRoleUsersSearchChange}
+              globalSearchValue={roleUsersSearchKey}
             ></TableNew>
           </div>
         </>
@@ -677,16 +714,16 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
             },
           ]}
           data={
-            filterServiceAccounts.map((user) => {
+            serviceAccounts.map((user) => {
               return {
-                projectName: serviceAccountIntMap.find((u) => u.username == user.username)?.integration?.projectName,
+                projectName: integration.projectName,
                 username: user.username,
               };
             }) || []
           }
           enableGlobalSearch={false}
           noDataFoundMessage="No service accounts found."
-          loading={userLoading}
+          loading={serviceAccountLoading}
           hiddenColumns={['username']}
           enablePagination={false}
         />
@@ -869,7 +906,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
             });
           }
 
-          fetchUsers(true, selectedRole);
+          await fetchUsers(selectedRole);
         }}
         confirmButtonText="Remove"
         confirmButtonVariant="primary"
@@ -900,7 +937,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
             });
           }
 
-          fetchUsers(true, selectedRole);
+          await fetchServiceAccounts(selectedRole);
         }}
         confirmButtonText="Remove"
         confirmButtonVariant="primary"

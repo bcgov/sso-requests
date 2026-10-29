@@ -15,6 +15,7 @@ module.exports = {
     '^@sso/authz$': '<rootDir>/../packages/authz/src',
     '^@sso/audit$': '<rootDir>/../packages/audit/src',
     '^@sso/audit/server$': '<rootDir>/../packages/audit/src/server',
+    '^@sso/logs-query$': '<rootDir>/../packages/logs-query/src',
   },
   verbose: true,
   coverageReporters: ['json', 'html'],

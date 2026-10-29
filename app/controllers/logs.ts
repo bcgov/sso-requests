@@ -3,6 +3,7 @@ import { Session } from '@app/shared/interfaces';
 import { clientEventsAggregationQuery, queryGrafana } from '@app/utils/grafana';
 import { audit } from '@app/queries/event';
 import type { Environment } from '@sso/audit';
+import { buildLogsQuery, getLogSourceRanges, LogSchemas } from '@sso/logs-query';
 
 import { logger } from '@app/utils/logger';
 
@@ -10,13 +11,27 @@ const log = logger.child({ module: 'controllers/logs' });
 
 const app_env = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
-// Loki limit lower in sandbox.
+// Log limit lower in sandbox.
 const LOG_SIZE_LIMIT = app_env === 'production' ? 25000 : 5000;
 const MAX_DAYS = 3;
 
 const allowedEnvs = ['dev', 'test', 'prod'];
 
-export const fetchLogs = async (env: string, clientId: string, requestId: string, start: string, end: string) => {
+const getLogSchemas = (): LogSchemas => {
+  const retention = process.env.TRINO_RETENTION_SCHEMA;
+  const live = process.env.TRINO_LIVE_SCHEMA;
+  if (!retention || !live) throw new Error('TRINO_RETENTION_SCHEMA and TRINO_LIVE_SCHEMA must be set');
+  return { retention, live };
+};
+
+export const fetchLogs = async (
+  env: string,
+  clientId: string,
+  requestId: string,
+  start: string,
+  end: string,
+  userId?: string,
+) => {
   const hasRequiredParams = start && end && env;
 
   if (!hasRequiredParams) {
@@ -24,6 +39,9 @@ export const fetchLogs = async (env: string, clientId: string, requestId: string
   }
   if (!allowedEnvs.includes(env)) {
     return { status: 400, message: `The env parameter must be one of ${allowedEnvs.join(', ')}.` };
+  }
+  if (!clientId) {
+    return { status: 400, message: 'This integration does not have a client ID yet.' };
   }
 
   const unixStartTime = new Date(start).getTime();
@@ -47,9 +65,12 @@ export const fetchLogs = async (env: string, clientId: string, requestId: string
   }
 
   try {
-    const query = `{environment="${env}"}  |= \`clientId=${clientId}\` |= \`realmId=standard\``;
-    // An outside call like any other: failures are recorded, for the service's long-term stability, and the
-    // logs are only handed out once the success row has committed.
+    const query = buildLogsQuery(
+      env,
+      getLogSourceRanges(unixStartTime, unixEndTime, Date.now(), getLogSchemas()),
+      clientId,
+      process.env.NEXT_PUBLIC_APP_ENV,
+    );
     const allLogs = await audit.runAuditedOperation(
       {
         action: 'logs-download',

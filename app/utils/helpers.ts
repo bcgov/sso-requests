@@ -7,7 +7,7 @@ import {
   RESTRICTED_IDPS,
 } from '@app/utils/constants';
 import { LoggedInUser, Team, User } from '@app/interfaces/team';
-import { Integration, Option, GoldIDPOption, Division, BcgovUnit } from '@app/interfaces/Request';
+import { Integration, Option, GoldIDPOption } from '@app/interfaces/Request';
 import { getStatusDisplayName } from '@app/utils/status';
 import {
   usesBceid,
@@ -22,7 +22,6 @@ import {
   usesOTP,
   checkNotOTP,
   usesBcgovIdir,
-  checkNotBcgovIdir,
 } from '@app/helpers/integration';
 import { IntegrationData, Session } from '@app/shared/interfaces';
 import { sortBy, compact, omit, isString } from 'lodash';
