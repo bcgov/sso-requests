@@ -419,13 +419,10 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
           const githubOrBceidUser =
             identityProvider && (identityProvider.startsWith('bceid') || identityProvider.startsWith('github'));
           const username =
-            user.attributes?.idir_username?.[0] ||
-            user.attributes?.bceid_username?.[0] ||
-            user.attributes?.github_username?.[0] ||
-            '';
+            user.attributes?.idir_username || user.attributes?.bceid_username || user.attributes?.github_username || '';
           const firstName = githubOrBceidUser ? '' : user.firstName;
           const lastName = githubOrBceidUser ? '' : user.lastName;
-          const displayName = githubOrBceidUser ? user.firstName : user.attributes?.display_name?.[0] || '';
+          const displayName = githubOrBceidUser ? user.firstName : user.attributes?.display_name || '';
           return pick({ ...user, username, identityProvider, firstName, lastName, displayName, userGuid }, [
             'firstName',
             'lastName',
