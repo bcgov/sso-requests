@@ -7,18 +7,23 @@ import {
   deleteRole,
   findClientRole,
   NewRole,
-  bulkCreateRole,
   setCompositeClientRoles,
   getCompositeClientRoles,
 } from '../keycloak/users';
 import { models } from '@app/shared/sequelize/models/models';
 import { destroyRequestRole, createCompositeRolesDB } from '@app/queries/roles';
 import createHttpError from 'http-errors';
+import uniq from 'lodash/uniq';
 import { Session } from '@app/shared/interfaces';
 import { Integration } from '@app/interfaces/Request';
-import { previewRoleReplication, replicateRolesToMfa, RoleReplicationResultRow } from '@app/keycloak/roleReplication';
-import { beginLifecycleEvent, completeLifecycleEvent, runAuditedOperation } from '@app/queries/event';
-import { EVENTS } from '@app/shared/enums';
+import {
+  isNotFoundInMfa,
+  planRoleReplication,
+  previewRoleReplication,
+  RoleReplicationResultRow,
+} from '@app/keycloak/roleReplication';
+import { audit } from '@app/queries/event';
+import { Environment, isEnvironment, roleMappingTarget, roleOperation } from '@sso/audit';
 
 import { logger } from '@app/utils/logger';
 
@@ -38,6 +43,11 @@ const authorizedIntegration = async (
   return authorized.integration;
 };
 
+const assertEnvironment = (environment: string): Environment => {
+  if (!isEnvironment(environment)) throw new createHttpError.BadRequest(`invalid environment ${environment}`);
+  return environment;
+};
+
 export const createClientRole = async (
   session: Session,
   role: { environment: string; integrationId: number; roleName: string },
@@ -45,29 +55,45 @@ export const createClientRole = async (
   const denied = 'not allowed to create role';
   const integration = await authorizedIntegration(session, role?.integrationId, 'roles:write', denied);
   if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden(denied);
+  const environment = assertEnvironment(role?.environment);
+  if (!role?.roleName || role.roleName.length < 2) throw new createHttpError.BadRequest('invalid role name');
+  if (await findClientRole(integration, role))
+    throw new createHttpError.Conflict(`role ${role.roleName} already exists`);
+
   const sessionUserId = session?.user?.id as number;
-  const dbRole = await models.requestRole.create({
-    name: role?.roleName,
-    environment: role?.environment,
-    requestId: integration.id,
-    createdBy: sessionUserId,
-    lastUpdatedBy: sessionUserId,
-  });
-  if (!dbRole) throw new createHttpError.UnprocessableEntity(`unable to save the role ${role?.roleName}`);
-  return await runAuditedOperation(
-    {
-      eventCode: EVENTS.ROLE_CREATE_REQUESTED,
-      requestId: integration.id,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session?.user?.displayName,
-      details: { roleName: role.roleName, environment: role.environment },
-    },
-    EVENTS.ROLE_CREATE_SUCCESS,
-    EVENTS.ROLE_CREATE_FAILURE,
+  // The role row mirrors Keycloak, so it is written only once Keycloak has the role.
+  return await audit.runAuditedOperation(
+    roleOperation('role-create', { requestId: integration.id, environment, roleName: role.roleName }),
     () => createRole(integration, role),
+    {
+      onSuccess: (transaction) =>
+        models.requestRole.create(
+          {
+            name: role.roleName,
+            environment,
+            requestId: integration.id,
+            createdBy: sessionUserId,
+            lastUpdatedBy: sessionUserId,
+          },
+          { transaction },
+        ),
+    },
   );
 };
 
+type BulkCreateResult = {
+  env: string;
+  success: string[];
+  duplicate: string[];
+  failure: string[];
+  clientNotFound: boolean;
+};
+
+/**
+ * Creates up to 20 roles across their environments. Roles that already exist, and environments with no
+ * client, are reported without being attempted; every other role and environment is its own `role-create`
+ * operation under a `role-bulk-create` parent.
+ */
 export const bulkCreateClientRoles = async (
   session: Session,
   {
@@ -78,75 +104,74 @@ export const bulkCreateClientRoles = async (
     roles: NewRole[];
   },
 ) => {
+  const denied = 'not allowed to create role';
+  const integration = await authorizedIntegration(session, integrationId, 'roles:write', denied);
+  if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden(denied);
+  if (roles.length > 20) throw new createHttpError.TooManyRequests('only 20 roles can be created at a time');
+  const sessionUserId = session?.user?.id as number;
+
   try {
-    const denied = 'not allowed to create role';
-    const integration = await authorizedIntegration(session, integrationId, 'roles:write', denied);
-    if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden(denied);
-    const sessionUserId = session?.user?.id as number;
+    const results: BulkCreateResult[] = [];
+    const attempts: { environment: Environment; roleName: string; result: BulkCreateResult }[] = [];
 
-    if (roles.length > 20) throw new createHttpError.TooManyRequests('only 20 roles can be created at a time');
-
-    const auditEvents = await Promise.all(
-      roles.flatMap((role) =>
-        (role.envs || []).map(async (environment) => {
-          const roleName = role.name;
-          return {
-            roleName,
-            environment,
-            eventId: await beginLifecycleEvent({
-              eventCode: EVENTS.ROLE_CREATE_REQUESTED,
-              requestId: integrationId,
-              idirUserid: session?.idir_userid,
-              idirUserDisplayName: session?.user?.displayName,
-              details: { roleName, environment, bulk: true },
-            }),
-          };
-        }),
-      ),
-    );
-    let envResults: Awaited<ReturnType<typeof bulkCreateRole>>;
-    try {
-      envResults = await bulkCreateRole(integration, roles);
-      await Promise.all(
-        auditEvents.map(({ roleName, environment, eventId }) => {
-          const result = envResults.find((entry) => entry.env === environment);
-          const success = result?.success.includes(roleName);
-          return completeLifecycleEvent(eventId, {
-            eventCode: success ? EVENTS.ROLE_CREATE_SUCCESS : EVENTS.ROLE_CREATE_FAILURE,
-            requestId: integrationId,
-            details: { roleName, environment, bulk: true },
-          });
-        }),
+    for (const environment of ['dev', 'test', 'prod'] as Environment[]) {
+      const roleNames = uniq(
+        roles.filter((role) => role.envs?.includes(environment) && role.name?.length >= 2).map((role) => role.name),
       );
-    } catch (err) {
-      await Promise.all(
-        auditEvents.map(({ roleName, environment, eventId }) =>
-          completeLifecycleEvent(eventId, {
-            eventCode: EVENTS.ROLE_CREATE_FAILURE,
-            requestId: integrationId,
-            details: { roleName, environment, bulk: true },
-          }),
-        ),
-      );
-      throw err;
-    }
+      const result: BulkCreateResult = {
+        env: environment,
+        success: [],
+        duplicate: [],
+        failure: [],
+        clientNotFound: false,
+      };
+      results.push(result);
+      if (roleNames.length === 0) continue;
 
-    if (envResults.length > 0) {
-      for (const res of envResults) {
-        if (res?.success.length > 0) {
-          for (const role of res.success || []) {
-            await models.requestRole.create({
-              name: role,
-              environment: res.env,
-              requestId: integrationId,
-              createdBy: sessionUserId,
-              lastUpdatedBy: sessionUserId,
-            });
-          }
-        }
+      let existing: string[];
+      try {
+        existing = (await listClientRoles(integration, { environment })).map((role) => role.name);
+      } catch (err) {
+        if (!(err instanceof createHttpError.NotFound)) throw err;
+        result.clientNotFound = true;
+        result.failure = roleNames;
+        continue;
+      }
+
+      for (const roleName of roleNames) {
+        if (existing.includes(roleName)) result.duplicate.push(roleName);
+        else attempts.push({ environment, roleName, result });
       }
     }
-    return envResults;
+
+    const outcomes = await audit.runAuditedBatch(
+      {
+        action: 'role-bulk-create',
+        requestId: integration.id,
+        details: { roleNames: uniq(attempts.map(({ roleName }) => roleName)) },
+      },
+      attempts.map(({ environment, roleName }) => ({
+        operation: roleOperation('role-create', { requestId: integration.id, environment, roleName }),
+        call: () => createRole(integration, { environment, integrationId, roleName }),
+        onSuccess: (transaction) =>
+          models.requestRole.create(
+            {
+              name: roleName,
+              environment,
+              requestId: integration.id,
+              createdBy: sessionUserId,
+              lastUpdatedBy: sessionUserId,
+            },
+            { transaction },
+          ),
+      })),
+    );
+
+    outcomes.forEach((outcome, index) => {
+      const { roleName, result } = attempts[index];
+      (outcome.status === 'fulfilled' ? result.success : result.failure).push(roleName);
+    });
+    return results;
   } catch (err) {
     log.error({ err }, 'bulkCreateClientRoles');
     throw new createHttpError.UnprocessableEntity('unable to create roles');
@@ -177,27 +202,15 @@ export const deleteRoles = async (session: Session, role: any) => {
   const denied = 'not allowed to delete role';
   const integration = await authorizedIntegration(session, role?.integrationId, 'roles:write', denied);
   if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden(denied);
+  const environment = assertEnvironment(role?.environment);
+  if (!(await findClientRole(integration, role)))
+    throw new createHttpError.NotFound(`role ${role?.roleName} not found`);
 
-  await runAuditedOperation(
-    {
-      eventCode: EVENTS.ROLE_DELETE_REQUESTED,
-      requestId: integration.id,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session?.user?.displayName,
-      details: { roleName: role?.roleName, environment: role?.environment },
-    },
-    EVENTS.ROLE_DELETE_SUCCESS,
-    EVENTS.ROLE_DELETE_FAILURE,
+  await audit.runAuditedOperation(
+    roleOperation('role-delete', { requestId: integration.id, environment, roleName: role.roleName }),
     () => deleteRole(integration, role),
+    { onSuccess: (transaction) => destroyRequestRole(integration.id, role.roleName, environment, transaction) },
   );
-
-  const deletedRole = await getClientRole(session, role);
-
-  if (!deletedRole) {
-    await destroyRequestRole(integration?.id, role?.roleName, role?.environment);
-  }
-
-  return;
 };
 
 export const setCompositeRoles = async (
@@ -217,22 +230,39 @@ export const setCompositeRoles = async (
   const denied = 'not allowed to create composite roles';
   const integration = await authorizedIntegration(session, integrationId, 'roles:write', denied);
   if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden(denied);
+  const env = assertEnvironment(environment);
+  if (!Array.isArray(compositeRoleNames)) throw new createHttpError.BadRequest('invalid composite roles');
 
-  const result = await runAuditedOperation(
-    {
-      eventCode: EVENTS.ROLE_UPDATE_REQUESTED,
-      requestId: integration.id,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session?.user?.displayName,
-      details: { roleName, composite: true, compositeRoleNames, environment },
-    },
-    EVENTS.ROLE_UPDATE_SUCCESS,
-    EVENTS.ROLE_UPDATE_FAILURE,
+  // getCompositeClientRoles 404s on a missing role; each named composite must exist too.
+  const current = await getCompositeClientRoles(integration, { environment, roleName });
+  for (const name of compositeRoleNames) {
+    if (!(await findClientRole(integration, { environment, roleName: name }))) {
+      throw new createHttpError.NotFound(`role ${name} not found`);
+    }
+  }
+
+  // Keycloak replaces the whole set; the event records what that changes.
+  return await audit.runAuditedOperation(
+    roleOperation(
+      'role-composite-update',
+      { requestId: integration.id, environment: env, roleName },
+      {
+        add: compositeRoleNames.filter((name) => !current.includes(name)),
+        remove: current.filter((name) => !compositeRoleNames.includes(name as string)) as string[],
+      },
+    ),
     () => setCompositeClientRoles(integration, { environment, roleName, compositeRoleNames }),
+    {
+      onSuccess: (transaction, result) =>
+        createCompositeRolesDB(
+          result?.name as string,
+          result?.composites as string[],
+          integration.id,
+          environment,
+          transaction,
+        ),
+    },
   );
-
-  await createCompositeRolesDB(result?.name as string, result?.composites as string[], integration?.id, environment);
-  return result;
 };
 
 export const listCompositeRoles = async (session: Session, role: any) => {
@@ -278,63 +308,64 @@ export const previewRoleMfaReplication = async (
   return await previewRoleReplication(integration, { environment, roleName });
 };
 
-/** Full per-user snapshot plus per-status counts, stored in the audit event for point-in-time review. */
-const summarizeReplication = (rows: RoleReplicationResultRow[]) => ({
-  resultCount: rows.length,
-  statusCounts: rows.reduce<Record<string, number>>((acc, row) => {
-    acc[row.status] = (acc[row.status] || 0) + 1;
-    return acc;
-  }, {}),
-  assignments: rows.map(({ role, idirUsername, guid, status, detail }) => ({
-    role,
-    idirUsername,
-    guid,
-    status,
-    ...(detail ? { detail } : {}),
-  })),
-});
-
 /**
  * Runs the "Replicate Roles" (idir -> MFA) operation. If `roleName` is omitted, replicates every client role
  * in the environment ("Replicate All Roles"). Requires the manage-roles permission since it creates
  * Keycloak users and grants client role mappings.
+ *
+ * Recorded as a `role-replicate` parent with one `role-assign` child per user and role still to replicate,
+ * all stored before anything is granted: a crash part-way leaves exactly the unfinished grants unanswered,
+ * and rerunning skips everyone already replicated. Users who already hold the role are not changes and
+ * are not recorded.
  */
 export const replicateRoleMfa = async (
   session: Session,
   { environment, integrationId, roleName }: { environment: string; integrationId: number; roleName?: string },
-) => {
+): Promise<RoleReplicationResultRow[]> => {
   const denied = 'not allowed to replicate roles';
   const integration = await authorizedIntegration(session, integrationId, 'roles:write', denied);
   if (!canCreateOrDeleteRoles(integration)) throw new createHttpError.Forbidden(denied);
+  const env = assertEnvironment(environment);
   assertRoleReplicationSupported(integration, environment);
-  const details = { roleName: roleName || '*', sourceEnv: 'idir', targetEnv: 'azureidir', environment };
-  const eventId = await beginLifecycleEvent({
-    eventCode: EVENTS.ROLE_REPLICATE_REQUESTED,
-    requestId: integrationId,
-    idirUserid: session?.idir_userid,
-    idirUserDisplayName: session?.user?.displayName,
-    details,
+
+  const plan = await planRoleReplication(integration, { environment, roleName });
+
+  const outcomes = await audit.runAuditedBatch(
+    {
+      action: 'role-replicate',
+      requestId: integration.id,
+      environment: env,
+      ...(roleName ? { target: { type: 'role', id: roleName } } : {}),
+      details: { roleName: roleName || '*', sourceIdp: 'idir', targetIdp: 'azureidir' },
+    },
+    plan.pending.map((row) => {
+      const { targetType, targetId } = roleMappingTarget(row.mfaUsername);
+      return {
+        operation: {
+          action: 'role-assign' as const,
+          requestId: integration.id,
+          environment: env,
+          target: { type: targetType, id: targetId },
+          details: { roleName: row.role, replicatedFrom: row.idirUsername },
+        },
+        call: () => plan.replicate(row),
+      };
+    }),
+    { parent: 'always', concurrency: 8 },
+  );
+
+  const attempted = outcomes.map((outcome, index): RoleReplicationResultRow => {
+    const { idirUsername, guid, role } = plan.pending[index];
+    if (outcome.status === 'fulfilled') return { idirUsername, guid, role, status: 'REPLICATED' };
+    return isNotFoundInMfa(outcome.reason)
+      ? {
+          idirUsername,
+          guid,
+          role,
+          status: 'NOT_FOUND_IN_MFA',
+          detail: 'no matching azureidir account found via MS Graph',
+        }
+      : { idirUsername, guid, role, status: 'ERROR' };
   });
-  try {
-    const result = await replicateRolesToMfa(integration, { environment, roleName });
-    const failedCount = result.filter((row) => row.status === 'ERROR').length;
-    await completeLifecycleEvent(eventId, {
-      eventCode: failedCount > 0 ? EVENTS.ROLE_REPLICATE_FAILURE : EVENTS.ROLE_REPLICATE_SUCCESS,
-      requestId: integrationId,
-      details: { ...details, ...summarizeReplication(result), failedCount },
-    });
-    return result;
-  } catch (err: any) {
-    const partial: RoleReplicationResultRow[] = err?.partialResults || [];
-    await completeLifecycleEvent(eventId, {
-      eventCode: EVENTS.ROLE_REPLICATE_FAILURE,
-      requestId: integrationId,
-      details: {
-        ...details,
-        ...summarizeReplication(partial),
-        failedCount: partial.filter((row) => row.status === 'ERROR').length,
-      },
-    });
-    throw err;
-  }
+  return [...plan.alreadyReplicated, ...attempted];
 };

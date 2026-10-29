@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import UserRoles from 'page-partials/my-dashboard/UserRoles';
-import { listUserRoles, manageUserRole, searchKeycloakUsers } from 'services/keycloak';
+import { listUserRoles, updateUserRoles, searchKeycloakUsers } from 'services/keycloak';
 import { sampleRequest } from '../../samples/integrations';
 import { importAzureIdirUser, searchAzureIdirUsers } from '@app/services/ms-graph';
 import { importIdirUser, searchIdirUsers } from '@app/services/bceid-webservice';
@@ -30,7 +30,9 @@ jest.mock('services/keycloak', () => ({
   listClientRoles: jest.fn(() => Promise.resolve([[{ name: 'role1' }, { name: 'role2' }, { name: 'role3' }], null])),
   listComposites: jest.fn(() => Promise.resolve([[false], null])),
   listUserRoles: jest.fn(() => Promise.resolve([['role1'], null])),
-  manageUserRole: jest.fn(() => Promise.resolve([true, null])),
+  updateUserRoles: jest.fn(({ add = [] }: { add?: string[] }) =>
+    Promise.resolve([{ roles: add, failed: { add: [], remove: [] } }, null]),
+  ),
 }));
 
 jest.mock('services/bceid-webservice', () => ({
@@ -281,7 +283,8 @@ describe('assign user to roles tab', () => {
 
     await waitFor(() => {
       expect(importIdirUser).toHaveBeenCalled();
-      expect(manageUserRole).toHaveBeenCalled();
+      // One request carrying exactly the change, not the whole role list.
+      expect(updateUserRoles).toHaveBeenCalledWith(expect.objectContaining({ add: ['role1'], remove: [] }));
     });
 
     expect(screen.getByText(/Last saved at/i)).toBeInTheDocument();
@@ -324,7 +327,7 @@ describe('assign user to roles tab', () => {
 
     await waitFor(() => {
       expect(importAzureIdirUser).toHaveBeenCalled();
-      expect(manageUserRole).toHaveBeenCalled();
+      expect(updateUserRoles).toHaveBeenCalled();
     });
 
     expect(screen.getByText(/Last saved at/i)).toBeInTheDocument();
@@ -371,7 +374,7 @@ describe('assign user to roles tab', () => {
 
     await waitFor(() => {
       expect(importIdirUser).toHaveBeenCalled();
-      expect(manageUserRole).not.toHaveBeenCalled();
+      expect(updateUserRoles).not.toHaveBeenCalled();
     });
 
     expect(screen.getByText(/Failed to import user to Keycloak/i)).toBeInTheDocument();
@@ -418,7 +421,7 @@ describe('assign user to roles tab', () => {
 
     await waitFor(() => {
       expect(importAzureIdirUser).toHaveBeenCalled();
-      expect(manageUserRole).not.toHaveBeenCalled();
+      expect(updateUserRoles).not.toHaveBeenCalled();
     });
 
     expect(screen.getByText(/Failed to import user to Keycloak/i)).toBeInTheDocument();

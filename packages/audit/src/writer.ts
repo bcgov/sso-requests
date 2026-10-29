@@ -52,6 +52,8 @@ export type BatchOptions = {
   // item, so a single change looks the same whichever path it came through.
   // `always` writes it regardless, for operations that are batches by nature.
   parent?: 'multiple' | 'always';
+  // How many children run at once, in order; 1 (the default) runs them one after another.
+  concurrency?: number;
 };
 
 export const createAuditWriter = <Tx>({
@@ -162,14 +164,15 @@ export const createAuditWriter = <Tx>({
   /**
    * Several operations under one parent. Every child's `requested` row is stored
    * with the parent's before any call is made, so a crash part-way leaves
-   * exactly the unfinished children unanswered. Children run in order and one
-   * failing does not stop the rest; the parent ends in `success` only if every
-   * child did. Returns each child's result rather than throwing.
+   * exactly the unfinished children unanswered. Children run in order, up to
+   * `concurrency` at a time, and one failing does not stop the rest; the parent
+   * ends in `success` only if every child did. Returns each child's result, in
+   * item order, rather than throwing.
    */
   const runAuditedBatch = async <T>(
     parent: AuditOperation,
     items: BatchItem<Tx, T>[],
-    { parent: parentWhen = 'multiple' }: BatchOptions = {},
+    { parent: parentWhen = 'multiple', concurrency = 1 }: BatchOptions = {},
   ): Promise<BatchItemResult<T>[]> => {
     if (items.length === 0 && parentWhen === 'multiple') return [];
 
@@ -196,14 +199,20 @@ export const createAuditWriter = <Tx>({
       for (const { operation } of children) await createEvent(withOutcome(operation, 'requested'), tx);
     });
 
-    const results: BatchItemResult<T>[] = [];
-    for (const { operation, call, ...options } of children) {
+    const runChild = async ({ operation, call, ...options }: BatchItem<Tx, T>): Promise<BatchItemResult<T>> => {
       try {
-        const value = await settle(operation, call, options);
-        results.push({ operationId: operation.operationId!, status: 'fulfilled', value });
+        return {
+          operationId: operation.operationId!,
+          status: 'fulfilled',
+          value: await settle(operation, call, options),
+        };
       } catch (reason) {
-        results.push({ operationId: operation.operationId!, status: 'rejected', reason });
+        return { operationId: operation.operationId!, status: 'rejected', reason };
       }
+    };
+    const results: BatchItemResult<T>[] = [];
+    for (let start = 0; start < children.length; start += Math.max(1, concurrency)) {
+      results.push(...(await Promise.all(children.slice(start, start + Math.max(1, concurrency)).map(runChild))));
     }
 
     const failed = results.filter((r) => r.status === 'rejected').length;

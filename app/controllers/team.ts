@@ -19,7 +19,7 @@ import {
   enqueueIntegrationWorkflow,
   runIntegrationWorkflow,
 } from '@app/controllers/requests';
-import { audit, createEvent, runAuditedOperation } from '@app/queries/event';
+import { audit, createEvent } from '@app/queries/event';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
@@ -403,6 +403,7 @@ export const getServiceAccountCredentials = async (session: Session, teamId: num
     throw new createHttpError.Forbidden('not allowed to fetch api account credentials');
   }
   const integration = await getServiceAccount(session, teamId, saId);
+  if (!integration) throw new createHttpError.NotFound('could not find api account');
   const installation = await generateInstallation({
     serviceType: integration.serviceType,
     environment: 'prod',
@@ -410,8 +411,23 @@ export const getServiceAccountCredentials = async (session: Session, teamId: num
     clientId: integration.clientId,
     authType: integration.authType,
   });
+  // Strict and before returning: credentials nobody can account for are never handed out.
+  await audit.createEvent({
+    action: 'credentials-view',
+    outcome: 'success',
+    ...apiAccountScope(integration),
+    details: {},
+  });
   return installation;
 };
+
+// An api account's secrets events: the account's own request row, its team, and its client.
+const apiAccountScope = (account: { id: number; teamId: number; clientId: string }) => ({
+  requestId: account.id,
+  teamId: account.teamId,
+  environment: 'prod' as const,
+  target: { type: 'service-account' as const, id: account.clientId },
+});
 
 export const deleteServiceAccount = async (session: Session, teamId: number, saId: number) => {
   const userId = session?.user?.id as number;
@@ -460,24 +476,14 @@ export const updateServiceAccountSecret = async (session: Session, teamId: numbe
     throw new createHttpError.Forbidden('not allowed to update api account credentials');
   }
   const integration = await getServiceAccount(session, teamId, saId);
-  return runAuditedOperation(
-    {
-      eventCode: EVENTS.SERVICE_ACCOUNT_SECRET_ROTATION_REQUESTED,
-      requestId: saId,
-      teamId,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session?.user?.displayName,
-      details: { teamId },
-    },
-    EVENTS.SERVICE_ACCOUNT_SECRET_ROTATED,
-    EVENTS.SERVICE_ACCOUNT_SECRET_ROTATION_FAILURE,
-    () =>
-      updateClientSecret({
-        serviceType: integration.serviceType,
-        environment: 'prod',
-        realmName: 'standard',
-        clientId: integration.clientId,
-      }),
+  if (!integration) throw new createHttpError.NotFound('could not find api account');
+  return audit.runAuditedOperation({ action: 'secret-rotate', ...apiAccountScope(integration), details: {} }, () =>
+    updateClientSecret({
+      serviceType: integration.serviceType,
+      environment: 'prod',
+      realmName: 'standard',
+      clientId: integration.clientId,
+    }),
   );
 };
 

@@ -1,4 +1,4 @@
-import { previewRoleReplication, replicateRolesToMfa } from '@app/keycloak/roleReplication';
+import { isNotFoundInMfa, planRoleReplication, previewRoleReplication } from '@app/keycloak/roleReplication';
 
 const CLIENT_ID = 'client-1';
 
@@ -50,7 +50,9 @@ const existingMfaRoleMappingsByUserId: Record<string, any[]> = {
   'kc-mfa-errors': [],
 };
 
-const mockAddClientRoleMappings = jest.fn(() => Promise.resolve());
+const mockAddClientRoleMappings = jest.fn(({ id }: { id: string }) =>
+  id === 'kc-mfa-errors' ? Promise.reject(new Error('keycloak 500')) : Promise.resolve(),
+);
 const mockCreateAzureIdirUser = jest.fn((...args: any[]) =>
   Promise.resolve({ id: 'kc-mfa-provisioned', username: 'guid-to-provision@azureidir' }),
 );
@@ -115,16 +117,32 @@ describe('role replication (idir -> azureidir MFA)', () => {
     expect(mockCreateAzureIdirUser).not.toHaveBeenCalled();
   });
 
-  it('is additive-only: REPLICATED, ALREADY_REPLICATED, NOT_FOUND_IN_MFA, ERROR, and continues past failures', async () => {
-    const results = await replicateRolesToMfa(integration, { environment: 'dev', roleName: 'editor' });
+  it('plans without changing anything, leaving out users who already hold the role', async () => {
+    const plan = await planRoleReplication(integration, { environment: 'dev', roleName: 'editor' });
 
-    const byGuid = Object.fromEntries(results.map((row) => [row.guid, row]));
+    expect(plan.alreadyReplicated.map((row) => [row.guid, row.status])).toEqual([
+      ['guid-already-replicated', 'ALREADY_REPLICATED'],
+    ]);
+    // Every other idir user is still to do, named by the azureidir user that would receive the role.
+    expect(plan.pending.map((row) => [row.idirUsername, row.mfaUsername])).toEqual([
+      ['to.replicate', 'guid-to-replicate@azureidir'],
+      ['not.found', 'guid-not-found@azureidir'],
+      ['to.provision', 'guid-to-provision@azureidir'],
+      ['errors', 'guid-errors@azureidir'],
+    ]);
+    expect(mockAddClientRoleMappings).not.toHaveBeenCalled();
+    expect(mockCreateAzureIdirUser).not.toHaveBeenCalled();
+  });
 
-    expect(byGuid['guid-already-replicated'].status).toBe('ALREADY_REPLICATED');
-    expect(byGuid['guid-to-replicate'].status).toBe('REPLICATED');
-    expect(byGuid['guid-not-found'].status).toBe('NOT_FOUND_IN_MFA');
-    expect(byGuid['guid-to-provision'].status).toBe('REPLICATED');
-    expect(byGuid['guid-errors'].status).toBe('ERROR');
+  it('replicates one user at a time: grants, provisions first when needed, and fails the ones it cannot do', async () => {
+    const plan = await planRoleReplication(integration, { environment: 'dev', roleName: 'editor' });
+    const outcomes = await Promise.allSettled(plan.pending.map((row) => plan.replicate(row)));
+    const byGuid = Object.fromEntries(plan.pending.map((row, index) => [row.guid, outcomes[index]]));
+
+    expect(byGuid['guid-to-replicate'].status).toBe('fulfilled');
+    expect(byGuid['guid-to-provision'].status).toBe('fulfilled');
+    expect(isNotFoundInMfa((byGuid['guid-not-found'] as PromiseRejectedResult).reason)).toBe(true);
+    expect((byGuid['guid-errors'] as PromiseRejectedResult).reason.message).toBe('keycloak 500');
 
     // Never removes/touches roles already on the MFA side.
     expect(mockAddClientRoleMappings).not.toHaveBeenCalledWith(
@@ -132,14 +150,11 @@ describe('role replication (idir -> azureidir MFA)', () => {
     );
     // Provisions the missing azureidir user before assigning the role.
     expect(mockCreateAzureIdirUser).toHaveBeenCalledWith(expect.objectContaining({ guid: 'guid-to-provision' }));
-    // Assigns the role to both the pre-existing and newly-provisioned MFA users.
     expect(mockAddClientRoleMappings).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'kc-mfa-to-replicate', roles: [{ id: 'role-editor-id', name: 'editor' }] }),
     );
     expect(mockAddClientRoleMappings).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'kc-mfa-provisioned', roles: [{ id: 'role-editor-id', name: 'editor' }] }),
     );
-
-    expect(results).toHaveLength(5);
   });
 });

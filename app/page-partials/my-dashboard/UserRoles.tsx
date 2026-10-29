@@ -10,7 +10,7 @@ import { Header, LastSavedMessage, SearchBar } from '@bcgov-sso/common-react-com
 import { ActionButtonContainer } from 'components/ActionButtons';
 import { ModalRef, emptyRef } from 'components/GenericModal';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
-import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRole } from 'services/keycloak';
+import { searchKeycloakUsers, listClientRoles, listUserRoles, updateUserRoles } from 'services/keycloak';
 import { canManageUserRoleMappings } from 'helpers/permissions';
 import InfoOverlay from 'components/InfoOverlay';
 import { idpMap } from 'helpers/meta';
@@ -24,7 +24,7 @@ import { searchIdirUsers, importIdirUser } from 'services/bceid-webservice';
 import { importAzureIdirUser, searchAzureIdirUsers } from '@app/services/ms-graph';
 import { KC_ENTRA_IDP_REALM } from '@app/utils/constants';
 import { IntegrationData } from '@app/shared/interfaces';
-import { RoleChanges, applyRoleChanges, diffRoles, hasFailures, resolveRoles } from '@app/helpers/roles';
+import { diffRoles, hasChanges } from '@app/helpers/roles';
 
 const Label = styled.label`
   font-weight: bold;
@@ -272,6 +272,12 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [rows, setRows] = useState<(KeycloakUser & { source: string })[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
+  // What the server last said the user holds. The selection can run ahead of it while an update is throttled.
+  const savedRoles = useRef<string[]>([]);
+  const showSavedRoles = (roles: string[]) => {
+    savedRoles.current = roles;
+    setUserRoles(roles);
+  };
   const [compositeResult, setCompositeResult] = useState<boolean[]>([]);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('dev');
   //@ts-ignore
@@ -290,7 +296,10 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
   const throttleUpdate = useCallback(
     throttle(
-      async (changes: RoleChanges) => {
+      async (newRoles: string[]) => {
+        // Diffed against what was saved, not the previous selection, so a throttled-away change is still sent.
+        const changes = diffRoles(savedRoles.current, newRoles);
+        if (!hasChanges(changes)) return;
         setSaving(true);
 
         if (selectedUser?.source === 'idp') {
@@ -301,30 +310,28 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
             setSaving(false);
             setUserAssignmentError(true);
             setSavingMessage('Failed to import user to Keycloak.');
-            return changes;
+            showSavedRoles(savedRoles.current);
+            return;
           }
         }
 
         setSavingMessage('Assigning role...');
         setUserAssignmentError(false);
-        const failed = await applyRoleChanges(changes, (roleName, mode) =>
-          manageUserRole({
-            environment: selectedEnvironment,
-            integrationId: selectedRequest.id as number,
-            username: selectedUser?.username as string,
-            roleName,
-            mode,
-          }),
-        );
+        const [result, err] = await updateUserRoles({
+          environment: selectedEnvironment,
+          integrationId: selectedRequest.id as number,
+          username: selectedUser?.username as string,
+          ...changes,
+        });
         setSaving(false);
-        if (hasFailures(failed)) {
+        showSavedRoles(result ? result.roles : savedRoles.current);
+        if (err || hasChanges(result!.failed)) {
           setUserAssignmentError(true);
           setSavingMessage('Failed to update roles.');
         } else {
           setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
           surveyContext?.setShowSurvey(true, 'addUserToRole');
         }
-        return failed;
       },
       2000,
       { trailing: true },
@@ -361,7 +368,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const reset = () => {
     setAllUsers([]);
     setRows([]);
-    setUserRoles([]);
+    showSavedRoles([]);
     setPage(1);
     setCount(0);
     setSelectedUser(undefined);
@@ -396,7 +403,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       return;
     }
 
-    setUserRoles(data || []);
+    showSavedRoles(data || []);
     setLoadingRight(false);
   };
 
@@ -449,7 +456,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     if (selectedUser) {
       checkIfUserExistsInKeycloak().then((exists) => {
         if (exists) fetchUserRoles(selectedUser.username);
-        else setUserRoles([]);
+        else showSavedRoles([]);
       });
     }
   }, [selectedUser?.username]);
@@ -463,7 +470,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setSelectedProperty(property);
     setAllUsers([]);
     setRows([]);
-    setUserRoles([]);
+    showSavedRoles([]);
     setSelectedUser(undefined);
     setCount(0);
 
@@ -554,8 +561,8 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
     // Only send update if roles have been added or removed. Prevents excessive API calls if jamming backspace button when empty.
     if (newRoles.length !== userRoles.length) {
-      const failed = await throttleUpdate(diffRoles(userRoles, newRoles));
-      if (failed) setUserRoles(resolveRoles(newRoles, failed));
+      setUserRoles(newRoles);
+      await throttleUpdate(newRoles);
     }
   };
 

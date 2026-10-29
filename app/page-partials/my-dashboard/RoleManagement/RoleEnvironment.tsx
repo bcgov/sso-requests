@@ -18,7 +18,7 @@ import {
   listRoleUsers,
   getCompositeClientRoles,
   setCompositeClientRoles,
-  manageUserRole,
+  updateUserRoles,
   previewRoleReplication,
   runRoleReplication,
   RoleReplicationPreview,
@@ -853,12 +853,11 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         onConfirm={async (contentRef: any, user: KeycloakUser) => {
           if (!selectedRole) return;
 
-          const [, err] = await manageUserRole({
+          const [, err] = await updateUserRoles({
             environment,
             integrationId: integration.id as number,
             username: user.username as string,
-            roleName: selectedRole,
-            mode: 'del',
+            remove: [selectedRole],
           });
 
           if (err) {
@@ -884,12 +883,11 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         onConfirm={async (contentRef: any, user: KeycloakUser) => {
           if (!selectedRole) return;
 
-          const [, err] = await manageUserRole({
+          const [, err] = await updateUserRoles({
             environment,
             integrationId: integration.id as number,
             username: user.username as string,
-            roleName: selectedRole,
-            mode: 'del',
+            remove: [selectedRole],
           });
 
           if (err) {

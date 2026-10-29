@@ -34,6 +34,7 @@ export const AUDIT_ACTIONS = [
   'role-assign',
   'role-unassign',
   // Batch parents. Children carry `parent_operation_id` pointing at these.
+  'role-bulk-create',
   'role-bulk-update',
   'role-replicate',
 

@@ -5,3 +5,4 @@ export * from './actor';
 export * from './details';
 export * from './event';
 export * from './username';
+export * from './operations';

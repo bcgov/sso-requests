@@ -4,7 +4,7 @@ import { sampleRequest } from '../../samples/integrations';
 import {
   listRoleUsers,
   getCompositeClientRoles,
-  manageUserRole,
+  updateUserRoles,
   bulkCreateRole,
   previewRoleReplication,
   runRoleReplication,
@@ -67,7 +67,9 @@ jest.mock('services/keycloak', () => ({
   listRoleUsers: jest.fn(() => Promise.resolve([testUsers, null])),
   getCompositeClientRoles: jest.fn(() => Promise.resolve([['compositeRole1', 'compositeRole2'], null])),
   deleteRole: jest.fn(() => Promise.resolve([[''], null])),
-  manageUserRole: jest.fn(() => Promise.resolve([[''], null])),
+  updateUserRoles: jest.fn(({ add = [] }: { add?: string[] }) =>
+    Promise.resolve([{ roles: add, failed: { add: [], remove: [] } }, null]),
+  ),
   bulkCreateRole: jest.fn(() => Promise.resolve([{}, null])),
   previewRoleReplication: jest.fn(() => Promise.resolve([[], null])),
   runRoleReplication: jest.fn(() => Promise.resolve([[], null])),
@@ -225,7 +227,8 @@ describe('role management tab', () => {
       fireEvent.click(await screen.findByRole('button', { name: 'Remove' }));
     });
     await waitFor(() => {
-      expect(manageUserRole).toHaveBeenCalledTimes(1);
+      expect(updateUserRoles).toHaveBeenCalledTimes(1);
+      expect(updateUserRoles).toHaveBeenCalledWith(expect.objectContaining({ remove: ['role-1'] }));
     });
   });
 
@@ -304,7 +307,7 @@ describe('role management tab', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
     });
     await waitFor(() => {
-      expect(manageUserRole).toHaveBeenCalledTimes(1);
+      expect(updateUserRoles).toHaveBeenCalledTimes(1);
     });
   });
 

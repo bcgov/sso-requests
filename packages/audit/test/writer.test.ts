@@ -278,6 +278,33 @@ describe('runAuditedBatch', () => {
     expect(rows[5].details).toMatchObject({ total: 2, succeeded: 1, failed: 1 });
   });
 
+  it('runs children concurrently when asked, still returning them in item order', async () => {
+    const { writer, rows } = setup();
+    let inFlight = 0;
+    let peak = 0;
+    const call = (value: string, ms: number) => async () => {
+      inFlight += 1;
+      peak = Math.max(peak, inFlight);
+      await new Promise((resolve) => setTimeout(resolve, ms));
+      inFlight -= 1;
+      return value;
+    };
+    const results = await withActor(alice, () =>
+      writer.runAuditedBatch(
+        parent,
+        [
+          { operation: assign('a'), call: call('a', 20) },
+          { operation: assign('b'), call: call('b', 5) },
+          { operation: assign('c'), call: call('c', 5) },
+        ],
+        { concurrency: 2 },
+      ),
+    );
+    expect(peak).toBe(2);
+    expect(results.map((r) => (r.status === 'fulfilled' ? r.value : null))).toEqual(['a', 'b', 'c']);
+    expect(rows.filter((r) => r.outcome === 'success' && r.eventCode === 'role-assign')).toHaveLength(3);
+  });
+
   it('writes the parent for one item when asked to', async () => {
     const { writer, rows } = setup();
     await withActor(alice, () =>

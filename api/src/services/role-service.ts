@@ -6,11 +6,39 @@ import { getAllowedRoleProps, updateRoleProps } from '@/helpers/roles';
 import { Role, RolePayload } from '@/types';
 import { AuthContext } from '@/modules/authorization';
 import { ACTIONS, RESOURCES } from '@sso/authz';
-import { parseErrors, runAuditedOperation } from '@/utils';
-import { KeycloakServiceFactory } from './keycloak-service';
+import { audit, parseErrors } from '@/utils';
+import { KeycloakService, KeycloakServiceFactory } from './keycloak-service';
 import models from '@/sequelize/models/models';
 import { createCompositeRolesDB, deleteCompositeRolesDB, destroyRequestRole } from '@/sequelize/queries/requestRoles';
-import { EVENTS } from '../../../app/shared/enums';
+import { Environment, roleOperation } from '@sso/audit';
+
+/** Whether the client has the role. Only a 404 means it does not; anything else is rethrown. */
+const roleExists = async (keycloakService: KeycloakService, clientId: string, roleName: string) =>
+  keycloakService.getClientRole(clientId, roleName).then(
+    (role) => Boolean(role),
+    (err) => {
+      if (err instanceof createHttpError.NotFound) return false;
+      throw err;
+    },
+  );
+
+/**
+ * The Keycloak service returns nothing, rather than throwing, for a role call that failed for any reason it
+ * does not map to an HTTP error. Make that a failure, so it is never recorded or mirrored as a success.
+ */
+const confirmed = async <T>(call: Promise<T>, action: string): Promise<T> => {
+  const result = await call;
+  if (!result) throw new createHttpError.UnprocessableEntity(`failed to ${action}`);
+  return result;
+};
+
+/** 404 unless the client has every one of the roles. */
+export const assertRolesExist = async (keycloakService: KeycloakService, clientId: string, roleNames: string[]) => {
+  const clientRoleNames = (await keycloakService.listClientRoles(clientId)).map((role: Role) => role.name);
+  const missing = roleNames.filter((name) => !clientRoleNames.includes(name));
+  if (missing.length === 1) throw new createHttpError.NotFound(`role ${missing[0]} not found`);
+  if (missing.length > 1) throw new createHttpError.NotFound(`roles (${missing.join(', ')}) not found`);
+};
 
 @singleton()
 export class RoleService {
@@ -45,25 +73,19 @@ export class RoleService {
       action: ACTIONS.WRITE,
     });
     const KeycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-    const kcRole = await runAuditedOperation(
-      {
-        eventCode: EVENTS.ROLE_CREATE_REQUESTED,
-        requestId: integrationId,
-        actorType: 'service-account',
-        actorId: authz.apiClientId,
-        details: { roleName: role.name, environment },
-      },
-      EVENTS.ROLE_CREATE_SUCCESS,
-      EVENTS.ROLE_CREATE_FAILURE,
-      () => KeycloakService.createClientRole(int.clientId, role),
-    );
-    if (kcRole) {
-      await models.requestRole.create({
-        name: role?.name,
-        environment: environment,
-        requestId: integrationId,
-      });
+    if (await roleExists(KeycloakService, int.clientId, role.name)) {
+      throw new createHttpError.Conflict(`role ${role.name} already exists`);
     }
+
+    // The role row mirrors Keycloak, so it is written only once Keycloak has the role.
+    const kcRole = await audit.runAuditedOperation(
+      roleOperation('role-create', { requestId: int.id, environment: environment as Environment, roleName: role.name }),
+      () => confirmed(KeycloakService.createClientRole(int.clientId, role), `create role ${role.name}`),
+      {
+        onSuccess: (transaction) =>
+          models.requestRole.create({ name: role.name, environment, requestId: int.id }, { transaction }),
+      },
+    );
     return getAllowedRoleProps(kcRole);
   }
 
@@ -73,19 +95,15 @@ export class RoleService {
       action: ACTIONS.WRITE,
     });
     const KeycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-    await runAuditedOperation(
-      {
-        eventCode: EVENTS.ROLE_DELETE_REQUESTED,
-        requestId: integrationId,
-        actorType: 'service-account',
-        actorId: authz.apiClientId,
-        details: { roleName, environment },
-      },
-      EVENTS.ROLE_DELETE_SUCCESS,
-      EVENTS.ROLE_DELETE_FAILURE,
+    if (!(await roleExists(KeycloakService, int.clientId, roleName))) {
+      throw new createHttpError.NotFound(`role ${roleName} not found`);
+    }
+
+    await audit.runAuditedOperation(
+      roleOperation('role-delete', { requestId: int.id, environment: environment as Environment, roleName }),
       () => KeycloakService.deleteClientRole(int.clientId, roleName),
+      { onSuccess: (transaction) => destroyRequestRole(int.id, roleName, environment, transaction) },
     );
-    await destroyRequestRole(int?.id, roleName, environment);
   }
 
   public async updateRole(
@@ -101,39 +119,37 @@ export class RoleService {
       action: ACTIONS.WRITE,
     });
     const KeycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-    const updatedRole = await runAuditedOperation(
-      {
-        eventCode: EVENTS.ROLE_UPDATE_REQUESTED,
-        requestId: integrationId,
-        actorType: 'service-account',
-        actorId: authz.apiClientId,
-        details: { roleName, environment, update: true },
-      },
-      EVENTS.ROLE_UPDATE_SUCCESS,
-      EVENTS.ROLE_UPDATE_FAILURE,
-      () => KeycloakService.updateClientRole(int.clientId, roleName, role),
-    );
-    if (updatedRole) {
-      const dbRole = await models.requestRole.findOne({
-        where: {
-          name: roleName,
-          environment: environment,
-          requestId: integrationId,
-        },
-      });
-      // if role exists in db then update else create
-      if (dbRole) {
-        dbRole.name = role?.name;
-        dbRole.environment = environment;
-        await dbRole.save();
-      } else {
-        await models.requestRole.create({
-          name: role?.name,
-          environment: environment,
-          requestId: integrationId,
-        });
-      }
+    if (!(await roleExists(KeycloakService, int.clientId, roleName))) {
+      throw new createHttpError.NotFound(`role ${roleName} not found`);
     }
+    const renamed = role.name !== roleName;
+    if (renamed && (await roleExists(KeycloakService, int.clientId, role.name))) {
+      throw new createHttpError.Conflict(`role ${role.name} already exists`);
+    }
+
+    const updatedRole = await audit.runAuditedOperation(
+      roleOperation(
+        'role-update',
+        { requestId: int.id, environment: environment as Environment, roleName },
+        renamed ? { newRoleName: role.name } : {},
+      ),
+      () => confirmed(KeycloakService.updateClientRole(int.clientId, roleName, role), `update role ${roleName}`),
+      {
+        onSuccess: async (transaction) => {
+          const dbRole = await models.requestRole.findOne({
+            where: { name: roleName, environment, requestId: int.id },
+            transaction,
+          });
+          // if role exists in db then update else create
+          if (dbRole) {
+            dbRole.name = role.name;
+            await dbRole.save({ transaction });
+          } else {
+            await models.requestRole.create({ name: role.name, environment, requestId: int.id }, { transaction });
+          }
+        },
+      },
+    );
     return getAllowedRoleProps(updatedRole);
   }
 
@@ -171,27 +187,21 @@ export class RoleService {
       if (role.name.trim().length === 0) throw new createHttpError[400]('invalid role');
       if (role.name === roleName) throw new createHttpError[400](`role ${roleName} cannot be associated with itself`);
     }
-    const updatedRole = await runAuditedOperation(
-      {
-        eventCode: EVENTS.ROLE_UPDATE_REQUESTED,
-        requestId: integrationId,
-        actorType: 'service-account',
-        actorId: authz.apiClientId,
-        details: { roleName, composite: true, compositeRoleNames: compositeRoles.map(({ name }) => name), environment },
-      },
-      EVENTS.ROLE_UPDATE_SUCCESS,
-      EVENTS.ROLE_UPDATE_FAILURE,
-      () => KeycloakService.createCompositeRole(int.clientId, roleName, compositeRoles),
-    );
+    const compositeRoleNames = compositeRoles.map(({ name }) => name);
+    await assertRolesExist(KeycloakService, int.clientId, [roleName, ...compositeRoleNames]);
 
-    if (updatedRole) {
-      await createCompositeRolesDB(
-        roleName,
-        compositeRoles.map((r) => r.name),
-        int?.id,
-        environment,
-      );
-    }
+    const updatedRole = await audit.runAuditedOperation(
+      roleOperation(
+        'role-composite-update',
+        { requestId: int.id, environment: environment as Environment, roleName },
+        { add: compositeRoleNames },
+      ),
+      () => KeycloakService.createCompositeRole(int.clientId, roleName, compositeRoles),
+      {
+        onSuccess: (transaction) =>
+          createCompositeRolesDB(roleName, compositeRoleNames, int.id, environment, transaction),
+      },
+    );
 
     return getAllowedRoleProps(updatedRole);
   }
@@ -244,18 +254,19 @@ export class RoleService {
     if (roleName === compositeRoleName)
       throw new createHttpError[400](`role name and composite role name cannot be same`);
 
-    await runAuditedOperation(
-      {
-        eventCode: EVENTS.ROLE_UNASSIGN_REQUESTED,
-        requestId: integrationId,
-        actorType: 'service-account',
-        actorId: authz.apiClientId,
-        details: { roleName, compositeRoleName, environment },
-      },
-      EVENTS.ROLE_UNASSIGN_SUCCESS,
-      EVENTS.ROLE_UNASSIGN_FAILURE,
+    await assertRolesExist(keycloakService, int.clientId, [roleName, compositeRoleName]);
+
+    await audit.runAuditedOperation(
+      roleOperation(
+        'role-composite-update',
+        { requestId: int.id, environment: environment as Environment, roleName },
+        { remove: [compositeRoleName] },
+      ),
       () => keycloakService.deleteCompositeRole(int.clientId, roleName, compositeRoleName),
+      {
+        onSuccess: (transaction) =>
+          deleteCompositeRolesDB(roleName, compositeRoleName, int.id, environment, transaction),
+      },
     );
-    await deleteCompositeRolesDB(roleName, compositeRoleName, int?.id, environment);
   }
 }

@@ -1,6 +1,6 @@
 import KcAdminClient from '@keycloak/keycloak-admin-client';
 import RoleRepresentation from '@keycloak/keycloak-admin-client/lib/defs/roleRepresentation';
-import { forEach, map, get, difference } from 'lodash';
+import { forEach, map, get } from 'lodash';
 import { getAdminClient } from './adminClient';
 import { Integration } from '@app/interfaces/Request';
 import { UserQuery } from '@keycloak/keycloak-admin-client/lib/resources/users';
@@ -261,19 +261,14 @@ export const listUserRoles = async (
   return roles;
 };
 
-export const manageUserRole = async (
+/**
+ * Everything a role mapping change needs, resolved and validated without changing anything: the user's
+ * idp is enabled on the integration, and the client, the user and every named role exist. Throws 400/404
+ * otherwise, before any audit event, so a rejected request leaves only its request log.
+ */
+export const resolveUserRoleMappingTarget = async (
   integration: Integration,
-  {
-    environment,
-    username,
-    roleName,
-    mode,
-  }: {
-    environment: string;
-    username: string;
-    roleName: string;
-    mode: 'add' | 'del';
-  },
+  { environment, username, roleNames }: { environment: string; username: string; roleNames: string[] },
 ) => {
   if (!checkIfUserIsServiceAccount(username)) {
     const idp = username.split('@')[1];
@@ -288,100 +283,28 @@ export const manageUserRole = async (
   const users = await kcAdminClient.users.find({ realm: 'standard', username, max: 1 });
   if (users.length === 0) throw new createHttpError.NotFound(`user ${username} not found`);
 
-  const role = await kcAdminClient.clients.findRole({ realm: 'standard', id: client?.id!, roleName });
-  if (!role) throw new createHttpError.NotFound(`role ${roleName} not found`);
-
-  const roleMapping = {
-    realm: 'standard',
-    id: users[0]?.id!,
-    clientUniqueId: client?.id!,
-  };
-
-  const roleMappingUpdate = { ...roleMapping, roles: [{ id: role?.id!, name: role?.name! }] };
-
-  if (mode === 'del') {
-    await kcAdminClient.users.delClientRoleMappings(roleMappingUpdate);
-  } else {
-    await kcAdminClient.users.addClientRoleMappings(roleMappingUpdate);
+  const roles = new Map<string, RoleRepresentation>();
+  for (const roleName of roleNames) {
+    const role = await getRoleByName(kcAdminClient, client?.id!, roleName);
+    if (!role) throw new createHttpError.NotFound(`role ${roleName} not found`);
+    roles.set(roleName, role);
   }
 
-  const roles = await kcAdminClient.users.listClientRoleMappings(roleMapping);
-  return roles;
-};
+  const mapping = { realm: 'standard', id: users[0].id!, clientUniqueId: client?.id! };
+  const listRoleNames = async () =>
+    (await kcAdminClient.users.listClientRoleMappings(mapping)).map((role) => role.name as string);
 
-export interface UserRoleMappingChanges {
-  assigned: string[];
-  unassigned: string[];
-}
-
-export const manageUserRoles = async (
-  integration: Integration,
-  {
-    environment,
-    username,
-    roleNames,
-  }: {
-    environment: string;
-    username: string;
-    roleNames: string[];
-  },
-  auditChanges?: (changes: UserRoleMappingChanges, applyChanges: () => Promise<boolean>) => Promise<boolean>,
-) => {
-  if (!checkIfUserIsServiceAccount(username)) {
-    const idp = username.split('@')[1];
-    if (!integration?.devIdps?.includes(idp)) throw new createHttpError.BadRequest(`invalid idp ${idp}`);
-  }
-
-  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-  const clients = await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 });
-  if (clients.length === 0) throw new createHttpError.NotFound(`client ${integration.clientId} not found`);
-  const client = clients[0];
-
-  const users = await kcAdminClient.users.find({ realm: 'standard', username, max: 1 });
-  if (users.length === 0) throw new createHttpError.NotFound(`user ${username} not found`);
-
-  const roles = await kcAdminClient.users.listClientRoleMappings({
-    realm: 'standard',
-    id: users[0]?.id!,
-    clientUniqueId: client?.id!,
-  });
-
-  const rnames = roles.map((role) => role.name);
-  const rolesToAdd = difference(roleNames, rnames);
-  const rolesToDel = difference(rnames, roleNames);
-
-  const roleMapping = {
-    realm: 'standard',
-    id: users[0].id,
-    clientUniqueId: client?.id!,
-  };
-
-  const findRole = (roleName: string) =>
-    kcAdminClient.clients.findRole({ realm: 'standard', id: client?.id!, roleName });
-
-  const applyChanges = async () => {
-    const addPromise = Promise.all(rolesToAdd.map((roleName) => findRole(roleName!))).then((roles) =>
-      // @ts-ignore
-      kcAdminClient.users.addClientRoleMappings({ ...roleMapping, roles }),
-    );
-
-    const delPromise = Promise.all(rolesToDel.map((roleName) => findRole(roleName!))).then((roles) =>
-      // @ts-ignore
-      kcAdminClient.users.delClientRoleMappings({ ...roleMapping, roles }),
-    );
-
-    await Promise.all([addPromise, delPromise]);
-    return true;
-  };
-
-  if (!auditChanges) return applyChanges();
-  return auditChanges(
-    {
-      assigned: rolesToAdd.filter((roleName): roleName is string => typeof roleName === 'string'),
-      unassigned: rolesToDel.filter((roleName): roleName is string => typeof roleName === 'string'),
+  return {
+    current: await listRoleNames(),
+    listRoleNames,
+    /** Grants or revokes one of the resolved roles. */
+    change: async (roleName: string, mode: 'add' | 'remove') => {
+      const role = roles.get(roleName)!;
+      const update = { ...mapping, roles: [{ id: role.id!, name: role.name! }] };
+      if (mode === 'add') await kcAdminClient.users.addClientRoleMappings(update);
+      else await kcAdminClient.users.delClientRoleMappings(update);
     },
-    applyChanges,
-  );
+  };
 };
 
 export const createRole = async (

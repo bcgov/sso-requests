@@ -210,29 +210,66 @@ export const previewRoleReplication = async (
   return previews;
 };
 
+export interface PendingReplication {
+  idirUsername: string;
+  guid: string;
+  role: string;
+  /** The azureidir user that would receive the role: deterministic from the GUID, before it exists. */
+  mfaUsername: string;
+}
+
+/** For a user with no azureidir account: nothing to replicate to, which is an outcome, not a fault. */
+const notFoundInMfa = (guid: string) =>
+  Object.assign(new createHttpError.NotFound(`no matching azureidir account found via MS Graph for ${guid}`), {
+    notFoundInMfa: true,
+  });
+
+export const isNotFoundInMfa = (err: unknown) => (err as { notFoundInMfa?: boolean })?.notFoundInMfa === true;
+
 /**
- * Replicate client role(s) from `idir` users to their `azureidir` equivalents. If `roleName` is
- * omitted, replicates every client role in the environment ("Replicate All Roles") in one pass.
+ * Works out, without changing anything, who still needs each role replicated: every idir user holding the
+ * role whose azureidir counterpart does not already hold it. `replicate` then grants one of them, resolving
+ * (and if need be creating) the azureidir user first. If `roleName` is omitted, plans every client role.
  */
-export const replicateRolesToMfa = async (
+export const planRoleReplication = async (
   integration: Integration,
   { environment, roleName }: { environment: string; roleName?: string },
-): Promise<RoleReplicationResultRow[]> => {
+) => {
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const client = await getClient(kcAdminClient, integration.clientId);
   const roleNames = await resolveRoleNames(kcAdminClient, client, roleName);
 
-  const allResults: RoleReplicationResultRow[] = [];
-  try {
-    for (const rName of roleNames) {
-      const idirUsers = await listIdirUsersForRole(kcAdminClient, client, rName);
-      const rows = await replicateRoleForUsers(environment, kcAdminClient, client, rName, idirUsers, false);
-      allResults.push(...rows);
+  const alreadyReplicated: RoleReplicationResultRow[] = [];
+  const pending: PendingReplication[] = [];
+  for (const rName of roleNames) {
+    const idirUsers = await listIdirUsersForRole(kcAdminClient, client, rName);
+    const rows = await replicateRoleForUsers(environment, kcAdminClient, client, rName, idirUsers, true);
+    for (const row of rows) {
+      if (row.status === 'ALREADY_REPLICATED') alreadyReplicated.push(row);
+      else
+        pending.push({
+          idirUsername: row.idirUsername,
+          guid: row.guid,
+          role: row.role,
+          mfaUsername: `${row.guid}@azureidir`,
+        });
     }
-  } catch (err: any) {
-    // Preserve what was already applied so the audit trail still reflects it.
-    if (err && typeof err === 'object') err.partialResults = allResults;
-    throw err;
   }
-  return allResults;
+
+  const replicate = async ({ guid, role: rName }: PendingReplication) => {
+    const mfaUser = await resolveMfaUser(environment, kcAdminClient, guid);
+    if (!mfaUser) throw notFoundInMfa(guid);
+
+    const role = await kcAdminClient.clients.findRole({ realm: 'standard', id: client.id, roleName: rName });
+    if (!role) throw new createHttpError.NotFound(`role ${rName} not found`);
+
+    await kcAdminClient.users.addClientRoleMappings({
+      realm: 'standard',
+      id: mfaUser.id,
+      clientUniqueId: client.id,
+      roles: [{ id: role.id!, name: role.name! }],
+    });
+  };
+
+  return { alreadyReplicated, pending, replicate };
 };

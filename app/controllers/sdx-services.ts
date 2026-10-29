@@ -2,8 +2,7 @@ import type { SDXAccessRequest, Session } from '@app/shared/interfaces';
 import { SDXResourceServer } from '@app/shared/interfaces';
 import { getIntegrationById } from '@app/queries/request';
 import { authorizeIntegration } from '@app/queries/integrationAccess';
-import { EVENTS } from '@app/shared/enums';
-import { runAuditedOperation } from '@app/queries/event';
+import { audit } from '@app/queries/event';
 import { getAdminClient } from '@app/keycloak/adminClient';
 import { getClientScopes } from '@app/keycloak/clientScopes';
 import ClientScopeRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientScopeRepresentation';
@@ -197,16 +196,10 @@ export const createSdxRequest = async (session: Session, request: Integration) =
       privacyZone: privacyZoneUri,
     };
 
-    const responseData = await runAuditedOperation(
-      {
-        eventCode: EVENTS.SDX_REQUEST_CREATE_REQUESTED,
-        requestId: request.id,
-        idirUserid: session?.idir_userid,
-        idirUserDisplayName: user?.displayName || '',
-        details: { services: request.sdxServices },
-      },
-      EVENTS.SDX_REQUEST_CREATE_SUCCESS,
-      EVENTS.SDX_REQUEST_CREATE_FAILURE,
+    // The access request row mirrors what SDX accepted, so it commits with the success event. The Keycloak
+    // scope sync below follows it; a failure there fails the request but not the recorded SDX submission.
+    await audit.runAuditedOperation(
+      { action: 'sdx-request-create', requestId: request.id, details: { services: request.sdxServices } },
       async () => {
         const response = await fetch(`${process.env.SDX_API || ''}/integrations/${request.id!}/access-requests`, {
           method: 'POST',
@@ -224,9 +217,18 @@ export const createSdxRequest = async (session: Session, request: Integration) =
 
         return response.json();
       },
+      {
+        onSuccess: (transaction, responseData) =>
+          createSdxAccessRequest(
+            responseData.submissionId || '',
+            user?.displayName || '',
+            request.id!,
+            sdxRequestData,
+            transaction,
+          ),
+        successDetails: (responseData) => ({ submissionId: responseData.submissionId }),
+      },
     );
-
-    await createSdxAccessRequest(responseData.submissionId || '', user?.displayName || '', request.id!, sdxRequestData);
 
     await initializeScopes(resourceServers);
 
@@ -334,16 +336,13 @@ export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAcce
     throw new Error(`Integration with ID ${requestId} is not in applied state`);
   }
 
-  await runAuditedOperation(
+  // Runs as the `sdx-callback` system actor, set by the route.
+  await audit.runAuditedOperation(
     {
-      eventCode: EVENTS.SDX_ACCESS_REQUEST_UPDATE,
+      action: 'sdx-access-request-update',
       requestId,
-      actorType: 'system',
-      actorId: 'sdx-callback',
-      details: { ...data, triggeredBy: 'sdx-callback' },
+      details: { resourceServers: data.resourceServers },
     },
-    EVENTS.SDX_ACCESS_REQUEST_UPDATE_SUCCESS,
-    EVENTS.SDX_ACCESS_REQUEST_UPDATE_FAILURE,
     async () => {
       if (data.resourceServers && data.resourceServers.length > 0) {
         for (const rs of data.resourceServers) {

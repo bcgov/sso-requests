@@ -16,7 +16,7 @@ import {
   enqueueIntegrationWorkflow,
   runIntegrationWorkflow,
 } from '@app/controllers/requests';
-import { audit, createEvent, runAuditedOperation } from '@app/queries/event';
+import { audit, createEvent } from '@app/queries/event';
 import { generateInstallation, updateClientSecret } from '@app/keycloak/installation';
 import { authorizeTeam } from '@app/queries/teamAccess';
 import { authorizeOrganization } from '@app/queries/organizationAccess';
@@ -606,8 +606,18 @@ export const getOrganizationApiAccountCredentials = async (
     clientId: account.clientId,
     authType: account.authType,
   });
+  // Strict and before returning: credentials nobody can account for are never handed out.
+  await audit.createEvent({ action: 'credentials-view', outcome: 'success', ...apiAccountScope(account), details: {} });
   return credentials;
 };
+
+// An api account's secrets events: the account's own request row, its organization, and its client.
+const apiAccountScope = (account: { id: number; organizationId: number; clientId: string }) => ({
+  requestId: account.id,
+  organizationId: account.organizationId,
+  environment: 'prod' as const,
+  target: { type: 'service-account' as const, id: account.clientId },
+});
 
 export const updateOrganizationApiAccountSecret = async (
   session: Session,
@@ -616,23 +626,13 @@ export const updateOrganizationApiAccountSecret = async (
 ) => {
   await assertOrganization(session, organizationId, organizationPermissions.MANAGE_ORG_API_ACCOUNTS);
   const account = await getOrganizationApiAccount(organizationId, accountId);
-  return runAuditedOperation(
-    {
-      eventCode: EVENTS.SERVICE_ACCOUNT_SECRET_ROTATION_REQUESTED,
-      requestId: accountId,
-      organizationId,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session?.user?.displayName,
-    },
-    EVENTS.SERVICE_ACCOUNT_SECRET_ROTATED,
-    EVENTS.SERVICE_ACCOUNT_SECRET_ROTATION_FAILURE,
-    () =>
-      updateClientSecret({
-        serviceType: account.serviceType,
-        environment: 'prod',
-        realmName: 'standard',
-        clientId: account.clientId,
-      }),
+  return audit.runAuditedOperation({ action: 'secret-rotate', ...apiAccountScope(account), details: {} }, () =>
+    updateClientSecret({
+      serviceType: account.serviceType,
+      environment: 'prod',
+      realmName: 'standard',
+      clientId: account.clientId,
+    }),
   );
 };
 

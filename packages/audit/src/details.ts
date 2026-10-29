@@ -34,8 +34,10 @@ export type AuditDetailsMap = {
   'role-update': { roleName: string; newRoleName?: string };
   'role-delete': { roleName: string };
   'role-composite-update': { roleName: string; add?: string[]; remove?: string[] };
-  'role-assign': { roleName: string };
+  // `replicatedFrom` names the idir user whose role a replicate copied to this azureidir user.
+  'role-assign': { roleName: string; replicatedFrom?: string };
   'role-unassign': { roleName: string };
+  'role-bulk-create': { roleNames: string[] };
   'role-bulk-update': { add: string[]; remove: string[] };
   'role-replicate': { roleName: string; sourceIdp: string; targetIdp: string };
 

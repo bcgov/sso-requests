@@ -135,7 +135,9 @@ jest.mock('services/keycloak', () => ({
   ),
   getCompositeClientRoles: jest.fn(() => Promise.resolve([['compositeRole1', 'compositeRole2'], null])),
   deleteRole: jest.fn(() => Promise.resolve([[''], null])),
-  manageUserRole: jest.fn(() => Promise.resolve([[''], null])),
+  updateUserRoles: jest.fn(({ add = [] }: { add?: string[] }) =>
+    Promise.resolve([{ roles: add, failed: { add: [], remove: [] } }, null]),
+  ),
   bulkCreateRole: jest.fn(() => Promise.resolve([{}, null])),
 }));
 

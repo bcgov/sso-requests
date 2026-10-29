@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
 import { startCase, throttle } from 'lodash';
@@ -6,14 +6,14 @@ import { Tabs, Alert, LastSavedMessage } from '@bcgov-sso/common-react-component
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
-import { listClientRoles, listUserRoles, manageUserRole } from 'services/keycloak';
+import { listClientRoles, listUserRoles, updateUserRoles } from 'services/keycloak';
 import TopAlertWrapper from '@app/components/TopAlertWrapper';
 import Link from '@app/components/Link';
 import { getServiceAccountUsername } from '@app/helpers/users';
 import { docusaurusURL } from '@app/utils/constants';
 import TableNew from '@app/components/TableNew';
 import { Col, Row } from 'react-bootstrap';
-import { RoleChanges, applyRoleChanges, diffRoles, hasFailures, resolveRoles } from '@app/helpers/roles';
+import { diffRoles, hasChanges } from '@app/helpers/roles';
 
 const Label = styled.label`
   font-weight: bold;
@@ -62,6 +62,12 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
   const [savingMessage, setSavingMessage] = useState('');
   const [roles, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<string[]>([]);
+  // What the server last said the account holds. The selection can run ahead of it while an update is throttled.
+  const savedRoles = useRef<string[]>([]);
+  const showSavedRoles = (roles: string[]) => {
+    savedRoles.current = roles;
+    setUserRoles(roles);
+  };
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [environment, setEnvironment] = useState('dev');
   const [userAssignmentError, setUserAssignmentError] = useState(false);
@@ -70,27 +76,27 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
 
   const throttleUpdate = useCallback(
     throttle(
-      async (changes: RoleChanges) => {
+      async (newRoles: string[]) => {
+        // Diffed against what was saved, not the previous selection, so a throttled-away change is still sent.
+        const changes = diffRoles(savedRoles.current, newRoles);
+        if (!hasChanges(changes)) return;
         setSaving(true);
         setSavingMessage('Assigning role...');
         setUserAssignmentError(false);
-        const failed = await applyRoleChanges(changes, (roleName, mode) =>
-          manageUserRole({
-            environment: environment,
-            integrationId: selectedRequest.id as number,
-            username: getServiceAccountUsername(selectedRequest.clientId as string),
-            roleName,
-            mode,
-          }),
-        );
+        const [result, err] = await updateUserRoles({
+          environment: environment,
+          integrationId: selectedRequest.id as number,
+          username: getServiceAccountUsername(selectedRequest.clientId as string),
+          ...changes,
+        });
         setSaving(false);
-        if (hasFailures(failed)) {
+        showSavedRoles(result ? result.roles : savedRoles.current);
+        if (err || hasChanges(result!.failed)) {
           setUserAssignmentError(true);
           setSavingMessage('Failed to update roles.');
         } else {
           setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
         }
-        return failed;
       },
       2000,
       { trailing: true },
@@ -116,8 +122,8 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
     }
 
     if (userRoles.length !== newRoles.length) {
-      const failed = await throttleUpdate(diffRoles(userRoles, newRoles));
-      if (failed) setUserRoles(resolveRoles(newRoles, failed));
+      setUserRoles(newRoles);
+      await throttleUpdate(newRoles);
     }
   };
 
@@ -163,7 +169,7 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
       return;
     }
 
-    await setUserRoles(data || []);
+    showSavedRoles(data || []);
     setLoadingRight(false);
   };
 

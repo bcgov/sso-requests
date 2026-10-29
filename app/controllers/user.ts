@@ -6,15 +6,16 @@ import { lowcase } from '@app/helpers/string';
 import { isAdmin } from '../utils/helpers';
 import { Permission } from '@sso/authz';
 import { authorizeIntegration } from '@app/queries/integrationAccess';
-import { listRoleUsers, listUserRoles, manageUserRole, manageUserRoles } from '@app/keycloak/users';
+import { listRoleUsers, listUserRoles, resolveUserRoleMappingTarget } from '@app/keycloak/users';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import { EMAILS, EVENTS } from '@app/shared/enums';
 import { sendTemplate } from '@app/shared/templates';
 import { UserSurveyInformation } from '@app/shared/interfaces';
-import { createEvent, runAuditedOperation } from '@app/queries/event';
+import { audit, createEvent } from '@app/queries/event';
+import { isEnvironment, roleMappingOperations } from '@sso/audit';
 import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
 import createHttpError from 'http-errors';
-import { compact } from 'lodash';
+import { compact, uniq } from 'lodash';
 
 import { logger } from '@app/utils/logger';
 
@@ -195,80 +196,66 @@ export const listUsersByRole = async (
   });
 };
 
-export const updateUserRoleMapping = async (
+const isRoleList = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((roleName) => typeof roleName === 'string' && roleName.length > 0);
+
+/**
+ * Applies exactly the requested grants and revocations to one user's (or service account's) roles,
+ * with no reconciliation against what they hold. Each change is its own audited operation, under a
+ * `role-bulk-update` parent when there is more than one. Changes that would not change anything (adding
+ * a role already held, removing one not held) are dropped before anything is recorded.
+ *
+ * Returns the roles the user holds afterwards and the changes that failed, so the caller can show the
+ * real state after a partial failure.
+ */
+export const updateUserRoles = async (
   session: Session,
   {
     environment,
     integrationId,
     username,
-    roleName,
-    mode,
+    add = [],
+    remove = [],
   }: {
     environment: string;
     integrationId: number;
     username: string;
-    roleName: string;
-    mode: 'add' | 'del';
+    add?: string[];
+    remove?: string[];
   },
 ) => {
   const integration = await authorizedIntegration(session, integrationId, 'user-role-mappings:write');
-  if (!roleName || !['add', 'del'].includes(mode)) {
+  if (!isEnvironment(environment) || !username || !isRoleList(add) || !isRoleList(remove)) {
     throw new createHttpError.BadRequest('invalid role mapping request');
   }
-  const eventCode = mode === 'add' ? EVENTS.ROLE_ASSIGN_REQUESTED : EVENTS.ROLE_UNASSIGN_REQUESTED;
-  const successCode = mode === 'add' ? EVENTS.ROLE_ASSIGN_SUCCESS : EVENTS.ROLE_UNASSIGN_SUCCESS;
-  const failureCode = mode === 'add' ? EVENTS.ROLE_ASSIGN_FAILURE : EVENTS.ROLE_UNASSIGN_FAILURE;
-  const roles = await runAuditedOperation(
-    {
-      eventCode,
-      requestId: integration.id,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session?.user?.displayName,
-      details: { username, roleName, environment },
-    },
-    successCode,
-    failureCode,
-    () => manageUserRole(integration, { environment, username, roleName, mode }),
-  );
-  return roles.map((role) => role.name);
-};
+  if (add.some((roleName) => remove.includes(roleName))) {
+    throw new createHttpError.BadRequest('a role cannot be both added and removed');
+  }
 
-export const updateUserRoleMappings = async (
-  session: Session,
-  {
+  const target = await resolveUserRoleMappingTarget(integration, {
     environment,
-    integrationId,
     username,
-    roleNames,
-  }: {
-    environment: string;
-    integrationId: number;
-    username: string;
-    roleNames: string[];
-  },
-) => {
-  const integration = await authorizedIntegration(session, integrationId, 'user-role-mappings:write');
-
-  const requestedEvent = {
+    roleNames: uniq([...add, ...remove]),
+  });
+  const { parent, changes } = roleMappingOperations({
     requestId: integration.id,
-    idirUserid: session?.idir_userid,
-    idirUserDisplayName: session?.user?.displayName,
-    eventCode: EVENTS.ROLE_BULK_RECONCILE_REQUESTED,
-    details: { username, roleNames, environment },
-  };
-  let changes: { assigned: string[]; unassigned: string[] } | undefined;
+    environment,
+    clientId: integration.clientId,
+    username,
+    add: uniq(add).filter((roleName) => !target.current.includes(roleName)),
+    remove: uniq(remove).filter((roleName) => target.current.includes(roleName)),
+  });
 
-  return runAuditedOperation(
-    requestedEvent,
-    EVENTS.ROLE_BULK_RECONCILE_SUCCESS,
-    EVENTS.ROLE_BULK_RECONCILE_FAILURE,
-    () =>
-      manageUserRoles(integration, { environment, username, roleNames }, (diff, applyChanges) => {
-        changes = diff;
-        return applyChanges();
-      }),
-    () => ({ ...requestedEvent.details, ...changes }),
+  const results = await audit.runAuditedBatch(
+    parent,
+    changes.map(({ roleName, mode, operation }) => ({ operation, call: () => target.change(roleName, mode) })),
   );
+
+  const failed: { add: string[]; remove: string[] } = { add: [], remove: [] };
+  results.forEach((result, index) => {
+    if (result.status === 'rejected') failed[changes[index].mode].push(changes[index].roleName);
+  });
+  return { roles: await target.listRoleNames(), failed };
 };
 
 export const listClientRolesByUsers = async (
