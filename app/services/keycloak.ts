@@ -217,20 +217,41 @@ export const listRoleUsers = async ({
   environment,
   integrationId,
   roleName,
+  searchKey = '',
   first = 0,
   max = 50,
-  serviceAccount = false,
 }: {
   environment: string;
   integrationId: number;
   roleName: string;
+  searchKey?: string;
   first?: number;
   max?: number;
-  serviceAccount?: boolean;
 }): Promise<({ totalCount: number; data: KeycloakUser[] } | null)[]> => {
   try {
     const result = await instance
-      .post('keycloak/role-users', { environment, integrationId, roleName, first, max, serviceAccount })
+      .post('keycloak/role-users', { environment, integrationId, roleName, searchKey, first, max })
+      .then((res) => res.data);
+
+    return [result, null];
+  } catch (err: any) {
+    console.error(err);
+    return [null, err];
+  }
+};
+
+export const listRoleAssignedServiceAccounts = async ({
+  environment,
+  integrationId,
+  roleName,
+}: {
+  environment: string;
+  integrationId: number;
+  roleName: string;
+}): Promise<({ totalCount: number; data: KeycloakUser[] } | null)[]> => {
+  try {
+    const result = await instance
+      .post('keycloak/role-service-accounts', { environment, integrationId, roleName })
       .then((res) => res.data);
 
     return [result, null];

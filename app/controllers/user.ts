@@ -6,7 +6,13 @@ import { lowcase } from '@app/helpers/string';
 import { isAdmin } from '../utils/helpers';
 import { Permission } from '@sso/authz';
 import { authorizeIntegration } from '@app/queries/integrationAccess';
-import { listRoleUsers, listUserRoles, manageUserRole, manageUserRoles } from '@app/keycloak/users';
+import {
+  listRoleAssignedServiceAccounts,
+  listRoleUsers,
+  listUserRoles,
+  manageUserRole,
+  manageUserRoles,
+} from '@app/keycloak/users';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
 import { EMAILS, EVENTS } from '@app/shared/enums';
 import { sendTemplate } from '@app/shared/templates';
@@ -99,25 +105,44 @@ export const listUsersByRole = async (
     environment,
     integrationId,
     roleName,
+    searchKey = '',
     first = 0,
-    max = 50,
-    serviceAccount,
+    max = 5,
   }: {
     environment: string;
     integrationId: number;
     roleName: string;
-    first: number;
-    max: number;
-    serviceAccount?: boolean;
+    searchKey: string;
+    first?: number;
+    max?: number;
   },
 ) => {
   const integration = await authorizedIntegration(session, integrationId, 'user-role-mappings:read');
   return await listRoleUsers(integration, {
     environment,
     roleName,
+    searchKey,
     first,
     max,
-    serviceAccount,
+  });
+};
+
+export const listServiceAccountsByRole = async (
+  session: Session,
+  {
+    environment,
+    integrationId,
+    roleName,
+  }: {
+    environment: string;
+    integrationId: number;
+    roleName: string;
+  },
+) => {
+  const integration = await authorizedIntegration(session, integrationId, 'user-role-mappings:read');
+  return await listRoleAssignedServiceAccounts(integration, {
+    environment,
+    roleName,
   });
 };
 

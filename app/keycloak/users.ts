@@ -11,7 +11,7 @@ import { IntegrationData } from '@app/shared/interfaces';
 import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
 
 import { logger } from '@app/utils/logger';
-import { fetchKeycloakRoleUsersCount } from '@app/utils/grafana';
+import { fetchKeycloakRoleAssignedServiceAccounts, fetchKeycloakRoleUsers } from '@app/utils/grafana';
 
 const log = logger.child({ module: 'keycloak/users' });
 
@@ -187,49 +187,35 @@ export const listRoleUsers = async (
   {
     environment,
     roleName,
+    searchKey = '',
     first = 0,
-    max = 50,
-    serviceAccount = false,
+    max = 5,
   }: {
     environment: string;
     roleName: string;
+    searchKey?: string;
     first?: number;
     max?: number;
-    serviceAccount?: boolean;
   },
 ) => {
-  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
+  const roleExists = await findClientRole(integration, { environment, roleName });
+  if (!roleExists) return { totalCount: 0, data: [] };
+  return await fetchKeycloakRoleUsers(environment, integration.clientId!, roleName, searchKey, max, first);
+};
 
-  const client = (await kcAdminClient.clients.find({ realm: 'standard', clientId: integration.clientId, max: 1 }))[0];
-  if (!client) throw new createHttpError.NotFound(`client ${integration.clientId} not found`);
-
-  const clientRole = await kcAdminClient.clients.findRole({ realm: 'standard', id: client?.id!, roleName });
-  if (!clientRole) throw new createHttpError.NotFound(`role ${roleName} not found`);
-
-  const totalCount = await fetchKeycloakRoleUsersCount(environment, integration.clientId!, roleName, serviceAccount);
-
-  if (totalCount === 0) return { totalCount, data: [] };
-
-  const users = await kcAdminClient.clients.findUsersWithRole({
-    realm: 'standard',
-    id: client?.id!,
+export const listRoleAssignedServiceAccounts = async (
+  integration: Integration,
+  {
+    environment,
     roleName,
-    first,
-    max,
-  });
-
-  const filteredUsers = users.filter(
-    (user) =>
-      !!user?.username &&
-      (serviceAccount
-        ? user.username.startsWith('service-account-')
-        : !!integration?.devIdps?.includes(user.username.split('@')[1] ?? '')),
-  );
-
-  return {
-    totalCount,
-    data: filteredUsers,
-  };
+  }: {
+    environment: string;
+    roleName: string;
+  },
+) => {
+  const roleExists = await findClientRole(integration, { environment, roleName });
+  if (!roleExists) return { totalCount: 0, data: [] };
+  return await fetchKeycloakRoleAssignedServiceAccounts(environment, integration.clientId!, roleName);
 };
 
 export const listUserRoles = async (

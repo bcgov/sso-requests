@@ -92,29 +92,93 @@ export const clientEventsAggregationQuery = async (
   return result;
 };
 
-export const fetchKeycloakRoleUsersCount = async (
+const getKeycloakDataSourceByEnv = (kcEnv: string) => {
+  let dataSourceName = 'SSO Keycloak Prod';
+  if (kcEnv === 'test') dataSourceName = 'SSO Keycloak Test';
+  if (kcEnv === 'dev') dataSourceName = 'SSO Keycloak Dev';
+  return dataSourceName;
+};
+
+// Grafana returns the single JSON column either as a string or an already-parsed object
+const parseJsonResult = (res: any): { totalCount: number; data: any[] } => {
+  const value = res?.data?.results?.A?.frames?.[0]?.data?.values?.[0]?.[0];
+  if (value === undefined || value === null) throw new Error('Unexpected response from Grafana query');
+  const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+  return { totalCount: Number(parsed.totalCount) || 0, data: parsed.data || [] };
+};
+
+export const fetchKeycloakRoleUsers = async (
   kcEnv: string,
   clientId: string,
   roleName: string,
-  serviceAccount: boolean = false,
+  searchKey: string = '',
+  pageSize: number = 5,
+  pageOffset: number = 0,
 ) => {
   try {
-    if (!kcEnv || !clientId || !roleName)
-      throw new Error('Missing required parameters for looking up Keycloak role users count');
-    let dataSourceName = 'SSO Keycloak Prod';
-    if (kcEnv === 'test') dataSourceName = 'SSO Keycloak Test';
-    if (kcEnv === 'dev') dataSourceName = 'SSO Keycloak Dev';
+    if (!kcEnv || !clientId || !roleName) throw new Error('Missing required parameters for looking up role users');
+    const dataSourceName = getKeycloakDataSourceByEnv(kcEnv);
     const keycloakDatasourceUID = await fetchDatasourceUID(dataSourceName);
 
     const query = {
       queries: [
         {
           datasource: { type: 'grafana-postgresql-datasource', uid: keycloakDatasourceUID },
-          rawSql: `SELECT COUNT(DISTINCT urm.USER_ID) AS user_count FROM USER_ROLE_MAPPING urm JOIN KEYCLOAK_ROLE kr ON kr.ID = urm.ROLE_ID JOIN CLIENT c ON c.ID = kr.CLIENT JOIN REALM r ON r.ID = c.REALM_ID JOIN USER_ENTITY u ON u.ID = urm.USER_ID WHERE kr.NAME = ${escapeLiteral(
-            roleName,
-          )} AND c.CLIENT_ID = ${escapeLiteral(clientId)} AND r.NAME = 'standard' AND u.USERNAME IS NOT NULL ${
-            serviceAccount ? "AND u.USERNAME LIKE 'service-account-%'" : "AND u.USERNAME NOT LIKE 'service-account-%'"
-          };`,
+          rawSql: `
+            WITH params AS (
+              SELECT
+                ${escapeLiteral(searchKey)}::TEXT AS search_key,
+                ${escapeLiteral(String(pageSize))}::INT AS page_size,
+                ${escapeLiteral(String(pageOffset))}::INT AS page_offset
+            ),
+            filtered_users AS (
+              SELECT DISTINCT u.ID, u.USERNAME, u.EMAIL, u.FIRST_NAME, u.LAST_NAME
+              FROM USER_ROLE_MAPPING urm
+              JOIN KEYCLOAK_ROLE kr ON kr.ID = urm.ROLE_ID
+              JOIN CLIENT c ON c.ID = kr.CLIENT
+              JOIN REALM r ON r.ID = c.REALM_ID
+              JOIN USER_ENTITY u ON u.ID = urm.USER_ID
+              CROSS JOIN params p
+              WHERE kr.NAME = ${escapeLiteral(roleName)}
+                AND c.CLIENT_ID = ${escapeLiteral(clientId)}
+                AND r.NAME = 'standard'
+                AND u.SERVICE_ACCOUNT_CLIENT_LINK IS NULL
+                AND (
+                  p.search_key IS NULL
+                  OR p.search_key = ''
+                  OR u.USERNAME ILIKE '%' || p.search_key || '%'
+                  OR u.EMAIL ILIKE '%' || p.search_key || '%'
+                  OR u.FIRST_NAME ILIKE '%' || p.search_key || '%'
+                  OR u.LAST_NAME ILIKE '%' || p.search_key || '%'
+                )
+            ),
+            paginated_users AS (
+              SELECT *
+              FROM filtered_users
+              ORDER BY USERNAME, ID
+              LIMIT (SELECT page_size FROM params)
+              OFFSET (SELECT page_offset FROM params)
+            )
+            SELECT JSON_BUILD_OBJECT(
+              'totalCount', (SELECT COUNT(*) FROM filtered_users),
+              'data', COALESCE(
+                (
+                  SELECT JSON_AGG(
+                    JSON_BUILD_OBJECT(
+                      'id', ID,
+                      'username', USERNAME,
+                      'email', EMAIL,
+                      'firstName', FIRST_NAME,
+                      'lastName', LAST_NAME
+                    )
+                    ORDER BY USERNAME, ID
+                  )
+                  FROM paginated_users
+                ),
+                '[]'::JSON
+              )
+            ) AS result;
+          `,
           format: 'table',
         },
       ],
@@ -127,13 +191,73 @@ export const fetchKeycloakRoleUsersCount = async (
     };
 
     const res: any = await axios.post(`${process.env.GRAFANA_API_URL}/ds/query`, query, { headers });
-    const values = res?.data?.results?.A?.frames[0]?.data?.values;
-    if (values && values.length > 0) {
-      return Number(values[0][0]);
-    }
-    throw new Error('Failed to fetch Keycloak role users count');
+    return parseJsonResult(res);
   } catch (err) {
     console.error('Failed to fetch Keycloak role users count:', err);
+    throw err;
+  }
+};
+
+export const fetchKeycloakRoleAssignedServiceAccounts = async (kcEnv: string, clientId: string, roleName: string) => {
+  try {
+    if (!kcEnv || !clientId || !roleName) {
+      throw new Error('Missing required parameters');
+    }
+    const dataSourceName = getKeycloakDataSourceByEnv(kcEnv);
+    const keycloakDatasourceUID = await fetchDatasourceUID(dataSourceName);
+    const query = {
+      queries: [
+        {
+          refId: 'A',
+          datasource: { type: 'grafana-postgresql-datasource', uid: keycloakDatasourceUID },
+          rawSql: `
+            WITH service_accounts AS (
+              SELECT DISTINCT u.ID, u.USERNAME, u.EMAIL, u.FIRST_NAME, u.LAST_NAME
+              FROM USER_ROLE_MAPPING urm
+              JOIN KEYCLOAK_ROLE kr ON kr.ID = urm.ROLE_ID
+              JOIN CLIENT c ON c.ID = kr.CLIENT
+              JOIN REALM r ON r.ID = c.REALM_ID
+              JOIN USER_ENTITY u ON u.ID = urm.USER_ID
+              WHERE kr.NAME = ${escapeLiteral(roleName)}
+                AND c.CLIENT_ID = ${escapeLiteral(clientId)}
+                AND r.NAME = 'standard'
+                AND u.USERNAME LIKE 'service-account-%'
+                AND u.SERVICE_ACCOUNT_CLIENT_LINK IS NOT NULL
+            )
+            SELECT JSON_BUILD_OBJECT(
+              'totalCount', (SELECT COUNT(*) FROM service_accounts),
+              'data', COALESCE(
+                (
+                  SELECT JSON_AGG(
+                    JSON_BUILD_OBJECT(
+                      'id', ID,
+                      'username', USERNAME,
+                      'email', EMAIL,
+                      'firstName', FIRST_NAME,
+                      'lastName', LAST_NAME
+                    )
+                    ORDER BY USERNAME, ID
+                  )
+                  FROM service_accounts
+                ),
+                '[]'::JSON
+              )
+            ) AS result;
+          `,
+          format: 'table',
+        },
+      ],
+    };
+    const headers = {
+      Authorization: `Bearer ${process.env.GRAFANA_API_TOKEN}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    };
+
+    const res: any = await axios.post(`${process.env.GRAFANA_API_URL}/ds/query`, query, { headers });
+    return parseJsonResult(res);
+  } catch (err) {
+    console.error('Failed to fetch Keycloak role assigned service accounts:', err);
     throw err;
   }
 };

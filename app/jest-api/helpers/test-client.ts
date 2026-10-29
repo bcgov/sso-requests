@@ -41,6 +41,7 @@ const knownRoutes = [
   '/api/me',
   '/api/keycloak/delete-role',
   '/api/keycloak/role-users',
+  '/api/keycloak/role-service-accounts',
   '/api/keycloak/bulk-roles',
   '/api/keycloak/role',
   '/api/keycloak/get-composite-roles',

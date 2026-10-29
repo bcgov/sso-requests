@@ -3,6 +3,7 @@ import { API_BASE_PATH } from '../constants';
 import kcRolesHandler from '@app/pages/api/keycloak/roles';
 import kcGetCompRolesHandler from '@app/pages/api/keycloak/get-composite-roles';
 import kcRoleUsersHandler from '@app/pages/api/keycloak/role-users';
+import kcRoleServiceAccountsHandler from '@app/pages/api/keycloak/role-service-accounts';
 
 export const listClientRoles = async (integrationId: number) => {
   return await testClient(kcRolesHandler)
@@ -28,16 +29,31 @@ export const listClientCompositeRoles = async (integrationId: number, roleName: 
     .set('Accept', 'application/json');
 };
 
-export const listClientRoleUsers = async (integrationId: number, roleName: string, serviceAccount: boolean = false) => {
+export const listClientRoleUsers = async (
+  integrationId: number,
+  roleName: string,
+  { searchKey = '', first = 0, max = 50 }: { searchKey?: string; first?: number; max?: number } = {},
+) => {
   return await testClient(kcRoleUsersHandler)
     .post(`${API_BASE_PATH}/keycloak/role-users`)
     .send({
       environment: 'dev',
       integrationId,
       roleName,
-      first: 0,
-      max: 50,
-      serviceAccount,
+      searchKey,
+      first,
+      max,
+    })
+    .set('Accept', 'application/json');
+};
+
+export const listClientRoleServiceAccounts = async (integrationId: number, roleName: string) => {
+  return await testClient(kcRoleServiceAccountsHandler)
+    .post(`${API_BASE_PATH}/keycloak/role-service-accounts`)
+    .send({
+      environment: 'dev',
+      integrationId,
+      roleName,
     })
     .set('Accept', 'application/json');
 };

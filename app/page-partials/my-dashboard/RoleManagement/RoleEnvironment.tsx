@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faExclamationTriangle, faMinusCircle, faEye, faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import Select from 'react-select';
-import { throttle, get, reduce } from 'lodash';
+import { throttle, debounce, get, reduce, set } from 'lodash';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration, Option } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
@@ -23,6 +23,7 @@ import {
   runRoleReplication,
   RoleReplicationPreview,
   RoleReplicationResultRow,
+  listRoleAssignedServiceAccounts,
 } from 'services/keycloak';
 import { canCreateOrDeleteRoles, canManageUserRoleMappings } from 'helpers/permissions';
 import { idpMap } from 'helpers/meta';
@@ -164,6 +165,9 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const [roleUsersPage, setRoleUsersPage] = useState(1);
   const [roleUsersCount, setRoleUsersCount] = useState(0);
   const [roleUsersLimit, setRoleUsersLimit] = useState<number>(5);
+  const [roleUsersSearchKey, setRoleUsersSearchKey] = useState('');
+  const [debouncedRoleUsersSearchKey, setDebouncedRoleUsersSearchKey] = useState('');
+  const latestUsersRequestRef = useRef(0);
 
   // Roles (idir -> MFA) replication
   const replicationModalRef = useRef<ModalRef>(emptyRef);
@@ -240,9 +244,25 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
     setCanCreateOrDeleteRole(canCreateOrDeleteRoles(integration));
   };
 
+  const debouncedApplyRoleUsersSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        setRoleUsersPage(1);
+        setDebouncedRoleUsersSearchKey(value);
+      }, 500),
+    [],
+  );
+
+  useEffect(() => () => debouncedApplyRoleUsersSearch.cancel(), [debouncedApplyRoleUsersSearch]);
+
+  const handleRoleUsersSearchChange = (value: string) => {
+    setRoleUsersSearchKey(value);
+    debouncedApplyRoleUsersSearch(value);
+  };
+
   useEffect(() => {
     void fetchUsers(selectedRole as string);
-  }, [roleUsersPage, roleUsersLimit]);
+  }, [roleUsersPage, roleUsersLimit, debouncedRoleUsersSearchKey]);
 
   useEffect(() => {
     populateTabs();
@@ -317,6 +337,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const fetchUsers = async (roleName: string) => {
     if (!roleName || roleName?.length < 2) return;
     setUserLoading(true);
+    const requestId = ++latestUsersRequestRef.current;
 
     let _first = (roleUsersPage - 1) * roleUsersLimit;
 
@@ -324,9 +345,13 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
       environment,
       integrationId: integration.id as number,
       roleName,
+      searchKey: debouncedRoleUsersSearchKey,
       first: _first,
       max: roleUsersLimit,
     });
+
+    // Ignore responses from searches that have since been superseded
+    if (requestId !== latestUsersRequestRef.current) return;
 
     if (usersErr) {
       return alert.show({
@@ -344,11 +369,10 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   const fetchServiceAccounts = async (roleName: string) => {
     if (!roleName || roleName?.length < 2) return;
     setServiceAccountLoading(true);
-    const [serviceAccounts, err] = await listRoleUsers({
+    const [serviceAccounts, err] = await listRoleAssignedServiceAccounts({
       environment,
       integrationId: integration.id as number,
       roleName,
-      serviceAccount: true,
     });
 
     if (err) {
@@ -371,6 +395,7 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         environment,
         integrationId: integration.id as number,
         roleName: selectedRole as string,
+        searchKey: '',
         first: data.length,
         max: 100,
       });
@@ -523,6 +548,12 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
   };
 
   const handleRightPanelTabSelect = (key: any) => {
+    if (key === 'Users' && selectedRole) {
+      setRoleUsersPage(1);
+      setRoleUsersSearchKey('');
+      setDebouncedRoleUsersSearchKey('');
+      setRoleUsersLimit(5);
+    }
     setRightPanelTab(key);
   };
 
@@ -630,12 +661,15 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
                 }) || []
               }
               loading={userLoading}
-              enableGlobalSearch={false}
+              enableGlobalSearch={true}
               noDataFoundMessage={<span>No users found.</span>}
               serverPageIndex={roleUsersPage}
               onPageChange={setRoleUsersPage}
               totalRowCount={roleUsersCount}
               onPageSizeChange={setRoleUsersLimit}
+              globalSearchPlaceholder="Search users"
+              globalSearchOnChange={handleRoleUsersSearchChange}
+              globalSearchValue={roleUsersSearchKey}
             ></TableNew>
           </div>
         </>

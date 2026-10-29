@@ -68,6 +68,15 @@ jest.mock('services/keycloak', () => ({
   listClientRoles: jest.fn(() => Promise.resolve([[{ name: 'role-1' }, { name: 'role-2' }], null])),
   listComposites: jest.fn(() => Promise.resolve([[false, false], null])),
   listRoleUsers: jest.fn(() => Promise.resolve([testUsers, null])),
+  listRoleAssignedServiceAccounts: jest.fn(() =>
+    Promise.resolve([
+      {
+        totalCount: 1,
+        data: testUsers.data.filter((user) => user.username.startsWith('service-account-')),
+      },
+      null,
+    ]),
+  ),
   getCompositeClientRoles: jest.fn(() => Promise.resolve([['compositeRole1', 'compositeRole2'], null])),
   deleteRole: jest.fn(() => Promise.resolve([[''], null])),
   manageUserRole: jest.fn(() => Promise.resolve([[''], null])),
@@ -182,7 +191,7 @@ describe('role management tab', () => {
 
     fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
     await waitFor(() => {
-      expect(listRoleUsers).toHaveBeenCalledTimes(2);
+      expect(listRoleUsers).toHaveBeenCalledTimes(1);
     });
 
     (listRoleUsers as jest.Mock).mockResolvedValueOnce([testUsers, null]);
@@ -292,12 +301,39 @@ describe('role management tab', () => {
 
     fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
     await waitFor(() => {
-      expect(listRoleUsers).toHaveBeenCalledTimes(2);
+      expect(listRoleUsers).toHaveBeenCalledTimes(1);
     });
     fireEvent.click(screen.getByRole('tab', { name: 'Users' }));
     fireEvent.click(screen.getByRole('img', { name: 'User Detail' }));
 
     expect(await screen.findByTitle('Additional User Info')).toBeVisible();
+  });
+
+  it('Should debounce the users global search before fetching', async () => {
+    render(<RoleEnvironmentComponent />);
+    await waitFor(() => {
+      expect(screen.getByRole('cell', { name: 'role-1' }));
+    });
+
+    fireEvent.click(screen.getByRole('cell', { name: 'role-1' }));
+    await waitFor(() => {
+      expect(listRoleUsers).toHaveBeenCalledTimes(1);
+    });
+
+    const searchInput = screen.getByPlaceholderText('Search users');
+    fireEvent.change(searchInput, { target: { value: 'u' } });
+    fireEvent.change(searchInput, { target: { value: 'us' } });
+    fireEvent.change(searchInput, { target: { value: 'user01' } });
+    expect(searchInput).toHaveValue('user01');
+    expect(listRoleUsers).toHaveBeenCalledTimes(1);
+
+    await waitFor(
+      () => {
+        expect(listRoleUsers).toHaveBeenCalledTimes(2);
+      },
+      { timeout: 2000 },
+    );
+    expect(listRoleUsers).toHaveBeenLastCalledWith(expect.objectContaining({ searchKey: 'user01', first: 0 }));
   });
 
   it('Should be able to click the Remove User button, and corresponding modal showing up', async () => {
