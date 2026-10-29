@@ -24,6 +24,7 @@ jest.mock('@/modules/authenticate', () => ({
 
 // An in-memory Keycloak client: roles, their composites, and who holds which.
 const roles = new Set<string>();
+const composites = new Map<string, string[]>();
 const held = new Map<string, string[]>();
 const heldBy = (username: string) => {
   if (!held.has(username)) held.set(username, []);
@@ -46,7 +47,14 @@ const mockKeycloak = () => {
     return { name: role.name, composite: false };
   });
   spy('deleteClientRole', async (_clientId: string, roleName: string) => roles.delete(roleName));
-  spy('createCompositeRole', async (_clientId: string, roleName: string) => ({ name: roleName, composite: true }));
+  spy('getCompositeRoles', async (_clientId: string, roleName: string) =>
+    (composites.get(roleName) || []).map((name) => ({ name, composite: false })),
+  );
+  spy('createCompositeRole', async (_clientId: string, roleName: string, added: { name: string }[]) => {
+    const list = composites.get(roleName) || [];
+    composites.set(roleName, [...new Set([...list, ...added.map(({ name }) => name)])]);
+    return { name: roleName, composite: true };
+  });
   spy('listClientUserRoleMappings', async (_clientId: string, username: string) =>
     heldBy(username).map((name) => ({ name, composite: false })),
   );

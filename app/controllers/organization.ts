@@ -17,6 +17,7 @@ import {
 } from '@app/controllers/requests';
 import { audit } from '@app/queries/event';
 import type { AuditAction, AuditDetails, AuditEvent } from '@sso/audit';
+import { serviceAccountUsername } from '@sso/audit';
 import { generateInstallation, updateClientSecret } from '@app/keycloak/installation';
 import { authorizeTeam } from '@app/queries/teamAccess';
 import { authorizeOrganization } from '@app/queries/organizationAccess';
@@ -573,7 +574,8 @@ const apiAccountScope = (account: { id: number; organizationId: number; clientId
   requestId: account.id,
   organizationId: account.organizationId,
   environment: 'prod' as const,
-  target: { type: 'service-account' as const, id: account.clientId },
+  // The account's Keycloak username, as its role assignments name it.
+  target: { type: 'service-account' as const, id: serviceAccountUsername(account.clientId) },
 });
 
 export const updateOrganizationApiAccountSecret = async (

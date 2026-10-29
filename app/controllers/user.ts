@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { literal, Op } from 'sequelize';
+import { literal, Op, Transaction } from 'sequelize';
 import isNil from 'lodash/isNil';
 import { models, sequelize } from '@app/shared/sequelize/models/models';
 import { Session, User, UserTeam } from '@app/shared/interfaces';
@@ -25,6 +25,39 @@ const log = logger.child({ module: 'controllers/user' });
 
 const appUserTarget = (userId: number) => ({ type: 'app-user' as const, id: String(userId) });
 
+/** Destroys a user row, recording the team and organization memberships it cascades to as removals. */
+const destroyUser = async (user: any, transaction: Transaction) => {
+  const [memberships, organizationMemberships] = await Promise.all([
+    models.usersTeam.findAll({ where: { userId: user.id }, transaction }),
+    models.organizationMember.findAll({ where: { userId: user.id }, transaction }),
+  ]);
+  await user.destroy({ transaction });
+  for (const membership of memberships) {
+    await audit.createEvent(
+      {
+        action: 'team-member-remove',
+        outcome: 'success',
+        teamId: membership.teamId,
+        target: appUserTarget(user.id),
+        details: { role: membership.role, reason: 'user-deleted' },
+      },
+      transaction,
+    );
+  }
+  for (const membership of organizationMemberships) {
+    await audit.createEvent(
+      {
+        action: 'organization-member-remove',
+        outcome: 'success',
+        organizationId: membership.organizationId,
+        target: appUserTarget(user.id),
+        details: { reason: 'user-deleted' },
+      },
+      transaction,
+    );
+  }
+};
+
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
   email = lowcase(email || '');
@@ -45,7 +78,7 @@ export const findOrCreateUser = async (session: Session) => {
       log.info({ idirUserid: idir_userid }, 'duplicate user found, removing duplicate record');
       await withActor(systemActor('user-record-deduplication'), () =>
         sequelize.transaction(async (transaction) => {
-          await userWithoutGuidRow.destroy({ transaction });
+          await destroyUser(userWithoutGuidRow, transaction);
           await audit.createEvent(
             {
               action: 'user-delete',
@@ -517,20 +550,8 @@ export const deleteStaleUsers = async (
     }
 
     await sequelize.transaction(async (transaction) => {
-      await existingUser.destroy({ transaction });
       // Runs as the `stale-user-cleanup` system actor, set by the route.
-      for (const team of teams) {
-        await audit.createEvent(
-          {
-            action: 'team-member-remove',
-            outcome: 'success',
-            teamId: team.teamId,
-            target: appUserTarget(existingUser.id),
-            details: { role: team.role, reason: 'user-deleted' },
-          },
-          transaction,
-        );
-      }
+      await destroyUser(existingUser, transaction);
       await audit.createEvent(
         {
           action: 'user-delete',

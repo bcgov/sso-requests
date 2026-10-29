@@ -110,20 +110,20 @@ A batch parent ends `success` only if every child did, with `details.total`, `su
 
 ### Organizations
 
-| Action                            | Meaning                                                                                                                     |
-| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `organization-create`             | An organization was created.                                                                                                |
-| `organization-update`             | An organization was renamed.                                                                                                |
-| `organization-delete`             | An organization was deleted.                                                                                                |
-| `organization-member-add`         | A user joined an organization.                                                                                              |
-| `organization-member-remove`      | A user left an organization; `details.reason = 'organization-deleted'` when the organization went.                          |
-| `organization-member-role-update` | A member's organization role changed.                                                                                       |
-| `organization-team-invite`        | A team was invited, with the permissions on offer.                                                                          |
-| `organization-team-join`          | A team accepted, consenting to `details.permissions`.                                                                       |
-| `organization-team-decline`       | A team declined an invitation.                                                                                              |
-| `organization-team-leave`         | A team left, or was removed; `details.removedBy`, and `details.reason = 'organization-deleted'` when the organization went. |
-| `organization-consent-update`     | A team changed the permissions it consents to.                                                                              |
-| `organization-overrides-update`   | A team changed its per-integration overrides.                                                                               |
+| Action                            | Meaning                                                                                                                                                    |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `organization-create`             | An organization was created.                                                                                                                               |
+| `organization-update`             | An organization was renamed.                                                                                                                               |
+| `organization-delete`             | An organization was deleted.                                                                                                                               |
+| `organization-member-add`         | A user joined an organization.                                                                                                                             |
+| `organization-member-remove`      | A user left an organization; `details.reason` is `'organization-deleted'` or `'user-deleted'` when the organization or user went.                          |
+| `organization-member-role-update` | A member's organization role changed.                                                                                                                      |
+| `organization-team-invite`        | A team was invited, with the permissions on offer.                                                                                                         |
+| `organization-team-join`          | A team accepted, consenting to `details.permissions`.                                                                                                      |
+| `organization-team-decline`       | A team declined an invitation.                                                                                                                             |
+| `organization-team-leave`         | A team left, or was removed; `details.removedBy`, and `details.reason` is `'organization-deleted'` or `'team-deleted'` when the organization or team went. |
+| `organization-consent-update`     | A team changed the permissions it consents to.                                                                                                             |
+| `organization-overrides-update`   | A team changed its per-integration overrides.                                                                                                              |
 
 ### Email
 

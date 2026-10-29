@@ -6,7 +6,10 @@ import { sendTemplate } from '@app/shared/templates';
 import { countApplyOutcomes } from './audit';
 import { getTeamById } from '@app/queries/team';
 import { getRolesWithEnvironments } from '@app/queries/roles';
-import { NewRole, bulkCreateRole, setCompositeClientRoles } from '@app/keycloak/users';
+import { NewRole, bulkCreateRole, getCompositeClientRoles, setCompositeClientRoles } from '@app/keycloak/users';
+import { audit } from '@app/queries/event';
+import { Environment, roleOperation } from '@sso/audit';
+import { WorkflowRecord } from './types';
 import {
   usesBceid,
   usesBcgovIdir,
@@ -104,13 +107,32 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
  * Re-creates the client roles (and composite links) that existed before an integration was archived.
  * Keycloak role creation is a find-or-create, so replaying this step after a partial failure is a no-op
  * for roles that already exist.
+ *
+ * Each role created and each composite set changed is recorded as a child of the restore operation. Only
+ * actual changes are recorded, so a replay records nothing for what an earlier attempt already did.
  */
-export const restoreIntegrationRoles = async (integrationId: number) => {
+export const restoreIntegrationRoles = async (workflow: Pick<WorkflowRecord, 'id' | 'correlationId' | 'requestId'>) => {
+  const integrationId = workflow.requestId;
   const integration = await getFreshIntegration(integrationId);
   if (!integration) return;
 
+  const record = (operation: ReturnType<typeof roleOperation>) =>
+    audit.createEvent({
+      ...operation,
+      outcome: 'success',
+      parentOperationId: workflow.correlationId,
+      workflowId: workflow.id,
+    });
+
   const dbRoles: NewRole[] = (await getRolesWithEnvironments(integrationId)) as NewRole[];
-  await bulkCreateRole(integration, dbRoles);
+  const created = await bulkCreateRole(integration, dbRoles);
+  for (const { env, success } of created) {
+    for (const roleName of success) {
+      await record(
+        roleOperation('role-create', { requestId: integrationId, environment: env as Environment, roleName }),
+      );
+    }
+  }
 
   const requestRoles = await models.requestRole.findAll({ where: { requestId: integrationId }, raw: true });
 
@@ -123,11 +145,28 @@ export const restoreIntegrationRoles = async (integrationId: number) => {
       raw: true,
     });
 
+    const compositeRoleNames = compRoleNames.map((compRole: { name: string }) => compRole.name);
+    const current = (await getCompositeClientRoles(integration, {
+      environment: role.environment,
+      roleName: role.name,
+    })) as string[];
     await setCompositeClientRoles(integration, {
       environment: role.environment,
       roleName: role.name,
-      compositeRoleNames: compRoleNames.map((compRole: { name: string }) => compRole.name),
+      compositeRoleNames,
     });
+
+    const add = compositeRoleNames.filter((name) => !current.includes(name));
+    const remove = current.filter((name) => !compositeRoleNames.includes(name));
+    if (add.length + remove.length > 0) {
+      await record(
+        roleOperation(
+          'role-composite-update',
+          { requestId: integrationId, environment: role.environment as Environment, roleName: role.name },
+          { add, remove },
+        ),
+      );
+    }
   }
 };
 

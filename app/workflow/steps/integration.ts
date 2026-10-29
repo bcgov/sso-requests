@@ -59,7 +59,7 @@ const restoreRolesStep = (workflow: WorkflowRecord): WorkflowStepDefinition => (
   name: STEP_NAMES.RESTORE_ROLES,
   label: 'Restoring roles',
   execute: async () => {
-    await restoreIntegrationRoles(workflow.requestId);
+    await restoreIntegrationRoles(workflow);
     return { rolesRestored: true };
   },
 });

@@ -194,12 +194,14 @@ export class RoleService {
     }
     const compositeRoleNames = compositeRoles.map(({ name }) => name);
     await assertRolesExist(KeycloakService, int.clientId, [roleName, ...compositeRoleNames]);
+    // Keycloak adds to the set; the event records only the roles that were not already composites, as the app does.
+    const current = (await KeycloakService.getCompositeRoles(int.clientId, roleName)).map((r: Role) => r.name);
 
     const updatedRole = await audit.runAuditedOperation(
       roleOperation(
         'role-composite-update',
         { requestId: int.id, environment: environment as Environment, roleName },
-        { add: compositeRoleNames, remove: [] },
+        { add: compositeRoleNames.filter((name) => !current.includes(name)), remove: [] },
       ),
       () => KeycloakService.createCompositeRole(int.clientId, roleName, compositeRoles),
       {

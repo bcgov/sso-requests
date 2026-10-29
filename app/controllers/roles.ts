@@ -334,6 +334,7 @@ export const replicateRoleMfa = async (
   assertRoleReplicationSupported(integration, environment);
 
   const plan = await planRoleReplication(integration, { environment, roleName });
+  const { pending, notFound } = await plan.resolveTargets();
 
   const outcomes = await audit.runAuditedBatch(
     {
@@ -343,7 +344,7 @@ export const replicateRoleMfa = async (
       ...(roleName ? { target: { type: 'role', id: roleName } } : {}),
       details: { roleName: roleName || '*', sourceIdp: 'idir', targetIdp: 'azureidir' },
     },
-    plan.pending.map((row) => {
+    pending.map((row) => {
       const { targetType, targetId } = roleMappingTarget(row.mfaUsername);
       return {
         operation: {
@@ -360,7 +361,7 @@ export const replicateRoleMfa = async (
   );
 
   const attempted = outcomes.map((outcome, index): RoleReplicationResultRow => {
-    const { idirUsername, guid, role } = plan.pending[index];
+    const { idirUsername, guid, role } = pending[index];
     if (outcome.status === 'fulfilled') return { idirUsername, guid, role, status: 'REPLICATED' };
     return isNotFoundInMfa(outcome.reason)
       ? {
@@ -372,5 +373,5 @@ export const replicateRoleMfa = async (
         }
       : { idirUsername, guid, role, status: 'ERROR' };
   });
-  return [...plan.alreadyReplicated, ...plan.notFound, ...attempted];
+  return [...plan.alreadyReplicated, ...notFound, ...attempted];
 };

@@ -184,6 +184,21 @@ describe('role replication (idir -> azureidir MFA)', () => {
     );
   });
 
+  it('resolves targets before the grants, moving a user whose azureidir user cannot be created to notFound', async () => {
+    mockCreateAzureIdirUser.mockImplementationOnce(() => Promise.resolve(null as any));
+    const plan = await planRoleReplication(integration, { environment: 'dev', roleName: 'editor' });
+
+    const { pending, notFound } = await plan.resolveTargets();
+
+    expect(pending.map((row) => row.guid)).toEqual(['guid-to-replicate', 'guid-errors']);
+    expect(notFound.map((row) => [row.guid, row.status])).toEqual([
+      ['guid-not-found', 'NOT_FOUND_IN_MFA'],
+      ['guid-to-provision', 'NOT_FOUND_IN_MFA'],
+    ]);
+    expect(mockCreateAzureIdirUser).toHaveBeenCalledTimes(1);
+    expect(mockAddClientRoleMappings).not.toHaveBeenCalled();
+  });
+
   it('still reports a user as not found when MS Graph has no account at grant time', async () => {
     const plan = await planRoleReplication(integration, { environment: 'dev', roleName: 'editor' });
     const row = { ...plan.pending[0], guid: 'guid-vanished', mfaUsername: 'guid-vanished@azureidir' };

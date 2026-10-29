@@ -21,6 +21,7 @@ import {
   runIntegrationWorkflow,
 } from '@app/controllers/requests';
 import { audit } from '@app/queries/event';
+import { serviceAccountUsername } from '@sso/audit';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
@@ -212,7 +213,10 @@ export const deleteTeam = async (session: Session, teamId: number) => {
       { teamId: null },
       { where: { teamId, archived: true }, returning: true, omitNull: false, transaction },
     );
-    const memberships = await models.usersTeam.findAll({ where: { teamId }, transaction });
+    const [memberships, organizationLinks] = await Promise.all([
+      models.usersTeam.findAll({ where: { teamId }, transaction }),
+      models.organizationTeam.findAll({ where: { teamId }, transaction }),
+    ]);
     await team.destroy({ transaction });
     // team_id has no foreign key, so the events keep naming the team after its row is gone.
     for (const membership of memberships) {
@@ -223,6 +227,20 @@ export const deleteTeam = async (session: Session, teamId: number) => {
           teamId: Number(teamId),
           target: memberTarget(membership.userId),
           details: { role: membership.role, reason: 'team-deleted' },
+        },
+        transaction,
+      );
+    }
+    // The team's organization links cascade too.
+    for (const link of organizationLinks) {
+      await audit.createEvent(
+        {
+          action: 'organization-team-leave',
+          outcome: 'success',
+          organizationId: link.organizationId,
+          teamId: Number(teamId),
+          target: teamTarget(Number(teamId)),
+          details: { removedBy: 'team', reason: 'team-deleted' },
         },
         transaction,
       );
@@ -445,7 +463,8 @@ const apiAccountScope = (account: { id: number; teamId: number; clientId: string
   requestId: account.id,
   teamId: account.teamId,
   environment: 'prod' as const,
-  target: { type: 'service-account' as const, id: account.clientId },
+  // The account's Keycloak username, as its role assignments name it.
+  target: { type: 'service-account' as const, id: serviceAccountUsername(account.clientId) },
 });
 
 export const deleteServiceAccount = async (session: Session, teamId: number, saId: number) => {

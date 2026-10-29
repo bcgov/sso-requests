@@ -212,6 +212,7 @@ describe('emails for teams', () => {
     });
 
     it('create composite role', async () => {
+      jest.spyOn(KeycloakService.prototype, 'getCompositeRoles').mockImplementationOnce(() => Promise.resolve([]));
       const createCompositeRoleMock = jest
         .spyOn(KeycloakService.prototype, 'createCompositeRole')
         .mockImplementation(() => {

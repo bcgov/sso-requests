@@ -44,7 +44,14 @@ jest.mock('@app/keycloak/installation', () => ({
 
 jest.mock('@app/keycloak/roleReplication', () => ({
   ...jest.requireActual('@app/keycloak/roleReplication'),
-  planRoleReplication: jest.fn(() => Promise.resolve({ alreadyReplicated: [], pending: [], replicate: jest.fn() })),
+  planRoleReplication: jest.fn(() =>
+    Promise.resolve({
+      alreadyReplicated: [],
+      pending: [],
+      resolveTargets: jest.fn(() => Promise.resolve({ pending: [], notFound: [] })),
+      replicate: jest.fn(),
+    }),
+  ),
 }));
 
 const asSsoAdmin = () => createMockAuth(SSO_ADMIN_USERID_01, SSO_ADMIN_EMAIL_01, ['sso-admin']);

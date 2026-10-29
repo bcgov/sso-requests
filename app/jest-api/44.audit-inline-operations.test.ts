@@ -153,7 +153,7 @@ describe('inline operations and their audit events', () => {
         teamId: team.body.id,
         environment: 'prod',
         targetType: 'service-account',
-        targetId: account.body.clientId,
+        targetId: `service-account-${account.body.clientId}`.toLowerCase(),
       });
     });
   });

@@ -232,9 +232,9 @@ export const isNotFoundInMfa = (err: unknown) => (err as { notFoundInMfa?: boole
  * Works out, without changing anything, who still needs each role replicated: every idir user holding the
  * role whose azureidir counterpart does not already hold it. A user with no azureidir user in Keycloak yet
  * is looked up in MS Graph once; one with no Azure IDIR account at all has nothing to replicate to and is
- * reported in `notFound` rather than planned. `replicate` then grants one pending row, resolving (and if
- * need be creating) the azureidir user first, once per GUID however many roles it receives. If `roleName`
- * is omitted, plans every client role.
+ * reported in `notFound` rather than planned. `resolveTargets` then resolves (and if need be creates) each
+ * pending GUID's azureidir user, once however many roles it receives, and `replicate` grants one pending
+ * row. If `roleName` is omitted, plans every client role.
  */
 export const planRoleReplication = async (
   integration: Integration,
@@ -285,6 +285,39 @@ export const planRoleReplication = async (
     return mfaUsers.get(guid)!;
   };
 
+  /**
+   * Resolves every pending row's azureidir user, moving the rows of a GUID that has none to `notFound`. Run
+   * before the grants are recorded, so a user with nothing to replicate to never becomes a change. A lookup
+   * that fails stays pending: `replicate` rethrows it, so that grant is recorded as the failure it is.
+   */
+  const resolveTargets = async () => {
+    const missing = new Set<string>();
+    for (const batch of chunk(uniq(pending.map((row) => row.guid)), REPLICATION_BATCH_SIZE)) {
+      await Promise.all(
+        batch.map(async (guid) => {
+          if (!(await mfaUserFor(guid).catch(() => true))) missing.add(guid);
+        }),
+      );
+    }
+    return {
+      pending: pending.filter((row) => !missing.has(row.guid)),
+      notFound: [
+        ...notFound,
+        ...pending
+          .filter((row) => missing.has(row.guid))
+          .map(
+            ({ idirUsername, guid, role }): RoleReplicationResultRow => ({
+              idirUsername,
+              guid,
+              role,
+              status: 'NOT_FOUND_IN_MFA',
+              detail: 'no matching azureidir account found via MS Graph',
+            }),
+          ),
+      ],
+    };
+  };
+
   const replicate = async ({ guid, role: rName }: PendingReplication) => {
     const mfaUser = await mfaUserFor(guid);
     if (!mfaUser) throw notFoundInMfa(guid);
@@ -300,5 +333,5 @@ export const planRoleReplication = async (
     });
   };
 
-  return { alreadyReplicated, notFound, pending, replicate };
+  return { alreadyReplicated, notFound, pending, resolveTargets, replicate };
 };

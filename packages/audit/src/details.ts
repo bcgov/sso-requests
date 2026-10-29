@@ -66,12 +66,12 @@ export type AuditDetailsMap = {
   'organization-update': { name: string };
   'organization-delete': { name: string };
   'organization-member-add': { role: MemberRole };
-  'organization-member-remove': { reason?: 'organization-deleted' };
+  'organization-member-remove': { reason?: 'organization-deleted' | 'user-deleted' };
   'organization-member-role-update': { role: MemberRole };
   'organization-team-invite': { permissions: string[] };
   'organization-team-join': { permissions: string[] };
   'organization-team-decline': None;
-  'organization-team-leave': { removedBy: 'organization' | 'team'; reason?: 'organization-deleted' };
+  'organization-team-leave': { removedBy: 'organization' | 'team'; reason?: 'organization-deleted' | 'team-deleted' };
   'organization-consent-update': { permissions: string[] };
   'organization-overrides-update': { count: number };
 };

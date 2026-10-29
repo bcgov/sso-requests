@@ -26,6 +26,7 @@ import {
 } from 'services/keycloak';
 import { canCreateOrDeleteRoles, canManageUserRoleMappings } from 'helpers/permissions';
 import { idpMap } from 'helpers/meta';
+import { hasChanges } from '@app/helpers/roles';
 import { getRequest } from 'services/request';
 import { checkIfUserIsServiceAccount, filterServiceAccountUsers } from 'helpers/users';
 import { KeycloakUser } from 'interfaces/team';
@@ -853,17 +854,18 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         onConfirm={async (contentRef: any, user: KeycloakUser) => {
           if (!selectedRole) return;
 
-          const [, err] = await updateUserRoles({
+          const [result, err] = await updateUserRoles({
             environment,
             integrationId: integration.id as number,
             username: user.username as string,
             remove: [selectedRole],
           });
 
-          if (err) {
+          // A Keycloak refusal comes back as a 200 listing the role under failed.remove.
+          if (err || hasChanges(result!.failed)) {
             alert.show({
               variant: 'danger',
-              content: err,
+              content: err || `Failed to remove the role ${selectedRole}.`,
             });
           }
 
@@ -883,17 +885,18 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         onConfirm={async (contentRef: any, user: KeycloakUser) => {
           if (!selectedRole) return;
 
-          const [, err] = await updateUserRoles({
+          const [result, err] = await updateUserRoles({
             environment,
             integrationId: integration.id as number,
             username: user.username as string,
             remove: [selectedRole],
           });
 
-          if (err) {
+          // A Keycloak refusal comes back as a 200 listing the role under failed.remove.
+          if (err || hasChanges(result!.failed)) {
             alert.show({
               variant: 'danger',
-              content: err,
+              content: err || `Failed to remove the role ${selectedRole}.`,
             });
           }
 

@@ -44,6 +44,29 @@ const pending = (guid: string, idirUsername: string) => ({
   mfaUsername: `${guid}@azureidir`,
 });
 
+// A plan whose `resolveTargets` moves the rows of `vanished` GUIDs (no azureidir user at grant time) to notFound.
+const planned = ({
+  alreadyReplicated = [],
+  notFound = [],
+  pending = [],
+  replicate = jest.fn(),
+  vanished = [],
+}: any) => ({
+  alreadyReplicated,
+  notFound,
+  pending,
+  replicate,
+  resolveTargets: jest.fn(async () => ({
+    pending: pending.filter((row: any) => !vanished.includes(row.guid)),
+    notFound: [
+      ...notFound,
+      ...pending
+        .filter((row: any) => vanished.includes(row.guid))
+        .map(({ idirUsername, guid, role }: any) => ({ idirUsername, guid, role, status: 'NOT_FOUND_IN_MFA' })),
+    ],
+  })),
+});
+
 describe('replicateRoleMfa audit events', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -52,24 +75,27 @@ describe('replicateRoleMfa audit events', () => {
 
   it('records a role-replicate parent with one role-assign child per user still to replicate', async () => {
     const replicate = jest.fn(({ guid }: any) =>
-      guid === 'gc'
-        ? Promise.reject(Object.assign(new Error('no account'), { notFoundInMfa: true }))
-        : Promise.resolve(),
+      guid === 'ge' ? Promise.reject(new Error('keycloak down')) : Promise.resolve(),
     );
-    mockPlan.mockResolvedValue({
-      alreadyReplicated: [{ idirUsername: 'b', guid: 'gb', role: 'editor', status: 'ALREADY_REPLICATED' }],
-      notFound: [{ idirUsername: 'd', guid: 'gd', role: 'editor', status: 'NOT_FOUND_IN_MFA' }],
-      pending: [pending('ga', 'a'), pending('gc', 'c')],
-      replicate,
-    });
+    mockPlan.mockResolvedValue(
+      planned({
+        alreadyReplicated: [{ idirUsername: 'b', guid: 'gb', role: 'editor', status: 'ALREADY_REPLICATED' }],
+        notFound: [{ idirUsername: 'd', guid: 'gd', role: 'editor', status: 'NOT_FOUND_IN_MFA' }],
+        pending: [pending('ga', 'a'), pending('gc', 'c'), pending('ge', 'e')],
+        replicate,
+        // MS Graph found gc while planning, but no azureidir user resolved for it before the grants.
+        vanished: ['gc'],
+      }),
+    );
 
     const results = await asUser(() => replicateRoleMfa(session, params));
 
     expect(results.map((row) => [row.guid, row.status])).toEqual([
       ['gb', 'ALREADY_REPLICATED'],
       ['gd', 'NOT_FOUND_IN_MFA'],
-      ['ga', 'REPLICATED'],
       ['gc', 'NOT_FOUND_IN_MFA'],
+      ['ga', 'REPLICATED'],
+      ['ge', 'ERROR'],
     ]);
 
     const parent = mockRows.find((row) => row.eventCode === 'role-replicate' && row.outcome === 'requested');
@@ -85,13 +111,13 @@ describe('replicateRoleMfa audit events', () => {
     const requested = mockRows.filter((row) => row.eventCode === 'role-assign' && row.outcome === 'requested');
     expect(requested.map((row) => [row.targetId, row.details.replicatedFrom, row.parentOperationId])).toEqual([
       ['ga@azureidir', 'a', parent.operationId],
-      ['gc@azureidir', 'c', parent.operationId],
+      ['ge@azureidir', 'e', parent.operationId],
     ]);
 
     const outcomes = mockRows.filter((row) => row.eventCode === 'role-assign' && row.outcome !== 'requested');
     expect(outcomes.map((row) => [row.targetId, row.outcome])).toEqual([
       ['ga@azureidir', 'success'],
-      ['gc@azureidir', 'failure'],
+      ['ge@azureidir', 'failure'],
     ]);
     expect(
       mockRows.find((row) => row.eventCode === 'role-replicate' && row.outcome === 'failure').details,
@@ -110,7 +136,7 @@ describe('replicateRoleMfa audit events', () => {
   });
 
   it('still records the parent when everyone already holds the role, so the run is visible', async () => {
-    mockPlan.mockResolvedValue({ alreadyReplicated: [], notFound: [], pending: [], replicate: jest.fn() });
+    mockPlan.mockResolvedValue(planned({}));
 
     await asUser(() => replicateRoleMfa(session, params));
     expect(mockRows.map((row) => [row.eventCode, row.outcome])).toEqual([
