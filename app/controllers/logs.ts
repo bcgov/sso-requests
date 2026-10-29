@@ -1,8 +1,8 @@
 import { authorizeIntegration } from '@app/queries/integrationAccess';
 import { Session } from '@app/shared/interfaces';
 import { clientEventsAggregationQuery, queryGrafana } from '@app/utils/grafana';
-import { createEvent } from '@app/queries/event';
-import { EVENTS } from '@app/shared/enums';
+import { audit } from '@app/queries/event';
+import type { Environment } from '@sso/audit';
 
 import { logger } from '@app/utils/logger';
 
@@ -16,14 +16,7 @@ const MAX_DAYS = 3;
 
 const allowedEnvs = ['dev', 'test', 'prod'];
 
-export const fetchLogs = async (
-  env: string,
-  clientId: string,
-  requestId: string,
-  start: string,
-  end: string,
-  userId?: string,
-) => {
+export const fetchLogs = async (env: string, clientId: string, requestId: string, start: string, end: string) => {
   const hasRequiredParams = start && end && env;
 
   if (!hasRequiredParams) {
@@ -53,33 +46,28 @@ export const fetchLogs = async (
     return { status: 400, message: `Date range must be less ${MAX_DAYS} days.` };
   }
 
-  const eventMeta = {
-    requestId: requestId ? parseInt(requestId, 10) : undefined,
-    idirUserid: userId,
-    details: {
-      environment: env,
-      clientId,
-    },
-  };
-
   try {
     const query = `{environment="${env}"}  |= \`clientId=${clientId}\` |= \`realmId=standard\``;
-    const allLogs = await queryGrafana(query, unixStartTime, unixEndTime, LOG_SIZE_LIMIT);
+    // An outside call like any other: failures are recorded, for the service's long-term stability, and the
+    // logs are only handed out once the success row has committed.
+    const allLogs = await audit.runAuditedOperation(
+      {
+        action: 'logs-download',
+        requestId: Number(requestId),
+        environment: env as Environment,
+        target: { type: 'integration', id: clientId },
+        details: { start, end },
+      },
+      () => queryGrafana(query, unixStartTime, unixEndTime, LOG_SIZE_LIMIT),
+      { successDetails: (logs) => ({ count: logs.length }) },
+    );
     let message = 'All logs retrieved';
     if (allLogs.length === LOG_SIZE_LIMIT)
       message = 'Log limit reached. There may be more logs available, try a more restricted date range.';
     const parsedLogs = allLogs.map((log: any) => JSON.parse(log));
-    await createEvent({
-      eventCode: EVENTS.LOGS_DOWNLOADED_SUCCESS,
-      ...eventMeta,
-    });
     return { status: 200, message, data: parsedLogs };
   } catch (err) {
-    log.info({ err }, 'Error while fetching logs from loki');
-    await createEvent({
-      eventCode: EVENTS.LOGS_DOWNLOADED_FAILURE,
-      ...eventMeta,
-    });
+    log.info({ err }, 'Error while fetching logs');
     return { status: 500, message: 'Unexpected error fetching logs.' };
   }
 };

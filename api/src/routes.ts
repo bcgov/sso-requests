@@ -160,8 +160,6 @@ router.get(`/integrations/:integrationId/:environment/logs`, logsRateLimiter, as
       int.id.toString(),
       start,
       end,
-      undefined,
-      req.apiClientId,
     );
     if (status === 200) res.status(status).send({ data, message });
     else res.status(status).send({ message });

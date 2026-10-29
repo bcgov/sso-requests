@@ -6,6 +6,7 @@ import { isSocialApprover } from '@app/utils/helpers';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import { authorizeIntegration } from '@app/queries/integrationAccess';
 import createHttpError from 'http-errors';
+import { isOutcome } from '@sso/audit';
 
 /**
  * Fetch request update events for the given user session and request id. If user does not own integration throws 403.
@@ -35,6 +36,7 @@ export const getEvents = async (
   data: {
     requestId: string;
     eventCode: string;
+    outcome?: string;
     clearNotifications?: boolean;
     order?: any;
     limit?: number;
@@ -48,12 +50,24 @@ export const getEvents = async (
     throw new Error('User is not authorized to view request events');
   }
 
-  const { requestId, eventCode, order = [['createdAt', 'desc']], limit = 100, page = 1, clearNotifications } = data;
+  const {
+    requestId,
+    eventCode,
+    outcome = 'all',
+    order = [['createdAt', 'desc']],
+    limit = 100,
+    page = 1,
+    clearNotifications,
+  } = data;
 
   const where: any = { requestId };
 
   if (eventCode !== 'all') {
     where.eventCode = eventCode;
+  }
+  if (outcome !== 'all') {
+    if (!isOutcome(outcome)) throw new createHttpError.BadRequest(`invalid outcome ${outcome}`);
+    where.outcome = outcome;
   }
 
   if (!hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_EVENTS)) {

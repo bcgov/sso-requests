@@ -15,7 +15,7 @@ import {
 } from '@app/utils/helpers';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@app/shared/interfaces';
-import { EMAILS, EVENTS } from '@app/shared/enums';
+import { EMAILS } from '@app/shared/enums';
 import { sendTemplate } from '@app/shared/templates';
 import { getAllowedTeams, getTeamById } from '@app/queries/team';
 import {
@@ -101,7 +101,7 @@ import { hasAppPermission, appPermissions, commonPermissionsForAppRoles } from '
 import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
 import { createSdxRequest } from './sdx-services';
 import { getEntraClientByRequestId, saveEntraClient } from '@app/queries/entra-client';
-import { audit, createEvent } from '@app/queries/event';
+import { audit } from '@app/queries/event';
 import { EnqueueResult, enqueueRequestWorkflow, executeEnqueuedWorkflow } from '@app/workflow/request-workflow';
 import { countApplyOutcomes, recordAdoptedSubmission, workflowEventScope } from '@app/workflow/audit';
 import { KeyCredential } from '@microsoft/microsoft-graph-types';
@@ -231,14 +231,14 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     },
   });
 
+  // The one rejection that is audited, as a sign of abusive usage. Best effort: the 429 goes out regardless.
   if (numOfRequestsForToday >= NEW_REQUEST_DAY_LIMIT) {
-    const eventData = {
-      eventCode: EVENTS.REQUEST_LIMIT_REACHED,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session?.user?.displayName || '',
-    };
-
-    await createEvent(eventData);
+    await audit.tryCreateEvent({
+      action: 'request-limit-reached',
+      outcome: 'success',
+      target: { type: 'app-user', id: String(session?.user?.id) },
+      details: { limit: NEW_REQUEST_DAY_LIMIT, count: numOfRequestsForToday },
+    });
     await sendTemplate(EMAILS.REQUEST_LIMIT_EXCEEDED, { user: session?.user?.displayName || '' });
     throw new createHttpError.TooManyRequests('reached the day limit');
   }

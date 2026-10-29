@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { literal, Op } from 'sequelize';
 import isNil from 'lodash/isNil';
 import { models, sequelize } from '@app/shared/sequelize/models/models';
@@ -8,11 +9,12 @@ import { Permission } from '@sso/authz';
 import { authorizeIntegration } from '@app/queries/integrationAccess';
 import { listRoleUsers, listUserRoles, resolveUserRoleMappingTarget } from '@app/keycloak/users';
 import { canCreateOrDeleteRoles } from '@app/helpers/permissions';
-import { EMAILS, EVENTS } from '@app/shared/enums';
+import { EMAILS } from '@app/shared/enums';
 import { sendTemplate } from '@app/shared/templates';
 import { UserSurveyInformation } from '@app/shared/interfaces';
-import { audit, createEvent } from '@app/queries/event';
-import { isEnvironment, roleMappingOperations } from '@sso/audit';
+import { audit } from '@app/queries/event';
+import { describeError, isEnvironment, roleMappingOperations } from '@sso/audit';
+import { systemActor, userActor, withActor } from '@sso/audit/server';
 import UserRepresentation from '@keycloak/keycloak-admin-client/lib/defs/userRepresentation';
 import createHttpError from 'http-errors';
 import { compact, uniq } from 'lodash';
@@ -20,6 +22,8 @@ import { compact, uniq } from 'lodash';
 import { logger } from '@app/utils/logger';
 
 const log = logger.child({ module: 'controllers/user' });
+
+const appUserTarget = (userId: number) => ({ type: 'app-user' as const, id: String(userId) });
 
 export const findOrCreateUser = async (session: Session) => {
   let { idir_userid, email } = session;
@@ -39,21 +43,26 @@ export const findOrCreateUser = async (session: Session) => {
     // Remove the duplicate row and continue with the correct one
     if (existingUserWithGuidRow && userWithoutGuidRow) {
       log.info({ idirUserid: idir_userid }, 'duplicate user found, removing duplicate record');
-      await sequelize.transaction(async (transaction) => {
-        await userWithoutGuidRow.destroy({ transaction });
-        await createEvent(
-          {
-            eventCode: EVENTS.USER_DELETE_SUCCESS,
-            actorType: 'system',
-            actorId: 'user-record-deduplication',
-            details: { userId: userWithoutGuidRow.id, mergedIntoUserId: existingUserWithGuidRow.id },
-          },
-          transaction,
-        );
-      });
+      await withActor(systemActor('user-record-deduplication'), () =>
+        sequelize.transaction(async (transaction) => {
+          await userWithoutGuidRow.destroy({ transaction });
+          await audit.createEvent(
+            {
+              action: 'user-delete',
+              outcome: 'success',
+              target: appUserTarget(userWithoutGuidRow.id),
+              details: { idirUserid: userWithoutGuidRow.idirUserid, mergedIntoUserId: existingUserWithGuidRow.id },
+            },
+            transaction,
+          );
+        }),
+      );
       user = existingUserWithGuidRow;
     }
   }
+
+  // The signed-in user creates and updates their own row, whatever request this runs in.
+  const self = userActor(idir_userid, displayName);
 
   if (user) {
     const before = {
@@ -66,42 +75,37 @@ export const findOrCreateUser = async (session: Session) => {
     user.idirEmail = email;
     user.displayName = displayName;
 
-    await sequelize.transaction(async (transaction) => {
-      await user.save({ transaction });
-      const changes = Object.fromEntries(
-        Object.entries(before)
-          .filter(([key, value]) => value !== user[key])
-          .map(([key, value]) => [key, { before: value, after: user[key] }]),
-      );
-      if (Object.keys(changes).length > 0) {
-        await createEvent(
-          {
-            eventCode: EVENTS.USER_UPDATE_SUCCESS,
-            idirUserid: idir_userid,
-            idirUserDisplayName: displayName,
-            actorType: 'user',
-            actorId: idir_userid,
-            details: { userId: user.id, changes },
-          },
+    await withActor(self, () =>
+      sequelize.transaction(async (transaction) => {
+        await user.save({ transaction });
+        const changes = Object.fromEntries(
+          Object.entries(before)
+            .filter(([key, value]) => value !== user[key])
+            .map(([key, value]) => [key, { before: value, after: user[key] }]),
+        );
+        if (Object.keys(changes).length > 0) {
+          await audit.createEvent(
+            {
+              action: 'user-update',
+              outcome: 'success',
+              target: appUserTarget(user.id),
+              details: { changes },
+            },
+            transaction,
+          );
+        }
+      }),
+    );
+  } else {
+    await withActor(self, () =>
+      sequelize.transaction(async (transaction) => {
+        user = await models.user.create({ idirUserid: idir_userid, idirEmail: email, displayName }, { transaction });
+        await audit.createEvent(
+          { action: 'user-create', outcome: 'success', target: appUserTarget(user.id), details: {} },
           transaction,
         );
-      }
-    });
-  } else {
-    await sequelize.transaction(async (transaction) => {
-      user = await models.user.create({ idirUserid: idir_userid, idirEmail: email, displayName }, { transaction });
-      await createEvent(
-        {
-          eventCode: EVENTS.USER_CREATE_SUCCESS,
-          idirUserid: idir_userid,
-          idirUserDisplayName: displayName,
-          actorType: 'user',
-          actorId: idir_userid,
-          details: { userId: user.id },
-        },
-        transaction,
-      );
-    });
+      }),
+    );
   }
 
   return user.get({ plain: true });
@@ -137,15 +141,8 @@ export const updateProfile = async (
         .map(([key, value]) => [key, { before: value, after: updated[key] }]),
     );
     if (Object.keys(changes).length > 0) {
-      await createEvent(
-        {
-          eventCode: EVENTS.USER_PROFILE_UPDATE_SUCCESS,
-          idirUserid: session?.idir_userid,
-          idirUserDisplayName: session?.user?.displayName,
-          actorType: 'user',
-          actorId: session?.idir_userid,
-          details: { changes },
-        },
+      await audit.createEvent(
+        { action: 'user-profile-update', outcome: 'success', target: appUserTarget(myself.id), details: { changes } },
         transaction,
       );
     }
@@ -373,18 +370,27 @@ export const deleteStaleUsers = async (
             { role: 'admin', pending: false, teamId: team.teamId, userId: ssoUser.id },
             { transaction },
           );
+          await audit.createEvent(
+            {
+              action: 'team-member-add',
+              outcome: 'success',
+              teamId: team.teamId,
+              target: appUserTarget(ssoUser.id),
+              details: { role: 'admin' },
+            },
+            transaction,
+          );
           for (const integration of orphanedRequests) {
             // Override userid regardless of archive status, to avoid bad foreign key refs
             integration.userId = ssoUser.id;
             await integration.save({ transaction });
-            await createEvent(
+            await audit.createEvent(
               {
-                eventCode: EVENTS.TRANSFER_OF_OWNERSHIP_SUCCESS,
+                action: 'transfer-of-ownership',
+                outcome: 'success',
                 requestId: integration.id,
                 teamId: team.teamId,
-                actorType: 'system',
-                actorId: 'stale-user-cleanup',
-                details: { fromUserId: existingUser.id, toUserId: ssoUser.id, teamId: team.teamId },
+                details: { fromUserId: existingUser.id, toUserId: ssoUser.id },
               },
               transaction,
             );
@@ -421,14 +427,13 @@ export const deleteStaleUsers = async (
           );
           await Promise.all(
             affectedRequests.map((request: { id: number }) =>
-              createEvent(
+              audit.createEvent(
                 {
-                  eventCode: EVENTS.TRANSFER_OF_OWNERSHIP_SUCCESS,
+                  action: 'transfer-of-ownership',
+                  outcome: 'success',
                   requestId: request.id,
                   teamId: team.teamId,
-                  actorType: 'system',
-                  actorId: 'stale-user-cleanup',
-                  details: { fromUserId: existingUser.id, toUserId: ssoUser.id, teamId: team.teamId },
+                  details: { fromUserId: existingUser.id, toUserId: ssoUser.id },
                 },
                 transaction,
               ),
@@ -477,25 +482,26 @@ export const deleteStaleUsers = async (
           await sequelize.transaction(async (transaction) => {
             rqst.userId = ssoUser.id;
             await rqst.save({ transaction });
-            await createEvent(
+            await audit.createEvent(
               {
-                eventCode: EVENTS.TRANSFER_OF_OWNERSHIP_SUCCESS,
+                action: 'transfer-of-ownership',
+                outcome: 'success',
                 requestId: rqst.id,
-                actorType: 'system',
-                actorId: 'stale-user-cleanup',
                 details: { fromUserId: existingUser.id, toUserId: ssoUser.id },
               },
               transaction,
             );
           });
         } catch (err) {
+          // The transaction rolled back, so nothing changed; recorded anyway as an operational signal, best effort
+          // so the cleanup carries on with the next integration.
           log.error({ err, requestId: rqst?.id }, 'failed to transfer integration to the SSO team');
-          await createEvent({
-            eventCode: EVENTS.TRANSFER_OF_OWNERSHIP_FAILURE,
+          await audit.tryCreateEvent({
+            action: 'transfer-of-ownership',
+            outcome: 'failure',
+            operationId: randomUUID(),
             requestId: rqst?.id,
-            actorType: 'system',
-            actorId: 'stale-user-cleanup',
-            details: { fromUserId: existingUser.id, toUserId: ssoUser.id },
+            details: { fromUserId: existingUser.id, toUserId: ssoUser.id, error: describeError(err) },
           });
           continue;
         }
@@ -512,29 +518,28 @@ export const deleteStaleUsers = async (
 
     await sequelize.transaction(async (transaction) => {
       await existingUser.destroy({ transaction });
-      await Promise.all([
-        ...teams.map((team: any) =>
-          createEvent(
-            {
-              eventCode: EVENTS.TEAM_MEMBER_REMOVED,
-              teamId: team.teamId,
-              actorType: 'system',
-              actorId: 'stale-user-cleanup',
-              details: { userId: existingUser.id, role: team.role, reason: 'user-deleted' },
-            },
-            transaction,
-          ),
-        ),
-        createEvent(
+      // Runs as the `stale-user-cleanup` system actor, set by the route.
+      for (const team of teams) {
+        await audit.createEvent(
           {
-            eventCode: EVENTS.USER_DELETE_SUCCESS,
-            actorType: 'system',
-            actorId: 'stale-user-cleanup',
-            details: { userId: existingUser.id, idirUserid: existingUser.idirUserid },
+            action: 'team-member-remove',
+            outcome: 'success',
+            teamId: team.teamId,
+            target: appUserTarget(existingUser.id),
+            details: { role: team.role, reason: 'user-deleted' },
           },
           transaction,
-        ),
-      ]);
+        );
+      }
+      await audit.createEvent(
+        {
+          action: 'user-delete',
+          outcome: 'success',
+          target: appUserTarget(existingUser.id),
+          details: { idirUserid: existingUser.idirUserid },
+        },
+        transaction,
+      );
     });
     return true;
   } catch (err) {

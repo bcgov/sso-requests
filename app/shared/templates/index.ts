@@ -1,8 +1,10 @@
 import * as fs from 'fs';
+import { randomUUID } from 'node:crypto';
 import Handlebars from 'handlebars';
 import { noop } from 'lodash';
-import { models } from '@app/shared/sequelize/models/models';
-import { EVENTS, EMAILS } from '@app/shared/enums';
+import { EMAILS } from '@app/shared/enums';
+import { describeError } from '@sso/audit';
+import { audit } from '@app/queries/event';
 import { KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
 import environmentApproved from './environment-approved';
 import createIntegrationApplied from './create-integration-applied';
@@ -191,14 +193,6 @@ export const renderTemplate = async (code: string, data: any): Promise<RenderRes
   return result;
 };
 
-const createEvent = async (data: any) => {
-  try {
-    await models.event.create(data);
-  } catch (err) {
-    log.error({ err }, 'createEvent failed');
-  }
-};
-
 export const sendTemplate = async (code: string, data: any) => {
   try {
     const builder = getBuilder(code);
@@ -208,11 +202,14 @@ export const sendTemplate = async (code: string, data: any) => {
   } catch (err) {
     log.error({ err, emailCode: code, requestId: data?.integration?.id }, 'failed to send email');
 
+    // An email that never went out, recorded against its integration. Best effort: whatever sent it carries on.
     if (data.integration) {
-      await createEvent({
-        eventCode: EVENTS.EMAIL_SUBMISSION_FAILURE,
+      await audit.tryCreateEvent({
+        action: 'email-submission',
+        outcome: 'failure',
+        operationId: randomUUID(),
         requestId: data.integration.id,
-        details: { emailCode: code, error: (err as any).message || err },
+        details: { code, error: describeError(err) },
       });
     }
   }

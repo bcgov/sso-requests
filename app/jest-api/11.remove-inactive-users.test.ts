@@ -17,7 +17,8 @@ import { deleteInactiveUsers, getAuthenticatedUser } from './helpers/modules/use
 import { Integration } from '@app/interfaces/Request';
 import { buildIntegration } from './helpers/modules/common';
 import { models } from '@app/shared/sequelize/models/models';
-import { EMAILS, EVENTS } from '@app/shared/enums';
+import { EMAILS } from '@app/shared/enums';
+import { audit } from '@app/queries/event';
 import { renderTemplate } from '@app/shared/templates';
 import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { deleteIntegration } from './helpers/modules/integrations';
@@ -345,6 +346,36 @@ describe('Deleted user emails', () => {
       );
       expect(deleteInactiveIntegrationEmails.length).toBe(1);
     });
+
+    it('records a failed handover of a directly owned integration as a best-effort failure', async () => {
+      authenticateAsTestUser();
+      const integration = await buildIntegration({ projectName: 'project', submitted: true });
+
+      // The handover's own success row cannot be written, so its transaction rolls back.
+      const createEvent = audit.createEvent;
+      const spy = jest
+        .spyOn(audit, 'createEvent')
+        .mockImplementation((event: any, transaction?: any) =>
+          event.action === 'transfer-of-ownership'
+            ? Promise.reject(new Error('audit store down'))
+            : createEvent(event, transaction),
+        );
+      try {
+        await deleteInactiveUsers(testUser);
+      } finally {
+        spy.mockRestore();
+      }
+
+      const failures = await models.event.findAll({
+        where: { eventCode: 'transfer-of-ownership', requestId: integration.body.id },
+        raw: true,
+      });
+      expect(failures).toHaveLength(1);
+      expect(failures[0]).toMatchObject({ outcome: 'failure', actorId: 'stale-user-cleanup' });
+      expect(failures[0].details.error).toEqual({ message: 'audit store down' });
+      // Nothing was handed over.
+      expect((await models.request.findByPk(integration.body.id)).userId).not.toBeNull();
+    });
   });
 
   describe('Membership change', () => {
@@ -537,14 +568,21 @@ describe('Event Logging', () => {
     const team2 = await createTeam({ name: 'team2', members: [] }).then((res) => res.body);
 
     await deleteInactiveUsers(testUser);
-    const events = (await models.event.findAll({ where: { eventCode: EVENTS.TEAM_MEMBER_REMOVED } })) as any[];
+    const events = (await models.event.findAll({
+      where: { eventCode: 'team-member-remove' },
+      order: [['id', 'ASC']],
+    })) as any[];
     expect(events.length).toBe(2);
 
     events.forEach((event, i) => {
-      expect(event.details.userId).toBe(authenticatedUser.id);
-      expect(event.details.role).toBe('admin');
-      expect(event.details.reason).toBe('user-deleted');
+      expect(event.targetId).toBe(String(authenticatedUser.id));
+      expect(event.details).toEqual({ role: 'admin', reason: 'user-deleted' });
       expect(event.teamId).toBe(i === 0 ? team1.id : team2.id);
+      expect(event).toMatchObject({ actorType: 'system', actorId: 'stale-user-cleanup' });
     });
+
+    const deleted = await models.event.findOne({ where: { eventCode: 'user-delete' }, raw: true });
+    expect(deleted).toMatchObject({ targetId: String(authenticatedUser.id), actorId: 'stale-user-cleanup' });
+    expect(deleted.details.idirUserid).toBeTruthy();
   });
 });

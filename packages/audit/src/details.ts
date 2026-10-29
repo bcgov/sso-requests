@@ -12,16 +12,20 @@ type MemberRole = string;
 
 export type FieldChanges = unknown[];
 
+// A user row's changed fields, each with its value before and after.
+export type ChangedFields = Record<string, { before: unknown; after: unknown }>;
+
 export type AuditDetailsMap = {
   'request-create': { changes?: FieldChanges };
   'request-update': { changes?: FieldChanges; comment?: string };
   'request-delete': None;
   'request-restore': None;
   'request-plan': None;
-  'request-limit-reached': None;
+  'request-limit-reached': { limit: number; count: number };
   'email-submission': { code?: string };
   'transfer-of-ownership': { fromUserId: number; toUserId: number };
-  'logs-download': { environment: Environment; start: string; end: string };
+  // `count` is set on success: how many log lines were returned.
+  'logs-download': { start: string; end: string; count?: number };
 
   'api-account-create': None;
   'api-account-delete': None;
@@ -52,9 +56,10 @@ export type AuditDetailsMap = {
   'team-member-role-update': { before: MemberRole; after: MemberRole };
 
   'user-create': None;
-  'user-update': { changes: FieldChanges };
-  'user-delete': { mergedIntoUserId?: number };
-  'user-profile-update': { changes: FieldChanges };
+  'user-update': { changes: ChangedFields };
+  // The deleted row's idir user id, since the target's app user id no longer names anyone afterwards.
+  'user-delete': { idirUserid?: string | null; mergedIntoUserId?: number };
+  'user-profile-update': { changes: ChangedFields };
 
   'organization-create': { name: string };
   'organization-update': { name: string };

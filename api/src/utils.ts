@@ -36,28 +36,6 @@ export const handleError = (res: Response, err: unknown) => {
   res.status(status).json({ message });
 };
 
-// Pre-@sso/audit event plumbing, until its call sites move to `audit`.
-export const createEvent = async (data: any) => {
-  try {
-    await models.event.create({
-      ...data,
-      actorType: data.actorType ?? (data.idirUserid ? 'user' : 'system'),
-      actorId: data.actorId ?? data.idirUserid ?? null,
-    });
-  } catch (err) {
-    log.error(
-      {
-        err,
-        eventCode: data?.eventCode,
-        requestId: data?.requestId,
-        teamId: data?.teamId,
-        organizationId: data?.organizationId,
-      },
-      'audit_event_write_failed',
-    );
-  }
-};
-
 export const parseErrors = (validationErrors) => {
   return validationErrors[0].message;
 };

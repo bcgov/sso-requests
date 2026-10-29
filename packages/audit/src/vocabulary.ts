@@ -11,6 +11,7 @@ export const AUDIT_ACTIONS = [
   'request-restore',
   // A step inside a workflow operation, never its terminal outcome.
   'request-plan',
+  // The one rejection that is audited: a user hitting the daily request limit, a sign of abusive usage.
   'request-limit-reached',
   'email-submission',
   'transfer-of-ownership',

@@ -27,7 +27,6 @@ import { models } from '@app/shared/sequelize/models/models';
 import { findOrCreateUser } from '@app/controllers/user';
 import { createMockAuth } from './mocks/authenticate';
 import { cleanUpDatabaseTables } from './helpers/utils';
-import { EVENTS } from '@app/shared/enums';
 
 jest.mock('@app/utils/ches', () => {
   return {
@@ -323,14 +322,14 @@ describe('Admin Removal and Events', () => {
 
     await models.usersTeam.update({ pending: false }, { where: { teamId: team.id, userId: additionalAdmin.id } });
     await updateTeamMember(team.id, additionalAdmin.id, { role: 'member' });
-    const roleEvent = await models.event.findOne({ where: { eventCode: EVENTS.TEAM_MEMBER_ROLE_UPDATED } });
+    const roleEvent = await models.event.findOne({ where: { eventCode: 'team-member-role-update', teamId: team.id } });
 
-    expect(await models.event.findOne({ where: { eventCode: EVENTS.TEAM_ADMIN_REMOVAL } })).toBeNull();
-    expect(roleEvent.details).toMatchObject({
-      teamId: team.id,
-      userId: additionalAdmin.id,
-      before: 'admin',
-      after: 'member',
+    expect(await models.event.findOne({ where: { eventCode: 'team-admin-removal' } })).toBeNull();
+    expect(roleEvent).toMatchObject({
+      outcome: 'success',
+      targetType: 'app-user',
+      targetId: String(additionalAdmin.id),
+      details: { before: 'admin', after: 'member' },
     });
   });
 
@@ -347,8 +346,18 @@ describe('Admin Removal and Events', () => {
     await models.usersTeam.update({ pending: false }, { where: { teamId: team.id, userId: additionalAdmin.id } });
 
     await deleteMembersOfTeam(team.id, additionalAdmin.id);
-    const memberEvent = await models.event.findOne({ where: { eventCode: EVENTS.TEAM_MEMBER_REMOVED } });
-    expect(await models.event.findOne({ where: { eventCode: EVENTS.TEAM_ADMIN_REMOVAL } })).toBeNull();
-    expect(memberEvent.details).toMatchObject({ teamId: team.id, userId: additionalAdmin.id, role: 'admin' });
+    const memberEvent = await models.event.findOne({ where: { eventCode: 'team-member-remove', teamId: team.id } });
+    expect(await models.event.findOne({ where: { eventCode: 'team-admin-removal' } })).toBeNull();
+    expect(memberEvent).toMatchObject({ targetType: 'app-user', targetId: String(additionalAdmin.id) });
+    expect(memberEvent.details).toEqual({ role: 'admin' });
+
+    // The replacement for team-admin-removal in docs/events.md finds both of the above.
+    const [admins] = await models.event.sequelize.query(
+      `SELECT event_code FROM events
+       WHERE team_id IN (:teamIds) AND event_code IN ('team-member-remove', 'team-member-role-update')
+         AND (details->>'role' = 'admin' OR details->>'before' = 'admin')`,
+      { replacements: { teamIds: [team.id] } },
+    );
+    expect(admins.map((row: any) => row.event_code)).toEqual(['team-member-remove']);
   });
 });

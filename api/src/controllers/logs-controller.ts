@@ -12,9 +12,7 @@ export class LogsController {
     requestId: string,
     start: string | ParsedQs | (string | ParsedQs)[],
     end: string | ParsedQs | (string | ParsedQs)[],
-    userId?: string,
-    actorId?: string,
   ) {
-    return await this.logsService.fetchLogs(env, clientId, requestId, start, end, userId, actorId);
+    return await this.logsService.fetchLogs(env, clientId, requestId, start, end);
   }
 }

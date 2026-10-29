@@ -433,7 +433,8 @@ describe('SSO Dashboard', () => {
 
     //test on selection dropdown
     const eventsDropdown = screen.getByTestId('events-dropdown');
-    const input = eventsDropdown.lastChild;
+    // The first of the two filters (action, then outcome).
+    const input = within(eventsDropdown).getAllByRole('combobox')[0];
     //expect(eventsDropdown).toHaveTextContent('Select...');
     fireEvent.keyDown(input as HTMLElement, { keyCode: 40 });
     const eventOption = await screen.findByText('All Events');

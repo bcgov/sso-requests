@@ -1,5 +1,6 @@
 import { queryGrafana } from '@/modules/grafana';
-import { createEvent } from '@/utils';
+import { audit } from '@/utils';
+import type { Environment } from '@sso/audit';
 import { ParsedQs } from 'qs';
 import { injectable } from 'tsyringe';
 import { logger } from '@/logger';
@@ -19,8 +20,6 @@ export class LogsService {
     requestId: string,
     start: string | ParsedQs | (string | ParsedQs)[],
     end: string | ParsedQs | (string | ParsedQs)[],
-    userId?: string,
-    actorId?: string,
   ) {
     const hasRequiredParams = start && end && env;
 
@@ -57,35 +56,28 @@ export class LogsService {
       return { status: 400, message: `Date range must be less ${this.MAX_DAYS} days.` };
     }
 
-    const eventMeta = {
-      requestId,
-      idirUserid: userId,
-      actorType: actorId ? 'service-account' : undefined,
-      actorId,
-      details: {
-        environment: env,
-        clientId,
-      },
-    };
-
     try {
       const query = `{environment="${env}"}  |= \`clientId=${clientId}\` |= \`realmId=standard\``;
-      const allLogs = await queryGrafana(query, unixStartTime, unixEndTime, this.LOG_SIZE_LIMIT);
+      // An outside call like any other, built as the app builds it: failures are recorded, and the logs are
+      // only handed out once the success row has committed.
+      const allLogs = await audit.runAuditedOperation(
+        {
+          action: 'logs-download',
+          requestId: Number(requestId),
+          environment: env as Environment,
+          target: { type: 'integration', id: clientId },
+          details: { start, end },
+        },
+        () => queryGrafana(query, unixStartTime, unixEndTime, this.LOG_SIZE_LIMIT),
+        { successDetails: (logs: any[]) => ({ count: logs.length }) },
+      );
       let message = 'All logs retrieved';
       if (allLogs.length === this.LOG_SIZE_LIMIT)
         message = 'Log limit reached. There may be more logs available, try a more restricted date range.';
       const parsedLogs = allLogs.map((log: any) => JSON.parse(log));
-      await createEvent({
-        eventCode: 'logs-download-success',
-        ...eventMeta,
-      });
       return { status: 200, message, data: parsedLogs };
     } catch (err) {
       log.error({ err, environment: env, clientId }, 'Error while fetching logs from loki');
-      await createEvent({
-        eventCode: 'logs-download-failure',
-        ...eventMeta,
-      });
       return { status: 500, message: 'Unexpected error fetching logs.' };
     }
   }

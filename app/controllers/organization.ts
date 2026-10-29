@@ -4,8 +4,7 @@ import type { Transaction } from 'sequelize';
 import { ORG_CONSENTABLE_PERMISSIONS, Permission, isSubset, isValidPermissionSet, sortPermissions } from '@sso/authz';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session } from '@app/shared/interfaces';
-import { Event } from '@app/interfaces/Event';
-import { EMAILS, EVENTS } from '@app/shared/enums';
+import { EMAILS } from '@app/shared/enums';
 import { sendTemplate } from '@app/shared/templates';
 import { getDisplayName } from '@app/utils/helpers';
 import { lowcase } from '@app/helpers/string';
@@ -16,7 +15,8 @@ import {
   enqueueIntegrationWorkflow,
   runIntegrationWorkflow,
 } from '@app/controllers/requests';
-import { audit, createEvent } from '@app/queries/event';
+import { audit } from '@app/queries/event';
+import type { AuditAction, AuditDetails, AuditEvent } from '@sso/audit';
 import { generateInstallation, updateClientSecret } from '@app/keycloak/installation';
 import { authorizeTeam } from '@app/queries/teamAccess';
 import { authorizeOrganization } from '@app/queries/organizationAccess';
@@ -47,23 +47,30 @@ const assertTeamAdmin = async (session: Session, teamId: number) => {
   return authorized.team;
 };
 
-const orgEvent = (
-  session: Session,
+type OrgAction = Extract<AuditAction, `organization-${string}`>;
+
+// A DB-only change to an organization, recorded in the transaction that makes it. Membership changes target
+// the member's app user row, team links the team; everything else targets the organization.
+const orgEvent = <A extends OrgAction>(
   organizationId: number,
-  eventCode: string,
-  details?: any,
-  context: Pick<Event, 'requestId' | 'workflowId'> = {},
-  transaction?: Transaction,
+  action: A,
+  details: AuditDetails<A>,
+  transaction: Transaction,
+  scope: { teamId?: number; userId?: number } = {},
 ) =>
-  createEvent(
+  audit.createEvent(
     {
-      ...context,
-      eventCode,
+      action,
+      outcome: 'success',
       organizationId,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: getDisplayName(session),
+      ...(scope.teamId ? { teamId: scope.teamId } : {}),
+      target: scope.userId
+        ? { type: 'app-user', id: String(scope.userId) }
+        : scope.teamId
+        ? { type: 'team', id: String(scope.teamId) }
+        : { type: 'organization', id: String(organizationId) },
       details,
-    },
+    } as AuditEvent,
     transaction,
   );
 
@@ -144,24 +151,10 @@ export const createOrganization = async (session: Session, data: { name: string;
         { organizationId: organization.id, userId, role: 'admin' },
         { transaction },
       );
-      await orgEvent(
-        session,
-        organization.id,
-        EVENTS.ORGANIZATION_MEMBER_ADDED,
-        { userId, role: 'admin' },
-        {},
-        transaction,
-      );
+      await orgEvent(organization.id, 'organization-member-add', { role: 'admin' }, transaction, { userId });
     }
 
-    await orgEvent(
-      session,
-      organization.id,
-      EVENTS.ORGANIZATION_CREATE_SUCCESS,
-      { name: organization.name },
-      {},
-      transaction,
-    );
+    await orgEvent(organization.id, 'organization-create', { name: organization.name }, transaction);
     return organization;
   });
 };
@@ -182,14 +175,7 @@ export const updateOrganization = async (
   if (data.description !== undefined) organization.description = data.description?.trim() || null;
   const saved = await sequelize.transaction(async (transaction) => {
     const updated = await organization.save({ transaction });
-    await orgEvent(
-      session,
-      organizationId,
-      EVENTS.ORGANIZATION_UPDATE_SUCCESS,
-      { name: updated.name },
-      {},
-      transaction,
-    );
+    await orgEvent(organizationId, 'organization-update', { name: updated.name }, transaction);
     return updated;
   });
   return saved;
@@ -214,14 +200,7 @@ export const deleteOrganization = async (session: Session, organizationId: numbe
       { where: { organizationId, apiServiceAccount: true, archived: true }, transaction },
     );
     await organization.destroy({ transaction });
-    await orgEvent(
-      session,
-      organizationId,
-      EVENTS.ORGANIZATION_DELETE_SUCCESS,
-      { name: organization.name },
-      {},
-      transaction,
-    );
+    await orgEvent(organizationId, 'organization-delete', { name: organization.name }, transaction);
   });
   return { success: true };
 };
@@ -252,14 +231,7 @@ export const addOrganizationMember = async (
       transaction,
     });
     if (!created) throw new createHttpError.Conflict('user is already a member of this organization');
-    await orgEvent(
-      session,
-      organizationId,
-      EVENTS.ORGANIZATION_MEMBER_ADDED,
-      { userId: user.id, role: data.role },
-      {},
-      transaction,
-    );
+    await orgEvent(organizationId, 'organization-member-add', { role: data.role }, transaction, { userId: user.id });
     return createdMember;
   });
 
@@ -295,7 +267,7 @@ export const updateOrganizationMemberRole = async (
   const saved = await sequelize.transaction(async (transaction) => {
     member.role = role;
     const updated = await member.save({ transaction });
-    await orgEvent(session, organizationId, EVENTS.ORGANIZATION_MEMBER_ROLE_UPDATED, { userId, role }, {}, transaction);
+    await orgEvent(organizationId, 'organization-member-role-update', { role }, transaction, { userId });
     return updated;
   });
   return saved;
@@ -307,7 +279,7 @@ export const removeOrganizationMember = async (session: Session, organizationId:
   const member = await models.user.findOne({ where: { id: userId } });
   const deleted = await sequelize.transaction(async (transaction) => {
     const count = await models.organizationMember.destroy({ where: { organizationId, userId }, transaction });
-    await orgEvent(session, organizationId, EVENTS.ORGANIZATION_MEMBER_REMOVED, { userId }, {}, transaction);
+    await orgEvent(organizationId, 'organization-member-remove', {}, transaction, { userId });
     return count;
   });
   if (deleted && member) await notifyOrganizationTeam(organization, { action: 'member-removed', member });
@@ -361,14 +333,7 @@ export const inviteTeam = async (
         { transaction },
       );
     }
-    await orgEvent(
-      session,
-      organizationId,
-      EVENTS.ORGANIZATION_TEAM_INVITED,
-      { teamId: data.teamId, permissions },
-      {},
-      transaction,
-    );
+    await orgEvent(organizationId, 'organization-team-invite', { permissions }, transaction, { teamId: data.teamId });
     return savedLink;
   });
   await notifyOrganizationTeam(organization, { team, action: 'invited' });
@@ -383,14 +348,7 @@ export const removeTeamFromOrganization = async (session: Session, organizationI
   if (!team) throw new createHttpError.NotFound('team not found');
   await sequelize.transaction(async (transaction) => {
     await link.destroy({ transaction });
-    await orgEvent(
-      session,
-      organizationId,
-      EVENTS.ORGANIZATION_TEAM_LEFT,
-      { teamId, removedBy: 'organization' },
-      {},
-      transaction,
-    );
+    await orgEvent(organizationId, 'organization-team-leave', { removedBy: 'organization' }, transaction, { teamId });
   });
   await notifyOrganizationTeam(organization, { team, action: 'removed' });
   return { success: true };
@@ -419,7 +377,7 @@ export const respondToOrganizationInvitation = async (
   if (!data.accept) {
     await sequelize.transaction(async (transaction) => {
       await link.destroy({ transaction });
-      await orgEvent(session, organizationId, EVENTS.ORGANIZATION_TEAM_DECLINED, { teamId }, {}, transaction);
+      await orgEvent(organizationId, 'organization-team-decline', {}, transaction, { teamId });
     });
     await notifyOrganizationTeam(organization, { team, action: 'declined' });
     return { success: true, accepted: false };
@@ -440,14 +398,9 @@ export const respondToOrganizationInvitation = async (
   const saved = await sequelize.transaction(async (transaction) => {
     link.pending = false;
     const updated = await link.save({ transaction });
-    await orgEvent(
-      session,
-      organizationId,
-      EVENTS.ORGANIZATION_TEAM_JOINED,
-      { teamId, permissions: updated.permissions },
-      {},
-      transaction,
-    );
+    await orgEvent(organizationId, 'organization-team-join', { permissions: updated.permissions }, transaction, {
+      teamId,
+    });
     return updated;
   });
   await notifyOrganizationTeam(organization, { team, action: 'accepted' });
@@ -467,14 +420,9 @@ export const updateTeamConsent = async (
   const saved = await sequelize.transaction(async (transaction) => {
     link.permissions = validateConsent(permissions);
     const updated = await link.save({ transaction });
-    await orgEvent(
-      session,
-      organizationId,
-      EVENTS.ORGANIZATION_CONSENT_UPDATED,
-      { teamId, permissions: updated.permissions },
-      {},
-      transaction,
-    );
+    await orgEvent(organizationId, 'organization-consent-update', { permissions: updated.permissions }, transaction, {
+      teamId,
+    });
     return updated;
   });
   return saved;
@@ -492,14 +440,9 @@ export const updateIntegrationOverrides = async (
 
   await sequelize.transaction(async (transaction) => {
     await replaceOverrides(link.id, await validateOverrides(teamId, overrides), transaction);
-    await orgEvent(
-      session,
-      organizationId,
-      EVENTS.ORGANIZATION_OVERRIDES_UPDATED,
-      { teamId, count: overrides.length },
-      {},
-      transaction,
-    );
+    await orgEvent(organizationId, 'organization-overrides-update', { count: overrides.length }, transaction, {
+      teamId,
+    });
   });
   return getOverrides(link.id);
 };
@@ -512,14 +455,7 @@ export const leaveOrganization = async (session: Session, teamId: number, organi
   if (!link) throw new createHttpError.NotFound('team is not linked to this organization');
   await sequelize.transaction(async (transaction) => {
     await link.destroy({ transaction });
-    await orgEvent(
-      session,
-      organizationId,
-      EVENTS.ORGANIZATION_TEAM_LEFT,
-      { teamId, removedBy: 'team' },
-      {},
-      transaction,
-    );
+    await orgEvent(organizationId, 'organization-team-leave', { removedBy: 'team' }, transaction, { teamId });
   });
   await notifyOrganizationTeam(organization, { team, action: 'left' });
   return { success: true };

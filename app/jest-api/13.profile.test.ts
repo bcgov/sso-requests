@@ -3,7 +3,6 @@ import { SSO_TEAM_IDIR_EMAIL, SSO_TEAM_IDIR_USER } from './helpers/fixtures';
 import { getAuthenticatedUser, updateProfile } from './helpers/modules/users';
 import { createMockAuth } from './mocks/authenticate';
 import { models } from '@app/shared/sequelize/models/models';
-import { EVENTS } from '@app/shared/enums';
 
 jest.mock('@app/keycloak/integration', () => {
   const original = jest.requireActual('@app/keycloak/integration');
@@ -48,7 +47,7 @@ describe('User Profile', () => {
     const getResult = await getAuthenticatedUser();
     expect(getResult.body.surveySubmissions).toMatchObject(newSubmissions);
     const event = await models.event.findOne({
-      where: { eventCode: EVENTS.USER_PROFILE_UPDATE_SUCCESS },
+      where: { eventCode: 'user-profile-update' },
       order: [['createdAt', 'desc']],
     });
     expect(event.details.changes.surveySubmissions.after).toMatchObject(newSubmissions);

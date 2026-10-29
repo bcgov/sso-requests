@@ -2,7 +2,8 @@ import { testClient } from './helpers/test-client';
 import { API_BASE_PATH } from './helpers/constants';
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/fixtures';
 import { buildIntegration } from './helpers/modules/common';
-import { getEventsByRequestId } from './helpers/modules/integrations';
+import { createIntegration, getEventsByRequestId } from './helpers/modules/integrations';
+import { getCreateIntegrationData } from './helpers/fixtures';
 import { createTeam } from './helpers/modules/teams';
 import { cleanUpDatabaseTables } from './helpers/utils';
 import { createMockAuth } from './mocks/authenticate';
@@ -51,6 +52,22 @@ describe('inline operations and their audit events', () => {
 
   afterAll(async () => {
     await cleanUpDatabaseTables();
+  });
+
+  describe('the daily request limit', () => {
+    it('records a refused submission as request-limit-reached, attributed to the user', async () => {
+      const count = jest.spyOn(models.request, 'count').mockResolvedValueOnce(5000 as never);
+      try {
+        const response = await createIntegration(getCreateIntegrationData({ projectName: 'one too many' }));
+        expect(response.status).toBe(429);
+      } finally {
+        count.mockRestore();
+      }
+
+      const event = await models.event.findOne({ where: { eventCode: 'request-limit-reached' }, raw: true });
+      expect(event).toMatchObject({ outcome: 'success', actorId: TEAM_ADMIN_IDIR_USERID_01, targetType: 'app-user' });
+      expect(event.details).toMatchObject({ count: 5000 });
+    });
   });
 
   describe('integration secrets', () => {

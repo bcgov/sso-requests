@@ -24,7 +24,6 @@ import { cleanUpDatabaseTables } from './helpers/utils';
 import { sendEmail } from '@app/utils/ches';
 import { buildIntegration } from './helpers/modules/common';
 import { models } from '@app/shared/sequelize/models/models';
-import { EVENTS } from '@app/shared/enums';
 import { keycloakClient } from '@app/keycloak/integration';
 import { resolveUserRoleMappingTarget } from '@app/keycloak/users';
 import { validateIdirEmail } from '@app/utils/graph-api';

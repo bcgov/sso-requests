@@ -11,7 +11,7 @@ import { getDisplayName } from '@app/utils/helpers';
 import { lowcase } from '@app/helpers/string';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { sendTemplate } from '@app/shared/templates';
-import { EMAILS, EVENTS } from '@app/shared/enums';
+import { EMAILS } from '@app/shared/enums';
 import { User, Team, Member, Session } from '@app/shared/interfaces';
 import {
   checkIfRequestMerged,
@@ -19,7 +19,7 @@ import {
   enqueueIntegrationWorkflow,
   runIntegrationWorkflow,
 } from '@app/controllers/requests';
-import { audit, createEvent } from '@app/queries/event';
+import { audit } from '@app/queries/event';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
@@ -30,6 +30,10 @@ import { teamPermissions } from '@app/utils/authorize';
 import { logger } from '@app/utils/logger';
 
 const log = logger.child({ module: 'controllers/team' });
+
+// Team events name the team in `team_id`; membership events also target the member's app user row.
+const teamTarget = (teamId: number) => ({ type: 'team' as const, id: String(teamId) });
+const memberTarget = (userId: number) => ({ type: 'app-user' as const, id: String(userId) });
 
 export const listTeams = async (user: User) => {
   const result = await findTeamsForUser(user.id, { raw: true });
@@ -44,23 +48,23 @@ export const createTeam = async (session: Session, data: Team) => {
       { teamId: createdTeam.id, userId: session?.user?.id, role: 'admin', pending: false },
       { transaction },
     );
-    await createEvent(
+    await audit.createEvent(
       {
-        eventCode: EVENTS.TEAM_MEMBER_ADDED,
+        action: 'team-create',
+        outcome: 'success',
         teamId: createdTeam.id,
-        idirUserid: session?.idir_userid,
-        idirUserDisplayName: session?.user?.displayName,
-        details: { teamId: createdTeam.id, userId: session?.user?.id, role: 'admin' },
+        target: teamTarget(createdTeam.id),
+        details: { name },
       },
       transaction,
     );
-    await createEvent(
+    await audit.createEvent(
       {
-        eventCode: EVENTS.TEAM_CREATE_SUCCESS,
+        action: 'team-member-add',
+        outcome: 'success',
         teamId: createdTeam.id,
-        idirUserid: session?.idir_userid,
-        idirUserDisplayName: session?.user?.displayName,
-        details: { teamId: createdTeam.id, name },
+        target: memberTarget(session?.user?.id as number),
+        details: { role: 'admin' },
       },
       transaction,
     );
@@ -126,13 +130,13 @@ export const addUsersToTeam = async (session: Session, teamId: number, members: 
           { teamId, userId: user.id, role: user.role, pending: false },
           { transaction },
         );
-        await createEvent(
+        await audit.createEvent(
           {
-            eventCode: EVENTS.TEAM_MEMBER_ADDED,
+            action: 'team-member-add',
+            outcome: 'success',
             teamId,
-            idirUserid: session?.idir_userid,
-            idirUserDisplayName: session?.user?.displayName,
-            details: { teamId, userId: user.id, role: user.role },
+            target: memberTarget(user.id),
+            details: { role: user.role },
           },
           transaction,
         );
@@ -161,17 +165,13 @@ export const updateTeam = async (session: Session, teamId: string, data: { name:
       },
     );
     if (count === 0) throw new createHttpError.UnprocessableEntity('update failed');
-    await createEvent(
+    await audit.createEvent(
       {
-        eventCode: EVENTS.TEAM_UPDATE_SUCCESS,
+        action: 'team-update',
+        outcome: 'success',
         teamId: Number(teamId),
-        idirUserid: session?.idir_userid,
-        idirUserDisplayName: session?.user?.displayName,
-        details: {
-          teamId: Number(teamId),
-          before: { name: currentTeam.name },
-          after: { name: data.name },
-        },
+        target: teamTarget(Number(teamId)),
+        details: { before: { name: currentTeam.name }, after: { name: data.name } },
       },
       transaction,
     );
@@ -209,12 +209,14 @@ export const deleteTeam = async (session: Session, teamId: number) => {
       { where: { teamId, archived: true }, returning: true, omitNull: false, transaction },
     );
     await team.destroy({ transaction });
-    await createEvent(
+    // team_id has no foreign key, so the event keeps naming the team after its row is gone.
+    await audit.createEvent(
       {
-        eventCode: EVENTS.TEAM_DELETE_SUCCESS,
-        idirUserid: session?.idir_userid,
-        idirUserDisplayName: session?.user?.displayName,
-        details: { teamId, name: team.name },
+        action: 'team-delete',
+        outcome: 'success',
+        teamId: Number(teamId),
+        target: teamTarget(Number(teamId)),
+        details: { name: team.name },
       },
       transaction,
     );
@@ -252,13 +254,13 @@ export const removeUserFromTeam = async (session: Session, memberUserId: number,
   if (!userTeamRecord) throw new createHttpError.NotFound('team member not found');
   await sequelize.transaction(async (transaction) => {
     await userTeamRecord.destroy({ transaction });
-    await createEvent(
+    await audit.createEvent(
       {
-        eventCode: EVENTS.TEAM_MEMBER_REMOVED,
+        action: 'team-member-remove',
+        outcome: 'success',
         teamId,
-        idirUserid: session?.idir_userid,
-        idirUserDisplayName: session?.user?.displayName,
-        details: { teamId, userId: memberUserId, role: userTeamRecord.role },
+        target: memberTarget(memberUserId),
+        details: { role: userTeamRecord.role },
       },
       transaction,
     );
@@ -299,13 +301,13 @@ export const updateMemberInTeam = async (
       transaction,
     });
     if (memberCurrentRole.role === updatedMemberRole?.role) return;
-    await createEvent(
+    await audit.createEvent(
       {
-        eventCode: EVENTS.TEAM_MEMBER_ROLE_UPDATED,
+        action: 'team-member-role-update',
+        outcome: 'success',
         teamId,
-        idirUserid: session?.idir_userid,
-        idirUserDisplayName: session?.user?.displayName,
-        details: { teamId, userId: memberUserId, before: memberCurrentRole.role, after: updatedMemberRole?.role },
+        target: memberTarget(memberUserId),
+        details: { before: memberCurrentRole.role, after: updatedMemberRole?.role },
       },
       transaction,
     );
