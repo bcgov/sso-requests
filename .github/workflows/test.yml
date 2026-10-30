@@ -1,12 +1,14 @@
 name: Run Tests and Lints
 
-on: [push]
+on: [push, pull_request]
 
 permissions:
   contents: read
 
 jobs:
   test_pre-commit:
+    # Branches in this repo are already tested by their push run; only fork PRs need the pull_request run.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -129,6 +131,8 @@ jobs:
         working-directory: ./api
 
   commitlint:
+    # Branches in this repo are already tested by their push run; only fork PRs need the pull_request run.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-24.04
     permissions:
       pull-requests: read

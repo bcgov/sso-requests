@@ -1,6 +1,6 @@
 import { Op } from 'sequelize';
 import uniq from 'lodash/uniq';
-import { models } from '@app/shared/sequelize/models/models';
+import { models, sequelize } from '@app/shared/sequelize/models/models';
 import { IntegrationData } from '@app/shared/interfaces';
 import { EMAILS } from '@app/shared/enums';
 import { sendTemplate } from '@app/shared/templates';
@@ -113,6 +113,9 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
 /** The client roles Keycloak already held before a restore touched it: each role's composites, by environment. */
 export type RolesSnapshot = Record<string, Record<string, string[]>>;
 
+// Own keys only: role names are user-supplied, so `constructor` or `__proto__` must not match the prototype.
+const has = (record: object | undefined, key: string) => !!record && Object.prototype.hasOwnProperty.call(record, key);
+
 const roleEnvironments = (dbRoles: NewRole[], requestRoles: { environment: string }[]) =>
   uniq([...dbRoles.flatMap((role) => role.envs ?? []), ...requestRoles.map((role) => role.environment)]);
 
@@ -130,7 +133,7 @@ export const snapshotIntegrationRoles = async (integrationId: number): Promise<R
   if (!integration) return {};
 
   const { dbRoles, requestRoles } = await getRestoreRoles(integrationId);
-  const snapshot: RolesSnapshot = {};
+  const snapshot: RolesSnapshot = Object.create(null);
   for (const environment of roleEnvironments(dbRoles, requestRoles)) {
     let existing: { name: string }[];
     try {
@@ -140,11 +143,11 @@ export const snapshotIntegrationRoles = async (integrationId: number): Promise<R
       if (err?.status === 404) existing = [];
       else throw err;
     }
-    snapshot[environment] = {};
+    snapshot[environment] = Object.create(null);
     for (const { name } of existing) snapshot[environment][name] = [];
 
     for (const role of requestRoles) {
-      if (!role.composite || role.environment !== environment || !(role.name in snapshot[environment])) continue;
+      if (!role.composite || role.environment !== environment || !has(snapshot[environment], role.name)) continue;
       snapshot[environment][role.name] = (await getCompositeClientRoles(integration, {
         environment,
         roleName: role.name,
@@ -171,28 +174,32 @@ export const restoreIntegrationRoles = async (
   const integration = await getFreshIntegration(integrationId);
   if (!integration) return;
 
-  const recordedKey = (eventCode: string, environment: string, roleName: string) =>
-    `${eventCode}:${environment}:${roleName}`;
-  const recorded = new Set(
-    (
-      await models.event.findAll({
-        where: { parentOperationId: workflow.correlationId },
-        attributes: ['eventCode', 'environment', 'targetId'],
-        raw: true,
-      })
-    ).map((event: any) => recordedKey(event.eventCode, event.environment, event.targetId)),
-  );
-
+  // The check and the insert run under a lock on the event's identity, held until the transaction ends, so an
+  // attempt that timed out but kept running and its retry cannot both see no row and insert one.
   const record = async (operation: ReturnType<typeof roleOperation>) => {
-    const key = recordedKey(operation.action, operation.environment as string, operation.details.roleName);
-    if (recorded.has(key)) return;
-    await audit.createEvent({
-      ...operation,
-      outcome: 'success',
-      parentOperationId: workflow.correlationId,
-      workflowId: workflow.id,
+    const environment = operation.environment as string;
+    const roleName = operation.details.roleName;
+    await sequelize.transaction(async (tx) => {
+      await sequelize.query('SELECT pg_advisory_xact_lock(hashtext(:key))', {
+        replacements: { key: `audit-child:${workflow.correlationId}:${operation.action}:${environment}:${roleName}` },
+        transaction: tx,
+      });
+      const existing = await models.event.count({
+        where: {
+          parentOperationId: workflow.correlationId,
+          eventCode: operation.action,
+          environment,
+          targetId: roleName,
+        },
+        transaction: tx,
+      });
+      if (existing > 0) return;
+
+      await audit.createEvent(
+        { ...operation, outcome: 'success', parentOperationId: workflow.correlationId, workflowId: workflow.id },
+        tx,
+      );
     });
-    recorded.add(key);
   };
 
   const { dbRoles, requestRoles } = await getRestoreRoles(integrationId);
@@ -200,7 +207,7 @@ export const restoreIntegrationRoles = async (
   for (const { env, success, duplicate } of created) {
     // A duplicate the snapshot did not hold was created by an earlier attempt of this restore.
     for (const roleName of [...success, ...duplicate]) {
-      if (before[env] && roleName in before[env]) continue;
+      if (has(before[env], roleName)) continue;
       await record(
         roleOperation('role-create', { requestId: integrationId, environment: env as Environment, roleName }),
       );
@@ -223,7 +230,7 @@ export const restoreIntegrationRoles = async (
       compositeRoleNames,
     });
 
-    const current = before[role.environment]?.[role.name] ?? [];
+    const current = has(before[role.environment], role.name) ? before[role.environment][role.name] : [];
     const add = compositeRoleNames.filter((name) => !current.includes(name));
     const remove = current.filter((name) => !compositeRoleNames.includes(name));
     if (add.length + remove.length > 0) {
