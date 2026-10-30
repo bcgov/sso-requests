@@ -52,12 +52,16 @@ describe('Request Events', () => {
     expect(update.details.changes.length).toBeGreaterThan(0);
 
     // Until the engine answers it, the update is still `requested`.
-    await models.event.destroy({
+    const terminal = await models.event.findOne({
       where: { operationId: update.operationId, eventCode: 'request-update', outcome: 'success' },
     });
+    await terminal.destroy();
     eventsResponse = await getRequestScopedEvents(integration.body.id);
     expect(eventsResponse.body.rows).toHaveLength(1);
     expect(eventsResponse.body.rows[0]).toMatchObject({ id: update.id, outcome: 'requested' });
+    // Put the engine's answer back, so the operation still has exactly one outcome.
+    const { createdAt, updatedAt, ...restored } = terminal.get({ plain: true });
+    await models.event.create(restored);
 
     // User not owning integration rejected
     createMockAuth('other_user_id', 'other_user_email');
