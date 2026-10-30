@@ -2,6 +2,7 @@ import { instance } from './axios';
 import { ClientRole } from 'interfaces/Request';
 import { KeycloakUser } from 'interfaces/team';
 import { GetStandardSettingsResponse } from '@app/interfaces/api';
+import { RoleChanges } from '@app/helpers/roles';
 
 export const getInstallation = async (requestId: number, environment: string) => {
   try {
@@ -165,45 +166,30 @@ export const listUserRoles = async ({
   }
 };
 
-export const manageUserRole = async ({
+export interface UserRolesUpdate {
+  /** The roles the user holds after the update. */
+  roles: string[];
+  /** The requested changes that could not be applied. */
+  failed: RoleChanges;
+}
+
+/** Grants and revokes exactly the given roles for one user, in one request. */
+export const updateUserRoles = async ({
   environment,
   integrationId,
   username,
-  roleName,
-  mode,
+  add = [],
+  remove = [],
 }: {
   environment: string;
   integrationId: number;
   username: string;
-  roleName: string;
-  mode: 'add' | 'del';
-}): Promise<(string[] | null)[]> => {
+  add?: string[];
+  remove?: string[];
+}): Promise<[UserRolesUpdate, null] | [null, any]> => {
   try {
     const result = await instance
-      .put('keycloak/user-roles', { environment, integrationId, username, roleName, mode })
-      .then((res) => res.data);
-
-    return [result, null];
-  } catch (err: any) {
-    console.error(err);
-    return [null, err];
-  }
-};
-
-export const manageUserRoles = async ({
-  environment,
-  integrationId,
-  username,
-  roleNames,
-}: {
-  environment: string;
-  integrationId: number;
-  username: string;
-  roleNames: string[];
-}): Promise<(string[] | null)[]> => {
-  try {
-    const result = await instance
-      .put('keycloak/user-roles', { environment, integrationId, username, roleNames })
+      .put('keycloak/user-roles', { environment, integrationId, username, add, remove })
       .then((res) => res.data);
 
     return [result, null];

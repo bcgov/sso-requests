@@ -20,34 +20,42 @@ import { cleanUpDatabaseTables } from './helpers/utils';
 import { createMockSendEmail } from './mocks/mail';
 import { createMockAuth } from './mocks/authenticate';
 import { models } from '@app/shared/sequelize/models/models';
+import { userActor, withActor } from '@sso/audit/server';
 import { Session, User } from '@app/shared/interfaces';
 import { accessibleIntegrationsWhere, resolveAccessScope } from '@app/queries/accessScope';
 import { resolveAccessForIntegrations } from '@app/queries/integrationAccess';
 import { getIntegrations, getRequests } from '@app/controllers/requests';
 import { isAllowedToManageRoles, processUserSession } from '@app/controllers/user';
-import {
-  createOrganization,
-  updateOrganization,
-  inviteTeam,
-  leaveOrganization,
-  listOrganizations,
-  listTeamIntegrations,
-  listTeamOrganizationLinks,
-  removeTeamFromOrganization,
-  searchTeams,
-  respondToOrganizationInvitation,
-  updateIntegrationOverrides,
-  updateTeamConsent,
-  addOrganizationMember,
-  listOrganizationMembers,
-  removeOrganizationMember,
-  updateOrganizationMemberRole,
-  createOrganizationApiAccount,
-  getOrganizationApiAccountCredentials,
-  updateOrganizationApiAccountSecret,
-  deleteOrganizationApiAccount,
-  listOrganizationApiAccounts,
-} from '@app/controllers/organization';
+import * as organizationControllers from '@app/controllers/organization';
+
+// Called directly rather than through their routes, so each runs as the user its session names, as the route would.
+const asSessionUser =
+  <A extends unknown[], R>(fn: (session: Session, ...args: A) => Promise<R>) =>
+  (session: Session, ...args: A): Promise<R> =>
+    withActor(userActor(session.idir_userid as string, 'Test User'), () => fn(session, ...args));
+const createOrganization = asSessionUser(organizationControllers.createOrganization);
+const updateOrganization = asSessionUser(organizationControllers.updateOrganization);
+const inviteTeam = asSessionUser(organizationControllers.inviteTeam);
+const leaveOrganization = asSessionUser(organizationControllers.leaveOrganization);
+const listOrganizations = asSessionUser(organizationControllers.listOrganizations);
+const listTeamIntegrations = asSessionUser(organizationControllers.listTeamIntegrations);
+const listTeamOrganizationLinks = asSessionUser(organizationControllers.listTeamOrganizationLinks);
+const removeTeamFromOrganization = asSessionUser(organizationControllers.removeTeamFromOrganization);
+const searchTeams = asSessionUser(organizationControllers.searchTeams);
+const respondToOrganizationInvitation = asSessionUser(organizationControllers.respondToOrganizationInvitation);
+const updateIntegrationOverrides = asSessionUser(organizationControllers.updateIntegrationOverrides);
+const updateTeamConsent = asSessionUser(organizationControllers.updateTeamConsent);
+const addOrganizationMember = asSessionUser(organizationControllers.addOrganizationMember);
+const listOrganizationMembers = asSessionUser(organizationControllers.listOrganizationMembers);
+const removeOrganizationMember = asSessionUser(organizationControllers.removeOrganizationMember);
+const updateOrganizationMemberRole = asSessionUser(organizationControllers.updateOrganizationMemberRole);
+const createOrganizationApiAccount = asSessionUser(organizationControllers.createOrganizationApiAccount);
+const getOrganizationApiAccountCredentials = asSessionUser(
+  organizationControllers.getOrganizationApiAccountCredentials,
+);
+const updateOrganizationApiAccountSecret = asSessionUser(organizationControllers.updateOrganizationApiAccountSecret);
+const deleteOrganizationApiAccount = asSessionUser(organizationControllers.deleteOrganizationApiAccount);
+const listOrganizationApiAccounts = asSessionUser(organizationControllers.listOrganizationApiAccounts);
 
 jest.mock('@app/keycloak/integration', () => {
   const original = jest.requireActual('@app/keycloak/integration');
@@ -621,6 +629,18 @@ describe('organizations', () => {
       const session = await asOrgAdmin();
       const account = await createOrganizationApiAccount(session, organizationId);
       expect(account.clientId).toBe(`service-account-org-${organizationId}-${account.id}`);
+
+      // The account's operation is recorded against the organization: requested by the admin, completed by the engine.
+      const created = await models.event.findAll({
+        where: { requestId: account.id, eventCode: 'api-account-create' },
+        order: [['id', 'ASC']],
+        raw: true,
+      });
+      expect(created.map((event: any) => [event.outcome, event.actorType, event.organizationId])).toEqual([
+        ['requested', 'user', organizationId],
+        ['success', 'system', organizationId],
+      ]);
+      expect(created[0].operationId).toBe(created[1].operationId);
 
       await expect(createOrganizationApiAccount(session, organizationId)).rejects.toThrow(/already has api account/);
       expect(ids(await listOrganizationApiAccounts(session, organizationId))).toEqual([account.id]);

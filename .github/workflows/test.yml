@@ -7,6 +7,8 @@ permissions:
 
 jobs:
   test_pre-commit:
+    # Branches in this repo are already tested by their push run; only fork PRs need the pull_request run.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -52,6 +54,12 @@ jobs:
 
       - name: Run authz package tests
         run: make authz_test
+
+      - name: Install dependencies for the audit package
+        run: make audit_install
+
+      - name: Run audit package tests
+        run: make audit_test
 
       - name: Install dependencies for the logs-query package
         run: make logs_query_install
@@ -123,6 +131,8 @@ jobs:
         working-directory: ./api
 
   commitlint:
+    # Branches in this repo are already tested by their push run; only fork PRs need the pull_request run.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-24.04
     permissions:
       pull-requests: read

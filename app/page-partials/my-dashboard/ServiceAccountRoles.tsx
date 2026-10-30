@@ -1,18 +1,20 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
-import { startCase, throttle } from 'lodash';
+import { startCase } from 'lodash';
 import { Tabs, Alert, LastSavedMessage } from '@bcgov-sso/common-react-components';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
 import { withTopAlert, TopAlert } from 'layout/TopAlert';
-import { listClientRoles, listUserRoles, manageUserRoles } from 'services/keycloak';
+import { listClientRoles, listUserRoles, updateUserRoles } from 'services/keycloak';
 import TopAlertWrapper from '@app/components/TopAlertWrapper';
 import Link from '@app/components/Link';
 import { getServiceAccountUsername } from '@app/helpers/users';
 import { docusaurusURL } from '@app/utils/constants';
 import TableNew from '@app/components/TableNew';
 import { Col, Row } from 'react-bootstrap';
+import { hasChanges } from '@app/helpers/roles';
+import { useRoleSync } from '@app/hooks/useRoleSync';
 
 const Label = styled.label`
   font-weight: bold;
@@ -60,40 +62,35 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
   const [saving, setSaving] = useState(false);
   const [savingMessage, setSavingMessage] = useState('');
   const [roles, setRoles] = useState<string[]>([]);
-  const [userRoles, setUserRoles] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string | undefined>(undefined);
   const [environment, setEnvironment] = useState('dev');
   const [userAssignmentError, setUserAssignmentError] = useState(false);
 
   const environments = selectedRequest?.environments || [];
 
-  const throttleUpdate = useCallback(
-    throttle(
-      async (roleNames: string[]) => {
-        setSaving(true);
-        setSavingMessage('Assigning role...');
-        setUserAssignmentError(false);
-        const [, err] = await manageUserRoles({
-          environment: environment,
-          integrationId: selectedRequest.id as number,
-          username: getServiceAccountUsername(selectedRequest.clientId as string),
-          roleNames,
-        });
-        setSaving(false);
-        if (err) {
-          setUserAssignmentError(true);
-          setSavingMessage('Failed to update roles.');
-          return false;
-        } else {
-          setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
-          return true;
-        }
-      },
-      2000,
-      { trailing: true },
-    ),
-    [selectedRequest?.id, environment, selectedId],
-  );
+  const {
+    roles: userRoles,
+    select: selectRoles,
+    load: showSavedRoles,
+  } = useRoleSync(async (changes) => {
+    setSaving(true);
+    setSavingMessage('Assigning role...');
+    setUserAssignmentError(false);
+    const [result, err] = await updateUserRoles({
+      environment: environment,
+      integrationId: selectedRequest.id as number,
+      username: getServiceAccountUsername(selectedRequest.clientId as string),
+      ...changes,
+    });
+    setSaving(false);
+    if (err || hasChanges(result!.failed)) {
+      setUserAssignmentError(true);
+      setSavingMessage('Failed to update roles.');
+    } else {
+      setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
+    }
+    return result ? result.roles : null;
+  });
 
   const handleRoleChange = async (
     newValue: MultiValue<{ value: string; label: string }>,
@@ -113,10 +110,7 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
     }
 
     if (userRoles.length !== newRoles.length) {
-      const success = await throttleUpdate(newRoles);
-      if (success) {
-        setUserRoles(newRoles);
-      }
+      selectRoles(newRoles);
     }
   };
 
@@ -162,7 +156,7 @@ const ServiceAccountRoles = ({ selectedRequest, alert }: Props) => {
       return;
     }
 
-    await setUserRoles(data || []);
+    showSavedRoles(data || []);
     setLoadingRight(false);
   };
 

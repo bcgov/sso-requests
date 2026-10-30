@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { NextApiHandler, NextApiRequest, NextApiResponse } from 'next';
 import { isString } from 'lodash';
 import { logger, runWithLogContext } from '@app/utils/logger';
+import { withAuditContext } from '@sso/audit/server';
 import { tryJSON } from '@app/utils/helpers';
 
 const httpLog = logger.child({ module: 'http' });
@@ -19,6 +20,10 @@ const requestIdFrom = (req: NextApiRequest) => {
 /**
  * Wraps a Pages Router API handler so that every log line it emits carries a `reqId`, the id is echoed back in the
  * `x-request-id` response header, and one access-log line is written per request with status and duration.
+ *
+ * It also opens the request's audit context with the same `reqId`, so events join to the request's Loki lines.
+ * `authenticate` sets the actor in it; a route that never authenticates a user must set one itself (`withActor`)
+ * before anything it calls writes an event.
  */
 export const withApiLogging =
   (handler: NextApiHandler): NextApiHandler =>
@@ -28,16 +33,18 @@ export const withApiLogging =
     const start = process.hrtime.bigint();
     res.setHeader('x-request-id', reqId);
 
-    return runWithLogContext({ reqId }, () => {
-      res.once('finish', () => {
-        const status = res.statusCode;
-        const level = status >= 500 ? 'error' : status >= 400 ? 'warn' : 'info';
-        if (level === 'info' && QUIET_PATHS.some((p) => p.test(req.url || ''))) return;
-        const durationMs = Number(process.hrtime.bigint() - start) / 1e6;
-        httpLog[level]({ method: req.method, path, status, durationMs: Math.round(durationMs) }, 'request completed');
-      });
-      return handler(req, res);
-    });
+    return runWithLogContext({ reqId }, () =>
+      withAuditContext({ reqId }, () => {
+        res.once('finish', () => {
+          const status = res.statusCode;
+          const level = status >= 500 ? 'error' : status >= 400 ? 'warn' : 'info';
+          if (level === 'info' && QUIET_PATHS.some((p) => p.test(req.url || ''))) return;
+          const durationMs = Number(process.hrtime.bigint() - start) / 1e6;
+          httpLog[level]({ method: req.method, path, status, durationMs: Math.round(durationMs) }, 'request completed');
+        });
+        return handler(req, res);
+      }),
+    );
   };
 
 export const handleError = (res: NextApiResponse, err: any) => {

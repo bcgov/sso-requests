@@ -1,5 +1,6 @@
 import { queryGrafana } from '@/modules/grafana';
-import { createEvent } from '@/utils';
+import { audit } from '@/utils';
+import type { Environment } from '@sso/audit';
 import { ParsedQs } from 'qs';
 import { injectable } from 'tsyringe';
 import { logger } from '@/logger';
@@ -27,7 +28,6 @@ export class LogsService {
     requestId: string,
     start: string | ParsedQs | (string | ParsedQs)[],
     end: string | ParsedQs | (string | ParsedQs)[],
-    userId?: string,
   ) {
     const hasRequiredParams = start && end && env;
 
@@ -68,15 +68,6 @@ export class LogsService {
       return { status: 400, message: `Date range must be less ${this.MAX_DAYS} days.`, data: null };
     }
 
-    const eventMeta = {
-      requestId,
-      idirUserid: userId,
-      details: {
-        environment: env,
-        clientId,
-      },
-    };
-
     try {
       const query = buildLogsQuery(
         env,
@@ -84,22 +75,25 @@ export class LogsService {
         clientId,
         process.env.API_ENV,
       );
-      const allLogs = await queryGrafana(query, unixStartTime, unixEndTime, this.LOG_SIZE_LIMIT);
+
+      const allLogs = await audit.runAuditedOperation(
+        {
+          action: 'logs-download',
+          requestId: Number(requestId),
+          environment: env as Environment,
+          target: { type: 'integration', id: clientId },
+          details: { start, end },
+        },
+        () => queryGrafana(query, unixStartTime, unixEndTime, this.LOG_SIZE_LIMIT),
+        { successDetails: (logs: any[]) => ({ count: logs.length }) },
+      );
       let message = 'All logs retrieved';
       if (allLogs.length === this.LOG_SIZE_LIMIT)
         message = 'Log limit reached. There may be more logs available, try a more restricted date range.';
       const parsedLogs = allLogs.map((log: any) => JSON.parse(log));
-      await createEvent({
-        eventCode: 'logs-download-success',
-        ...eventMeta,
-      });
       return { status: 200, message, data: parsedLogs };
     } catch (err) {
-      log.error({ err, environment: env, clientId }, 'Error while fetching logs from trino');
-      await createEvent({
-        eventCode: 'logs-download-failure',
-        ...eventMeta,
-      });
+      log.error({ err, environment: env, clientId }, 'Error while fetching logs from loki');
       return { status: 500, message: 'Unexpected error fetching logs.', data: null };
     }
   }

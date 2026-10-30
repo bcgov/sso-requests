@@ -1,13 +1,14 @@
 import { LogsService } from '@/services/logs-service';
 import { queryGrafana } from '@/modules/grafana';
-import { createEvent } from '@/utils';
+import { audit } from '@/utils';
 
 jest.mock('@/modules/grafana', () => ({
   queryGrafana: jest.fn(() => Promise.resolve(['{"log": "log"}'])),
 }));
 
+// Runs the call as the real writer does; what it records is covered by the audit route tests.
 jest.mock('@/utils', () => ({
-  createEvent: jest.fn(() => Promise.resolve()),
+  audit: { runAuditedOperation: jest.fn((_operation: unknown, call: () => Promise<unknown>) => call()) },
 }));
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -54,10 +55,14 @@ describe('LogsService', () => {
     expect(queryGrafana).not.toHaveBeenCalled();
   });
 
-  it('returns 500 and records a failure event when the query fails', async () => {
+  it('returns 500 when the query fails, having run it as an audited logs-download', async () => {
     (queryGrafana as jest.Mock).mockImplementationOnce(() => Promise.reject(new Error('err')));
     const response = await fetchRange(Date.now() - DAY, Date.now());
     expect(response.status).toBe(500);
-    expect(createEvent).toHaveBeenCalledWith(expect.objectContaining({ eventCode: 'logs-download-failure' }));
+    expect(audit.runAuditedOperation).toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'logs-download', environment: 'dev' }),
+      expect.any(Function),
+      expect.anything(),
+    );
   });
 });

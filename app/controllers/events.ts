@@ -5,8 +5,8 @@ import { Op } from 'sequelize';
 import { isSocialApprover } from '@app/utils/helpers';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import { authorizeIntegration } from '@app/queries/integrationAccess';
-import { EVENTS } from '@app/shared/enums';
 import createHttpError from 'http-errors';
+import { isRecordedOutcome } from '@sso/audit';
 
 /**
  * Fetch request update events for the given user session and request id. If user does not own integration throws 403.
@@ -18,8 +18,35 @@ export const getRequestScopedEvents = async (session: Session, requestId: string
   const authorized = await authorizeIntegration(session, Number(requestId), 'integrations:read');
   if (!authorized) throw new createHttpError.Forbidden('User is not authorized to view request events');
 
+  // A submitted update records its changes on the operation's `requested` row; rows from before
+  // @sso/audit recorded them on a `-success` row, migrated to `submitted` (or `success` where the engine
+  // wrote it). Either way, the rows with changes.
+  // The engine answers each `requested` row with a terminal row on the same operation, which carries no
+  // changes. Each update is shown once, with its row's changes and its operation's outcome; one the engine
+  // has not finished stays `requested`.
   return models.event.findAndCountAll({
-    where: { requestId, eventCode: EVENTS.REQUEST_UPDATE_SUCCESS },
+    attributes: {
+      exclude: ['outcome'],
+      include: [
+        [
+          models.event.sequelize.literal(`coalesce((
+            select terminal.outcome from events terminal
+            where "event".outcome = 'requested'
+              and terminal.operation_id = "event".operation_id
+              and terminal.event_code = 'request-update'
+              and terminal.outcome in ('success', 'failure', 'superseded')
+            limit 1
+          ), "event".outcome)`),
+          'outcome',
+        ],
+      ],
+    },
+    where: {
+      requestId,
+      eventCode: 'request-update',
+      outcome: { [Op.in]: ['requested', 'success', 'submitted'] },
+      [Op.and]: [models.event.sequelize.literal(`jsonb_exists(details, 'changes')`)],
+    },
     order: [['createdAt', 'desc']],
   });
 };
@@ -29,6 +56,7 @@ export const getEvents = async (
   data: {
     requestId: string;
     eventCode: string;
+    outcome?: string;
     clearNotifications?: boolean;
     order?: any;
     limit?: number;
@@ -42,12 +70,24 @@ export const getEvents = async (
     throw new Error('User is not authorized to view request events');
   }
 
-  const { requestId, eventCode, order = [['createdAt', 'desc']], limit = 100, page = 1, clearNotifications } = data;
+  const {
+    requestId,
+    eventCode,
+    outcome = 'all',
+    order = [['createdAt', 'desc']],
+    limit = 100,
+    page = 1,
+    clearNotifications,
+  } = data;
 
   const where: any = { requestId };
 
   if (eventCode !== 'all') {
     where.eventCode = eventCode;
+  }
+  if (outcome !== 'all') {
+    if (!isRecordedOutcome(outcome)) throw new createHttpError.BadRequest(`invalid outcome ${outcome}`);
+    where.outcome = outcome;
   }
 
   if (!hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST_EVENTS)) {

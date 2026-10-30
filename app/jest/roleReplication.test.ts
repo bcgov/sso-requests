@@ -1,4 +1,4 @@
-import { previewRoleReplication, replicateRolesToMfa } from '@app/keycloak/roleReplication';
+import { isNotFoundInMfa, planRoleReplication, previewRoleReplication } from '@app/keycloak/roleReplication';
 
 const CLIENT_ID = 'client-1';
 
@@ -32,6 +32,7 @@ const idirUsers = [
 ];
 
 const roleRepresentation = { id: 'role-editor-id', name: 'editor' };
+const viewerRepresentation = { id: 'role-viewer-id', name: 'viewer' };
 
 // Existing azureidir users, keyed by username.
 const existingMfaUsersByUsername: Record<string, any> = {
@@ -43,14 +44,19 @@ const existingMfaUsersByUsername: Record<string, any> = {
   'guid-errors@azureidir': { id: 'kc-mfa-errors', username: 'guid-errors@azureidir' },
 };
 
-// Roles already assigned on the MFA side, keyed by keycloak user id.
+// Roles already assigned on the MFA side, keyed by keycloak user id. Self-contained: jest hoists this above
+// the other constants along with the mock factory that reads it.
 const existingMfaRoleMappingsByUserId: Record<string, any[]> = {
-  'kc-mfa-already-replicated': [roleRepresentation],
+  'kc-mfa-already-replicated': [{ id: 'role-editor-id', name: 'editor' }],
   'kc-mfa-to-replicate': [],
   'kc-mfa-errors': [],
 };
 
-const mockAddClientRoleMappings = jest.fn(() => Promise.resolve());
+const mockAddClientRoleMappings = jest.fn(({ id }: { id: string }) =>
+  id === 'kc-mfa-errors' ? Promise.reject(new Error('keycloak 500')) : Promise.resolve(),
+);
+// The client's roles; each test starts from editor alone.
+const mockListRoles = jest.fn(() => Promise.resolve([roleRepresentation]));
 const mockCreateAzureIdirUser = jest.fn((...args: any[]) =>
   Promise.resolve({ id: 'kc-mfa-provisioned', username: 'guid-to-provision@azureidir' }),
 );
@@ -83,9 +89,10 @@ jest.mock('@app/keycloak/adminClient', () => ({
       kcAdminClient: {
         clients: {
           find: () => Promise.resolve([{ id: CLIENT_ID }]),
-          listRoles: () => Promise.resolve([roleRepresentation]),
+          listRoles: () => mockListRoles(),
           findUsersWithRole: () => Promise.resolve(idirUsers),
-          findRole: () => Promise.resolve(roleRepresentation),
+          findRole: ({ roleName }: { roleName: string }) =>
+            mockListRoles().then((roles) => roles.find((role) => role.name === roleName)),
         },
         users: {
           find: ({ username }: { username: string }) =>
@@ -115,16 +122,37 @@ describe('role replication (idir -> azureidir MFA)', () => {
     expect(mockCreateAzureIdirUser).not.toHaveBeenCalled();
   });
 
-  it('is additive-only: REPLICATED, ALREADY_REPLICATED, NOT_FOUND_IN_MFA, ERROR, and continues past failures', async () => {
-    const results = await replicateRolesToMfa(integration, { environment: 'dev', roleName: 'editor' });
+  it('plans without changing anything, leaving out users who already hold the role or have no account', async () => {
+    const plan = await planRoleReplication(integration, { environment: 'dev', roleName: 'editor' });
 
-    const byGuid = Object.fromEntries(results.map((row) => [row.guid, row]));
+    expect(plan.alreadyReplicated.map((row) => [row.guid, row.status])).toEqual([
+      ['guid-already-replicated', 'ALREADY_REPLICATED'],
+    ]);
+    // No Azure IDIR account means nothing to replicate to: reported, not planned.
+    expect(plan.notFound.map((row) => [row.guid, row.status])).toEqual([['guid-not-found', 'NOT_FOUND_IN_MFA']]);
+    // Every other idir user is still to do, named by the azureidir user that would receive the role.
+    expect(plan.pending.map((row) => [row.idirUsername, row.mfaUsername])).toEqual([
+      ['to.replicate', 'guid-to-replicate@azureidir'],
+      ['to.provision', 'guid-to-provision@azureidir'],
+      ['errors', 'guid-errors@azureidir'],
+    ]);
+    // Only the users with no azureidir user in Keycloak are looked up in MS Graph.
+    expect(mockVerifyAzureIdirAccountByGuid.mock.calls.map(([guid]) => guid).sort()).toEqual([
+      'guid-not-found',
+      'guid-to-provision',
+    ]);
+    expect(mockAddClientRoleMappings).not.toHaveBeenCalled();
+    expect(mockCreateAzureIdirUser).not.toHaveBeenCalled();
+  });
 
-    expect(byGuid['guid-already-replicated'].status).toBe('ALREADY_REPLICATED');
-    expect(byGuid['guid-to-replicate'].status).toBe('REPLICATED');
-    expect(byGuid['guid-not-found'].status).toBe('NOT_FOUND_IN_MFA');
-    expect(byGuid['guid-to-provision'].status).toBe('REPLICATED');
-    expect(byGuid['guid-errors'].status).toBe('ERROR');
+  it('replicates one user at a time: grants, provisions first when needed, and fails the ones it cannot do', async () => {
+    const plan = await planRoleReplication(integration, { environment: 'dev', roleName: 'editor' });
+    const outcomes = await Promise.allSettled(plan.pending.map((row) => plan.replicate(row)));
+    const byGuid = Object.fromEntries(plan.pending.map((row, index) => [row.guid, outcomes[index]]));
+
+    expect(byGuid['guid-to-replicate'].status).toBe('fulfilled');
+    expect(byGuid['guid-to-provision'].status).toBe('fulfilled');
+    expect((byGuid['guid-errors'] as PromiseRejectedResult).reason.message).toBe('keycloak 500');
 
     // Never removes/touches roles already on the MFA side.
     expect(mockAddClientRoleMappings).not.toHaveBeenCalledWith(
@@ -132,14 +160,52 @@ describe('role replication (idir -> azureidir MFA)', () => {
     );
     // Provisions the missing azureidir user before assigning the role.
     expect(mockCreateAzureIdirUser).toHaveBeenCalledWith(expect.objectContaining({ guid: 'guid-to-provision' }));
-    // Assigns the role to both the pre-existing and newly-provisioned MFA users.
     expect(mockAddClientRoleMappings).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'kc-mfa-to-replicate', roles: [{ id: 'role-editor-id', name: 'editor' }] }),
     );
     expect(mockAddClientRoleMappings).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'kc-mfa-provisioned', roles: [{ id: 'role-editor-id', name: 'editor' }] }),
     );
+  });
 
-    expect(results).toHaveLength(5);
+  it('creates a missing azureidir user once, however many roles it receives at the same time', async () => {
+    mockListRoles.mockImplementation(() => Promise.resolve([roleRepresentation, viewerRepresentation]));
+    const plan = await planRoleReplication(integration, { environment: 'dev' });
+    const provisioning = plan.pending.filter((row) => row.guid === 'guid-to-provision');
+    expect(provisioning.map((row) => row.role)).toEqual(['editor', 'viewer']);
+
+    const outcomes = await Promise.allSettled(provisioning.map((row) => plan.replicate(row)));
+
+    expect(outcomes.map((outcome) => outcome.status)).toEqual(['fulfilled', 'fulfilled']);
+    expect(mockCreateAzureIdirUser).toHaveBeenCalledTimes(1);
+    // The account found while planning is reused rather than looked up again.
+    expect(mockVerifyAzureIdirAccountByGuid.mock.calls.filter(([guid]) => guid === 'guid-to-provision')).toHaveLength(
+      1,
+    );
+  });
+
+  it('resolves targets before the grants, moving a user whose azureidir user cannot be created to notFound', async () => {
+    mockCreateAzureIdirUser.mockImplementationOnce(() => Promise.resolve(null as any));
+    const plan = await planRoleReplication(integration, { environment: 'dev', roleName: 'editor' });
+
+    const { pending, notFound } = await plan.resolveTargets();
+
+    expect(pending.map((row) => row.guid)).toEqual(['guid-to-replicate', 'guid-errors']);
+    expect(notFound.map((row) => [row.guid, row.status])).toEqual([
+      ['guid-not-found', 'NOT_FOUND_IN_MFA'],
+      ['guid-to-provision', 'NOT_FOUND_IN_MFA'],
+    ]);
+    expect(mockCreateAzureIdirUser).toHaveBeenCalledTimes(1);
+    expect(mockAddClientRoleMappings).not.toHaveBeenCalled();
+  });
+
+  it('still reports a user as not found when MS Graph has no account at grant time', async () => {
+    const plan = await planRoleReplication(integration, { environment: 'dev', roleName: 'editor' });
+    const row = { ...plan.pending[0], guid: 'guid-vanished', mfaUsername: 'guid-vanished@azureidir' };
+
+    const reason = await plan.replicate(row).catch((err) => err);
+
+    expect(isNotFoundInMfa(reason)).toBe(true);
+    expect(mockCreateAzureIdirUser).not.toHaveBeenCalled();
   });
 });

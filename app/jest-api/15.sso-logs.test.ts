@@ -2,7 +2,6 @@ import { cleanUpDatabaseTables } from './helpers/utils';
 import { getUpdateIntegrationData } from './helpers/fixtures';
 import { models } from '@app/shared/sequelize/models/models';
 import { queryGrafana } from '@app/utils/grafana';
-import { EVENTS } from '@app/shared/enums';
 import * as rateLimiters from '@app/utils/rate-limiters';
 import { getLogs } from './helpers/modules/logs';
 import { createMockAuth } from './mocks/authenticate';
@@ -169,13 +168,14 @@ describe('Fetch SSO Logs', () => {
     const response = await getLogs(INTEGRATION_ID, queryString);
 
     expect(response.status).toBe(500);
-    const event = await models.event.findOne({
-      where: {
-        eventCode: EVENTS.LOGS_DOWNLOADED_FAILURE,
-        requestId: INTEGRATION_ID,
-      },
+    // Recorded as a failed operation, for the service's long-term stability.
+    const events = await models.event.findAll({
+      where: { eventCode: 'logs-download', requestId: INTEGRATION_ID },
+      order: [['id', 'ASC']],
+      raw: true,
     });
-    expect(event).not.toBeNull();
+    expect(events.map((event: any) => event.outcome)).toEqual(['requested', 'failure']);
+    expect(events[1].details.error).toEqual({ message: 'err' });
   });
 
   it('Returns the expected logs in JSON array if successful', async () => {
@@ -186,12 +186,10 @@ describe('Fetch SSO Logs', () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual([{ log: 'log' }, { log: 'log' }]);
     const event = await models.event.findOne({
-      where: {
-        eventCode: EVENTS.LOGS_DOWNLOADED_SUCCESS,
-        requestId: INTEGRATION_ID,
-      },
+      where: { eventCode: 'logs-download', requestId: INTEGRATION_ID, outcome: 'success' },
+      raw: true,
     });
-    expect(event).not.toBeNull();
+    expect(event).toMatchObject({ environment: 'dev', targetType: 'integration', details: { count: 2 } });
   });
 
   it('Return 429 if too many requests', async () => {

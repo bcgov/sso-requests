@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { EVENTS } from '@app/shared/enums';
+import { systemActor, withActor } from '@sso/audit/server';
 import { models } from '@app/shared/sequelize/models/models';
 import { createWorkflowLogger } from './logger';
 import {
@@ -23,7 +23,8 @@ import {
   updateWorkflow,
   WORKER_ID,
 } from './store';
-import { buildIntegrationWorkflowSteps, emitWorkflowEventOnce } from './steps/integration';
+import { buildIntegrationWorkflowSteps } from './steps/integration';
+import { recordWorkflowEvent } from './audit';
 import {
   CLAIMABLE_WORKFLOW_STATES,
   isPermanentError,
@@ -35,7 +36,6 @@ import {
   WorkflowState,
   WorkflowStepDefinition,
   WorkflowStepRecord,
-  WorkflowType,
 } from './types';
 
 import { logger } from '@app/utils/logger';
@@ -182,7 +182,6 @@ const failWorkflow = async (
   params: { failedStep: string | null; reason: string; error: string },
 ) => {
   const failedDuringPlanning = params.failedStep === STEP_NAMES.PLAN;
-  const isRestore = workflow.type === WorkflowType.INTEGRATION_RESTORE;
 
   const won = await releaseWorkflowIfActive(workflow.id, {
     state: WorkflowState.FAILED,
@@ -191,21 +190,27 @@ const failWorkflow = async (
     lastError: params.error,
   });
 
-  // A delete superseded us; its own outcome owns the request status and the audit trail now.
+  // A delete superseded us; its own outcome owns the request status and the audit trail now. The delete
+  // recorded this operation as superseded when it took over; this only covers a row that missed it.
   if (!won) {
     log.warn('workflow was superseded before it could fail, skipping status write and dead letter');
+    await recordWorkflowEvent(workflow, { outcome: 'superseded' }, { bestEffort: true });
     return;
   }
 
   workflow.state = WorkflowState.FAILED;
   await setRequestStatus(workflow.requestId, failedDuringPlanning ? 'planFailed' : 'applyFailed');
 
-  const eventCode = (() => {
-    if (failedDuringPlanning) return EVENTS.REQUEST_PLAN_FAILURE;
-    return isRestore ? EVENTS.REQUEST_RESTORE_FAILURE : EVENTS.REQUEST_APPLY_FAILURE;
-  })();
-
-  await emitWorkflowEventOnce(workflow, eventCode, { reason: params.reason, error: params.error });
+  // Best effort: the dead letter and the ops alert below must go out even if the audit write cannot.
+  const details = {
+    failedStep: params.failedStep ?? undefined,
+    reason: params.reason,
+    error: { message: params.error },
+  };
+  if (failedDuringPlanning) {
+    await recordWorkflowEvent(workflow, { outcome: 'failure', step: 'request-plan', details }, { bestEffort: true });
+  }
+  await recordWorkflowEvent(workflow, { outcome: 'failure', details }, { bestEffort: true });
 
   await recordRequestWorkflowFailure({
     workflow: workflow,
@@ -251,6 +256,9 @@ const runNextStep = async (
     workflow.state = liveState ?? WorkflowState.SUPERSEDED;
     log.warn('workflow is no longer active, abandoning', { state: workflow.state });
     await releaseWorkflow(workflow.id);
+    if (workflow.state === WorkflowState.SUPERSEDED) {
+      await recordWorkflowEvent(workflow, { outcome: 'superseded' }, { bestEffort: true });
+    }
     return { done: true };
   }
 
@@ -372,8 +380,18 @@ const execute = async (claimed: WorkflowRecord): Promise<WorkflowState> => {
   return workflow.state;
 };
 
+/**
+ * Every run of the engine — first run, background run, retry, recovery tick — is attributed to the
+ * engine, never to whoever's request happened to start it. That person is the actor on the operation's
+ * `requested` row.
+ */
+const asEngine = <T>(fn: () => Promise<T>): Promise<T> => withActor(systemActor('workflow-engine'), fn);
+
 /** Claims a specific workflow and runs it. Returns null when another worker already owns it. */
-export const runWorkflow = async (workflowId: string): Promise<WorkflowState | null> => {
+export const runWorkflow = (workflowId: string): Promise<WorkflowState | null> =>
+  asEngine(() => runClaimedWorkflow(workflowId));
+
+const runClaimedWorkflow = async (workflowId: string): Promise<WorkflowState | null> => {
   const workflow = await claimWorkflow(workflowId);
   if (!workflow) return null;
 
@@ -393,7 +411,10 @@ export const runWorkflow = async (workflowId: string): Promise<WorkflowState | n
  * originating pod died before starting them, workflows waiting on a backoff window, workflows whose
  * lease expired mid-flight, and queued follow-ups orphaned by a pod that died before promoting them.
  */
-export const drainWorkflows = async (maxWorkflows: number = 25): Promise<{ processed: number }> => {
+export const drainWorkflows = (maxWorkflows: number = 25): Promise<{ processed: number }> =>
+  asEngine(() => drainClaimableWorkflows(maxWorkflows));
+
+const drainClaimableWorkflows = async (maxWorkflows: number): Promise<{ processed: number }> => {
   let processed = 0;
 
   const promoted = await promoteOrphanedQueuedWorkflows(maxWorkflows);

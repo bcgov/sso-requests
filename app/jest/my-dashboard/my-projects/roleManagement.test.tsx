@@ -4,7 +4,7 @@ import { sampleRequest } from '../../samples/integrations';
 import {
   listRoleUsers,
   getCompositeClientRoles,
-  manageUserRole,
+  updateUserRoles,
   bulkCreateRole,
   previewRoleReplication,
   runRoleReplication,
@@ -79,7 +79,9 @@ jest.mock('services/keycloak', () => ({
   ),
   getCompositeClientRoles: jest.fn(() => Promise.resolve([['compositeRole1', 'compositeRole2'], null])),
   deleteRole: jest.fn(() => Promise.resolve([[''], null])),
-  manageUserRole: jest.fn(() => Promise.resolve([[''], null])),
+  updateUserRoles: jest.fn(({ add = [] }: { add?: string[] }) =>
+    Promise.resolve([{ roles: add, failed: { add: [], remove: [] } }, null]),
+  ),
   bulkCreateRole: jest.fn(() => Promise.resolve([{}, null])),
   previewRoleReplication: jest.fn(() => Promise.resolve([[], null])),
   runRoleReplication: jest.fn(() => Promise.resolve([[], null])),
@@ -355,7 +357,8 @@ describe('role management tab', () => {
       fireEvent.click(await screen.findByRole('button', { name: 'Remove' }));
     });
     await waitFor(() => {
-      expect(manageUserRole).toHaveBeenCalledTimes(1);
+      expect(updateUserRoles).toHaveBeenCalledTimes(1);
+      expect(updateUserRoles).toHaveBeenCalledWith(expect.objectContaining({ remove: ['role-1'] }));
     });
   });
 
@@ -368,9 +371,9 @@ describe('role management tab', () => {
     (listRoleUsers as jest.Mock).mockImplementation(({ first, max }: any) =>
       Promise.resolve([{ totalCount: allUsers.length, data: allUsers.slice(first, first + max) }, null]),
     );
-    (manageUserRole as jest.Mock).mockImplementationOnce(({ username }: any) => {
+    (updateUserRoles as jest.Mock).mockImplementationOnce(({ username }: any) => {
       allUsers = allUsers.filter((user) => user.username !== username);
-      return Promise.resolve([[''], null]);
+      return Promise.resolve([{ roles: [], failed: { add: [], remove: [] } }, null]);
     });
 
     render(<RoleEnvironmentComponent />);
@@ -394,7 +397,9 @@ describe('role management tab', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Remove' }));
 
     await waitFor(() => {
-      expect(manageUserRole).toHaveBeenCalledWith(expect.objectContaining({ username: 'user06@idir', mode: 'del' }));
+      expect(updateUserRoles).toHaveBeenCalledWith(
+        expect.objectContaining({ username: 'user06@idir', remove: ['role-1'] }),
+      );
     });
     await waitFor(() => {
       expect(screen.getByText('1 of 1')).toBeInTheDocument();
@@ -494,7 +499,7 @@ describe('role management tab', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
     });
     await waitFor(() => {
-      expect(manageUserRole).toHaveBeenCalledTimes(1);
+      expect(updateUserRoles).toHaveBeenCalledTimes(1);
     });
   });
 

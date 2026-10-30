@@ -18,7 +18,7 @@ import {
   listRoleUsers,
   getCompositeClientRoles,
   setCompositeClientRoles,
-  manageUserRole,
+  updateUserRoles,
   previewRoleReplication,
   runRoleReplication,
   RoleReplicationPreview,
@@ -27,6 +27,7 @@ import {
 } from 'services/keycloak';
 import { canCreateOrDeleteRoles, canManageUserRoleMappings } from 'helpers/permissions';
 import { idpMap } from 'helpers/meta';
+import { hasChanges } from '@app/helpers/roles';
 import { KeycloakUser } from 'interfaces/team';
 import { dateTimeStringForFileName, generateXlsx, generateCsv } from '@app/utils/helpers';
 import TableNew from '@app/components/TableNew';
@@ -885,18 +886,18 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         onConfirm={async (contentRef: any, user: KeycloakUser) => {
           if (!selectedRole) return;
 
-          const [, err] = await manageUserRole({
+          const [result, err] = await updateUserRoles({
             environment,
             integrationId: integration.id as number,
             username: user.username as string,
-            roleName: selectedRole,
-            mode: 'del',
+            remove: [selectedRole],
           });
 
-          if (err) {
+          // A Keycloak refusal comes back as a 200 listing the role under failed.remove.
+          if (err || hasChanges(result!.failed)) {
             alert.show({
               variant: 'danger',
-              content: err,
+              content: err || `Failed to remove the role ${selectedRole}.`,
             });
           }
 
@@ -916,18 +917,18 @@ const RoleEnvironment = ({ environment, integration, alert, viewOnly = false }: 
         onConfirm={async (contentRef: any, user: KeycloakUser) => {
           if (!selectedRole) return;
 
-          const [, err] = await manageUserRole({
+          const [result, err] = await updateUserRoles({
             environment,
             integrationId: integration.id as number,
             username: user.username as string,
-            roleName: selectedRole,
-            mode: 'del',
+            remove: [selectedRole],
           });
 
-          if (err) {
+          // A Keycloak refusal comes back as a 200 listing the role under failed.remove.
+          if (err || hasChanges(result!.failed)) {
             alert.show({
               variant: 'danger',
-              content: err,
+              content: err || `Failed to remove the role ${selectedRole}.`,
             });
           }
 

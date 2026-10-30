@@ -8,7 +8,8 @@ import {
   changedFields,
 } from '@app/utils/requestPolicy';
 import { IN_FLIGHT, RESTING, TRANSITIONS, deleteIntentFor, transitionRefusal } from '@app/helpers/transitions';
-import { canonicalizeArrayFields, normalizeRequest } from '@app/utils/helpers';
+import { canonicalizeArrayFields, getDifferences, normalizeRequest } from '@app/utils/helpers';
+import { Integration } from '@app/interfaces/Request';
 
 /**
  * The update path authorizes the diff between the stored row and the payload, field by field,
@@ -146,6 +147,27 @@ describe('canonical arrays', () => {
     expect(canonicalizeArrayFields({ primaryEndUsers: null, devIdps: undefined })).toEqual({
       primaryEndUsers: null,
       devIdps: undefined,
+    });
+  });
+
+  describe('environment update differences', () => {
+    it('reports environment additions and removals', () => {
+      const original = { environments: ['dev'] } as Integration;
+
+      expect(getDifferences({ environments: ['dev', 'test'] }, original)).toEqual(
+        expect.arrayContaining([expect.objectContaining({ path: ['environments'] })]),
+      );
+      expect(getDifferences({ environments: [] }, original)).toEqual(
+        expect.arrayContaining([expect.objectContaining({ path: ['environments'] })]),
+      );
+    });
+
+    it('does not report a difference when environments are only reordered', () => {
+      expect(
+        getDifferences({ environments: ['prod', 'dev', 'test'] }, {
+          environments: ['test', 'dev', 'prod'],
+        } as Integration),
+      ).toBeUndefined();
     });
   });
 

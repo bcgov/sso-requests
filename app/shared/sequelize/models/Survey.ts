@@ -14,6 +14,7 @@ const init = (sequelize: any, DataTypes: any) => {
         field: 'user_id',
         allow_null: false,
         references: { model: 'users', key: 'id' },
+        onDelete: 'CASCADE',
       },
       triggerEvent: {
         type: DataTypes.STRING,

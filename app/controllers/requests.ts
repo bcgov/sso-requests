@@ -1,4 +1,6 @@
-import { Op, Model } from 'sequelize';
+import { randomUUID } from 'node:crypto';
+import { Op, Model, Transaction } from 'sequelize';
+import type { AuditEvent } from '@sso/audit';
 import { validateRequest, getRequiredBCSCScopes } from '@app/utils/server-helpers';
 import { camelCase, isEmpty, isString, kebabCase, upperFirst } from 'lodash';
 import {
@@ -13,7 +15,7 @@ import {
 } from '@app/utils/helpers';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { Session, IntegrationData, User } from '@app/shared/interfaces';
-import { EMAILS, EVENTS } from '@app/shared/enums';
+import { EMAILS } from '@app/shared/enums';
 import { sendTemplate } from '@app/shared/templates';
 import { getAllowedTeams, getTeamById } from '@app/queries/team';
 import {
@@ -96,12 +98,12 @@ import { actorPayload, authorizeChanges, authorizeTransition } from '@app/utils/
 import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
 import { hasAppPermission, appPermissions, commonPermissionsForAppRoles } from '@app/utils/authorize';
-import { Event } from '@app/interfaces/Event';
 import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
 import { createSdxRequest } from './sdx-services';
 import { getEntraClientByRequestId, saveEntraClient } from '@app/queries/entra-client';
-import { createEvent } from '@app/queries/event';
-import { enqueueRequestWorkflow } from '@app/workflow/request-workflow';
+import { audit } from '@app/queries/event';
+import { EnqueueResult, enqueueRequestWorkflow, executeEnqueuedWorkflow } from '@app/workflow/request-workflow';
+import { countApplyOutcomes, recordAdoptedSubmission, workflowEventScope } from '@app/workflow/audit';
 import { KeyCredential } from '@microsoft/microsoft-graph-types';
 import { createPS256Key, getActivePS256KeyCert } from '@app/keycloak/keys';
 import { getByBcgovUnitAndDivision, getDivisionById, listDivisions } from '@app/queries/division';
@@ -159,6 +161,8 @@ const allowedFieldsForGithub = [
   'bcgovUnitId',
   'divisionId',
   'description',
+  // Not used by Keycloak: carried so the workflow's audit events can name the owning organization.
+  'organizationId',
   ...envFieldsAll,
 ];
 
@@ -189,13 +193,7 @@ const checkIfHasFailedRequests = async () => {
 };
 
 // Check if an applied/apply-failed event exists for the client
-export const checkIfRequestMerged = async (id: number) => {
-  const request = await models.event.findOne({
-    where: { requestId: id, eventCode: { [Op.in]: [EVENTS.REQUEST_APPLY_SUCCESS, EVENTS.REQUEST_APPLY_FAILURE] } },
-  });
-
-  return !!request;
-};
+export const checkIfRequestMerged = async (id: number) => (await countApplyOutcomes(id)) > 0;
 
 const authorizeClientId = (session: Session, clientId?: string | null) => {
   const proposed = clientId?.trim();
@@ -233,14 +231,14 @@ export const createRequest = async (session: Session, data: IntegrationData) => 
     },
   });
 
+  // The one rejection that is audited, as a sign of abusive usage. Best effort: the 429 goes out regardless.
   if (numOfRequestsForToday >= NEW_REQUEST_DAY_LIMIT) {
-    const eventData = {
-      eventCode: EVENTS.REQUEST_LIMIT_REACHED,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session?.user?.displayName || '',
-    };
-
-    await createEvent(eventData);
+    await audit.tryCreateEvent({
+      action: 'request-limit-reached',
+      outcome: 'success',
+      target: { type: 'app-user', id: String(session?.user?.id) },
+      details: { limit: NEW_REQUEST_DAY_LIMIT, count: numOfRequestsForToday },
+    });
     await sendTemplate(EMAILS.REQUEST_LIMIT_EXCEEDED, { user: session?.user?.displayName || '' });
     throw new createHttpError.TooManyRequests('reached the day limit');
   }
@@ -675,47 +673,38 @@ export const updateRequest = async (
 
     current.lastChanges = changes || null;
 
-    let updated = await current.save();
-
-    if (!updated) {
-      throw new createHttpError.UnprocessableEntity('update failed');
+    // Recorded on the submission's `requested` event. A first submission has no changes worth keeping.
+    const details: Record<string, unknown> = {};
+    if (submit && isMerged) {
+      details.changes = changes;
+      if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST) && comment) {
+        details.comment = comment;
+      }
     }
 
-    // team id column is referencing id of teams table so it can only be set to null using `update` method
-    if (updated?.usesTeam === false && updated?.teamId) {
-      await models.request.update(
-        { teamId: null },
-        {
-          where: {
-            id: updated.id,
-          },
-          returning: true,
-          omitNull: false,
-        },
-      );
-    }
+    // Switching off team ownership clears teamId: the client may still submit its prior value.
+    const clearTeam = current.usesTeam === false && Boolean(current.teamId);
 
-    if (submit) {
-      const eventData: Event = {
-        eventCode: EVENTS.REQUEST_CREATE_SUCCESS,
-        requestId: id,
-        idirUserid: session?.idir_userid,
-        idirUserDisplayName: session?.user?.displayName || '',
-      };
+    // A submission commits with its workflow and `requested` event or not at all; a draft save is
+    // neither audited nor enqueued.
+    let enqueued: EnqueuedIntegrationWorkflow;
+    let updated = await sequelize.transaction(async (transaction) => {
+      const saved = await current.save({ transaction });
+      if (!saved) throw new createHttpError.UnprocessableEntity('update failed');
 
-      if (isMerged) {
-        const details: any = { changes };
-        if (hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST) && comment) {
-          details.comment = comment;
-        }
-
-        eventData.eventCode = EVENTS.REQUEST_UPDATE_SUCCESS;
-        eventData.details = details;
+      // The global `omitNull` would drop the null from the save, so only this column opts out of it.
+      if (clearTeam) {
+        await saved.update({ teamId: null }, { transaction, omitNull: false });
       }
 
-      await createEvent(eventData);
+      if (submit) {
+        enqueued = await enqueueIntegrationWorkflow(saved, { existingClientId, addingProd, details }, transaction);
+      }
+      return saved;
+    });
 
-      await processIntegrationRequest(updated, false, existingClientId, addingProd);
+    if (submit) {
+      await runIntegrationWorkflow(enqueued);
 
       const refreshed = await authorizeIntegration(session, id!, 'integrations:read');
       if (!refreshed) throw new Error('Request not found');
@@ -724,18 +713,8 @@ export const updateRequest = async (
 
     return updated.get({ plain: true });
   } catch (err) {
+    // No event here: a failure before the commit left nothing behind, and one after it is the engine's.
     log.error({ err }, 'updateRequest failed');
-    if (submit) {
-      const eventData = {
-        eventCode: isMerged ? EVENTS.REQUEST_UPDATE_FAILURE : EVENTS.REQUEST_CREATE_FAILURE,
-        requestId: id,
-        idirUserid: session?.idir_userid,
-        idirUserDisplayName: session?.user?.displayName || '',
-      };
-
-      await createEvent(eventData);
-    }
-
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };
@@ -755,14 +734,16 @@ export const resubmitRequest = async (session: Session, id: number) => {
     current.requester = getRequester(session, access);
     current.changed('updatedAt', true);
 
-    const updated = await current.save();
-    if (!updated) {
-      throw new createHttpError.UnprocessableEntity('update failed');
-    }
-
-    // Enqueue is de-duplicated: if a workflow is still in flight it is simply re-driven from its last
-    // completed step instead of starting a second workflow.
-    await processIntegrationRequest(getCurrentValue());
+    // Enqueue is de-duplicated: if a workflow is still in flight the resubmit is queued behind it
+    // instead of starting a second workflow.
+    let enqueued: EnqueuedIntegrationWorkflow;
+    const updated = await sequelize.transaction(async (transaction) => {
+      const saved = await current.save({ transaction });
+      if (!saved) throw new createHttpError.UnprocessableEntity('update failed');
+      enqueued = await enqueueIntegrationWorkflow(getCurrentValue(), {}, transaction);
+      return saved;
+    });
+    await runIntegrationWorkflow(enqueued);
 
     return updated.get({ plain: true });
   } catch (err) {
@@ -828,14 +809,16 @@ export const restoreRequest = async (session: Session, id: number, email?: strin
     current.archived = false;
     current.changed('updatedAt', true);
 
-    const updated = await current.save();
-    if (!updated) {
-      throw new createHttpError.UnprocessableEntity('update failed');
-    }
-
     // Role re-creation and the restore notification are workflow steps so they only run once the
     // Keycloak clients actually exist again.
-    await processIntegrationRequest(current, true);
+    let enqueued: EnqueuedIntegrationWorkflow;
+    const updated = await sequelize.transaction(async (transaction) => {
+      const saved = await current.save({ transaction });
+      if (!saved) throw new createHttpError.UnprocessableEntity('update failed');
+      enqueued = await enqueueIntegrationWorkflow(saved, { restore: true }, transaction);
+      return saved;
+    });
+    await runIntegrationWorkflow(enqueued);
 
     return updated.get({ plain: true });
   } catch (err) {
@@ -940,16 +923,28 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
     current.requester = getRequester(session, access);
     current.archived = true;
 
+    // A draft never reached Keycloak, so deleting it is a database change alone.
     if (current.status === 'draft') {
-      const result = await current.save();
+      const result = await sequelize.transaction(async (transaction) => {
+        const saved = await current.save({ transaction });
+        await audit.createEvent(
+          { action: 'request-delete', outcome: 'success', requestId: id, details: {} },
+          transaction,
+        );
+        return saved;
+      });
       return result.get({ plain: true });
     }
 
     current.status = transition.to;
 
-    const result = await current.save();
-
-    await processIntegrationRequest(result);
+    let enqueued: EnqueuedIntegrationWorkflow;
+    const result = await sequelize.transaction(async (transaction) => {
+      const saved = await current.save({ transaction });
+      enqueued = await enqueueIntegrationWorkflow(saved, {}, transaction);
+      return saved;
+    });
+    await runIntegrationWorkflow(enqueued);
 
     const integration = result.get({ plain: true });
 
@@ -958,23 +953,10 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     await sendTemplate(emailCode, emailData);
 
-    await createEvent({
-      eventCode: EVENTS.REQUEST_DELETE_SUCCESS,
-      requestId: id,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session?.user?.displayName || '',
-    });
-
     return integration;
   } catch (err) {
+    // No event here: a failure before the commit left nothing behind, and one after it is the engine's.
     log.error({ err }, 'deleteRequest failed');
-
-    await createEvent({
-      eventCode: EVENTS.REQUEST_DELETE_FAILURE,
-      requestId: id,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session?.user?.displayName || '',
-    });
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };
@@ -984,20 +966,35 @@ export const updateRequestMetadata = async (session: Session, user: User, data: 
     throw new createHttpError.Forbidden('not allowed');
   }
   const { id, status } = data;
-  const result = await models.request.update(
-    { status },
-    {
-      where: { id },
-      returning: true,
-      plain: true,
-    },
-  );
+  const current = await models.request.findByPk(id, { attributes: ['id', 'status'], raw: true });
+  if (!current) throw new createHttpError.NotFound(`request #${id} not found`);
 
-  if (result.length < 2) {
-    throw new createHttpError.UnprocessableEntity('update failed');
-  }
+  return sequelize.transaction(async (transaction) => {
+    const result = await models.request.update(
+      { status },
+      {
+        where: { id },
+        returning: true,
+        plain: true,
+        transaction,
+      },
+    );
 
-  return result[1].dataValues;
+    if (result.length < 2) {
+      throw new createHttpError.UnprocessableEntity('update failed');
+    }
+
+    await audit.createEvent(
+      {
+        action: 'request-status-update',
+        outcome: 'success',
+        requestId: id,
+        details: { before: current.status, after: status },
+      },
+      transaction,
+    );
+    return result[1].dataValues;
+  });
 };
 
 export const buildGitHubRequestData = (baseData: IntegrationData) => {
@@ -1072,33 +1069,86 @@ export const buildIntegrationPayload = async (integration: any): Promise<Integra
   return payload as IntegrationData;
 };
 
-interface ProcessIntegrationOptions {
+export interface IntegrationWorkflowOptions {
+  restore?: boolean;
+  existingClientId?: string;
+  addingProd?: boolean;
   /** Block until the workflow finishes. Only used by callers that need the Keycloak client to exist
-   * before they return (team API service accounts). */
+   * before they return (team and organization API accounts). */
   awaitCompletion?: boolean;
+  /** Recorded on the operation's `requested` audit event. */
+  details?: Record<string, unknown>;
 }
 
+export type EnqueuedIntegrationWorkflow = (EnqueueResult & { operationId: string }) | undefined;
+
 /**
- * Hands the integration off to the workflow orchestrator and returns immediately. Callers no longer wait
- * for Keycloak; progress is tracked in `integration_workflows` and surfaced on the dashboard.
+ * Persists a workflow for the integration and the operation's `requested` audit event, both in the
+ * caller's `transaction`, so they commit with the change that asked for them or not at all. Nothing
+ * touches Keycloak here: run the workflow with `runIntegrationWorkflow` once the transaction commits.
+ *
+ * The operation id is the workflow's correlation id; the engine records the outcome under it.
  */
-export const processIntegrationRequest = async (
+export const enqueueIntegrationWorkflow = async (
   integration: any,
-  restore: boolean = false,
-  existingClientId: string = '',
-  addingProd: boolean = false,
-  options: ProcessIntegrationOptions = {},
-) => {
+  options: IntegrationWorkflowOptions,
+  transaction: Transaction,
+): Promise<EnqueuedIntegrationWorkflow> => {
   const payload = await buildIntegrationPayload(integration);
 
-  if (!['development', 'production'].includes(process.env.NODE_ENV)) return;
+  if (!['development', 'production'].includes(process.env.NODE_ENV)) return undefined;
 
-  return await enqueueRequestWorkflow(payload, {
-    restore,
-    existingClientId,
-    addingProd,
-    awaitCompletion: options.awaitCompletion,
-  });
+  const operationId = randomUUID();
+  const enqueued = await enqueueRequestWorkflow(
+    payload,
+    {
+      restore: options.restore,
+      existingClientId: options.existingClientId,
+      addingProd: options.addingProd,
+      awaitCompletion: options.awaitCompletion,
+      correlationId: operationId,
+    },
+    transaction,
+  );
+
+  const scope = workflowEventScope(payload);
+  await audit.createEvent(
+    {
+      action: enqueued.auditAction,
+      outcome: 'requested',
+      operationId,
+      workflowId: enqueued.workflowId,
+      ...scope,
+      details: options.details ?? {},
+    } as AuditEvent,
+    transaction,
+  );
+  if (!enqueued.created) await recordAdoptedSubmission(operationId, enqueued, scope, transaction);
+
+  return { ...enqueued, operationId };
+};
+
+/**
+ * Runs what `enqueueIntegrationWorkflow` persisted, after its transaction has committed. The engine owns
+ * every outcome from here, so callers never write events for it, success or failure.
+ */
+export const runIntegrationWorkflow = async (
+  enqueued: EnqueuedIntegrationWorkflow,
+  options: Pick<IntegrationWorkflowOptions, 'awaitCompletion'> = {},
+): Promise<EnqueuedIntegrationWorkflow> =>
+  enqueued && executeEnqueuedWorkflow(enqueued, { awaitCompletion: options.awaitCompletion });
+
+/**
+ * For callers that awaited the workflow: anything but COMPLETED is a 422 naming the workflow and the
+ * operation. The engine has already recorded the failure, dead-lettered the workflow and alerted ops;
+ * recovery is a resubmit, so there is nothing for the caller to clean up.
+ */
+export const assertWorkflowCompleted = (workflow: EnqueuedIntegrationWorkflow) => {
+  if (workflow && workflow.state !== 'COMPLETED') {
+    throw new createHttpError.UnprocessableEntity(
+      `integration workflow ${workflow.workflowId} (operation ${workflow.operationId}) ended in ${workflow.state}`,
+    );
+  }
 };
 
 export const getListOfDescrepencies = async () => {
