@@ -21,7 +21,26 @@ export const getRequestScopedEvents = async (session: Session, requestId: string
   // A submitted update records its changes on the operation's `requested` row; rows from before
   // @sso/audit recorded them on a `-success` row, migrated to `submitted` (or `success` where the engine
   // wrote it). Either way, the rows with changes.
+  // The engine answers each `requested` row with a terminal row on the same operation, which carries no
+  // changes. Each update is shown once, with its row's changes and its operation's outcome; one the engine
+  // has not finished stays `requested`.
   return models.event.findAndCountAll({
+    attributes: {
+      exclude: ['outcome'],
+      include: [
+        [
+          models.event.sequelize.literal(`coalesce((
+            select terminal.outcome from events terminal
+            where "event".outcome = 'requested'
+              and terminal.operation_id = "event".operation_id
+              and terminal.event_code = 'request-update'
+              and terminal.outcome in ('success', 'failure', 'superseded')
+            limit 1
+          ), "event".outcome)`),
+          'outcome',
+        ],
+      ],
+    },
     where: {
       requestId,
       eventCode: 'request-update',
