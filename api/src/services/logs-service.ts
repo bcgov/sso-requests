@@ -94,7 +94,7 @@ export class LogsService {
       return { status: 200, message, data: parsedLogs };
     } catch (err) {
       log.error({ err, environment: env, clientId }, 'Error while fetching logs from loki');
-      return { status: 500, message: 'Unexpected error fetching logs.' };
+      return { status: 500, message: 'Unexpected error fetching logs.', data: null };
     }
   }
 }

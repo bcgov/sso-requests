@@ -10,6 +10,10 @@ import models from '@/sequelize/models/models';
 // coverage check (zz.audit-coverage.test.ts) sees each one record its action.
 
 const API_BASE_PATH = '/api/v1';
+
+// Where the logs route reads from; without them it fails before recording anything.
+process.env.TRINO_RETENTION_SCHEMA = 'retention.schema';
+process.env.TRINO_LIVE_SCHEMA = 'live.schema';
 let team: any;
 let apiAccount: any;
 let integration: any;

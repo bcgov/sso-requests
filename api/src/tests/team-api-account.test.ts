@@ -128,12 +128,16 @@ describe('emails for teams', () => {
         submitted: true,
       });
 
-      integrationRoles.forEach(async (role) => {
+      // One at a time, each new to Keycloak, so no queued mock is left over for a later test to consume.
+      for (const role of integrationRoles) {
+        jest
+          .spyOn(KeycloakService.prototype, 'getClientRole')
+          .mockRejectedValueOnce(new createHttpError.NotFound('role not found'));
         jest.spyOn(KeycloakService.prototype, 'createClientRole').mockImplementationOnce(() => {
-          return Promise.resolve({ name: role, composite: false });
+          return Promise.resolve({ name: role.name, composite: false });
         });
         await createIntegrationRoles(role.name, integration.id, 'dev');
-      });
+      }
 
       jest.spyOn(KeycloakService.prototype, 'getUsers').mockImplementation(() => {
         return Promise.resolve(searchUsersByIdpRows);
