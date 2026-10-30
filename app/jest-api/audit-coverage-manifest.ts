@@ -94,6 +94,7 @@ export const AUDIT_COVERAGE: Record<string, CoverageEntry> = {
   'POST /api/keycloak/roles': { unaudited: READ_AS_POST },
   'POST /api/keycloak/role': { unaudited: READ_AS_POST },
   'POST /api/keycloak/role-users': { unaudited: READ_AS_POST },
+  'POST /api/keycloak/role-service-accounts': { unaudited: READ_AS_POST },
   'POST /api/keycloak/get-composite-roles': { unaudited: READ_AS_POST },
   'POST /api/keycloak/user-roles': { unaudited: READ_AS_POST },
   'POST /api/keycloak/users': { unaudited: READ_AS_POST },

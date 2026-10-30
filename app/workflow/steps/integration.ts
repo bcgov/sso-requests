@@ -1,7 +1,14 @@
 import { models } from '@app/shared/sequelize/models/models';
 import { keycloakClient } from '@app/keycloak/integration';
 import { recordWorkflowEvent } from '../audit';
-import { restoreIntegrationRoles, sendRestoreIntegrationEmail, updatePlannedIntegration } from '../effects';
+import {
+  RolesSnapshot,
+  restoreIntegrationRoles,
+  sendRestoreIntegrationEmail,
+  snapshotIntegrationRoles,
+  updatePlannedIntegration,
+} from '../effects';
+import { updateStep } from '../store';
 import { WorkflowRecord, WorkflowStepDefinition, WorkflowType, STEP_NAMES, TransientStepError } from '../types';
 
 const ENVIRONMENT_ORDER = ['dev', 'test', 'prod'];
@@ -58,8 +65,14 @@ const planStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
 const restoreRolesStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
   name: STEP_NAMES.RESTORE_ROLES,
   label: 'Restoring roles',
-  execute: async () => {
-    await restoreIntegrationRoles(workflow);
+  execute: async ({ step }) => {
+    // Taken once, before anything changes, so every attempt measures what it records against the same state.
+    let before: RolesSnapshot | undefined = step.result?.rolesBefore;
+    if (!before) {
+      before = await snapshotIntegrationRoles(workflow.requestId);
+      await updateStep(step.id, { result: { rolesBefore: before } });
+    }
+    await restoreIntegrationRoles(workflow, before);
     return { rolesRestored: true };
   },
 });

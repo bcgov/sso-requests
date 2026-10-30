@@ -338,7 +338,7 @@ export const inviteTeam = async (
   const existing = await getOrganizationTeamLink(organizationId, data.teamId);
 
   const link = await sequelize.transaction(async (transaction) => {
-    let savedLink = existing;
+    let savedLink;
     if (existing) {
       existing.permissions = permissions;
       existing.invitedBy = session.user!.id;

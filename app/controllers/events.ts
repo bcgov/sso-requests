@@ -19,12 +19,13 @@ export const getRequestScopedEvents = async (session: Session, requestId: string
   if (!authorized) throw new createHttpError.Forbidden('User is not authorized to view request events');
 
   // A submitted update records its changes on the operation's `requested` row; rows from before
-  // @sso/audit recorded them on the (now suffix-less) `success` row. Either way, the rows with changes.
+  // @sso/audit recorded them on a `-success` row, migrated to `submitted` (or `success` where the engine
+  // wrote it). Either way, the rows with changes.
   return models.event.findAndCountAll({
     where: {
       requestId,
       eventCode: 'request-update',
-      outcome: { [Op.in]: ['requested', 'success'] },
+      outcome: { [Op.in]: ['requested', 'success', 'submitted'] },
       [Op.and]: [models.event.sequelize.literal(`jsonb_exists(details, 'changes')`)],
     },
     order: [['createdAt', 'desc']],

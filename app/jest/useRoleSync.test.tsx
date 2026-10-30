@@ -59,4 +59,24 @@ describe('useRoleSync', () => {
     await waitFor(() => expect(calls).toHaveLength(2));
     expect(calls[1].changes).toEqual({ add: ['y'], remove: [] });
   });
+
+  it('sends a pending change to the subject it was made for, even once the caller has moved to another', async () => {
+    const first = controlledSend();
+    const second = controlledSend();
+    const { result, rerender } = renderHook(({ send }) => useRoleSync(send, 50), {
+      initialProps: { send: first.send },
+    });
+
+    act(() => result.current.select(['a']));
+    await waitFor(() => expect(first.calls).toHaveLength(1));
+    await act(async () => first.calls[0].respond(['a']));
+    // A second change, held back by the throttle with nothing in flight...
+    act(() => result.current.select(['a', 'b']));
+    // ...while the caller switches subject; the new subject's roles have not loaded yet.
+    rerender({ send: second.send });
+
+    await waitFor(() => expect(first.calls).toHaveLength(2));
+    expect(first.calls[1].changes).toEqual({ add: ['b'], remove: [] });
+    expect(second.send).not.toHaveBeenCalled();
+  });
 });

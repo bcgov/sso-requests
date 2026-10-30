@@ -28,8 +28,6 @@ import {
 import { canCreateOrDeleteRoles, canManageUserRoleMappings } from 'helpers/permissions';
 import { idpMap } from 'helpers/meta';
 import { hasChanges } from '@app/helpers/roles';
-import { getRequest } from 'services/request';
-import { checkIfUserIsServiceAccount, filterServiceAccountUsers } from 'helpers/users';
 import { KeycloakUser } from 'interfaces/team';
 import { dateTimeStringForFileName, generateXlsx, generateCsv } from '@app/utils/helpers';
 import TableNew from '@app/components/TableNew';

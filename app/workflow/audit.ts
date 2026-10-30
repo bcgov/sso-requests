@@ -1,6 +1,6 @@
 import { Op, Transaction } from 'sequelize';
 import { AuditDetails, OutcomeDetails, Outcome, WorkflowAction, systemActor, withActor } from '@sso/audit/server';
-import { models } from '@app/shared/sequelize/models/models';
+import { models, sequelize } from '@app/shared/sequelize/models/models';
 import { audit } from '@app/queries/event';
 import { ACTION_TYPES } from '@app/shared/enums';
 import { WorkflowRecord, WorkflowType } from './types';
@@ -48,7 +48,9 @@ type WorkflowEventTarget = WorkflowIdentity & Pick<WorkflowRecord, 'id' | 'corre
  * Writes one event for `workflow`'s operation, at most once: a terminal outcome
  * is skipped if the operation already has one (a replay after a crash, or a
  * supersede racing a finish), and a step event if the same step already
- * recorded the same outcome.
+ * recorded the same outcome. The check and the insert run under a lock on the
+ * operation id, held until the transaction ends, so two writers racing (the
+ * finalize step and a delete superseding it) cannot both see none and insert.
  *
  * Strict by default, so a step that cannot record its outcome fails and is
  * retried. `bestEffort` is for paths that must carry on regardless — a failure
@@ -65,14 +67,18 @@ export const recordWorkflowEvent = async (
   const action = event.step ?? auditActionFor(workflow);
   const terminal = !event.step && TERMINAL_OUTCOMES.includes(event.outcome);
 
-  const write = async () => {
+  const write = async (tx: Transaction) => {
+    await sequelize.query('SELECT pg_advisory_xact_lock(hashtext(:key))', {
+      replacements: { key: `audit-operation:${workflow.correlationId}` },
+      transaction: tx,
+    });
     const existing = await models.event.count({
       where: {
         operationId: workflow.correlationId,
         eventCode: action,
         outcome: terminal ? { [Op.in]: TERMINAL_OUTCOMES } : event.outcome,
       },
-      transaction,
+      transaction: tx,
     });
     if (existing > 0) return;
 
@@ -85,14 +91,16 @@ export const recordWorkflowEvent = async (
         ...workflowEventScope(workflow.payload),
         details: (event.details ?? {}) as AuditDetails<typeof action>,
       },
-      transaction,
+      tx,
     );
   };
+  // In the caller's transaction when there is one, so the lock is held until its state change commits too.
+  const run = () => (transaction ? write(transaction) : sequelize.transaction(write));
 
   await withActor(systemActor('workflow-engine'), async () => {
-    if (!bestEffort) return write();
+    if (!bestEffort) return run();
     try {
-      await write();
+      await run();
     } catch {
       // createEvent has already logged audit_event_write_failed.
     }

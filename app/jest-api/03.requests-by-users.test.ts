@@ -89,14 +89,17 @@ jest.mock('@app/keycloak/users', () => {
         {
           env: 'dev',
           success: ['role1', 'role2', 'role3'],
+          duplicate: [],
         },
         {
           env: 'test',
           success: ['role2'],
+          duplicate: [],
         },
         {
           env: 'prod',
           success: ['role3'],
+          duplicate: [],
         },
       ]),
     ),

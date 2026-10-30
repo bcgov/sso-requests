@@ -154,6 +154,8 @@ describe('audited write routes reached through HTTP', () => {
       'organization-team-invite:success',
       'organization-team-leave:success',
       'organization-member-remove:success',
+      // Deleting the organization cascades to the creator, still its member, which is recorded as a removal.
+      'organization-member-remove:success',
       'organization-delete:success',
     ]);
   });

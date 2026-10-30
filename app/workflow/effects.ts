@@ -1,4 +1,5 @@
 import { Op } from 'sequelize';
+import uniq from 'lodash/uniq';
 import { models } from '@app/shared/sequelize/models/models';
 import { IntegrationData } from '@app/shared/interfaces';
 import { EMAILS } from '@app/shared/enums';
@@ -6,7 +7,13 @@ import { sendTemplate } from '@app/shared/templates';
 import { countApplyOutcomes } from './audit';
 import { getTeamById } from '@app/queries/team';
 import { getRolesWithEnvironments } from '@app/queries/roles';
-import { NewRole, bulkCreateRole, getCompositeClientRoles, setCompositeClientRoles } from '@app/keycloak/users';
+import {
+  NewRole,
+  bulkCreateRole,
+  getCompositeClientRoles,
+  listClientRoles,
+  setCompositeClientRoles,
+} from '@app/keycloak/users';
 import { audit } from '@app/queries/event';
 import { Environment, roleOperation } from '@sso/audit';
 import { WorkflowRecord } from './types';
@@ -103,38 +110,102 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
   }
 };
 
+/** The client roles Keycloak already held before a restore touched it: each role's composites, by environment. */
+export type RolesSnapshot = Record<string, Record<string, string[]>>;
+
+const roleEnvironments = (dbRoles: NewRole[], requestRoles: { environment: string }[]) =>
+  uniq([...dbRoles.flatMap((role) => role.envs ?? []), ...requestRoles.map((role) => role.environment)]);
+
+const getRestoreRoles = async (integrationId: number) => ({
+  dbRoles: (await getRolesWithEnvironments(integrationId)) as NewRole[],
+  requestRoles: await models.requestRole.findAll({ where: { requestId: integrationId }, raw: true }),
+});
+
+/**
+ * Reads what Keycloak holds before `restoreIntegrationRoles` changes anything. The restore step stores it on
+ * its first attempt, so a retry still knows which roles and composites the restore itself put there.
+ */
+export const snapshotIntegrationRoles = async (integrationId: number): Promise<RolesSnapshot> => {
+  const integration = await getFreshIntegration(integrationId);
+  if (!integration) return {};
+
+  const { dbRoles, requestRoles } = await getRestoreRoles(integrationId);
+  const snapshot: RolesSnapshot = {};
+  for (const environment of roleEnvironments(dbRoles, requestRoles)) {
+    let existing: { name: string }[];
+    try {
+      existing = await listClientRoles(integration, { environment });
+    } catch (err: any) {
+      // No client in this environment: nothing exists there yet, and bulkCreateRole will report the failure.
+      if (err?.status === 404) existing = [];
+      else throw err;
+    }
+    snapshot[environment] = {};
+    for (const { name } of existing) snapshot[environment][name] = [];
+
+    for (const role of requestRoles) {
+      if (!role.composite || role.environment !== environment || !(role.name in snapshot[environment])) continue;
+      snapshot[environment][role.name] = (await getCompositeClientRoles(integration, {
+        environment,
+        roleName: role.name,
+      })) as string[];
+    }
+  }
+  return snapshot;
+};
+
 /**
  * Re-creates the client roles (and composite links) that existed before an integration was archived.
  * Keycloak role creation is a find-or-create, so replaying this step after a partial failure is a no-op
  * for roles that already exist.
  *
- * Each role created and each composite set changed is recorded as a child of the restore operation. Only
- * actual changes are recorded, so a replay records nothing for what an earlier attempt already did.
+ * Each role created and each composite set changed is recorded as a child of the restore operation. What
+ * changed is measured against `before`, the snapshot taken ahead of the first attempt, so a replay still
+ * records what an earlier attempt changed but could not record, and skips what it already recorded.
  */
-export const restoreIntegrationRoles = async (workflow: Pick<WorkflowRecord, 'id' | 'correlationId' | 'requestId'>) => {
+export const restoreIntegrationRoles = async (
+  workflow: Pick<WorkflowRecord, 'id' | 'correlationId' | 'requestId'>,
+  before: RolesSnapshot,
+) => {
   const integrationId = workflow.requestId;
   const integration = await getFreshIntegration(integrationId);
   if (!integration) return;
 
-  const record = (operation: ReturnType<typeof roleOperation>) =>
-    audit.createEvent({
+  const recordedKey = (eventCode: string, environment: string, roleName: string) =>
+    `${eventCode}:${environment}:${roleName}`;
+  const recorded = new Set(
+    (
+      await models.event.findAll({
+        where: { parentOperationId: workflow.correlationId },
+        attributes: ['eventCode', 'environment', 'targetId'],
+        raw: true,
+      })
+    ).map((event: any) => recordedKey(event.eventCode, event.environment, event.targetId)),
+  );
+
+  const record = async (operation: ReturnType<typeof roleOperation>) => {
+    const key = recordedKey(operation.action, operation.environment as string, operation.details.roleName);
+    if (recorded.has(key)) return;
+    await audit.createEvent({
       ...operation,
       outcome: 'success',
       parentOperationId: workflow.correlationId,
       workflowId: workflow.id,
     });
+    recorded.add(key);
+  };
 
-  const dbRoles: NewRole[] = (await getRolesWithEnvironments(integrationId)) as NewRole[];
+  const { dbRoles, requestRoles } = await getRestoreRoles(integrationId);
   const created = await bulkCreateRole(integration, dbRoles);
-  for (const { env, success } of created) {
-    for (const roleName of success) {
+  for (const { env, success, duplicate } of created) {
+    // A duplicate the snapshot did not hold was created by an earlier attempt of this restore.
+    for (const roleName of [...success, ...duplicate]) {
+      if (before[env] && roleName in before[env]) continue;
       await record(
         roleOperation('role-create', { requestId: integrationId, environment: env as Environment, roleName }),
       );
     }
   }
-
-  const requestRoles = await models.requestRole.findAll({ where: { requestId: integrationId }, raw: true });
 
   for (const role of requestRoles) {
     if (!role.composite) continue;
@@ -146,16 +217,13 @@ export const restoreIntegrationRoles = async (workflow: Pick<WorkflowRecord, 'id
     });
 
     const compositeRoleNames = compRoleNames.map((compRole: { name: string }) => compRole.name);
-    const current = (await getCompositeClientRoles(integration, {
-      environment: role.environment,
-      roleName: role.name,
-    })) as string[];
     await setCompositeClientRoles(integration, {
       environment: role.environment,
       roleName: role.name,
       compositeRoleNames,
     });
 
+    const current = before[role.environment]?.[role.name] ?? [];
     const add = compositeRoleNames.filter((name) => !current.includes(name));
     const remove = current.filter((name) => !compositeRoleNames.includes(name));
     if (add.length + remove.length > 0) {
