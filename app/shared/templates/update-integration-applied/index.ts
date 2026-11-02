@@ -21,7 +21,6 @@ import {
   usesSocial,
   usesBcgovIdir,
 } from '@app/helpers/integration';
-import { models } from '@app/shared/sequelize/models/models';
 
 const SUBJECT_TEMPLATE = `SSO change request complete`;
 const template = getEmailTemplate('update-integration-applied/update-integration-applied.html');
