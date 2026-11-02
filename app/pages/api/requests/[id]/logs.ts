@@ -29,7 +29,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         userRequest.id,
         start as string,
         end as string,
-        session.idir_userid,
       );
       if (status === 200) {
         res.setHeader('X-Message', message);

@@ -4,7 +4,13 @@ import Handlebars from 'handlebars';
 import { getIntegrationEmails, getEmailTemplate, processRequest } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import { IDIM_EMAIL_ADDRESS, OTP_EMAIL_ADDRESS_BCC, OTP_EMAIL_ADDRESS_CC, SSO_EMAIL_ADDRESS } from '@app/shared/local';
-import { usesBceid, usesBcServicesCardProd, usesOTPProd } from '@app/helpers/integration';
+import {
+  usesBceid,
+  usesBcServicesCard,
+  usesBcServicesCardProd,
+  usesOTPProd,
+  usesBcgovIdir,
+} from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
 const SUBJECT_TEMPLATE = `{{type}} Request ID {{integration.id}} approved`;
@@ -16,6 +22,10 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 interface DataProps {
   integration: IntegrationData;
   environment?: string;
+  usesBcServicesCardIdp?: boolean;
+  usesBcgovIdirIdp?: boolean;
+  bcgovUnit?: string;
+  division?: string;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
@@ -24,6 +34,8 @@ export const render = async (originalData: DataProps): Promise<RenderResult> => 
     ...originalData,
     environment: originalData.environment ?? 'production',
     integration: await processRequest(integration),
+    usesBcServicesCardIdp: usesBcServicesCard(integration),
+    usesBcgovIdirIdp: usesBcgovIdir(integration),
   };
 
   return {

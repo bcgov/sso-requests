@@ -7,7 +7,7 @@ import {
   RESTRICTED_IDPS,
 } from '@app/utils/constants';
 import { LoggedInUser, Team, User } from '@app/interfaces/team';
-import { Integration, Option, GoldIDPOption, Division, BcgovUnit } from '@app/interfaces/Request';
+import { Integration, Option, GoldIDPOption } from '@app/interfaces/Request';
 import { getStatusDisplayName } from '@app/utils/status';
 import {
   usesBceid,
@@ -22,7 +22,6 @@ import {
   usesOTP,
   checkNotOTP,
   usesBcgovIdir,
-  checkNotBcgovIdir,
 } from '@app/helpers/integration';
 import { IntegrationData, Session } from '@app/shared/interfaces';
 import { sortBy, compact, omit, isString } from 'lodash';
@@ -488,7 +487,6 @@ export const omitNonFormFields = (data: Integration) =>
     'createdAt',
     'archived',
     'status',
-    'environments',
     'actionNumber',
     'prNumber',
     'userId',
@@ -588,6 +586,7 @@ const isEmptyValue = (value: any) => value === null || value === undefined || va
 
 export const getDifferences = (newData: any, originalData: Integration) => {
   newData = canonicalizeArrayFields(newData);
+  originalData = canonicalizeArrayFields(originalData);
   if (newData.usesTeam === true) newData.teamId = parseInt(newData.teamId);
   const changes = diff(omitNonFormFields(originalData), omitNonFormFields(newData));
   // The client sends '' for empty optional strings that may be stored as null; that is not a change.

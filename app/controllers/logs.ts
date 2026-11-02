@@ -1,8 +1,8 @@
 import { authorizeIntegration } from '@app/queries/integrationAccess';
 import { Session } from '@app/shared/interfaces';
 import { clientEventsAggregationQuery, queryGrafana } from '@app/utils/grafana';
-import { createEvent } from '@app/queries/event';
-import { EVENTS } from '@app/shared/enums';
+import { audit } from '@app/queries/event';
+import type { Environment } from '@sso/audit';
 import { buildLogsQuery, getLogSourceRanges, LogSchemas } from '@sso/logs-query';
 
 import { logger } from '@app/utils/logger';
@@ -64,15 +64,6 @@ export const fetchLogs = async (
     return { status: 400, message: `Date range must be less ${MAX_DAYS} days.` };
   }
 
-  const eventMeta = {
-    requestId: requestId ? parseInt(requestId, 10) : undefined,
-    idirUserid: userId,
-    details: {
-      environment: env,
-      clientId,
-    },
-  };
-
   try {
     const query = buildLogsQuery(
       env,
@@ -80,22 +71,24 @@ export const fetchLogs = async (
       clientId,
       process.env.NEXT_PUBLIC_APP_ENV,
     );
-    const allLogs = await queryGrafana(query, unixStartTime, unixEndTime, LOG_SIZE_LIMIT);
+    const allLogs = await audit.runAuditedOperation(
+      {
+        action: 'logs-download',
+        requestId: Number(requestId),
+        environment: env as Environment,
+        target: { type: 'integration', id: clientId },
+        details: { start, end },
+      },
+      () => queryGrafana(query, unixStartTime, unixEndTime, LOG_SIZE_LIMIT),
+      { successDetails: (logs) => ({ count: logs.length }) },
+    );
     let message = 'All logs retrieved';
     if (allLogs.length === LOG_SIZE_LIMIT)
       message = 'Log limit reached. There may be more logs available, try a more restricted date range.';
     const parsedLogs = allLogs.map((log: any) => JSON.parse(log));
-    await createEvent({
-      eventCode: EVENTS.LOGS_DOWNLOADED_SUCCESS,
-      ...eventMeta,
-    });
     return { status: 200, message, data: parsedLogs };
   } catch (err) {
-    log.info({ err }, 'Error while fetching logs from trino');
-    await createEvent({
-      eventCode: EVENTS.LOGS_DOWNLOADED_FAILURE,
-      ...eventMeta,
-    });
+    log.info({ err }, 'Error while fetching logs');
     return { status: 500, message: 'Unexpected error fetching logs.' };
   }
 };

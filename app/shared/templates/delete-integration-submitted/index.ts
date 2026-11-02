@@ -15,11 +15,13 @@ import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import {
   usesGithub,
+  usesBcServicesCard,
   usesBcServicesCardProd,
   usesDigitalCredentialProd,
   usesDigitalCredential,
   usesOTPProd,
   usesBceid,
+  usesBcgovIdir,
 } from '@app/helpers/integration';
 import type { RenderResult } from '../index';
 
@@ -32,11 +34,18 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 interface DataProps {
   integration: IntegrationData;
   appUrl: string;
+  usesBcServicesCardIdp?: boolean;
+  usesBcgovIdirIdp?: boolean;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
   const { integration } = originalData;
-  const data = { ...originalData, integration: await processRequest(integration) };
+  const data = {
+    ...originalData,
+    integration: await processRequest(integration),
+    usesBcServicesCardIdp: usesBcServicesCard(integration),
+    usesBcgovIdirIdp: usesBcgovIdir(integration),
+  };
 
   return {
     subject: subjectHandler(data),

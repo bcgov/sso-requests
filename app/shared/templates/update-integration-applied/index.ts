@@ -13,6 +13,7 @@ import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 import {
+  usesBcServicesCard,
   usesBcServicesCardProd,
   usesBceid,
   usesDigitalCredential,
@@ -33,12 +34,20 @@ interface DataProps {
   waitingGithubProdApproval?: boolean;
   waitingBcServicesCardProdApproval?: boolean;
   addingProd: boolean;
+  usesBcServicesCardIdp?: boolean;
+  usesBcgovIdirIdp?: boolean;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
   const { integration } = originalData;
   const readableDiff = getReadableIntegrationDiff(integration?.lastChanges!);
-  const data = { ...originalData, integration: await processRequest(integration), changes: readableDiff };
+  const data = {
+    ...originalData,
+    integration: await processRequest(integration),
+    changes: readableDiff,
+    usesBcServicesCardIdp: usesBcServicesCard(integration),
+    usesBcgovIdirIdp: usesBcgovIdir(integration),
+  };
 
   return {
     subject: subjectHandler(data),

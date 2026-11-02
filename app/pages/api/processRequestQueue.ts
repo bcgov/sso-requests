@@ -18,6 +18,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return res.status(401).json({ success: false, message: 'not authorized' });
       }
 
+      // drainWorkflows runs as the workflow-engine audit actor.
       const { processed } = await drainWorkflows();
       return res.status(200).json({ success: true, processed });
     } else {

@@ -69,7 +69,11 @@ jest.mock('@app/keycloak/users', () => {
       }),
     ),
     deleteRole: jest.fn(() => Promise.resolve()),
-    findClientRole: jest.fn(() => Promise.resolve(null)),
+    // Every role a test names exists in Keycloak, and none exists yet for bulk creation.
+    findClientRole: jest.fn(({}, { roleName }: { roleName: string }) => Promise.resolve({ name: roleName })),
+    listClientRoles: jest.fn(() => Promise.resolve([])),
+    createRole: jest.fn((_integration: any, { roleName }: { roleName: string }) => Promise.resolve({ roleName })),
+    getCompositeClientRoles: jest.fn(() => Promise.resolve([])),
   };
 });
 
@@ -102,6 +106,19 @@ describe('roles and composites', () => {
     expect(dbRoles.filter((role: any) => role.name === 'role1' && role.environment === 'dev')).toHaveLength(1);
     expect(dbRoles.filter((role: any) => role.name === 'role2' && role.environment === 'test')).toHaveLength(1);
     expect(dbRoles.filter((role: any) => role.name === 'role3' && role.environment === 'prod')).toHaveLength(1);
+
+    // One role-create operation per role and environment, under one role-bulk-create parent.
+    const events = await models.event.findAll({ where: { requestId: integration.id }, raw: true });
+    const parent = events.find((event: any) => event.eventCode === 'role-bulk-create' && event.outcome === 'success');
+    expect(parent.details).toMatchObject({ roleNames: ['role1', 'role2', 'role3'], total: 5, succeeded: 5 });
+    const created = events.filter((event: any) => event.eventCode === 'role-create' && event.outcome === 'success');
+    expect(created.map((event: any) => `${event.targetId}:${event.environment}`).sort()).toEqual([
+      'role1:dev',
+      'role2:dev',
+      'role2:test',
+      'role3:dev',
+      'role3:prod',
+    ]);
   });
 
   it('should allow saving composite roles config for a role', async () => {

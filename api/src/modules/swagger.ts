@@ -2831,6 +2831,254 @@ export const swaggerOptions = {
           },
         },
       },
+      '/{environment}/bcgov-idir/users': {
+        get: {
+          tags: ['Users'],
+          summary: 'Get list of users for BCGOV IDIR by query',
+          description:
+            'Get list of users for BCGOV IDIR by query for target environment <br><br> <b>Note:</b> If exact guid is known then enter only guid and ignore firstName, lastName, and email query params',
+          parameters: [
+            {
+              name: 'environment',
+              in: 'path',
+              description: 'Environment',
+              required: true,
+              schema: {
+                $ref: '#/components/schemas/environment',
+              },
+            },
+            {
+              name: 'firstName',
+              in: 'query',
+              description: 'First Name',
+              example: 'Julius',
+              schema: {
+                type: 'string',
+              },
+            },
+            {
+              name: 'lastName',
+              in: 'query',
+              description: 'Last Name',
+              example: 'Caesar',
+              schema: {
+                type: 'string',
+              },
+            },
+            {
+              name: 'email',
+              in: 'query',
+              description: 'Email',
+              example: 'julius.caesar@email.com',
+              schema: {
+                type: 'string',
+              },
+            },
+            {
+              name: 'guid',
+              in: 'query',
+              description: 'Guid',
+              example: 'uuz6y6mggxgfdhcqxm6kjho19krg7xle',
+              schema: {
+                type: 'string',
+              },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'OK',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      data: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          properties: {
+                            username: {
+                              type: 'string',
+                              example: '4f553311-6677-8899-aabb-ccddeeff0011@bcgovidir',
+                            },
+                            email: {
+                              type: 'string',
+                              example: 'julius-caesar@email.com',
+                            },
+                            firstName: {
+                              type: 'string',
+                              example: 'Julius',
+                            },
+                            lastName: {
+                              type: 'string',
+                              example: 'Caesar',
+                            },
+                            attributes: {
+                              type: 'object',
+                              properties: {
+                                display_name: {
+                                  type: 'array',
+                                  example: ['Julius Caesar'],
+                                  items: {
+                                    type: 'string',
+                                  },
+                                },
+                                idir_user_guid: {
+                                  type: 'array',
+                                  example: ['uuz6y6mggxgfdhcqxm6kjho19krg7xle'],
+                                  items: {
+                                    type: 'string',
+                                  },
+                                },
+                                idir_username: {
+                                  type: 'array',
+                                  example: ['JULIUSCA'],
+                                  items: {
+                                    type: 'string',
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                    xml: {
+                      name: 'main',
+                    },
+                  },
+                },
+                'application/xml': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      data: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          properties: {
+                            username: {
+                              type: 'string',
+                              example: '4f553311-6677-8899-aabb-ccddeeff0011@bcgovidir',
+                            },
+                            email: {
+                              type: 'string',
+                              example: 'julius-caesar@email.com',
+                            },
+                            firstName: {
+                              type: 'string',
+                              example: 'Julius',
+                            },
+                            lastName: {
+                              type: 'string',
+                              example: 'Caesar',
+                            },
+                            attributes: {
+                              type: 'object',
+                              properties: {
+                                display_name: {
+                                  type: 'array',
+                                  example: ['Julius Caesar'],
+                                  items: {
+                                    type: 'string',
+                                  },
+                                },
+                                idir_user_guid: {
+                                  type: 'array',
+                                  example: ['uuz6y6mggxgfdhcqxm6kjho19krg7xle'],
+                                  items: {
+                                    type: 'string',
+                                  },
+                                },
+                                idir_username: {
+                                  type: 'array',
+                                  example: ['JULIUSCA'],
+                                  items: {
+                                    type: 'string',
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                    xml: {
+                      name: 'main',
+                    },
+                  },
+                },
+              },
+            },
+            '400': {
+              description: 'Bad Request',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        type: 'string',
+                        example: 'string',
+                      },
+                    },
+                    xml: {
+                      name: 'main',
+                    },
+                  },
+                },
+                'application/xml': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        type: 'string',
+                        example: 'string',
+                      },
+                    },
+                    xml: {
+                      name: 'main',
+                    },
+                  },
+                },
+              },
+            },
+            '422': {
+              description: 'Unprocessable Entity',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        type: 'string',
+                        example: 'string',
+                      },
+                    },
+                    xml: {
+                      name: 'main',
+                    },
+                  },
+                },
+                'application/xml': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      message: {
+                        type: 'string',
+                        example: 'string',
+                      },
+                    },
+                    xml: {
+                      name: 'main',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       '/{environment}/github-bcgov/users': {
         get: {
           tags: ['Users'],

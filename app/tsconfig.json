@@ -17,6 +17,8 @@
     "paths": {
       "@app/*": ["*"],
       "@sso/authz": ["../packages/authz/src"],
+      "@sso/audit": ["../packages/audit/src"],
+      "@sso/audit/server": ["../packages/audit/src/server"],
       "@sso/logs-query": ["../packages/logs-query/src"]
     },
     "incremental": true,

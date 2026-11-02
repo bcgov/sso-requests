@@ -1,3 +1,4 @@
+import createHttpError from 'http-errors';
 import { Integration } from '@app/interfaces/Request';
 import {
   SSO_ADMIN_EMAIL_01,
@@ -23,10 +24,12 @@ import { cleanUpDatabaseTables } from './helpers/utils';
 import { sendEmail } from '@app/utils/ches';
 import { buildIntegration } from './helpers/modules/common';
 import { models } from '@app/shared/sequelize/models/models';
-import { EVENTS } from '@app/shared/enums';
 import { keycloakClient } from '@app/keycloak/integration';
+import { resolveUserRoleMappingTarget } from '@app/keycloak/users';
 import { validateIdirEmail } from '@app/utils/graph-api';
 import { createMockAuth } from './mocks/authenticate';
+import { testClient } from './helpers/test-client';
+import userRolesHandler from '@app/pages/api/keycloak/user-roles';
 
 const integrationRoles = [
   {
@@ -86,14 +89,17 @@ jest.mock('@app/keycloak/users', () => {
         {
           env: 'dev',
           success: ['role1', 'role2', 'role3'],
+          duplicate: [],
         },
         {
           env: 'test',
           success: ['role2'],
+          duplicate: [],
         },
         {
           env: 'prod',
           success: ['role3'],
+          duplicate: [],
         },
       ]),
     ),
@@ -104,7 +110,12 @@ jest.mock('@app/keycloak/users', () => {
       }),
     ),
     deleteRole: jest.fn(() => Promise.resolve()),
-    findClientRole: jest.fn(() => Promise.resolve(null)),
+    // Every role a test names exists in Keycloak, and none exists yet for bulk creation.
+    findClientRole: jest.fn(({}, { roleName }: { roleName: string }) => Promise.resolve({ name: roleName })),
+    listClientRoles: jest.fn(() => Promise.resolve([])),
+    createRole: jest.fn((_integration: any, { roleName }: { roleName: string }) => Promise.resolve({ roleName })),
+    getCompositeClientRoles: jest.fn(() => Promise.resolve([])),
+    resolveUserRoleMappingTarget: jest.fn(),
   };
 });
 
@@ -171,6 +182,107 @@ describe('create/manage integration by authenticated user', () => {
       expect(result.status).toEqual(200);
       expect(result.body.id).toEqual(integration.id);
       expect(sendEmail).toHaveBeenCalled();
+    });
+
+    // A user whose roles live in memory: `current` is what Keycloak says they hold.
+    const mockTarget = (current: string[], fail: string[] = []) => {
+      const held = [...current];
+      const change = jest.fn(async (roleName: string, mode: 'add' | 'remove') => {
+        if (fail.includes(roleName)) throw new Error('keycloak down');
+        if (mode === 'add') held.push(roleName);
+        else held.splice(held.indexOf(roleName), 1);
+      });
+      (resolveUserRoleMappingTarget as jest.Mock).mockResolvedValue({
+        current,
+        change,
+        listRoleNames: async () => [...held],
+      });
+      return change;
+    };
+
+    const putUserRoles = (body: object) =>
+      testClient(userRolesHandler)
+        .put('/api/keycloak/user-roles')
+        .send({ environment: 'dev', integrationId: integration.id, ...body })
+        .set('Accept', 'application/json');
+
+    const roleEventsFor = async (username: string) =>
+      (await getEventsByRequestId(integration.id!))
+        .map((event: any) => event.get({ plain: true }))
+        .filter((event: any) => event.targetId === username);
+
+    it('records one operation per change, under a role-bulk-update parent, and drops changes that change nothing', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      const change = mockTarget(['role-removed', 'role-kept']);
+
+      const result = await putUserRoles({
+        username: 'Bulk-User@IDIR',
+        add: ['role-added', 'role-kept'],
+        remove: ['role-removed', 'role-not-held'],
+      });
+
+      expect(result.status).toBe(200);
+      expect(result.body).toEqual({ roles: ['role-kept', 'role-added'], failed: { add: [], remove: [] } });
+      expect(change.mock.calls).toEqual([
+        ['role-added', 'add'],
+        ['role-removed', 'remove'],
+      ]);
+
+      const events = await roleEventsFor('bulk-user@idir');
+      expect(events.map((event: any) => [event.eventCode, event.outcome, event.details.roleName ?? null])).toEqual([
+        ['role-bulk-update', 'requested', null],
+        ['role-assign', 'requested', 'role-added'],
+        ['role-unassign', 'requested', 'role-removed'],
+        ['role-assign', 'success', 'role-added'],
+        ['role-unassign', 'success', 'role-removed'],
+        ['role-bulk-update', 'success', null],
+      ]);
+      const parent = events[0];
+      expect(parent.details).toMatchObject({ add: ['role-added'], remove: ['role-removed'] });
+      expect(events.slice(1, 5).every((event: any) => event.parentOperationId === parent.operationId)).toBe(true);
+      expect(events.every((event: any) => event.targetType === 'user' && event.environment === 'dev')).toBe(true);
+    });
+
+    it('records a single change with no parent, as the api would', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      mockTarget(['single-role']);
+
+      const result = await putUserRoles({ username: 'single-user@idir', remove: ['single-role'] });
+
+      expect(result.status).toBe(200);
+      const events = await roleEventsFor('single-user@idir');
+      expect(events.map((event: any) => [event.eventCode, event.outcome, event.parentOperationId])).toEqual([
+        ['role-unassign', 'requested', null],
+        ['role-unassign', 'success', null],
+      ]);
+    });
+
+    it('reports the changes that failed and records them as failures', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      mockTarget([], ['role-a']);
+
+      const result = await putUserRoles({ username: 'down-user@idir', add: ['role-a', 'role-b'] });
+
+      expect(result.status).toBe(200);
+      expect(result.body).toEqual({ roles: ['role-b'], failed: { add: ['role-a'], remove: [] } });
+      const outcomes = (await roleEventsFor('down-user@idir')).filter((event: any) => event.outcome !== 'requested');
+      expect(outcomes.map((event: any) => [event.eventCode, event.details.roleName ?? null, event.outcome])).toEqual([
+        ['role-assign', 'role-a', 'failure'],
+        ['role-assign', 'role-b', 'success'],
+        ['role-bulk-update', null, 'failure'],
+      ]);
+    });
+
+    it('records nothing for a request that fails validation', async () => {
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      (resolveUserRoleMappingTarget as jest.Mock).mockRejectedValue(
+        new createHttpError.NotFound('role missing not found'),
+      );
+
+      const result = await putUserRoles({ username: 'nobody@idir', add: ['missing'] });
+
+      expect(result.status).toBe(404);
+      expect(await roleEventsFor('nobody@idir')).toEqual([]);
     });
 
     it('should fetch an integration by userId when a draft team integration has not selected a team yet', async () => {
@@ -311,8 +423,12 @@ describe('roles and restore integration', () => {
     expect(restoreResult.body.archived).toEqual(false);
 
     const integrationEvents = await getEventsByRequestId(integration.id!);
-    const restoreEvents = integrationEvents.filter((event: any) => event.eventCode === EVENTS.REQUEST_RESTORE_SUCCESS);
-    expect(restoreEvents.length).toBe(1);
+    const restoreEvents = integrationEvents.filter((event: any) => event.eventCode === 'request-restore');
+    expect(restoreEvents.map((event: any) => [event.outcome, event.actorType])).toEqual([
+      ['requested', 'user'],
+      ['success', 'system'],
+    ]);
+    expect(restoreEvents[0].operationId).toBe(restoreEvents[1].operationId);
   });
 
   it('logs a restore failed event if restoration fails', async () => {
@@ -324,8 +440,10 @@ describe('roles and restore integration', () => {
     await restoreIntegration(integration.id!, TEAM_ADMIN_IDIR_EMAIL_01);
 
     const integrationEvents = await getEventsByRequestId(integration.id!);
-    const restoreEvents = integrationEvents.filter((event: any) => event.eventCode === EVENTS.REQUEST_RESTORE_FAILURE);
-    expect(restoreEvents.length).toBe(1);
+    const restoreFailures = integrationEvents.filter(
+      (event: any) => event.eventCode === 'request-restore' && event.outcome === 'failure',
+    );
+    expect(restoreFailures.length).toBe(1);
   });
 });
 

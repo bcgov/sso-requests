@@ -206,6 +206,7 @@ export class KeycloakService {
           throw new createHttpError.NotFound(`role ${roleName} not found`);
         }
       }
+      throw error;
     }
   }
 
@@ -230,6 +231,7 @@ export class KeycloakService {
           throw new createHttpError.NotFound(`role ${roleName} not found`);
         }
       }
+      throw error;
     }
   }
 
