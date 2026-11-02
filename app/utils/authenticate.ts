@@ -7,6 +7,8 @@ import jwkToPem from 'jwk-to-pem';
 import { Session } from '@app/shared/interfaces';
 import { IncomingHttpHeaders } from 'http';
 import { addLogContext, logger } from '@app/utils/logger';
+import { setCurrentActor, userActor } from '@sso/audit/server';
+import compact from 'lodash/compact';
 
 const log = logger.child({ module: 'authenticate' });
 
@@ -78,6 +80,14 @@ const validateJWTSignature = async (token: string): Promise<Session | boolean> =
   }
 };
 
+/** The audit actor for an authenticated IDIR session, named the way `findOrCreateUser` names the user. */
+export const sessionActor = (session: Pick<Session, 'idir_userid' | 'given_name' | 'family_name'>) =>
+  userActor(session.idir_userid!, compact([session.given_name, session.family_name]).join(' '));
+
+/**
+ * Validates the bearer token and, on success, makes its user the audit actor for the rest of the request, so every
+ * event the route writes is attributed to them.
+ */
 export const authenticate = async (headers: IncomingHttpHeaders): Promise<Session | Boolean> => {
   try {
     const authHeader = headers?.authorization;
@@ -86,7 +96,10 @@ export const authenticate = async (headers: IncomingHttpHeaders): Promise<Sessio
     }
     const bearerToken = (authHeader as string).split('Bearer ')[1] as string;
     const session = await validateJWTSignature(bearerToken);
-    if (session && typeof session === 'object') addLogContext({ userId: session.idir_userid });
+    if (session && typeof session === 'object') {
+      addLogContext({ userId: session.idir_userid });
+      setCurrentActor(sessionActor(session));
+    }
     return session as any;
   } catch (err) {
     log.error({ err }, 'failed to authenticate request');

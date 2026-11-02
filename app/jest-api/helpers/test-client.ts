@@ -2,6 +2,7 @@ import { createServer, IncomingMessage, ServerResponse } from 'http';
 import { NextApiHandler } from 'next';
 import { apiResolver } from 'next/dist/server/api-utils/node/api-resolver';
 import request from 'supertest';
+import { recordAuditCoverage, routeFor } from './audit-coverage';
 
 // make sure to remove /index.ts from the below routes
 const knownRoutes = [
@@ -66,7 +67,9 @@ export function inferRoutePattern(url: string): string | null {
       return pattern;
     }
   }
-  return null;
+  // Any other route under pages/api, read from the files themselves.
+  const discovered = routeFor(url);
+  return discovered.includes('[') ? discovered : null;
 }
 
 export function extractRouteParams(url: string): Record<string, string> {
@@ -93,6 +96,18 @@ export const testClient = (handler: NextApiHandler, bodyParser = true) => {
     return request.agent(
       createServer((req: IncomingMessage, res: ServerResponse) => {
         const [url, queryParams] = req.url!.split('?');
+
+        // Record which audit actions this request wrote before the response completes, so the test cannot
+        // move on (and wipe the table) first. See helpers/audit-coverage.ts.
+        const end = res.end.bind(res);
+        (res as any).end = (...args: any[]) => {
+          // Headers go out now, as they would have, so handlers that check `res.headersSent` behave the same.
+          if (!res.headersSent) res.flushHeaders();
+          recordAuditCoverage(req.method!, url, res.statusCode, res.getHeader('x-request-id'))
+            .catch((err) => console.error('audit coverage record failed', err))
+            .finally(() => end(...args));
+          return res;
+        };
         const params = new URLSearchParams(queryParams);
         const query = Object.fromEntries(params);
 

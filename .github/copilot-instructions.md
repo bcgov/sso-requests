@@ -178,7 +178,7 @@ make schema
 - **API folder structure:**
   - `./api/src/` - Main source code
   - Uses dependency injection via `tsyringe`
-  - Express middleware for authentication, logging (Winston), and error handling
+  - Express middleware for authentication, request logging, and error handling
 
 ### Environment Variables
 
@@ -209,8 +209,59 @@ make schema
 - **API Error Handling:** Use `http-errors` for standardized HTTP error responses
 - **Authentication:** JWT tokens validated via Keycloak client libraries
 - **Validation:** AJV schema validation in API, React Hook Form in app
-- **Logging:** Winston in API, console in app
+- **Logging:** Structured pino logging in app and API (see below)
 - **Styling:** Styled Components (CSS-in-JS) and Bootstrap in app
+- **Audit events:** Every change to a resource is recorded through `@sso/audit` (see below)
+
+## Logging
+
+The app (`./app/utils/logger.ts`) and the API (`./api/src/logger.ts`) share the same pino setup: one JSON object per line on stdout, collected into Loki and kept for two weeks. Long-term records of changes belong in audit events, not logs.
+
+- **Use the shared logger**, never `console.*` in server code. Create a child per module: `const log = logger.child({ module: 'controllers/user' })`. Import from `@app/utils/logger` (app) or `@/logger` (API).
+- **Server code only in the app.** The logger uses `node:async_hooks`; never import it from pages, components or `services/` (browser code).
+- **Structured fields first, message second:** `log.info({ clientId }, 'client created')`. Keep the message a fixed string and put variable values in fields.
+- **Errors go under `err`:** `log.error({ err }, 'failed to create client')`, so they are serialized consistently.
+- **Request context is automatic.** App routes wrapped in `withApiLogging` and API requests after the `requestLogging` middleware tag every line with `reqId` (and the caller once authenticated). Don't pass these by hand. The same `reqId` is stored on audit events (`events.req_id`) and returned in the `x-request-id` header. New app API routes must be wrapped in `withApiLogging`.
+- **No secrets.** Keys matching secret/password/token/authorization/cookie/api-key/credential are redacted at any depth, but values under neutral keys or inside message strings are not. Never log them.
+- **Levels:** `LOG_LEVEL` (default `debug` in development, `silent` in tests, `info` otherwise); `LOG_FORMAT=pretty` for readable local output.
+- The cron service (`./cron/`) still logs with `console`.
+
+Flag in review: `console.*` in app or API server code, errors not passed under `err`, interpolated values in log messages instead of fields, anything that could log a secret, and app API routes not wrapped in `withApiLogging`.
+
+## Audit Events
+
+The `events` table is the permanent audit record, written by the app and the API through the shared `@sso/audit` package (`./packages/audit/`). Read `./packages/audit/README.md` and `./docs/events.md` before adding or changing a write path. Never call `models.event.create` directly; the legacy `EVENTS` enum and `createEvent({ eventCode })` are gone.
+
+### Writing new code
+
+When adding a new resource, route or change to existing data, record it with the pattern that matches what the change touches:
+
+- **Database only:** `audit.createEvent({ action, outcome: 'success', ... }, transaction)` in the **same transaction** as the change, so neither commits without the other. `createEvent` is strict and rethrows on failure.
+- **Outside system (Keycloak, SDX, …):** `audit.runAuditedOperation(operation, call, { onSuccess })`. `requested` is stored before `call` runs; database rows that mirror the outside system are written in `onSuccess(transaction)`, never before the call succeeds.
+- **Several outside changes in one request:** `audit.runAuditedBatch(parent, items)`, one child operation per change under a parent action (e.g. `role-bulk-update`, `role-bulk-create`).
+- **Workflow-backed changes (integrations, API accounts):** the controller writes `requested` alongside the enqueue; the engine writes the outcome (`./app/workflow/audit.ts`). Don't write outcomes from the controller.
+- **Best effort:** `audit.tryCreateEvent` only for an outcome after an outside call that already happened (e.g. a failed email). Never for the change itself.
+
+Conventions:
+
+- **Validate first.** Throw 400/403/404/409 before any event is written; rejected requests belong in the request log, not the audit table.
+- **Resource ids and target are columns**, not `details`: `requestId`, `teamId`, `organizationId`, `environment`, `target: { type, id }`. Build role targets with `roleOperation` / `roleMappingOperations` and usernames with `roleMappingTarget`, so the app and API record the same change identically.
+- **Only record real changes.** Drop no-op changes (adding a role already held) before recording.
+- **Actor comes from context.** `authenticate` (app) and the auth middleware (API) set it. Routes with no authenticated user (cron, callbacks) must wrap their work in `withActor(systemActor('<name>'))`; `createEvent` fails without an actor.
+- **A new action** must be added to `AUDIT_ACTIONS` in `packages/audit/src/vocabulary.ts`, given a typed `details` shape in `packages/audit/src/details.ts`, and documented in `docs/events.md`. Don't rename or reshape existing actions; existing rows keep their old shape.
+- **Every write route** (POST/PUT/PATCH/DELETE, or a GET that writes) needs an entry in `app/jest-api/audit-coverage-manifest.ts` or `api/src/tests/audit-coverage-manifest.ts`: the actions it records, or `unaudited` with a reason. `zz.audit-coverage.test.ts` fails otherwise, and a test must exercise each listed action.
+
+### Reviewing changes
+
+Flag in review any change that:
+
+- Adds or modifies a write path (database row, Keycloak, SDX) without an audit event, or without a coverage manifest entry for a new route.
+- Writes an event outside the change's transaction, or writes mirror rows before the outside call succeeds.
+- Writes an event before validation, so a rejected request leaves an audit row.
+- Uses `tryCreateEvent` for the change itself, or `models.event.create` / legacy `eventCode` values.
+- Puts resource ids, usernames or environment in `details` instead of their columns, or builds a role-mapping target by hand.
+- Adds an action without updating `vocabulary.ts`, `details.ts` and `docs/events.md`.
+- Adds a route reachable without an authenticated user that writes events without `withActor`.
 
 ## Deployment
 

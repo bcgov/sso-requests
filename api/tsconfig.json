@@ -20,12 +20,19 @@
     "paths": {
       "@/*": ["./src/*"],
       "@sso/authz": ["../packages/authz/src"],
+      "@sso/audit": ["../packages/audit/src"],
+      "@sso/audit/server": ["../packages/audit/src/server"],
       "@sso/logs-query": ["../packages/logs-query/src"]
     },
     "types": ["node", "jest"]
   },
-  "include": ["src/**/*.ts", "../packages/authz/src/**/*.ts", "../packages/logs-query/src/**/*.ts"],
-  "exclude": ["node_modules", "build"],
+  "include": [
+    "src/**/*.ts",
+    "../packages/authz/src/**/*.ts",
+    "../packages/audit/src/**/*.ts",
+    "../packages/logs-query/src/**/*.ts"
+  ],
+  "exclude": ["node_modules", "**/*.spec.ts", "src/tests/**/*", "build"],
   "ts-node": {
     "files": true
   }

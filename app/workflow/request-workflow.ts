@@ -1,9 +1,10 @@
 import { randomUUID } from 'node:crypto';
-import { models } from '@app/shared/sequelize/models/models';
+import { Transaction } from 'sequelize';
+import { WorkflowAction } from '@sso/audit';
 import { IntegrationData } from '@app/shared/interfaces';
-import { ACTION_TYPES, EVENTS } from '@app/shared/enums';
-import { Op } from 'sequelize';
+import { ACTION_TYPES } from '@app/shared/enums';
 import { createWorkflowLogger } from './logger';
+import { auditActionFor, countApplyOutcomes } from './audit';
 import { buildIntegrationWorkflowSteps } from './steps/integration';
 import { backgroundExecutionEnabled, runWorkflow, workflowExecutionMode } from './orchestrator';
 import {
@@ -38,26 +39,21 @@ export interface EnqueueOptions {
 
 export interface EnqueueResult {
   workflowId: string;
+  /** The workflow's correlation id. Differs from the submission's own only when it adopted another pod's. */
   correlationId: string;
   state: WorkflowState;
   created: boolean;
   /** True when an in-flight workflow owned the integration and this submission was parked behind it. */
   queued: boolean;
+  /** The audit action of this submission, the same one the engine records its outcome under. */
+  auditAction: WorkflowAction;
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /** An integration that already produced an apply outcome is an update, never a creation. */
-const hasBeenApplied = async (requestId: number): Promise<boolean> => {
-  const count = await models.event.count({
-    where: {
-      requestId,
-      eventCode: { [Op.in]: [EVENTS.REQUEST_APPLY_SUCCESS, EVENTS.REQUEST_APPLY_FAILURE] },
-    },
-  });
-
-  return count > 0;
-};
+const hasBeenApplied = async (requestId: number, transaction?: Transaction): Promise<boolean> =>
+  (await countApplyOutcomes(requestId, { transaction })) > 0;
 
 const resolveWorkflowType = (payload: IntegrationData, restore: boolean): WorkflowType => {
   if (payload.archived) return WorkflowType.INTEGRATION_DELETE;
@@ -86,22 +82,24 @@ const runToCompletion = async (workflowId: string): Promise<WorkflowState> => {
 };
 
 /**
-  execute: async () => {
-    const isRestore = workflow.type === WorkflowType.INTEGRATION_RESTORE;
-    await emitWorkflowEventOnce(workflow, isRestore ? EVENTS.REQUEST_RESTORE_SUCCESS : EVENTS.REQUEST_APPLY_SUCCESS);
-    await setRequestStatus(workflow.requestId, 'applied');
-    return { finalized: true };
-  },
+ * Persists a workflow for the integration and nothing else: no Keycloak call, no execution. Pass the
+ * caller's transaction so the workflow commits with the change that asked for it, and run it with
+ * `executeEnqueuedWorkflow` only once that transaction has committed.
  */
 export const enqueueRequestWorkflow = async (
   payload: IntegrationData,
   options: EnqueueOptions = {},
+  transaction?: Transaction,
 ): Promise<EnqueueResult> => {
   const requestId = payload.id as number;
+  const id = randomUUID();
   const correlationId = options.correlationId || randomUUID();
   const restore = options.restore === true;
   const type = resolveWorkflowType(payload, restore);
-  const isCreate = type === WorkflowType.INTEGRATION_APPLY && !restore && !(await hasBeenApplied(requestId));
+  const isCreate =
+    type === WorkflowType.INTEGRATION_APPLY && !restore && !(await hasBeenApplied(requestId, transaction));
+  const action = resolveAction(type, isCreate);
+  const auditAction = auditActionFor({ type, action, payload });
 
   const context: WorkflowContext = {
     isCreate,
@@ -115,22 +113,33 @@ export const enqueueRequestWorkflow = async (
   // A delete must win over an in-flight update, otherwise the older snapshot would be re-applied
   // and resurrect the integration. Superseding moves the loser to a terminal state immediately.
   if (type === WorkflowType.INTEGRATION_DELETE) {
-    const superseded = await supersedeActiveWorkflows(requestId, `superseded by delete workflow ${correlationId}`);
+    const superseded = await supersedeActiveWorkflows(
+      requestId,
+      { workflowId: id, operationId: correlationId },
+      transaction,
+    );
     if (superseded > 0) log.warn('superseded in-flight workflows', { superseded });
   }
 
-  const { workflow, created, queued } = await createWorkflow({
-    requestId,
-    type,
-    action: resolveAction(type, isCreate),
-    payload,
-    context,
-    correlationId,
-    steps: buildIntegrationWorkflowSteps({ payload, context, type } as WorkflowRecord),
-  });
+  const { workflow, created, queued } = await createWorkflow(
+    {
+      id,
+      requestId,
+      type,
+      action,
+      payload,
+      context,
+      correlationId,
+      steps: buildIntegrationWorkflowSteps({ payload, context, type } as WorkflowRecord),
+    },
+    transaction,
+  );
+
+  const result = { workflowId: workflow.id, correlationId: workflow.correlationId, state: workflow.state, auditAction };
 
   if (queued) {
     // The caller needs the Keycloak client to exist on return, and a queued workflow cannot promise that.
+    // Thrown inside the caller's transaction, so the parked submission is rolled back with everything else.
     if (options.awaitCompletion) {
       throw new Error(`cannot await integration ${requestId}: another workflow is still in flight`);
     }
@@ -140,13 +149,7 @@ export const enqueueRequestWorkflow = async (
       state: workflow.state,
     });
 
-    return {
-      workflowId: workflow.id,
-      correlationId: workflow.correlationId,
-      state: workflow.state,
-      created,
-      queued: true,
-    };
+    return { ...result, created, queued: true };
   }
 
   if (!created) {
@@ -155,28 +158,38 @@ export const enqueueRequestWorkflow = async (
       state: workflow.state,
     });
 
-    return {
-      workflowId: workflow.id,
-      correlationId: workflow.correlationId,
-      state: workflow.state,
-      created: false,
-      queued: false,
-    };
+    return { ...result, created: false, queued: false };
   }
 
   log.info('workflow enqueued', { workflowId: workflow.id, state: workflow.state, isCreate });
+  return { ...result, created: true, queued: false };
+};
+
+/**
+ * Runs a workflow enqueued by `enqueueRequestWorkflow`, after the transaction that enqueued it has
+ * committed: to completion when the caller awaits it (or in synchronous mode), otherwise in the
+ * background. A queued or adopted workflow is left to whoever owns it.
+ */
+export const executeEnqueuedWorkflow = async <T extends EnqueueResult>(
+  enqueued: T,
+  options: Pick<EnqueueOptions, 'awaitCompletion'> = {},
+): Promise<T> => {
+  if (enqueued.queued || !enqueued.created) return enqueued;
 
   if (options.awaitCompletion || workflowExecutionMode() === 'synchronous') {
-    const state = await runToCompletion(workflow.id);
-    return { workflowId: workflow.id, correlationId, state, created: true, queued: false };
+    const state = await runToCompletion(enqueued.workflowId);
+    return { ...enqueued, state };
   }
 
   if (backgroundExecutionEnabled()) {
     // Fire and forget: the HTTP request returns now, the workflow continues in the background.
-    runWorkflow(workflow.id).catch((err) => log.error('background workflow execution failed', { error: String(err) }));
+    const log = createWorkflowLogger({ correlationId: enqueued.correlationId, workflowId: enqueued.workflowId });
+    runWorkflow(enqueued.workflowId).catch((err) =>
+      log.error('background workflow execution failed', { error: String(err) }),
+    );
   }
 
-  return { workflowId: workflow.id, correlationId, state: workflow.state, created: true, queued: false };
+  return enqueued;
 };
 
 export interface RequestWorkflowProgressStep {

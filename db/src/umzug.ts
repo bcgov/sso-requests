@@ -72,6 +72,8 @@ export const createMigrator = async () => {
       await import('./migrations/2026.09.22T02.33.00.add-bcgov-unit-description-requests-table'),
       await import('./migrations/2026.09.25T15.00.00.add-bcgovidir-approved'),
       await import('./migrations/2026.10.13T14.43.00.update-requests-table'),
+      await import('./migrations/2026.10.21T16.00.00.add-audit-event-context'),
+      await import('./migrations/2026.10.23T17.00.00.cascade-delete-surveys-on-user-delete'),
     ],
     context: sequelize,
     storage: new SequelizeStorage({

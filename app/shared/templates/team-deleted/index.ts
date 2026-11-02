@@ -16,6 +16,8 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 interface DataProps {
   team: Team;
   appUrl: string;
+  // The team's recipients, resolved before the team is destroyed: its memberships go with it.
+  emails?: string[];
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
@@ -30,7 +32,7 @@ export const render = async (originalData: DataProps): Promise<RenderResult> => 
 
 export const send = async (data: DataProps, rendered: RenderResult) => {
   const { team } = data;
-  const emails = await getTeamEmails(team.id);
+  const emails = data.emails ?? (await getTeamEmails(team.id));
 
   return sendEmail({
     code: EMAILS.TEAM_DELETED,

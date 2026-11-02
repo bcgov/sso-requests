@@ -22,15 +22,21 @@ module.exports = {
   },
   setupFilesAfterEnv: ['<rootDir>/jest-api/jest.setup.js'],
   testSequencer: '<rootDir>/jest-api/testSequencer.js',
+  globalSetup: '<rootDir>/jest-api/global-setup.js',
   testPathIgnorePatterns: ['/node_modules/', '/build/', '<rootDir>/jest-api/helpers/fixtures.ts'],
   transformIgnorePatterns: ['/node_modules/(?!(@keycloak|url-join|url-template|camelize-ts)/)'],
   moduleNameMapper: {
     '^@app/(.*)$': '<rootDir>/$1',
     '^@sso/authz$': '<rootDir>/../packages/authz/src',
+    '^@sso/audit$': '<rootDir>/../packages/audit/src',
+    '^@sso/audit/server$': '<rootDir>/../packages/audit/src/server',
     '^@sso/logs-query$': '<rootDir>/../packages/logs-query/src',
     '^@pages(.*)$': '<rootDir>/pages$1',
     '^@utils(.*)$': '<rootDir>/utils$1',
   },
+  // So source compiled from ../packages finds the babel runtime helpers the
+  // transform injects into it.
+  modulePaths: ['<rootDir>/node_modules'],
   verbose: true,
   coverageReporters: ['json', 'html'],
   testEnvironment: 'node',

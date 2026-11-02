@@ -6,6 +6,8 @@ import { Event } from 'interfaces/Event';
 import { getEvents } from 'services/event';
 import EventContent from 'components/EventContent';
 import Select from 'react-select';
+import { AUDIT_ACTIONS, LEGACY_AUDIT_ACTIONS, LEGACY_OUTCOMES, OUTCOMES } from '@sso/audit';
+import { actionLabel } from '@app/helpers/events';
 
 const AlignCenter = styled.div`
   text-align: center;
@@ -15,30 +17,26 @@ interface Props {
   requestId?: number;
 }
 
-interface FilterItem {
-  value: string | number;
-  text: string;
-}
-
-const filterItems = [
+// Filter by action; codes from before @sso/audit that are no longer written are still listed so older rows
+// remain findable.
+const actionFilterItems = [
   { value: 'all', label: 'All Events' },
-  { value: 'request-pr-success', label: 'REQUEST_PR_SUCCESS' },
-  { value: 'request-pr-failure', label: 'REQUEST_PR_FAILURE' },
-  { value: 'request-plan-success', label: 'REQUEST_PLAN_SUCCESS' },
-  { value: 'request-plan-failure', label: 'REQUEST_PLAN_FAILURE' },
-  { value: 'request-apply-success', label: 'REQUEST_APPLY_SUCCESS' },
-  { value: 'request-apply-failure', label: 'REQUEST_APPLY_FAILURE' },
-  { value: 'request-create-success', label: 'REQUEST_CREATE_SUCCESS' },
-  { value: 'request-create-failure', label: 'REQUEST_CREATE_FAILURE' },
-  { value: 'request-update-success', label: 'REQUEST_UPDATE_SUCCESS' },
-  { value: 'request-update-failure', label: 'REQUEST_UPDATE_FAILURE' },
-  { value: 'request-delete-success', label: 'REQUEST_DELETE_SUCCESS' },
-  { value: 'request-delete-failure', label: 'REQUEST_DELETE_FAILURE' },
-  { value: 'email-submission-failure', label: 'EMAIL_SUBMISSION_FAILURE' },
+  ...[...AUDIT_ACTIONS, ...LEGACY_AUDIT_ACTIONS].map((action) => ({ value: action, label: actionLabel(action) })),
 ];
+
+const outcomeFilterItems = [
+  { value: 'all', label: 'All Outcomes' },
+  ...[...OUTCOMES, ...LEGACY_OUTCOMES].map((outcome) => ({ value: outcome, label: actionLabel(outcome) })),
+];
+
+const selectStyles = {
+  control: (base: any) => ({ ...base, width: '250px' }),
+  menu: (base: any) => ({ ...base, width: '250px' }),
+};
 
 export default function AdminEventPanel({ requestId }: Props) {
   const [eventCode, setEventCode] = useState('all');
+  const [outcome, setOutcome] = useState('all');
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [hasError, setHasError] = useState<boolean>(false);
@@ -50,6 +48,7 @@ export default function AdminEventPanel({ requestId }: Props) {
     const [data, err] = await getEvents({
       requestId,
       eventCode,
+      outcome,
     });
     if (err) {
       setHasError(true);
@@ -62,11 +61,7 @@ export default function AdminEventPanel({ requestId }: Props) {
 
   useEffect(() => {
     getData();
-  }, [requestId, eventCode]);
-
-  const handleFilterChange = (value: string) => {
-    setEventCode(value);
-  };
+  }, [requestId, eventCode, outcome]);
 
   if (hasError) return null;
 
@@ -74,21 +69,21 @@ export default function AdminEventPanel({ requestId }: Props) {
     <>
       <SectionHeader data-testid="events-dropdown">
         <br />
-        <Select
-          options={filterItems}
-          onChange={(evt: any) => handleFilterChange(evt.value)}
-          maxMenuHeight={300}
-          styles={{
-            control: (base) => ({
-              ...base,
-              width: '250px',
-            }),
-            menu: (base) => ({
-              ...base,
-              width: '250px',
-            }),
-          }}
-        />
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <Select
+            options={actionFilterItems}
+            onChange={(evt: any) => setEventCode(evt.value)}
+            maxMenuHeight={300}
+            styles={selectStyles}
+          />
+          <Select
+            options={outcomeFilterItems}
+            onChange={(evt: any) => setOutcome(evt.value)}
+            maxMenuHeight={300}
+            styles={selectStyles}
+            aria-label="Filter by outcome"
+          />
+        </div>
       </SectionHeader>
       {loading ? (
         <AlignCenter>
