@@ -10,7 +10,8 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 <strong>BC Government Unit: </strong>Mocked BC Gov Unit<br />
 <strong>Branch/Division: </strong>Mocked Division<br />
 <strong>Description: </strong>Test description<br />
-<strong>Entra Guest Accounts Enabled: </strong><br />
+<strong>Entra Guest Accounts Enabled: </strong
+><br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -180,7 +181,8 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 <strong>BC Government Unit: </strong>Mocked BC Gov Unit<br />
 <strong>Branch/Division: </strong>Mocked Division<br />
 <strong>Description: </strong>Test description<br />
-<strong>Entra Guest Accounts Enabled: </strong><br />
+<strong>Entra Guest Accounts Enabled: </strong
+><br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -236,7 +238,8 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 <strong>BC Government Unit: </strong>Mocked BC Gov Unit<br />
 <strong>Branch/Division: </strong>Mocked Division<br />
 <strong>Description: </strong>Test description<br />
-<strong>Entra Guest Accounts Enabled: </strong><br />
+<strong>Entra Guest Accounts Enabled: </strong
+><br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -290,7 +293,8 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 <strong>BC Government Unit: </strong>Mocked BC Gov Unit<br />
 <strong>Branch/Division: </strong>Mocked Division<br />
 <strong>Description: </strong>Test description<br />
-<strong>Entra Guest Accounts Enabled: </strong><br />
+<strong>Entra Guest Accounts Enabled: </strong
+><br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -346,7 +350,8 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 <strong>BC Government Unit: </strong>Mocked BC Gov Unit<br />
 <strong>Branch/Division: </strong>Mocked Division<br />
 <strong>Description: </strong>Test description<br />
-<strong>Entra Guest Accounts Enabled: </strong><br />
+<strong>Entra Guest Accounts Enabled: </strong
+><br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -360,8 +365,7 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
   </li>
 </ul>
     <p><strong>*Social production integration is not approved and not ready to use yet</strong></p>
- 
- <p>
+  <p>
   Please <a href="http://localhost:3000/my-dashboard/integrations" title="Log in" target="_blank" rel="noreferrer">Log in</a>
   to your dashboard to access JSON Client Installation File. If you are not the requester, this email serves only to
   notify you of the request status.
@@ -402,7 +406,8 @@ exports[`Email template snapshots Should return the expected email for CREATE_IN
 <strong>BC Government Unit: </strong>Mocked BC Gov Unit<br />
 <strong>Branch/Division: </strong>Mocked Division<br />
 <strong>Description: </strong>Test description<br />
-<strong>Entra Guest Accounts Enabled: </strong><br />
+<strong>Entra Guest Accounts Enabled: </strong
+><br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -505,7 +510,8 @@ exports[`Email template snapshots Should return the expected email for DELETE_IN
 <strong>BC Government Unit: </strong>Mocked BC Gov Unit<br />
 <strong>Branch/Division: </strong>Mocked Division<br />
 <strong>Description: </strong>Test description<br />
-<strong>Entra Guest Accounts Enabled: </strong><br />
+<strong>Entra Guest Accounts Enabled: </strong
+><br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -622,7 +628,8 @@ exports[`Email template snapshots Should return the expected email for PROD_APPR
 <strong>BC Government Unit: </strong>Mocked BC Gov Unit<br />
 <strong>Branch/Division: </strong>Mocked Division<br />
 <strong>Description: </strong>Test description<br />
-<strong>Entra Guest Accounts Enabled: </strong><br />
+<strong>Entra Guest Accounts Enabled: </strong
+><br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -675,7 +682,8 @@ exports[`Email template snapshots Should return the expected email for PROD_APPR
 <strong>BC Government Unit: </strong>Mocked BC Gov Unit<br />
 <strong>Branch/Division: </strong>Mocked Division<br />
 <strong>Description: </strong>Test description<br />
-<strong>Entra Guest Accounts Enabled: </strong><br />
+<strong>Entra Guest Accounts Enabled: </strong
+><br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
@@ -850,7 +858,8 @@ exports[`Email template snapshots Should return the expected email for UPDATE_IN
 <strong>BC Government Unit: </strong>Mocked BC Gov Unit<br />
 <strong>Branch/Division: </strong>Mocked Division<br />
 <strong>Description: </strong>Test description<br />
-<strong>Entra Guest Accounts Enabled: </strong><br />
+<strong>Entra Guest Accounts Enabled: </strong
+><br />
 <strong>Environments: </strong>Development<br />
 <strong>Accountable person(s): </strong>Test User<br />
 <strong>Submitted by: </strong>SSO Admin<br />
