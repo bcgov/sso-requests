@@ -582,11 +582,18 @@ export const normalizeRequest = (data: Integration, isMerged: boolean) => {
   return data;
 };
 
+const isEmptyValue = (value: any) => value === null || value === undefined || value === '';
+
 export const getDifferences = (newData: any, originalData: Integration) => {
   newData = canonicalizeArrayFields(newData);
   originalData = canonicalizeArrayFields(originalData);
   if (newData.usesTeam === true) newData.teamId = parseInt(newData.teamId);
-  return diff(omitNonFormFields(originalData), omitNonFormFields(newData));
+  const changes = diff(omitNonFormFields(originalData), omitNonFormFields(newData));
+  // The client sends '' for empty optional strings that may be stored as null; that is not a change.
+  const meaningful = changes?.filter(
+    (change: any) => change.kind === 'A' || !(isEmptyValue(change.lhs) && isEmptyValue(change.rhs)),
+  );
+  return meaningful?.length ? meaningful : undefined;
 };
 
 export const isAdmin = (session: Session) => session?.client_roles?.includes('sso-admin');
