@@ -32,6 +32,18 @@ jest.mock('@app/controllers/bc-services-card', () => {
   };
 });
 
+jest.mock('@app/queries/bcgov-unit', () => {
+  return {
+    getBcgovUnitById: jest.fn(() => Promise.resolve({ name: 'Mocked BC Gov Unit' })),
+  };
+});
+
+jest.mock('@app/queries/division', () => {
+  return {
+    getDivisionById: jest.fn(() => Promise.resolve({ name: 'Mocked Division' })),
+  };
+});
+
 describe('Email template snapshots', () => {
   let teamId: number;
   beforeAll(async () => {

@@ -8,6 +8,9 @@ import { idpMap, envMap } from '@app/helpers/meta';
 import { Integration } from '@app/interfaces/Request';
 import fs from 'fs';
 import { usesBceid } from '@app/helpers/integration';
+import { KC_ENTRA_IDP_REALM } from '@app/utils/constants';
+import { getBcgovUnitById } from '@app/queries/bcgov-unit';
+import { getDivisionById } from '@app/queries/division';
 
 export const processTeam = async (team: any) => {
   if (team instanceof models.team) {
@@ -66,6 +69,15 @@ export const processRequest = async (integrationOrModel: any) => {
       (!integration.devBceidApproved && integration.environments?.includes('dev')) ||
       (!integration.testBceidApproved && integration.environments?.includes('test')));
 
+  const bcgovUnit = idps?.includes(KC_ENTRA_IDP_REALM)
+    ? await getBcgovUnitById(integration.bcgovUnitId as number).then(
+        (unit: typeof models.bcgovUnit) => unit?.name || '',
+      )
+    : '';
+  const division = idps?.includes(KC_ENTRA_IDP_REALM)
+    ? await getDivisionById(integration.divisionId as number).then((div: typeof models.division) => div?.name || '')
+    : '';
+
   return {
     ...integration,
     devValidRedirectUris,
@@ -78,6 +90,8 @@ export const processRequest = async (integrationOrModel: any) => {
     accountableEntity,
     browserLoginEnabled,
     waitingBceidApproval,
+    bcgovUnit,
+    division,
   };
 };
 

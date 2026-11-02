@@ -15,6 +15,7 @@ import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 import {
+  usesBcServicesCard,
   usesBcServicesCardProd,
   usesBceid,
   usesBcgovIdir,
@@ -36,11 +37,20 @@ interface DataProps {
   waitingBcServicesCardProdApproval?: boolean;
   waitingSocialProdApproval?: boolean;
   waitingOTPProdApproval?: boolean;
+  entraGuestAccountsEnabled?: boolean;
+  usesBcServicesCardIdp?: boolean;
+  usesBcgovIdirIdp?: boolean;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
   const { integration } = originalData;
-  const data = { ...originalData, integration: await processRequest(integration) };
+  const data = {
+    ...originalData,
+    integration: await processRequest(integration),
+    entraGuestAccountsEnabled: usesBcgovIdir(integration) && integration.entraGuestAccountsEnabled,
+    usesBcServicesCardIdp: usesBcServicesCard(integration),
+    usesBcgovIdirIdp: usesBcgovIdir(integration),
+  };
 
   return {
     subject: subjectHandler(data),
