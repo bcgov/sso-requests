@@ -2,10 +2,12 @@ import { cleanUpDatabaseTables } from './helpers/utils';
 import { getUpdateIntegrationData } from './helpers/fixtures';
 import { models } from '@app/shared/sequelize/models/models';
 import { queryGrafana } from '@app/utils/grafana';
-import { EVENTS } from '@app/shared/enums';
 import * as rateLimiters from '@app/utils/rate-limiters';
 import { getLogs } from './helpers/modules/logs';
 import { createMockAuth } from './mocks/authenticate';
+
+process.env.TRINO_RETENTION_SCHEMA = 'retention.schema';
+process.env.TRINO_LIVE_SCHEMA = 'live.schema';
 
 jest.mock('@app/utils/grafana', () => {
   return {
@@ -39,7 +41,10 @@ const teamAuthResponse = {
 const MOCK_USER_ID = -1;
 const MOCK_USER_EMAIL = 'test@user.com';
 const INTEGRATION_ID = -1;
-const integration = getUpdateIntegrationData({ integration: { projectName: 'test_project' } });
+const integration = {
+  ...getUpdateIntegrationData({ integration: { projectName: 'test_project' } }),
+  clientId: 'test-project-1',
+};
 
 // Create integration owned by mock user to test against
 const setupIntegrationAndUser = async () => {
@@ -163,13 +168,14 @@ describe('Fetch SSO Logs', () => {
     const response = await getLogs(INTEGRATION_ID, queryString);
 
     expect(response.status).toBe(500);
-    const event = await models.event.findOne({
-      where: {
-        eventCode: EVENTS.LOGS_DOWNLOADED_FAILURE,
-        requestId: INTEGRATION_ID,
-      },
+    // Recorded as a failed operation, for the service's long-term stability.
+    const events = await models.event.findAll({
+      where: { eventCode: 'logs-download', requestId: INTEGRATION_ID },
+      order: [['id', 'ASC']],
+      raw: true,
     });
-    expect(event).not.toBeNull();
+    expect(events.map((event: any) => event.outcome)).toEqual(['requested', 'failure']);
+    expect(events[1].details.error).toEqual({ message: 'err' });
   });
 
   it('Returns the expected logs in JSON array if successful', async () => {
@@ -180,12 +186,10 @@ describe('Fetch SSO Logs', () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual([{ log: 'log' }, { log: 'log' }]);
     const event = await models.event.findOne({
-      where: {
-        eventCode: EVENTS.LOGS_DOWNLOADED_SUCCESS,
-        requestId: INTEGRATION_ID,
-      },
+      where: { eventCode: 'logs-download', requestId: INTEGRATION_ID, outcome: 'success' },
+      raw: true,
     });
-    expect(event).not.toBeNull();
+    expect(event).toMatchObject({ environment: 'dev', targetType: 'integration', details: { count: 2 } });
   });
 
   it('Return 429 if too many requests', async () => {
@@ -196,5 +200,21 @@ describe('Fetch SSO Logs', () => {
     const response = await getLogs(INTEGRATION_ID, queryString);
 
     expect(response.status).toBe(429);
+  });
+
+  it('Queries both retention and live schemas when the range crosses the cutover', async () => {
+    await setupIntegrationAndUser();
+    createMockAuth('2', MOCK_USER_EMAIL);
+    const end = new Date().toISOString();
+    const start = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+    (queryGrafana as jest.Mock).mockClear();
+
+    const response = await getLogs(INTEGRATION_ID, `env=dev&start=${start}&end=${end}`);
+
+    expect(response.status).toBe(200);
+    const sql = (queryGrafana as jest.Mock).mock.calls[0][0];
+    expect(sql).toContain('retention.schema');
+    expect(sql).toContain('live.schema');
+    expect(sql).toContain('UNION ALL');
   });
 });

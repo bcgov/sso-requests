@@ -8,6 +8,9 @@ import { idpMap, envMap } from '@app/helpers/meta';
 import { Integration } from '@app/interfaces/Request';
 import fs from 'fs';
 import { usesBceid } from '@app/helpers/integration';
+import { KC_ENTRA_IDP_REALM } from '@app/utils/constants';
+import { getBcgovUnitById } from '@app/queries/bcgov-unit';
+import { getDivisionById } from '@app/queries/division';
 
 export const processTeam = async (team: any) => {
   if (team instanceof models.team) {
@@ -15,6 +18,14 @@ export const processTeam = async (team: any) => {
   }
 
   return team;
+};
+
+export const processOrganization = async (organization: any) => {
+  if (organization instanceof models.organization) {
+    organization = organization.get({ plain: true, clone: true });
+  }
+
+  return organization;
 };
 
 export const processUser = async (user: any) => {
@@ -58,6 +69,15 @@ export const processRequest = async (integrationOrModel: any) => {
       (!integration.devBceidApproved && integration.environments?.includes('dev')) ||
       (!integration.testBceidApproved && integration.environments?.includes('test')));
 
+  const bcgovUnit = idps?.includes(KC_ENTRA_IDP_REALM)
+    ? await getBcgovUnitById(integration.bcgovUnitId as number).then(
+        (unit: typeof models.bcgovUnit) => unit?.name || '',
+      )
+    : '';
+  const division = idps?.includes(KC_ENTRA_IDP_REALM)
+    ? await getDivisionById(integration.divisionId as number).then((div: typeof models.division) => div?.name || '')
+    : '';
+
   return {
     ...integration,
     devValidRedirectUris,
@@ -70,6 +90,8 @@ export const processRequest = async (integrationOrModel: any) => {
     accountableEntity,
     browserLoginEnabled,
     waitingBceidApproval,
+    bcgovUnit,
+    division,
   };
 };
 
@@ -102,6 +124,15 @@ export const getTeamEmails = async (teamId: number, primaryEmailOnly = false, ro
   });
 
   return uniq(flatten(map(users, (user) => getUserEmails(user, primaryEmailOnly))));
+};
+
+export const getOrganizationAdminEmails = async (organizationId: number): Promise<string[]> => {
+  const admins = await models.organizationMember.findAll({
+    where: { organizationId, role: 'admin' },
+    include: [{ model: models.user, attributes: ['idirEmail', 'additionalEmail'], required: true }],
+  });
+
+  return uniq(flatten(admins.map((admin: any) => getUserEmails(admin.user)))) as string[];
 };
 
 export const getIntegrationEmails = async (integration: IntegrationData, primaryEmailOnly = false) => {

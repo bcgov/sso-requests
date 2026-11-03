@@ -1,6 +1,6 @@
 import {
   CYPRESS_MOCKED_IDIR_LOOKUP,
-  ENTRA_CUSTOM_CLAIM_MAPPING_POLICY_ID,
+  ENTRA_GRAPH_API_APPLICATION_ID,
   KC_ENTRA_IDP_REALM,
   MS_GRAPH_API_VERSION,
   MS_GRAPH_URL,
@@ -10,7 +10,13 @@ import axios, { AxiosRequestConfig, AxiosResponse, Method, ResponseType } from '
 import { createAzureIdirUser } from '@app/keycloak/users';
 import { MsGraphUserValue, MsGraphUserResponse, IntegrationData } from '@app/shared/interfaces';
 import { IConfidentialClientApplication, ConfidentialClientApplication } from '@azure/msal-node';
-import { Application, ClaimsMappingPolicy, KeyCredential, ServicePrincipal } from '@microsoft/microsoft-graph-types';
+import {
+  Application,
+  AppRoleAssignment,
+  ClaimsMappingPolicy,
+  KeyCredential,
+  ServicePrincipal,
+} from '@microsoft/microsoft-graph-types';
 import { getHomePageUrlByEnvironment, getKeycloakBaseUrlByEnvironment } from './helpers';
 import { randomInt } from 'node:crypto';
 import { computeThumbprint, buildKeyCredential, getApplicationNotes } from './entra-helpers';
@@ -18,6 +24,10 @@ import { computeThumbprint, buildKeyCredential, getApplicationNotes } from './en
 import { logger } from '@app/utils/logger';
 
 const log = logger.child({ module: 'graph-api' });
+
+const ENTRA_CUSTOM_CLAIM_MAPPING_POLICY_ID = process.env.ENTRA_CUSTOM_CLAIM_MAPPING_POLICY_ID || '';
+const ENTRA_SYNCED_IDIR_USERS_GROUP_ID = process.env.ENTRA_SYNCED_IDIR_USERS_GROUP_ID || '';
+const ENTRA_DEFAULT_APP_ROLE_ID = process.env.ENTRA_DEFAULT_APP_ROLE_ID || '00000000-0000-0000-0000-000000000000';
 
 const GRAPH_API_MAX_RETRIES = 5;
 const GRAPH_API_RETRY_INTERVAL_MS = 1500;
@@ -80,10 +90,36 @@ function sleepWithAbort(ms: number, signal?: AbortSignal): Promise<void> {
 
 function getGraphRequestUrl(endpoint: string): URL {
   const graphBaseUrl = new URL(MS_GRAPH_URL);
+  const queryStart = endpoint.indexOf('?');
+  let endpointWithEncodedQueryHashes = endpoint;
+
+  if (queryStart !== -1) {
+    let inODataString = false;
+    let query = '';
+
+    for (let i = queryStart; i < endpoint.length; i += 1) {
+      const character = endpoint[i];
+
+      if (character === "'" && inODataString && endpoint[i + 1] === "'") {
+        query += "''";
+        i += 1;
+        continue;
+      }
+
+      if (character === "'") {
+        inODataString = !inODataString;
+      }
+
+      query += character === '#' && inODataString ? '%23' : character;
+    }
+
+    endpointWithEncodedQueryHashes = `${endpoint.slice(0, queryStart)}${query}`;
+  }
+
   let requestUrl: URL;
 
   try {
-    requestUrl = new URL(endpoint, graphBaseUrl);
+    requestUrl = new URL(endpointWithEncodedQueryHashes, graphBaseUrl);
   } catch {
     throw new createHttpError.BadRequest('Invalid Graph API endpoint');
   }
@@ -257,7 +293,7 @@ export const validateIdirEmail = async (email: string) => {
   }
 };
 
-const formatUser = (data: MsGraphUserValue, idp?: string) => {
+const formatUser = (data: MsGraphUserValue) => {
   const id = data.id;
   const userId = data.mailNickname;
   const guid = data.onPremisesExtensionAttributes.extensionAttribute12;
@@ -287,14 +323,26 @@ const formatUser = (data: MsGraphUserValue, idp?: string) => {
 };
 
 /** Search for an IDIR user by any field and value. Search expects the actual value to start with the provided value. */
-export const searchIdirUsers = async ({ field, search, idp }: { field: string; search: string; idp: string }) => {
+export const searchIdirUsers = async ({
+  field,
+  search,
+  idp,
+  includeGuestAccounts,
+}: {
+  field: string;
+  search: string;
+  idp: string;
+  includeGuestAccounts: boolean;
+}) => {
   if (!['givenName', 'surname', 'mail', 'mailNickname'].includes(field)) {
     throw new Error('Allowed search fields are givenName, surname, mail, mailNickname');
   }
   try {
-    const url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=startswith(${field},'${search}')&$top=100&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName,id`;
+    let url = `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/users?$filter=startswith(${field},'${search}')${
+      includeGuestAccounts && idp === KC_ENTRA_IDP_REALM ? '' : " and (userType eq 'Member')"
+    }&$top=100&$select=onPremisesExtensionAttributes,mailNickname,displayName,mail,givenName,surname,companyName,department,jobTitle,mobilePhone,userPrincipalName,id`;
     const response = (await callAzureGraphApi(url)) as MsGraphUserResponse;
-    const formattedUsers = response.value.map((user) => formatUser(user, idp));
+    const formattedUsers = response.value.map((user) => formatUser(user));
     return formattedUsers;
   } catch (err) {
     log.error({ err }, 'Failed searching Azure IDIR users from Graph API');
@@ -337,7 +385,7 @@ export const importIdirUser = async ({
   idirGuid: string;
   idp: string;
 }) => {
-  if (!guid || !userId || !idirGuid || !idp) {
+  if (!guid || !userId || !idp) {
     throw new Error('Missing required user data');
   }
 
@@ -451,6 +499,35 @@ export const setupEntraIntegration = async (
         acceptMappedClaims: true,
       },
     });
+  }
+
+  const appRoleAssignments = await getAppRoleAssignments(appReg.appId as string);
+
+  if (appRoleAssignments.length === 0) {
+    // Grant access to login only for synced IDIR users
+    await grantAppRoleAssignment(
+      appReg.appId as string,
+      servicePrincipal.id!,
+      ENTRA_SYNCED_IDIR_USERS_GROUP_ID,
+      ENTRA_DEFAULT_APP_ROLE_ID,
+    );
+  }
+
+  const grantedScopePermissions = await getGrantedScopePermissions(servicePrincipal.id!);
+
+  const scopesRequired = 'openid profile email';
+
+  if (
+    grantedScopePermissions.length === 0 ||
+    !grantedScopePermissions.some((permission) => permission.scope === scopesRequired)
+  ) {
+    const graphServicePrincipal = await getServicePrincipal(ENTRA_GRAPH_API_APPLICATION_ID as string);
+
+    if (!graphServicePrincipal) {
+      throw new Error('Unable to find the Microsoft Graph API service principal');
+    }
+
+    await grantScopePermissions(servicePrincipal.id!, graphServicePrincipal.id as string, scopesRequired);
   }
 
   return {
@@ -595,6 +672,7 @@ export const createServicePrincipal = async (
         notes,
         homepage,
         tags: ['WindowsAzureActiveDirectoryIntegratedApp'],
+        appRoleAssignmentRequired: true,
       },
     });
   } catch (error) {
@@ -787,5 +865,92 @@ export const getApplicationOwners = async (id: string): Promise<{ id: string }[]
   } catch (error) {
     log.error({ err: error }, 'getApplicationOwners failed');
     throw new Error(`Unable to get application owners for the application with objectId: ${id}`);
+  }
+};
+
+export const grantAppRoleAssignment = async (
+  appId: string,
+  resourceId: string,
+  principalId: string,
+  appRoleId: string,
+): Promise<void> => {
+  try {
+    await callAzureGraphApi(
+      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/servicePrincipals(appId='${appId}')/appRoleAssignedTo`,
+      {
+        method: 'POST',
+        data: {
+          principalId,
+          resourceId,
+          appRoleId,
+        },
+      },
+    );
+  } catch (error) {
+    log.error({ err: error }, 'grantAppRoleAssignment failed');
+    throw new Error(`Unable to grant app role assignment for application with objectId: ${appId}`);
+  }
+};
+
+export const getAppRoleAssignments = async (appId: string): Promise<AppRoleAssignment[]> => {
+  try {
+    const response = await callAzureGraphApi(
+      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/servicePrincipals(appId='${appId}')/appRoleAssignedTo`,
+      {
+        method: 'GET',
+      },
+    );
+    return response.value ?? [];
+  } catch (error) {
+    log.error({ err: error }, 'getAppRoleAssignments failed');
+    throw new Error(`Unable to get app role assignments for application with objectId: ${appId}`);
+  }
+};
+
+export const removeAppRoleAssignment = async (appId: string, id: string): Promise<void> => {
+  try {
+    await callAzureGraphApi(
+      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/servicePrincipals(appId='${appId}')/appRoleAssignedTo/${id}`,
+      {
+        method: 'DELETE',
+      },
+    );
+  } catch (error) {
+    log.error({ err: error }, 'removeAppRoleAssignment failed');
+    throw new Error(`Unable to remove app role assignment for application with objectId: ${appId}`);
+  }
+};
+
+export const grantScopePermissions = async (servicePrincipalOid: string, resourceId: string, scope: string) => {
+  try {
+    await callAzureGraphApi(`${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/oauth2PermissionGrants`, {
+      method: 'POST',
+      data: {
+        clientId: servicePrincipalOid,
+        consentType: 'AllPrincipals',
+        resourceId: resourceId,
+        scope,
+      },
+    });
+  } catch (error) {
+    log.error({ err: error }, 'grantScopePermissions failed');
+    throw new Error(`Unable to grant scope permissions for service principal with objectId: ${servicePrincipalOid}`);
+  }
+};
+
+export const getGrantedScopePermissions = async (servicePrincipalOid: string): Promise<any[]> => {
+  try {
+    const response = await callAzureGraphApi(
+      `${MS_GRAPH_URL}/${MS_GRAPH_API_VERSION}/servicePrincipals/${servicePrincipalOid}/oauth2PermissionGrants`,
+      {
+        method: 'GET',
+      },
+    );
+    return response.value ?? [];
+  } catch (error) {
+    log.error({ err: error }, 'getGrantedScopePermissions failed');
+    throw new Error(
+      `Unable to get granted scope permissions for service principal with objectId: ${servicePrincipalOid}`,
+    );
   }
 };

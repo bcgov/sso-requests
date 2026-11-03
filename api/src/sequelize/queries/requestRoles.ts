@@ -1,4 +1,4 @@
-import { Op } from 'sequelize';
+import { Op, Transaction } from 'sequelize';
 import sequelize from '@/sequelize/config';
 import models from '@/sequelize/models/models';
 
@@ -7,6 +7,7 @@ export const createCompositeRolesDB = async (
   compositeRoleNames: string[],
   integrationId: number,
   environment: string,
+  transaction?: Transaction,
 ) => {
   let dbRole = await models.requestRole.findOne({
     where: {
@@ -14,14 +15,18 @@ export const createCompositeRolesDB = async (
       requestId: integrationId,
       environment: environment,
     },
+    transaction,
   });
 
   if (!dbRole) {
-    dbRole = await models.requestRole.create({
-      name: roleName,
-      environment: environment,
-      requestId: integrationId,
-    });
+    dbRole = await models.requestRole.create(
+      {
+        name: roleName,
+        environment: environment,
+        requestId: integrationId,
+      },
+      { transaction },
+    );
   }
   const dbCompositeRoles = await models.requestRole.findAll({
     where: {
@@ -32,6 +37,7 @@ export const createCompositeRolesDB = async (
       environment: environment,
     },
     raw: true,
+    transaction,
   });
   for (const compRole of compositeRoleNames) {
     const compRoleId = dbCompositeRoles.find((cr) => cr.name === compRole).id;
@@ -39,31 +45,43 @@ export const createCompositeRolesDB = async (
     if (!dbRole.composite) dbRole.composite = true;
   }
 
-  return await dbRole.save();
+  return await dbRole.save({ transaction });
 };
 
-export const getCompositeParentRoles = async (roleName: string, integrationId: number, environment: string) => {
+export const getCompositeParentRoles = async (
+  roleName: string,
+  integrationId: number,
+  environment: string,
+  transaction?: Transaction,
+) => {
   const [results] = await sequelize.query(
     'select * from request_roles where (select id from request_roles where name = :roleName and environment = :environment and request_id = :integrationId) = ANY(composite_roles) and request_id = :integrationId and environment = :environment;',
     {
       replacements: { integrationId, roleName, environment },
       raw: true,
+      transaction,
     },
   );
   return results;
 };
 
-export const destroyRequestRole = async (integrationId: number, roleName: string, environment: string) => {
+export const destroyRequestRole = async (
+  integrationId: number,
+  roleName: string,
+  environment: string,
+  transaction?: Transaction,
+) => {
   const dbRole = await models.requestRole.findOne({
     where: {
       name: roleName,
       requestId: integrationId,
       environment: environment,
     },
+    transaction,
   });
 
   if (dbRole) {
-    const parentRoles: any = await getCompositeParentRoles(roleName, integrationId, environment);
+    const parentRoles: any = await getCompositeParentRoles(roleName, integrationId, environment, transaction);
 
     for (const prole of parentRoles) {
       await models.requestRole.update(
@@ -77,11 +95,12 @@ export const destroyRequestRole = async (integrationId: number, roleName: string
             requestId: integrationId,
             environment: environment,
           },
+          transaction,
         },
       );
     }
 
-    await dbRole.destroy();
+    await dbRole.destroy({ transaction });
   }
 };
 
@@ -90,6 +109,7 @@ export const deleteCompositeRolesDB = async (
   compositeRoleName: string,
   integrationId: number,
   environment: string,
+  transaction?: Transaction,
 ) => {
   const dbRole = await models.requestRole.findOne({
     where: {
@@ -97,6 +117,7 @@ export const deleteCompositeRolesDB = async (
       requestId: integrationId,
       environment: environment,
     },
+    transaction,
   });
 
   if (dbRole) {
@@ -107,6 +128,7 @@ export const deleteCompositeRolesDB = async (
         environment: environment,
       },
       raw: true,
+      transaction,
     });
 
     if (dbCompositeRole) {
@@ -117,7 +139,7 @@ export const deleteCompositeRolesDB = async (
       if (updatedComposites.length === 0) {
         dbRole.composite = false;
       }
-      return await dbRole.save();
+      return await dbRole.save({ transaction });
     }
   }
 };

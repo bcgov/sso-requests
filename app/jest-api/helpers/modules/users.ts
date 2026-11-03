@@ -43,10 +43,16 @@ export const importIdirUser = async (data: any) => {
     .set('Accept', 'application/json');
 };
 
-export const searchAzureIdirUsers = async (field: string, search: string) => {
+export const searchAzureIdirUsers = async (
+  field: string,
+  search: string,
+  idp: string,
+  includeGuestAccounts?: boolean,
+) => {
+  includeGuestAccounts = includeGuestAccounts ?? false;
   return testClient(azureIdirSearchHandler)
     .post(`${API_BASE_PATH}/ms-graph/idir/search`)
-    .send({ field, search })
+    .send({ field, search, idp, includeGuestAccounts })
     .set('Accept', 'application/json');
 };
 

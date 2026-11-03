@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Tabs } from '@bcgov-sso/common-react-components';
+import Select, { components, SingleValue } from 'react-select';
 import AsyncSelect from 'react-select/async';
-import { components, SingleValue } from 'react-select';
 import CenteredModal from 'components/CenteredModal';
 import Dropdown from 'components/Dropdown';
 import PresetPicker from 'components/PresetPicker';
@@ -27,6 +27,7 @@ import {
   getOrganizationTeams,
   inviteTeamToOrganization,
   removeOrganizationMember,
+  updateOrganizationMemberRole,
   removeTeamFromOrganization,
   searchTeamsForOrganization,
   getTeamIntegrationsForOrganization,
@@ -40,6 +41,7 @@ import {
   hasOrganizationPermission,
   organizationPermissions,
 } from '@app/utils/authorize';
+import ErrorText from 'components/ErrorText';
 import { throttledIdirSearch } from '@app/utils/users';
 
 const Panel = styled.div`
@@ -133,6 +135,7 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
   const [inviteTeamId, setInviteTeamId] = useState<number | undefined>(undefined);
   const [proposed, setProposed] = useState<Permission[]>([...PRESETS.viewer]);
 
+  const [memberToRemove, setMemberToRemove] = useState<OrganizationMember | null>(null);
   const [linkToRemove, setLinkToRemove] = useState<OrganizationTeamLink | null>(null);
 
   const activeLinks = links.filter((link) => !link.pending);
@@ -144,6 +147,7 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
   const canManage = (permission: string) => isSsoAdmin || hasOrganizationPermission(organization.role, permission);
   const canAddMember = canManage(organizationPermissions.ADD_ORG_MEMBER);
   const canRemoveMember = canManage(organizationPermissions.REMOVE_ORG_MEMBER);
+  const canUpdateMemberRole = canManage(organizationPermissions.UPDATE_ORG_MEMBER_ROLE);
   const canInviteTeam = canManage(organizationPermissions.INVITE_TEAM);
   const canRemoveTeam = canManage(organizationPermissions.REMOVE_TEAM);
   const canManageApiAccounts = canManage(organizationPermissions.MANAGE_ORG_API_ACCOUNTS);
@@ -153,8 +157,10 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
     setMembers(memberResult || []);
     const [linkResult] = await getOrganizationTeams(organization.id);
     setLinks(linkResult || []);
-    const [accountResult] = await getOrganizationApiAccounts(organization.id);
-    setAccounts(accountResult || []);
+    if (canManageApiAccounts) {
+      const [accountResult] = await getOrganizationApiAccounts(organization.id);
+      setAccounts(accountResult || []);
+    }
   };
 
   useEffect(() => {
@@ -195,11 +201,28 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
 
   const fail = (content: string) => alert.show({ variant: 'danger', fadeOut: 10000, closable: true, content });
 
-  const handleAddMember = async () => {
-    const [, err] = await addOrganizationMember(organization.id, { idirEmail: memberEmail, role: memberRole });
-    if (err) return fail('Could not add that member.');
-    setMemberEmail('');
+  const memberAlreadyAdded = members.some(
+    (member) => memberEmail !== '' && member.user?.idirEmail?.toLowerCase() === memberEmail.toLowerCase(),
+  );
+
+  const closeMemberModal = () => {
     setOpenMemberModal(false);
+    setMemberEmail('');
+    setMemberRole('member');
+  };
+
+  const handleAddMember = async () => {
+    if (memberAlreadyAdded) return;
+    const [, err] = await addOrganizationMember(organization.id, { idirEmail: memberEmail, role: memberRole });
+    if (err) {
+      const message = String(err);
+      return fail(
+        message.includes('already a member')
+          ? `${memberEmail} is already a member of this organization.`
+          : 'Could not add that member.',
+      );
+    }
+    closeMemberModal();
     reload();
   };
 
@@ -211,6 +234,20 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
     setProposed([...PRESETS.viewer]);
     setInviteTeamId(undefined);
     setTeamQuery('');
+    reload();
+  };
+
+  const handleChangeRole = async (member: OrganizationMember, role: string) => {
+    const [, err] = await updateOrganizationMemberRole(organization.id, member.userId, role);
+    if (err) return fail('Could not change that member’s role.');
+    reload();
+  };
+
+  const handleRemoveMember = async () => {
+    if (!memberToRemove) return;
+    const [, err] = await removeOrganizationMember(organization.id, memberToRemove.userId);
+    setMemberToRemove(null);
+    if (err) return fail('Could not remove that member.');
     reload();
   };
 
@@ -255,7 +292,33 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
         enablePagination={false}
         columns={[
           { accessorKey: 'email', header: 'Email' },
-          { accessorKey: 'role', header: 'Role' },
+          {
+            accessorKey: 'role',
+            header: 'Role',
+            cell: (props) => {
+              const member = props.row.original as OrganizationMember;
+              const lastAdmin = member.role === 'admin' && admins.length === 1;
+              const label = member.role === 'admin' ? 'Admin' : 'Member';
+              if (!canUpdateMemberRole || lastAdmin) return label;
+              return (
+                <Select
+                  aria-label={`organization-member-role-${member.userId}`}
+                  options={[
+                    { value: 'member', label: 'Member' },
+                    { value: 'admin', label: 'Admin' },
+                  ]}
+                  value={{ value: member.role, label }}
+                  onChange={(option: { value: string; label: string } | null) =>
+                    option && handleChangeRole(member, option.value)
+                  }
+                  styles={{ menuPortal: (base: any) => ({ ...base, zIndex: 9999 }) }}
+                  menuPortalTarget={document.body}
+                  isSearchable={false}
+                  isClearable={false}
+                />
+              );
+            },
+          },
           {
             accessorKey: 'actions',
             header: () => <ActionsHeader />,
@@ -273,11 +336,9 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
                     title={lastAdmin ? 'Add a second admin before removing this one' : 'Remove organization member'}
                     size="lg"
                     activeColor={PRIMARY_RED}
-                    onClick={async () => {
+                    onClick={() => {
                       if (!canRemoveMember || lastAdmin) return;
-                      const [, err] = await removeOrganizationMember(organization.id, member.userId);
-                      if (err) return fail('Could not remove that member.');
-                      reload();
+                      setMemberToRemove(member);
                     }}
                   />
                 </Actions>
@@ -385,18 +446,21 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
         items={[
           { key: 'members', label: 'Members', children: membersTab },
           { key: 'teams', label: 'Teams', children: teamsTab },
-          { key: 'api-accounts', label: 'CSS API Account', children: apiAccountsTab },
+          ...(canManageApiAccounts
+            ? [{ key: 'api-accounts', label: 'CSS API Account', children: apiAccountsTab }]
+            : []),
         ]}
       />
 
       <CenteredModal
         id="add-org-member-modal"
         openModal={openMemberModal}
-        handleClose={() => setOpenMemberModal(false)}
+        handleClose={closeMemberModal}
         title="Add Organization Member"
         icon={false}
         closable
         confirmText="Add"
+        disableConfirm={memberAlreadyAdded}
         onConfirm={handleAddMember}
         content={
           <div>
@@ -416,6 +480,11 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
                 Input: (props) => <components.Input {...props} data-testid="org-member-email-input" />,
               }}
             />
+            {memberAlreadyAdded && (
+              <div>
+                <ErrorText>{memberEmail} is already a member of this organization.</ErrorText>
+              </div>
+            )}
             <label htmlFor="org-member-role">Role</label>
             <Dropdown
               inputId="org-member-role"
@@ -525,6 +594,27 @@ function OrganizationInfoTabs({ organization, currentUser, alert }: Readonly<Pro
               organization.name
             }?`}
             content={`Removing this team will immediately revoke access to its integrations from organization members and API accounts.`}
+          />
+        }
+      />
+
+      <CenteredModal
+        id="remove-organization-member-modal"
+        openModal={Boolean(memberToRemove)}
+        handleClose={() => setMemberToRemove(null)}
+        title="Remove Member"
+        icon={null}
+        closable
+        confirmText="Remove Member"
+        buttonStyle="danger"
+        skipCloseOnConfirm
+        onConfirm={handleRemoveMember}
+        content={
+          <WarningModalContents
+            title={`Are you sure that you want to remove ${memberToRemove?.user?.idirEmail ?? 'this member'} from ${
+              organization.name
+            }?`}
+            content="They will immediately lose access to this organization and its teams' integrations."
           />
         }
       />

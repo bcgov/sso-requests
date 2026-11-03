@@ -3,6 +3,7 @@ import { PRESETS } from '@sso/authz';
 import TeamOrganizations from '@app/page-partials/my-dashboard/TeamInfoTabs/TeamOrganizations';
 import {
   getTeamOrganizations,
+  leaveOrganization,
   respondToOrganizationInvitation,
   updateIntegrationOverrides,
   updateTeamConsent,
@@ -22,6 +23,7 @@ jest.mock('@app/services/request', () => ({
 }));
 
 const mockedGetTeamOrganizations = jest.mocked(getTeamOrganizations);
+const mockedLeave = jest.mocked(leaveOrganization);
 const mockedRespond = jest.mocked(respondToOrganizationInvitation);
 const mockedUpdateOverrides = jest.mocked(updateIntegrationOverrides);
 const mockedUpdateConsent = jest.mocked(updateTeamConsent);
@@ -138,6 +140,17 @@ describe('a team reviewing an organization', () => {
     });
   });
 
+  it('links to the documentation on what each access level means', async () => {
+    mockedGetTeamOrganizations.mockResolvedValue([[link()] as any, null]);
+    render(<TeamOrganizations teamId={TEAM_ID} />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Review' }));
+    expect(screen.getByRole('link', { name: /What does each access level mean/ })).toHaveAttribute(
+      'href',
+      'https://bcgov.github.io/sso-docs/css-application/organizations#overview',
+    );
+  });
+
   it('leaves an accepted consent the team’s own to change', async () => {
     mockedGetTeamOrganizations.mockResolvedValue([
       [link({ pending: false, permissions: [...PRESETS.viewer] })] as any,
@@ -169,5 +182,29 @@ describe('a team reviewing an organization', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(mockedUpdateOverrides).toHaveBeenCalledWith(TEAM_ID, 9, []));
+  });
+
+  it('asks for confirmation before declining an invitation', async () => {
+    mockedGetTeamOrganizations.mockResolvedValue([[link()] as any, null]);
+    mockedRespond.mockResolvedValue([{}, null] as any);
+    render(<TeamOrganizations teamId={TEAM_ID} />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Decline' }));
+    expect(mockedRespond).not.toHaveBeenCalled();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Decline Invitation' }));
+    await waitFor(() => expect(mockedRespond).toHaveBeenCalledWith(TEAM_ID, 9, { accept: false }));
+  });
+
+  it('asks for confirmation before leaving an organization', async () => {
+    mockedGetTeamOrganizations.mockResolvedValue([[link({ pending: false })] as any, null]);
+    mockedLeave.mockResolvedValue([{}, null] as any);
+    render(<TeamOrganizations teamId={TEAM_ID} />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Leave' }));
+    expect(mockedLeave).not.toHaveBeenCalled();
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Leave Organization' }));
+    await waitFor(() => expect(mockedLeave).toHaveBeenCalledWith(TEAM_ID, 9));
   });
 });

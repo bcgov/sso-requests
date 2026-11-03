@@ -1,5 +1,6 @@
 import { Op } from 'sequelize';
 import { Permission, PRESETS } from '@sso/authz';
+import { EMAILS } from '@app/shared/enums';
 import {
   TEAM_ADMIN_IDIR_USERID_01,
   TEAM_ADMIN_IDIR_EMAIL_01,
@@ -16,36 +17,45 @@ import { buildIntegration } from './helpers/modules/common';
 import { getIntegration, updateIntegration } from './helpers/modules/integrations';
 import { createTeam } from './helpers/modules/teams';
 import { cleanUpDatabaseTables } from './helpers/utils';
+import { createMockSendEmail } from './mocks/mail';
 import { createMockAuth } from './mocks/authenticate';
 import { models } from '@app/shared/sequelize/models/models';
+import { userActor, withActor } from '@sso/audit/server';
 import { Session, User } from '@app/shared/interfaces';
 import { accessibleIntegrationsWhere, resolveAccessScope } from '@app/queries/accessScope';
 import { resolveAccessForIntegrations } from '@app/queries/integrationAccess';
 import { getIntegrations, getRequests } from '@app/controllers/requests';
 import { isAllowedToManageRoles, processUserSession } from '@app/controllers/user';
-import {
-  createOrganization,
-  updateOrganization,
-  inviteTeam,
-  leaveOrganization,
-  listOrganizations,
-  listTeamIntegrations,
-  listTeamOrganizationLinks,
-  removeTeamFromOrganization,
-  searchTeams,
-  respondToOrganizationInvitation,
-  updateIntegrationOverrides,
-  updateTeamConsent,
-  addOrganizationMember,
-  listOrganizationMembers,
-  removeOrganizationMember,
-  updateOrganizationMemberRole,
-  createOrganizationApiAccount,
-  getOrganizationApiAccountCredentials,
-  updateOrganizationApiAccountSecret,
-  deleteOrganizationApiAccount,
-  listOrganizationApiAccounts,
-} from '@app/controllers/organization';
+import * as organizationControllers from '@app/controllers/organization';
+
+// Called directly rather than through their routes, so each runs as the user its session names, as the route would.
+const asSessionUser =
+  <A extends unknown[], R>(fn: (session: Session, ...args: A) => Promise<R>) =>
+  (session: Session, ...args: A): Promise<R> =>
+    withActor(userActor(session.idir_userid as string, 'Test User'), () => fn(session, ...args));
+const createOrganization = asSessionUser(organizationControllers.createOrganization);
+const updateOrganization = asSessionUser(organizationControllers.updateOrganization);
+const inviteTeam = asSessionUser(organizationControllers.inviteTeam);
+const leaveOrganization = asSessionUser(organizationControllers.leaveOrganization);
+const listOrganizations = asSessionUser(organizationControllers.listOrganizations);
+const listTeamIntegrations = asSessionUser(organizationControllers.listTeamIntegrations);
+const listTeamOrganizationLinks = asSessionUser(organizationControllers.listTeamOrganizationLinks);
+const removeTeamFromOrganization = asSessionUser(organizationControllers.removeTeamFromOrganization);
+const searchTeams = asSessionUser(organizationControllers.searchTeams);
+const respondToOrganizationInvitation = asSessionUser(organizationControllers.respondToOrganizationInvitation);
+const updateIntegrationOverrides = asSessionUser(organizationControllers.updateIntegrationOverrides);
+const updateTeamConsent = asSessionUser(organizationControllers.updateTeamConsent);
+const addOrganizationMember = asSessionUser(organizationControllers.addOrganizationMember);
+const listOrganizationMembers = asSessionUser(organizationControllers.listOrganizationMembers);
+const removeOrganizationMember = asSessionUser(organizationControllers.removeOrganizationMember);
+const updateOrganizationMemberRole = asSessionUser(organizationControllers.updateOrganizationMemberRole);
+const createOrganizationApiAccount = asSessionUser(organizationControllers.createOrganizationApiAccount);
+const getOrganizationApiAccountCredentials = asSessionUser(
+  organizationControllers.getOrganizationApiAccountCredentials,
+);
+const updateOrganizationApiAccountSecret = asSessionUser(organizationControllers.updateOrganizationApiAccountSecret);
+const deleteOrganizationApiAccount = asSessionUser(organizationControllers.deleteOrganizationApiAccount);
+const listOrganizationApiAccounts = asSessionUser(organizationControllers.listOrganizationApiAccounts);
 
 jest.mock('@app/keycloak/integration', () => {
   const original = jest.requireActual('@app/keycloak/integration');
@@ -312,6 +322,44 @@ describe('organizations', () => {
     });
   });
 
+  describe('team relationship notifications', () => {
+    afterEach(async () => {
+      await models.organizationTeam.destroy({ where: {} });
+    });
+
+    it('notifies the other party for invitation, acceptance, decline, leave, and removal', async () => {
+      const emailList = createMockSendEmail();
+      const lastEmail = () => emailList[emailList.length - 1];
+
+      await inviteTeam(await asOrgAdmin(), organizationId, { teamId, permissions: [...PRESETS.viewer] });
+      expect(lastEmail()).toMatchObject({
+        code: EMAILS.ORGANIZATION_TEAM_NOTIFICATION,
+        to: expect.arrayContaining([TEAM_ADMIN_IDIR_EMAIL_01]),
+        cc: [],
+      });
+      expect(lastEmail().subject).toContain('Ministry of Tests');
+      expect(lastEmail().body).toContain(`invited team team_01 (#${teamId}) to join`);
+      expect(lastEmail().to).not.toContain(ORG_MEMBER_EMAIL);
+
+      await respondToOrganizationInvitation(await asTeamAdmin(), teamId, organizationId, { accept: true });
+      expect(lastEmail().to).toEqual(expect.arrayContaining([ORG_ADMIN_EMAIL]));
+      expect(lastEmail().to).not.toContain(ORG_MEMBER_EMAIL);
+
+      await leaveOrganization(await asTeamAdmin(), teamId, organizationId);
+      expect(lastEmail().to).toEqual(expect.arrayContaining([ORG_ADMIN_EMAIL]));
+
+      await inviteTeam(await asOrgAdmin(), organizationId, { teamId, permissions: [...PRESETS.viewer] });
+      await respondToOrganizationInvitation(await asTeamAdmin(), teamId, organizationId, { accept: false });
+      expect(lastEmail().to).toEqual(expect.arrayContaining([ORG_ADMIN_EMAIL]));
+
+      await inviteTeam(await asOrgAdmin(), organizationId, { teamId, permissions: [...PRESETS.viewer] });
+      await respondToOrganizationInvitation(await asTeamAdmin(), teamId, organizationId, { accept: true });
+      await removeTeamFromOrganization(await asOrgAdmin(), organizationId, teamId);
+      expect(lastEmail().to).toEqual(expect.arrayContaining([TEAM_ADMIN_IDIR_EMAIL_01]));
+      expect(emailList.map((email: any) => email.code)).toEqual(Array(8).fill(EMAILS.ORGANIZATION_TEAM_NOTIFICATION));
+    });
+  });
+
   describe('membership', () => {
     const throwaway = async (name: string) => {
       const organization = await createOrganization(await asSsoAdmin(), { name });
@@ -368,6 +416,34 @@ describe('organizations', () => {
 
       const members = await listOrganizationMembers(ssoAdmin, id);
       expect(members.map((member: any) => member.role).sort()).toEqual(['admin', 'member']);
+    });
+
+    it('notifies a member when they are added or removed, and refuses a duplicate add', async () => {
+      const emailList = createMockSendEmail();
+      const id = await throwaway('Ministry of Membership Notifications');
+
+      await addOrganizationMember(await asSsoAdmin(), id, { idirEmail: ORG_MEMBER_EMAIL, role: 'member' });
+      expect(emailList).toHaveLength(1);
+      expect(emailList[0]).toMatchObject({
+        code: EMAILS.ORGANIZATION_TEAM_NOTIFICATION,
+        to: expect.arrayContaining([ORG_MEMBER_EMAIL]),
+      });
+      expect(emailList[0].body).toContain('You have been added to organization Ministry of Membership Notifications');
+
+      await expect(
+        addOrganizationMember(await asSsoAdmin(), id, { idirEmail: ORG_MEMBER_EMAIL, role: 'admin' }),
+      ).rejects.toThrow(/already a member/);
+      expect(emailList).toHaveLength(1);
+
+      await removeOrganizationMember(await asSsoAdmin(), id, (await asOrgMember()).user!.id as number);
+      expect(emailList).toHaveLength(2);
+      expect(emailList[1]).toMatchObject({
+        code: EMAILS.ORGANIZATION_TEAM_NOTIFICATION,
+        to: expect.arrayContaining([ORG_MEMBER_EMAIL]),
+      });
+      expect(emailList[1].body).toContain(
+        'You have been removed from organization Ministry of Membership Notifications',
+      );
     });
   });
 
@@ -545,10 +621,26 @@ describe('organizations', () => {
   });
 
   describe('the api account', () => {
+    it('is not listed to an ordinary organization member', async () => {
+      await expect(listOrganizationApiAccounts(await asOrgMember(), organizationId)).rejects.toThrow();
+    });
+
     it('is held once per organization, as a team holds one', async () => {
       const session = await asOrgAdmin();
       const account = await createOrganizationApiAccount(session, organizationId);
       expect(account.clientId).toBe(`service-account-org-${organizationId}-${account.id}`);
+
+      // The account's operation is recorded against the organization: requested by the admin, completed by the engine.
+      const created = await models.event.findAll({
+        where: { requestId: account.id, eventCode: 'api-account-create' },
+        order: [['id', 'ASC']],
+        raw: true,
+      });
+      expect(created.map((event: any) => [event.outcome, event.actorType, event.organizationId])).toEqual([
+        ['requested', 'user', organizationId],
+        ['success', 'system', organizationId],
+      ]);
+      expect(created[0].operationId).toBe(created[1].operationId);
 
       await expect(createOrganizationApiAccount(session, organizationId)).rejects.toThrow(/already has api account/);
       expect(ids(await listOrganizationApiAccounts(session, organizationId))).toEqual([account.id]);

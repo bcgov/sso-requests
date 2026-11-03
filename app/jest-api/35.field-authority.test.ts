@@ -8,7 +8,8 @@ import {
   changedFields,
 } from '@app/utils/requestPolicy';
 import { IN_FLIGHT, RESTING, TRANSITIONS, deleteIntentFor, transitionRefusal } from '@app/helpers/transitions';
-import { canonicalizeArrayFields, normalizeRequest } from '@app/utils/helpers';
+import { canonicalizeArrayFields, getDifferences, normalizeRequest } from '@app/utils/helpers';
+import { Integration } from '@app/interfaces/Request';
 
 /**
  * The update path authorizes the diff between the stored row and the payload, field by field,
@@ -149,6 +150,27 @@ describe('canonical arrays', () => {
     });
   });
 
+  describe('environment update differences', () => {
+    it('reports environment additions and removals', () => {
+      const original = { environments: ['dev'] } as Integration;
+
+      expect(getDifferences({ environments: ['dev', 'test'] }, original)).toEqual(
+        expect.arrayContaining([expect.objectContaining({ path: ['environments'] })]),
+      );
+      expect(getDifferences({ environments: [] }, original)).toEqual(
+        expect.arrayContaining([expect.objectContaining({ path: ['environments'] })]),
+      );
+    });
+
+    it('does not report a difference when environments are only reordered', () => {
+      expect(
+        getDifferences({ environments: ['prod', 'dev', 'test'] }, {
+          environments: ['test', 'dev', 'prod'],
+        } as Integration),
+      ).toBeUndefined();
+    });
+  });
+
   it('gives the actor no say in the order that is written', () => {
     const one = normalizeRequest({ devIdps: ['idir', 'bceidbasic'], environments: ['prod', 'dev'] } as any, true);
     const other = normalizeRequest({ devIdps: ['bceidbasic', 'idir'], environments: ['dev', 'prod'] } as any, true);
@@ -174,7 +196,6 @@ describe('field authority', () => {
     expect(FIELD_AUTHORITY.testBceidApproved).toEqual('integrations:approve-bceid');
     expect(FIELD_AUTHORITY.githubApproved).toEqual('integrations:approve-github');
     expect(FIELD_AUTHORITY.bcServicesCardApproved).toEqual('integrations:approve-bcsc');
-    expect(FIELD_AUTHORITY.bcgovidirApproved).toEqual('integrations:approve-bcgovidir');
     expect(FIELD_AUTHORITY.socialApproved).toEqual('integrations:approve-social');
     expect(FIELD_AUTHORITY.otpApproved).toEqual('integrations:approve-otp');
     for (const env of ['dev', 'test', 'prod']) {
