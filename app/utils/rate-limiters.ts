@@ -84,7 +84,7 @@ const chatRateLimitMiddleware = initMiddleware(
       ? new RedisStore({
           prefix: 'rl-chat:',
           // @ts-expect-error - Known issue: the `call` function is not present in @types/ioredis
-          sendCommand: async (...args: string[]) => redisClient.call(...args),
+          sendCommand: (...args: string[]) => redisClient.call(...args),
         })
       : undefined,
   }),

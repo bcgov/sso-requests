@@ -67,8 +67,8 @@ export function createTypewriter(onReveal: (visible: string) => void): Typewrite
 
       let next = Math.floor(position);
       // Don't cut a surrogate pair (emoji etc.) in half.
-      const code = target.charCodeAt(next - 1);
-      if (code >= 0xd800 && code <= 0xdbff && next < target.length) next += 1;
+      const code = target.codePointAt(next - 1);
+      if (code && code >= 0xd800 && code <= 0xdbff && next < target.length) next += 1;
 
       if (next > shown) {
         shown = next;

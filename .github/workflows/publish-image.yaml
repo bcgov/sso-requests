@@ -103,6 +103,29 @@ jobs:
 
       - name: Setup Sandbox Environment Variables
         if: github.ref == 'refs/heads/dev' && github.event_name == 'push'
+        env:
+          API_AUTH_SECRET: ${{ secrets.API_AUTH_SECRET }}
+          GRAFANA_API_TOKEN: ${{ secrets.DEV_GRAFANA_API_TOKEN }}
+          KEYCLOAK_V2_DEV_USERNAME: ${{ secrets.DEV_KEYCLOAK_V2_DEV_USERNAME }}
+          KEYCLOAK_V2_DEV_PASSWORD: ${{ secrets.DEV_KEYCLOAK_V2_DEV_PASSWORD }}
+          KEYCLOAK_V2_TEST_USERNAME: ${{ secrets.DEV_KEYCLOAK_V2_TEST_USERNAME }}
+          KEYCLOAK_V2_TEST_PASSWORD: ${{ secrets.DEV_KEYCLOAK_V2_TEST_PASSWORD }}
+          KEYCLOAK_V2_PROD_USERNAME: ${{ secrets.DEV_KEYCLOAK_V2_PROD_USERNAME }}
+          KEYCLOAK_V2_PROD_PASSWORD: ${{ secrets.DEV_KEYCLOAK_V2_PROD_PASSWORD }}
+          CHES_USERNAME: ${{ secrets.CHES_USERNAME_PROD }}
+          CHES_PASSWORD: ${{ secrets.CHES_PASSWORD_PROD }}
+          VERIFY_USER_SECRET: ${{ secrets.VERIFY_USER_SECRET }}
+          BCSC_INITIAL_ACCESS_TOKEN_DEV: ${{ secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT }}
+          BCSC_INITIAL_ACCESS_TOKEN_TEST: ${{ secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT }}
+          BCSC_INITIAL_ACCESS_TOKEN_PROD: ${{ secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT }}
+          REDIS_HOST: ${{ secrets.DEV_REDIS_HOST }}
+          SDX_CLIENT_ID: ${{ secrets.DEV_SDX_CLIENT_ID }}
+          SDX_CLIENT_SECRET: ${{ secrets.DEV_SDX_CLIENT_SECRET }}
+          RAG_CLIENT_ID: ${{ secrets.DEV_RAG_CLIENT_ID }}
+          RAG_CLIENT_SECRET: ${{ secrets.DEV_RAG_CLIENT_SECRET }}
+          MS_GRAPH_API_CLIENT_ID: ${{ secrets.DEV_MS_GRAPH_API_CLIENT_ID }}
+          MS_GRAPH_API_CLIENT_SECRET: ${{ secrets.DEV_MS_GRAPH_API_CLIENT_SECRET }}
+          OPENSHIFT_NAMESPACE: ${{ secrets.DEV_OPENSHIFT_NAMESPACE }}
         run: |
           cat >> $GITHUB_ENV <<EOF
           NEXT_PUBLIC_APP_ENV=development
@@ -115,38 +138,62 @@ jobs:
           NEXT_PUBLIC_INCLUDE_SDX_SERVICES=true
           NEXT_PUBLIC_INCLUDE_BCGOVIDIR=true
 
-          API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
-          GRAFANA_API_TOKEN=${{ secrets.DEV_GRAFANA_API_TOKEN }}
+          API_AUTH_SECRET=$API_AUTH_SECRET
+          GRAFANA_API_TOKEN=$GRAFANA_API_TOKEN
           KEYCLOAK_V2_DEV_URL=https://dev.sandbox.loginproxy.gov.bc.ca
           KEYCLOAK_V2_TEST_URL=https://test.sandbox.loginproxy.gov.bc.ca
           KEYCLOAK_V2_PROD_URL=https://sandbox.loginproxy.gov.bc.ca
-          KEYCLOAK_V2_DEV_USERNAME=${{ secrets.DEV_KEYCLOAK_V2_DEV_USERNAME }}
-          KEYCLOAK_V2_DEV_PASSWORD=${{ secrets.DEV_KEYCLOAK_V2_DEV_PASSWORD }}
-          KEYCLOAK_V2_TEST_USERNAME=${{ secrets.DEV_KEYCLOAK_V2_TEST_USERNAME }}
-          KEYCLOAK_V2_TEST_PASSWORD=${{ secrets.DEV_KEYCLOAK_V2_TEST_PASSWORD }}
-          KEYCLOAK_V2_PROD_USERNAME=${{ secrets.DEV_KEYCLOAK_V2_PROD_USERNAME }}
-          KEYCLOAK_V2_PROD_PASSWORD=${{ secrets.DEV_KEYCLOAK_V2_PROD_PASSWORD }}
-          CHES_USERNAME=${{secrets.CHES_USERNAME_PROD}}
-          CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
-          VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
-          BCSC_INITIAL_ACCESS_TOKEN_DEV=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
-          BCSC_INITIAL_ACCESS_TOKEN_TEST=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
-          BCSC_INITIAL_ACCESS_TOKEN_PROD=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_SIT}}
-          REDIS_HOST=${{secrets.DEV_REDIS_HOST}}
+          KEYCLOAK_V2_DEV_USERNAME=$KEYCLOAK_V2_DEV_USERNAME
+          KEYCLOAK_V2_DEV_PASSWORD=$KEYCLOAK_V2_DEV_PASSWORD
+          KEYCLOAK_V2_TEST_USERNAME=$KEYCLOAK_V2_TEST_USERNAME
+          KEYCLOAK_V2_TEST_PASSWORD=$KEYCLOAK_V2_TEST_PASSWORD
+          KEYCLOAK_V2_PROD_USERNAME=$KEYCLOAK_V2_PROD_USERNAME
+          KEYCLOAK_V2_PROD_PASSWORD=$KEYCLOAK_V2_PROD_PASSWORD
+          CHES_USERNAME=$CHES_USERNAME
+          CHES_PASSWORD=$CHES_PASSWORD
+          VERIFY_USER_SECRET=$VERIFY_USER_SECRET
+          BCSC_INITIAL_ACCESS_TOKEN_DEV=$BCSC_INITIAL_ACCESS_TOKEN_DEV
+          BCSC_INITIAL_ACCESS_TOKEN_TEST=$BCSC_INITIAL_ACCESS_TOKEN_TEST
+          BCSC_INITIAL_ACCESS_TOKEN_PROD=$BCSC_INITIAL_ACCESS_TOKEN_PROD
+          REDIS_HOST=$REDIS_HOST
           GRAFANA_API_URL=https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
-          SDX_CLIENT_ID=${{ secrets.DEV_SDX_CLIENT_ID }}
-          SDX_CLIENT_SECRET=${{ secrets.DEV_SDX_CLIENT_SECRET }}
-          RAG_CLIENT_ID=${{ secrets.DEV_RAG_CLIENT_ID }}
-          RAG_CLIENT_SECRET=${{ secrets.DEV_RAG_CLIENT_SECRET }}
+          SDX_CLIENT_ID=$SDX_CLIENT_ID
+          SDX_CLIENT_SECRET=$SDX_CLIENT_SECRET
+          RAG_CLIENT_ID=$RAG_CLIENT_ID
+          RAG_CLIENT_SECRET=$RAG_CLIENT_SECRET
 
-          MS_GRAPH_API_CLIENT_ID=${{ secrets.DEV_MS_GRAPH_API_CLIENT_ID }}
-          MS_GRAPH_API_CLIENT_SECRET=${{ secrets.DEV_MS_GRAPH_API_CLIENT_SECRET }}
+          MS_GRAPH_API_CLIENT_ID=$MS_GRAPH_API_CLIENT_ID
+          MS_GRAPH_API_CLIENT_SECRET=$MS_GRAPH_API_CLIENT_SECRET
 
-          OPENSHIFT_NAMESPACE=${{ secrets.DEV_OPENSHIFT_NAMESPACE }}
+          OPENSHIFT_NAMESPACE=$OPENSHIFT_NAMESPACE
           EOF
 
       - name: Setup Test Environment Variables
         if: github.ref == 'refs/heads/test' && github.event_name == 'push'
+        env:
+          API_AUTH_SECRET: ${{ secrets.API_AUTH_SECRET }}
+          GRAFANA_API_TOKEN: ${{ secrets.DEV_GRAFANA_API_TOKEN }}
+          KEYCLOAK_V2_DEV_USERNAME: ${{ secrets.TEST_KEYCLOAK_V2_DEV_USERNAME }}
+          KEYCLOAK_V2_DEV_PASSWORD: ${{ secrets.TEST_KEYCLOAK_V2_DEV_PASSWORD }}
+          KEYCLOAK_V2_TEST_USERNAME: ${{ secrets.TEST_KEYCLOAK_V2_TEST_USERNAME }}
+          KEYCLOAK_V2_TEST_PASSWORD: ${{ secrets.TEST_KEYCLOAK_V2_TEST_PASSWORD }}
+          KEYCLOAK_V2_PROD_USERNAME: ${{ secrets.TEST_KEYCLOAK_V2_PROD_USERNAME }}
+          KEYCLOAK_V2_PROD_PASSWORD: ${{ secrets.TEST_KEYCLOAK_V2_PROD_PASSWORD }}
+          REALM_REGISTRY_API: ${{ secrets.DEV_REALM_REGISTRY_API }}
+          CHES_USERNAME: ${{ secrets.CHES_USERNAME_PROD }}
+          CHES_PASSWORD: ${{ secrets.CHES_PASSWORD_PROD }}
+          VERIFY_USER_SECRET: ${{ secrets.VERIFY_USER_SECRET }}
+          BCSC_INITIAL_ACCESS_TOKEN_DEV: ${{ secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST }}
+          BCSC_INITIAL_ACCESS_TOKEN_TEST: ${{ secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST }}
+          BCSC_INITIAL_ACCESS_TOKEN_PROD: ${{ secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST }}
+          REDIS_HOST: ${{ secrets.TEST_REDIS_HOST }}
+          SDX_CLIENT_ID: ${{ secrets.TEST_SDX_CLIENT_ID }}
+          SDX_CLIENT_SECRET: ${{ secrets.TEST_SDX_CLIENT_SECRET }}
+          RAG_CLIENT_ID: ${{ secrets.TEST_RAG_CLIENT_ID }}
+          RAG_CLIENT_SECRET: ${{ secrets.TEST_RAG_CLIENT_SECRET }}
+          MS_GRAPH_API_CLIENT_ID: ${{ secrets.DEV_MS_GRAPH_API_CLIENT_ID }}
+          MS_GRAPH_API_CLIENT_SECRET: ${{ secrets.DEV_MS_GRAPH_API_CLIENT_SECRET }}
+          OPENSHIFT_NAMESPACE: ${{ secrets.TEST_OPENSHIFT_NAMESPACE }}
         run: |
           cat >> $GITHUB_ENV <<EOF
           NEXT_PUBLIC_APP_ENV=test
@@ -158,39 +205,62 @@ jobs:
           NEXT_PUBLIC_INCLUDE_SDX_SERVICES=false
           NEXT_PUBLIC_INCLUDE_BCGOVIDIR=false
 
-          API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
-          GRAFANA_API_TOKEN=${{ secrets.DEV_GRAFANA_API_TOKEN }}
+          API_AUTH_SECRET=$API_AUTH_SECRET
+          GRAFANA_API_TOKEN=$GRAFANA_API_TOKEN
           KEYCLOAK_V2_DEV_URL=https://sso-keycloak-c6af30-dev.apps.golddr.devops.gov.bc.ca
           KEYCLOAK_V2_TEST_URL=https://sso-keycloak-c6af30-test.apps.golddr.devops.gov.bc.ca
           KEYCLOAK_V2_PROD_URL=https://sso-keycloak-c6af30-prod.apps.golddr.devops.gov.bc.ca
-          KEYCLOAK_V2_DEV_USERNAME=${{ secrets.TEST_KEYCLOAK_V2_DEV_USERNAME }}
-          KEYCLOAK_V2_DEV_PASSWORD=${{ secrets.TEST_KEYCLOAK_V2_DEV_PASSWORD }}
-          KEYCLOAK_V2_TEST_USERNAME=${{ secrets.TEST_KEYCLOAK_V2_TEST_USERNAME }}
-          KEYCLOAK_V2_TEST_PASSWORD=${{ secrets.TEST_KEYCLOAK_V2_TEST_PASSWORD }}
-          KEYCLOAK_V2_PROD_USERNAME=${{ secrets.TEST_KEYCLOAK_V2_PROD_USERNAME }}
-          KEYCLOAK_V2_PROD_PASSWORD=${{ secrets.TEST_KEYCLOAK_V2_PROD_PASSWORD }}
-          REALM_REGISTRY_API=${{ secrets.DEV_REALM_REGISTRY_API }}
-          CHES_USERNAME=${{secrets.CHES_USERNAME_PROD}}
-          CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
-          VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
-          BCSC_INITIAL_ACCESS_TOKEN_DEV=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
-          BCSC_INITIAL_ACCESS_TOKEN_TEST=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
-          BCSC_INITIAL_ACCESS_TOKEN_PROD=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
-          REDIS_HOST=${{secrets.TEST_REDIS_HOST}}
+          KEYCLOAK_V2_DEV_USERNAME=$KEYCLOAK_V2_DEV_USERNAME
+          KEYCLOAK_V2_DEV_PASSWORD=$KEYCLOAK_V2_DEV_PASSWORD
+          KEYCLOAK_V2_TEST_USERNAME=$KEYCLOAK_V2_TEST_USERNAME
+          KEYCLOAK_V2_TEST_PASSWORD=$KEYCLOAK_V2_TEST_PASSWORD
+          KEYCLOAK_V2_PROD_USERNAME=$KEYCLOAK_V2_PROD_USERNAME
+          KEYCLOAK_V2_PROD_PASSWORD=$KEYCLOAK_V2_PROD_PASSWORD
+          REALM_REGISTRY_API=$REALM_REGISTRY_API
+          CHES_USERNAME=$CHES_USERNAME
+          CHES_PASSWORD=$CHES_PASSWORD
+          VERIFY_USER_SECRET=$VERIFY_USER_SECRET
+          BCSC_INITIAL_ACCESS_TOKEN_DEV=$BCSC_INITIAL_ACCESS_TOKEN_DEV
+          BCSC_INITIAL_ACCESS_TOKEN_TEST=$BCSC_INITIAL_ACCESS_TOKEN_TEST
+          BCSC_INITIAL_ACCESS_TOKEN_PROD=$BCSC_INITIAL_ACCESS_TOKEN_PROD
+          REDIS_HOST=$REDIS_HOST
           GRAFANA_API_URL=https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
-          SDX_CLIENT_ID=${{ secrets.TEST_SDX_CLIENT_ID }}
-          SDX_CLIENT_SECRET=${{ secrets.TEST_SDX_CLIENT_SECRET }}
-          RAG_CLIENT_ID=${{ secrets.TEST_RAG_CLIENT_ID }}
-          RAG_CLIENT_SECRET=${{ secrets.TEST_RAG_CLIENT_SECRET }}
+          SDX_CLIENT_ID=$SDX_CLIENT_ID
+          SDX_CLIENT_SECRET=$SDX_CLIENT_SECRET
+          RAG_CLIENT_ID=$RAG_CLIENT_ID
+          RAG_CLIENT_SECRET=$RAG_CLIENT_SECRET
 
-          MS_GRAPH_API_CLIENT_ID=${{ secrets.DEV_MS_GRAPH_API_CLIENT_ID }}
-          MS_GRAPH_API_CLIENT_SECRET=${{ secrets.DEV_MS_GRAPH_API_CLIENT_SECRET }}
+          MS_GRAPH_API_CLIENT_ID=$MS_GRAPH_API_CLIENT_ID
+          MS_GRAPH_API_CLIENT_SECRET=$MS_GRAPH_API_CLIENT_SECRET
 
-          OPENSHIFT_NAMESPACE=${{ secrets.TEST_OPENSHIFT_NAMESPACE }}
+          OPENSHIFT_NAMESPACE=$OPENSHIFT_NAMESPACE
           EOF
 
       - name: Setup Production Environment Variables
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        env:
+          API_AUTH_SECRET: ${{ secrets.API_AUTH_SECRET }}
+          GRAFANA_API_TOKEN: ${{ secrets.PROD_GRAFANA_API_TOKEN }}
+          KEYCLOAK_V2_DEV_USERNAME: ${{ secrets.PROD_KEYCLOAK_V2_DEV_USERNAME }}
+          KEYCLOAK_V2_DEV_PASSWORD: ${{ secrets.PROD_KEYCLOAK_V2_DEV_PASSWORD }}
+          KEYCLOAK_V2_TEST_USERNAME: ${{ secrets.PROD_KEYCLOAK_V2_TEST_USERNAME }}
+          KEYCLOAK_V2_TEST_PASSWORD: ${{ secrets.PROD_KEYCLOAK_V2_TEST_PASSWORD }}
+          KEYCLOAK_V2_PROD_USERNAME: ${{ secrets.PROD_KEYCLOAK_V2_PROD_USERNAME }}
+          KEYCLOAK_V2_PROD_PASSWORD: ${{ secrets.PROD_KEYCLOAK_V2_PROD_PASSWORD }}
+          CHES_USERNAME: ${{ secrets.CHES_USERNAME_PROD }}
+          CHES_PASSWORD: ${{ secrets.CHES_PASSWORD_PROD }}
+          VERIFY_USER_SECRET: ${{ secrets.VERIFY_USER_SECRET }}
+          BCSC_INITIAL_ACCESS_TOKEN_DEV: ${{ secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST }}
+          BCSC_INITIAL_ACCESS_TOKEN_TEST: ${{ secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST }}
+          BCSC_INITIAL_ACCESS_TOKEN_PROD: ${{ secrets.BCSC_INITIAL_ACCESS_TOKEN_PROD }}
+          REDIS_HOST: ${{ secrets.PROD_REDIS_HOST }}
+          SDX_CLIENT_ID: ${{ secrets.PROD_SDX_CLIENT_ID }}
+          SDX_CLIENT_SECRET: ${{ secrets.PROD_SDX_CLIENT_SECRET }}
+          RAG_CLIENT_ID: ${{ secrets.PROD_RAG_CLIENT_ID }}
+          RAG_CLIENT_SECRET: ${{ secrets.PROD_RAG_CLIENT_SECRET }}
+          MS_GRAPH_API_CLIENT_ID: ${{ secrets.PROD_MS_GRAPH_API_CLIENT_ID }}
+          MS_GRAPH_API_CLIENT_SECRET: ${{ secrets.PROD_MS_GRAPH_API_CLIENT_SECRET }}
+          OPENSHIFT_NAMESPACE: ${{ secrets.PROD_OPENSHIFT_NAMESPACE }}
         run: |
           cat >> $GITHUB_ENV <<EOF
           NEXT_PUBLIC_APP_ENV=production
@@ -203,34 +273,34 @@ jobs:
           NEXT_PUBLIC_INCLUDE_SDX_SERVICES=false
           NEXT_PUBLIC_INCLUDE_BCGOVIDIR=false
 
-          API_AUTH_SECRET=${{ secrets.API_AUTH_SECRET }}
-          GRAFANA_API_TOKEN=${{ secrets.PROD_GRAFANA_API_TOKEN }}
+          API_AUTH_SECRET=$API_AUTH_SECRET
+          GRAFANA_API_TOKEN=$GRAFANA_API_TOKEN
           KEYCLOAK_V2_DEV_URL=https://dev.loginproxy.gov.bc.ca
           KEYCLOAK_V2_TEST_URL=https://test.loginproxy.gov.bc.ca
           KEYCLOAK_V2_PROD_URL=https://loginproxy.gov.bc.ca
-          KEYCLOAK_V2_DEV_USERNAME=${{ secrets.PROD_KEYCLOAK_V2_DEV_USERNAME }}
-          KEYCLOAK_V2_DEV_PASSWORD=${{ secrets.PROD_KEYCLOAK_V2_DEV_PASSWORD }}
-          KEYCLOAK_V2_TEST_USERNAME=${{ secrets.PROD_KEYCLOAK_V2_TEST_USERNAME }}
-          KEYCLOAK_V2_TEST_PASSWORD=${{ secrets.PROD_KEYCLOAK_V2_TEST_PASSWORD }}
-          KEYCLOAK_V2_PROD_USERNAME=${{ secrets.PROD_KEYCLOAK_V2_PROD_USERNAME }}
-          KEYCLOAK_V2_PROD_PASSWORD=${{ secrets.PROD_KEYCLOAK_V2_PROD_PASSWORD }}
-          CHES_USERNAME=${{secrets.CHES_USERNAME_PROD}}
-          CHES_PASSWORD=${{secrets.CHES_PASSWORD_PROD}}
-          VERIFY_USER_SECRET=${{secrets.VERIFY_USER_SECRET}}
-          BCSC_INITIAL_ACCESS_TOKEN_DEV=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
-          BCSC_INITIAL_ACCESS_TOKEN_TEST=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_TEST}}
-          BCSC_INITIAL_ACCESS_TOKEN_PROD=${{secrets.BCSC_INITIAL_ACCESS_TOKEN_PROD}}
-          REDIS_HOST=${{secrets.PROD_REDIS_HOST}}
+          KEYCLOAK_V2_DEV_USERNAME=$KEYCLOAK_V2_DEV_USERNAME
+          KEYCLOAK_V2_DEV_PASSWORD=$KEYCLOAK_V2_DEV_PASSWORD
+          KEYCLOAK_V2_TEST_USERNAME=$KEYCLOAK_V2_TEST_USERNAME
+          KEYCLOAK_V2_TEST_PASSWORD=$KEYCLOAK_V2_TEST_PASSWORD
+          KEYCLOAK_V2_PROD_USERNAME=$KEYCLOAK_V2_PROD_USERNAME
+          KEYCLOAK_V2_PROD_PASSWORD=$KEYCLOAK_V2_PROD_PASSWORD
+          CHES_USERNAME=$CHES_USERNAME
+          CHES_PASSWORD=$CHES_PASSWORD
+          VERIFY_USER_SECRET=$VERIFY_USER_SECRET
+          BCSC_INITIAL_ACCESS_TOKEN_DEV=$BCSC_INITIAL_ACCESS_TOKEN_DEV
+          BCSC_INITIAL_ACCESS_TOKEN_TEST=$BCSC_INITIAL_ACCESS_TOKEN_TEST
+          BCSC_INITIAL_ACCESS_TOKEN_PROD=$BCSC_INITIAL_ACCESS_TOKEN_PROD
+          REDIS_HOST=$REDIS_HOST
           GRAFANA_API_URL=https://sso-grafana.apps.gold.devops.gov.bc.ca/api
-          SDX_CLIENT_ID=${{ secrets.PROD_SDX_CLIENT_ID }}
-          SDX_CLIENT_SECRET=${{ secrets.PROD_SDX_CLIENT_SECRET }}
-          RAG_CLIENT_ID=${{ secrets.PROD_RAG_CLIENT_ID }}
-          RAG_CLIENT_SECRET=${{ secrets.PROD_RAG_CLIENT_SECRET }}
+          SDX_CLIENT_ID=$SDX_CLIENT_ID
+          SDX_CLIENT_SECRET=$SDX_CLIENT_SECRET
+          RAG_CLIENT_ID=$RAG_CLIENT_ID
+          RAG_CLIENT_SECRET=$RAG_CLIENT_SECRET
 
-          MS_GRAPH_API_CLIENT_ID=${{ secrets.PROD_MS_GRAPH_API_CLIENT_ID }}
-          MS_GRAPH_API_CLIENT_SECRET=${{ secrets.PROD_MS_GRAPH_API_CLIENT_SECRET }}
+          MS_GRAPH_API_CLIENT_ID=$MS_GRAPH_API_CLIENT_ID
+          MS_GRAPH_API_CLIENT_SECRET=$MS_GRAPH_API_CLIENT_SECRET
 
-          OPENSHIFT_NAMESPACE=${{ secrets.PROD_OPENSHIFT_NAMESPACE }}
+          OPENSHIFT_NAMESPACE=$OPENSHIFT_NAMESPACE
           EOF
 
       - name: Log in to the GitHub Container registry
@@ -347,58 +417,71 @@ jobs:
           namespace: ${{ env.OPENSHIFT_NAMESPACE }}
 
       - name: Deploy app with Helm chart
+        env:
+          BCEID_SERVICE_BASIC_AUTH: ${{ secrets.BCEID_SERVICE_BASIC_AUTH }}
+          BCEID_SERVICE_ID: ${{ secrets.BCEID_SERVICE_ID }}
+          BCEID_WEB_SERVICE_URL: ${{ secrets.BCEID_WEB_SERVICE_URL }}
+          BCEID_REQUESTER_USER_GUID: ${{ secrets.BCEID_REQUESTER_USER_GUID }}
+          BCEID_SERVICE_ID_DEV: ${{ secrets.BCEID_SERVICE_ID_DEV }}
+          BCEID_SERVICE_ID_TEST: ${{ secrets.BCEID_SERVICE_ID_TEST }}
+          BCEID_SERVICE_ID_PROD: ${{ secrets.BCEID_SERVICE_ID_PROD }}
+          MS_GRAPH_API_AUTHORITY: ${{ secrets.MS_GRAPH_API_AUTHORITY }}
+          RC_SSO_OPS_WEBHOOK: ${{ secrets.RC_SSO_OPS_WEBHOOK }}
+          API_CERTIFICATE: ${{ secrets.API_CERTIFICATE }}
+          API_CA_CERTIFICATE: ${{ secrets.API_CA_CERTIFICATE }}
+          API_KEY: ${{ secrets.API_KEY }}
         run: |
-          namespace=${{ env.OPENSHIFT_NAMESPACE }}
+          namespace=$OPENSHIFT_NAMESPACE
           helm dep up
           helm upgrade --install --atomic sso-requests . -n ${namespace} \
           -f values.yaml -f "values-${namespace}.yaml" \
           --set image.tag="${{ needs.set-tag.outputs.tag }}" \
           --set cronJobs.image.tag="${{ needs.set-tag.outputs.tag }}" \
           --set api.image.tag="${{ needs.set-tag.outputs.tag }}" \
-          --set envVars.appUrl="${{ env.NEXT_PUBLIC_APP_URL }}" \
-          --set envVars.apiAuthSecret="${{ env.API_AUTH_SECRET }}" \
-          --set envVars.keycloakV2DevUsername="${{ env.KEYCLOAK_V2_DEV_USERNAME }}" \
-          --set envVars.keycloakV2DevPassword="${{ env.KEYCLOAK_V2_DEV_PASSWORD }}" \
-          --set envVars.keycloakV2ProdUsername="${{ env.KEYCLOAK_V2_PROD_USERNAME }}" \
-          --set envVars.keycloakV2ProdPassword="${{ env.KEYCLOAK_V2_PROD_PASSWORD }}" \
-          --set envVars.keycloakV2TestUsername="${{ env.KEYCLOAK_V2_TEST_USERNAME }}" \
-          --set envVars.keycloakV2TestPassword="${{ env.KEYCLOAK_V2_TEST_PASSWORD }}" \
-          --set envVars.chesUsername="${{ env.CHES_USERNAME }}" \
-          --set envVars.chesPassword="${{ env.CHES_PASSWORD }}" \
-          --set envVars.grafanaApiUrl="${{ env.GRAFANA_API_URL }}" \
-          --set envVars.grafanaApiToken="${{ env.GRAFANA_API_TOKEN }}" \
+          --set envVars.appUrl="$NEXT_PUBLIC_APP_URL" \
+          --set envVars.apiAuthSecret="$API_AUTH_SECRET" \
+          --set envVars.keycloakV2DevUsername="$KEYCLOAK_V2_DEV_USERNAME" \
+          --set envVars.keycloakV2DevPassword="$KEYCLOAK_V2_DEV_PASSWORD" \
+          --set envVars.keycloakV2ProdUsername="$KEYCLOAK_V2_PROD_USERNAME" \
+          --set envVars.keycloakV2ProdPassword="$KEYCLOAK_V2_PROD_PASSWORD" \
+          --set envVars.keycloakV2TestUsername="$KEYCLOAK_V2_TEST_USERNAME" \
+          --set envVars.keycloakV2TestPassword="$KEYCLOAK_V2_TEST_PASSWORD" \
+          --set envVars.chesUsername="$CHES_USERNAME" \
+          --set envVars.chesPassword="$CHES_PASSWORD" \
+          --set envVars.grafanaApiUrl="$GRAFANA_API_URL" \
+          --set envVars.grafanaApiToken="$GRAFANA_API_TOKEN" \
           --set envVars.trinoRetentionSchema="${{ vars.TRINO_RETENTION_SCHEMA }}" \
           --set envVars.trinoLiveSchema="${{ vars.TRINO_LIVE_SCHEMA }}" \
-          --set envVars.bceidServiceBasicAuth="${{ secrets.BCEID_SERVICE_BASIC_AUTH }}" \
-          --set envVars.bceidServiceId="${{ secrets.BCEID_SERVICE_ID }}" \
-          --set envVars.bceidWebServiceUrl="${{ secrets.BCEID_WEB_SERVICE_URL }}" \
-          --set envVars.bceidRequesterUserGuid="${{ secrets.BCEID_REQUESTER_USER_GUID }}" \
-          --set envVars.bceidServiceIdDev="${{ secrets.BCEID_SERVICE_ID_DEV }}" \
+          --set envVars.bceidServiceBasicAuth="$BCEID_SERVICE_BASIC_AUTH" \
+          --set envVars.bceidServiceId="$BCEID_SERVICE_ID" \
+          --set envVars.bceidWebServiceUrl="$BCEID_WEB_SERVICE_URL" \
+          --set envVars.bceidRequesterUserGuid="$BCEID_REQUESTER_USER_GUID" \
+          --set envVars.bceidServiceIdDev="$BCEID_SERVICE_ID_DEV" \
           --set envVars.bceidWebServiceUrlDev="${{ vars.BCEID_WEB_SERVICE_URL_DEV }}" \
-          --set envVars.bceidServiceIdTest="${{ secrets.BCEID_SERVICE_ID_TEST }}" \
+          --set envVars.bceidServiceIdTest="$BCEID_SERVICE_ID_TEST" \
           --set envVars.bceidWebServiceUrlTest="${{ vars.BCEID_WEB_SERVICE_URL_TEST }}" \
-          --set envVars.bceidServiceIdProd="${{ secrets.BCEID_SERVICE_ID_PROD }}" \
+          --set envVars.bceidServiceIdProd="$BCEID_SERVICE_ID_PROD" \
           --set envVars.bceidWebServiceUrlProd="${{ vars.BCEID_WEB_SERVICE_URL_PROD }}" \
-          --set envVars.msGraphApiAuthority="${{ secrets.MS_GRAPH_API_AUTHORITY }}" \
-          --set envVars.msGraphApiClientId="${{ env.MS_GRAPH_API_CLIENT_ID }}" \
-          --set envVars.msGraphApiClientSecret="${{ env.MS_GRAPH_API_CLIENT_SECRET }}" \
-          --set envVars.bcscInitialAccessTokenDev="${{ env.BCSC_INITIAL_ACCESS_TOKEN_DEV }}" \
-          --set envVars.bcscInitialAccessTokenProd="${{ env.BCSC_INITIAL_ACCESS_TOKEN_PROD }}" \
-          --set envVars.bcscInitialAccessTokenTest="${{ env.BCSC_INITIAL_ACCESS_TOKEN_TEST }}" \
-          --set envVars.redisHost="${{ env.REDIS_HOST }}" \
-          --set envVars.verifyUserSecret="${{ env.VERIFY_USER_SECRET }}" \
-          --set envVars.rcWebhookUrl="${{ secrets.RC_SSO_OPS_WEBHOOK }}" \
-          --set envVars.keycloakV2DevUrl="${{ env.KEYCLOAK_V2_DEV_URL }}" \
-          --set envVars.keycloakV2TestUrl="${{ env.KEYCLOAK_V2_TEST_URL }}" \
-          --set envVars.keycloakV2ProdUrl="${{ env.KEYCLOAK_V2_PROD_URL }}" \
-          --set api.route.apiVanityCertificate="${{ secrets.API_CERTIFICATE }}" \
-          --set api.route.apiVanityCaCertificate="${{ secrets.API_CA_CERTIFICATE }}" \
-          --set api.route.apiVanityKey="${{ secrets.API_KEY }}" \
-          --set backup-storage.env.WEBHOOK_URL.value="${{ secrets.RC_SSO_OPS_WEBHOOK }}" \
-          --set envVars.sdxClientId="${{ env.SDX_CLIENT_ID }}" \
-          --set envVars.sdxClientSecret="${{ env.SDX_CLIENT_SECRET }}" \
-          --set envVars.ragClientId="${{ env.RAG_CLIENT_ID }}" \
-          --set envVars.ragClientSecret="${{ env.RAG_CLIENT_SECRET }}" \
+          --set envVars.msGraphApiAuthority="$MS_GRAPH_API_AUTHORITY" \
+          --set envVars.msGraphApiClientId="$MS_GRAPH_API_CLIENT_ID" \
+          --set envVars.msGraphApiClientSecret="$MS_GRAPH_API_CLIENT_SECRET" \
+          --set envVars.bcscInitialAccessTokenDev="$BCSC_INITIAL_ACCESS_TOKEN_DEV" \
+          --set envVars.bcscInitialAccessTokenProd="$BCSC_INITIAL_ACCESS_TOKEN_PROD" \
+          --set envVars.bcscInitialAccessTokenTest="$BCSC_INITIAL_ACCESS_TOKEN_TEST" \
+          --set envVars.redisHost="$REDIS_HOST" \
+          --set envVars.verifyUserSecret="$VERIFY_USER_SECRET" \
+          --set envVars.rcWebhookUrl="$RC_SSO_OPS_WEBHOOK" \
+          --set envVars.keycloakV2DevUrl="$KEYCLOAK_V2_DEV_URL" \
+          --set envVars.keycloakV2TestUrl="$KEYCLOAK_V2_TEST_URL" \
+          --set envVars.keycloakV2ProdUrl="$KEYCLOAK_V2_PROD_URL" \
+          --set api.route.apiVanityCertificate="$API_CERTIFICATE" \
+          --set api.route.apiVanityCaCertificate="$API_CA_CERTIFICATE" \
+          --set api.route.apiVanityKey="$API_KEY" \
+          --set backup-storage.env.WEBHOOK_URL.value="$RC_SSO_OPS_WEBHOOK" \
+          --set envVars.sdxClientId="$SDX_CLIENT_ID" \
+          --set envVars.sdxClientSecret="$SDX_CLIENT_SECRET" \
+          --set envVars.ragClientId="$RAG_CLIENT_ID" \
+          --set envVars.ragClientSecret="$RAG_CLIENT_SECRET" \
           --timeout 15m
         working-directory: ./helm
 
@@ -406,6 +489,6 @@ jobs:
       - name: Rollout restart deployments
         if: (github.ref == 'refs/heads/dev' && github.event_name == 'push')
         run: |
-          oc rollout restart deployment/sso-requests-api -n ${{ env.OPENSHIFT_NAMESPACE }}
-          oc rollout restart deployment/sso-requests -n ${{ env.OPENSHIFT_NAMESPACE }}
-          oc rollout restart deployment/sso-requests-cron -n ${{ env.OPENSHIFT_NAMESPACE }}
+          oc rollout restart deployment/sso-requests-api -n "$OPENSHIFT_NAMESPACE"
+          oc rollout restart deployment/sso-requests -n "$OPENSHIFT_NAMESPACE"
+          oc rollout restart deployment/sso-requests-cron -n "$OPENSHIFT_NAMESPACE"

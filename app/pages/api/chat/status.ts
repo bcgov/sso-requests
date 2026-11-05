@@ -3,7 +3,7 @@ import { withApiLogging } from '@app/utils/api';
 import { chatConfig } from '@app/utils/chat-proxy';
 
 /** Read at runtime by the chat widget, so the assistant can be turned on or off per environment without a rebuild. */
-async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
+function handler(req: NextApiRequest, res: NextApiResponse): void {
   if (req.method === 'GET') {
     const { enabled, maxPromptLength } = chatConfig();
     res.status(200).json(enabled ? { enabled, maxPromptLength } : { enabled });
