@@ -36,7 +36,7 @@ function initMiddleware(
 export const logsRateLimiter = initMiddleware(
   rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    limit: parseInt(process.env.REDIS_RATE_LIMITER_LIMIT || '20'),
+    limit: Number.parseInt(process.env.REDIS_RATE_LIMITER_LIMIT || '20'),
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     keyGenerator: (req: any) => getClientIp(req),

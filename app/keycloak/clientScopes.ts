@@ -43,6 +43,7 @@ export const createClientScope = async (data: {
     realm: realmName,
     name: scopeName,
     protocol: data.protocol === 'oidc' ? 'openid-connect' : 'saml',
+    attributes: { 'include.in.token.scope': 'false' },
   });
 
   return kcAdminClient.clientScopes.findOneByName({
