@@ -19,8 +19,8 @@ Constraints that shaped the design:
 2. **The RAG API keeps history in a same-site cookie.** A conversation is keyed by an HttpOnly `strands_session` cookie
    (`SameSite=Lax`) plus an `X-Tab-Id` header. A browser does not send a `SameSite=Lax` cookie on a cross-site
    `fetch`, so calling the API from the CSS domain would lose the conversation on every message.
-3. **The RAG API has no authentication, and every message costs model tokens.** Nothing on the API Gateway limits who
-   calls it or how often.
+3. **The RAG API only accepts service callers, and every message costs model tokens.** It requires a bearer token
+   issued by Keycloak, but it can't tell which person a question comes from or limit how often each person asks.
 4. **The bottom-right corner is taken.** The satisfaction survey (`components/SurveyBox.tsx`) opens there.
 5. **The RAG API can't return a conversation.** It has `POST /chat`, `DELETE /chat` and `DELETE /chat/history`, but no
    endpoint to read stored messages back.
@@ -42,8 +42,9 @@ The browser only calls the app's own routes (`app/pages/api/chat/`), which forwa
 | `DELETE /api/chat/history` | `DELETE /chat/history` | Delete every conversation this user has in this browser.         |
 | `GET /api/chat/status`     | none                   | Whether the assistant is enabled, and the question length limit. |
 
-- Upstream requests are built from an allowlist: the session id (as `strands_session`), a valid `X-Tab-Id` and the
-  content headers. The user's bearer token, Keycloak cookies and other headers are never forwarded.
+- Upstream requests are built from an allowlist: the app's service-account token (section 2), the session id (as
+  `strands_session`), a valid `X-Tab-Id` and the content headers. The user's bearer token, Keycloak cookies and other
+  headers are never forwarded.
 - The SSE stream is piped through unchanged, including the RAG API's keepalive comments. The response sets
   `Cache-Control: no-cache, no-transform` (so compression doesn't buffer it) and `X-Accel-Buffering: no`.
 - If the client disconnects, the upstream request is aborted, so the agent stops working on an answer nobody will
@@ -51,14 +52,28 @@ The browser only calls the app's own routes (`app/pages/api/chat/`), which forwa
 - Failures before the stream starts return 502 with a friendly message. Failures after it starts are sent in-band as
   `{ "error": … }`, as the RAG API does.
 
-### 2. Signed-in users only
+### 2. Service-account token for the RAG API
+
+- The RAG API requires a Keycloak bearer token. The proxy gets one for its own service account with the
+  client-credentials grant (`utils/rag-token.ts`), from `RAG_TOKEN_URL` with `RAG_CLIENT_ID` and `RAG_CLIENT_SECRET`.
+  The token URL differs between the sandbox and production realms, so all three are configured per environment. The
+  client id and secret come from the chart's Secret (filled from the `<ENV>_RAG_CLIENT_ID` and
+  `<ENV>_RAG_CLIENT_SECRET` GitHub secrets), never from `values-*.yaml`.
+- The token is cached in memory and reused until 30 seconds before it expires. Concurrent requests that find it
+  expired share one fetch, so a busy pod doesn't flood Keycloak.
+- If the RAG API answers 401 (the token was revoked, or the secret rotated), the proxy drops the cached token, fetches
+  a new one and retries the call once. Nothing has run upstream at that point, so the retry is safe.
+- If Keycloak won't issue a token, the proxy returns 502 without calling the RAG API. The assistant stays disabled
+  (`/api/chat/status` reports `enabled: false`) until the token URL, client id and secret are all set.
+
+### 3. Signed-in users only
 
 - `POST /api/chat`, `DELETE /api/chat` and `DELETE /api/chat/history` call `authenticate()` and return 401 without a
   valid bearer token. `authenticate()` now also returns the token's `sub` claim.
 - The widget is rendered from `pages/_app.tsx` only when there is a Keycloak session and the user's profile has loaded
   (`session && user`), and it sends `Authorization` from `getAuthHeader()` on every call.
 
-### 3. Per-user rate limit and question length
+### 4. Per-user rate limit and question length
 
 - `chatRateLimiter` (`utils/rate-limiters.ts`) allows `CHATBOT_RATE_LIMIT` messages (default 10) per
   `CHATBOT_RATE_LIMIT_WINDOW_MS` (default one hour) per user. It is keyed on the token's `sub`, or the IDIR GUID if a
@@ -68,7 +83,7 @@ The browser only calls the app's own routes (`app/pages/api/chat/`), which forwa
   proxy rejects longer, empty or non-text prompts with 400.
 - Validation runs before the rate limit, so rejected questions don't use up the user's allowance.
 
-### 4. Session cookie, tied to the user
+### 5. Session cookie, tied to the user
 
 - The proxy keeps the upstream session id in its own cookie, `css_chat_session`: HttpOnly, `SameSite=Lax`, `Secure`
   on HTTPS, with its path limited to `/api/chat`. It mirrors the upstream cookie's lifetime and deletion.
@@ -77,7 +92,7 @@ The browser only calls the app's own routes (`app/pages/api/chat/`), which forwa
   starts a new conversation instead of continuing (and getting the context of) the previous user's.
 - Malformed cookie values and tab ids are dropped rather than forwarded.
 
-### 5. The widget
+### 6. The widget
 
 `components/ChatWidget/` keeps the sso-rag UI's behaviour, restyled with the app's components and theme:
 
@@ -101,13 +116,13 @@ The browser only calls the app's own routes (`app/pages/api/chat/`), which forwa
 `utils/chat/` holds code ported from the sso-rag UI: the SSE parser, the typewriter, and
 `stabilizeStreamingMarkdown`, which keeps half-received Markdown from flashing as raw syntax.
 
-### 6. Never alongside the survey
+### 7. Never alongside the survey
 
 `_app.tsx` passes `hidden={displaySurvey}`. While the survey is displayed, the launcher and the window are hidden. When
 the survey closes, the widget waits for its 500 ms collapse animation before reappearing, so the two never overlap.
 The widget stays mounted while hidden, so a conversation, or an answer still streaming, is not lost.
 
-### 7. History restored from `sessionStorage`
+### 8. History restored from `sessionStorage`
 
 Because the RAG API can't return a conversation (constraint 5), `useChat` keeps the messages on screen in
 `sessionStorage` (`utils/chat/history.ts`):
@@ -119,11 +134,11 @@ Because the RAG API can't return a conversation (constraint 5), `useChat` keeps 
 - Storage is capped at the last 50 messages. Restored entries are validated, and only `http(s)` source links are kept.
 - New chat, Delete history or another user signing in clears the stored copy, and closing the tab ends it.
 
-### 8. Configuration, logging and audit
+### 9. Configuration, logging and audit
 
-- `CHATBOT_ENABLED`, `RAG_API_URL`, `CHATBOT_RATE_LIMIT`, `CHATBOT_RATE_LIMIT_WINDOW_MS` and `CHATBOT_MAX_PROMPT_LENGTH`
-  are read at runtime from the `env:` map in `helm/values-*.yaml`, and the widget asks `/api/chat/status` whether to
-  show. The assistant can therefore be switched per environment without rebuilding the image. It is enabled in the
+- `CHATBOT_ENABLED`, `RAG_API_URL`, `RAG_TOKEN_URL`, `CHATBOT_RATE_LIMIT`, `CHATBOT_RATE_LIMIT_WINDOW_MS` and
+  `CHATBOT_MAX_PROMPT_LENGTH` are read at runtime from the `env:` map in `helm/values-*.yaml`, `RAG_CLIENT_ID` and
+  `RAG_CLIENT_SECRET` from the chart's Secret, and the widget asks `/api/chat/status` whether to show. The assistant can therefore be switched per environment without rebuilding the image. It is enabled in the
   sandbox namespaces and disabled in production until a production RAG endpoint exists.
 - The routes are wrapped in `withApiLogging`. They log metadata only (upstream status, prompt length, rate-limit hits),
   never question or answer text, cookie values or tokens.
@@ -135,7 +150,8 @@ Because the RAG API can't return a conversation (constraint 5), `useChat` keeps 
 ### Positive
 
 - Users get answers from the documentation without leaving the app, with sources to check them against.
-- The RAG API stays unchanged and unaware of the CSS app. The proxy adapts its cookie model to the app's domain.
+- The RAG API needs no changes for the CSS app: the proxy adapts its cookie model to the app's domain and calls it as
+  an ordinary service-account client.
 - The app's credentials and cookies never reach the RAG API, and conversations are isolated per user and per tab.
 - Model cost is bounded per user, and the assistant can be turned off per environment with one setting.
 - Behaviour is covered by tests: `jest/chat-widget.test.tsx` and `jest/chat-utils.test.ts` for the widget and helpers,
@@ -143,9 +159,12 @@ Because the RAG API can't return a conversation (constraint 5), `useChat` keeps 
 
 ### Negative and limitations
 
-- **The RAG API itself is still open.** The protections above apply only to traffic through the CSS app. Anyone who
-  knows the API Gateway URL can call it directly, with no limit. Restricting the gateway (for example with an API key
-  the proxy sends, or a resource policy) is a follow-up in sso-rag.
+- **The RAG API sees one caller.** Every question reaches it as the CSS service account, so it can't tell users
+  apart; the per-user limit and the login requirement exist only in the CSS proxy. Anyone holding the client secret
+  can call the RAG API directly without those limits, so the secret must be kept to the deployment's Secret and
+  rotated if exposed.
+- **Keycloak is now in the path.** If the token endpoint is down, the assistant answers with an "unavailable" error. A
+  rotated client secret takes effect only once the pods restart with the new Secret.
 - **IDIR users only.** `authenticate()` accepts only IDIR and Azure IDIR tokens with an email, like the rest of the
   app.
 - **History lives in the browser.** The restored conversation is per tab: it is not shared between tabs or devices

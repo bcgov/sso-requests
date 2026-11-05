@@ -66,20 +66,24 @@ Signed-in users see a chatbot, the CSS Assistant, in the bottom-right corner of 
   - The production CSP doesn't allow the page to call other origins, so the browser can't call the RAG API directly.
   - `/api/chat` and `/api/chat/history` require the user's bearer token and return 401 without it. `/api/chat/status` only reports whether the assistant is enabled.
   - The proxy keeps the RAG session in its own HttpOnly cookie (`css_chat_session`), tagged with a hash of the user it belongs to. Another user signing in on the same browser therefore starts a new conversation instead of continuing the previous user's.
-  - Only that session id and the `X-Tab-Id` header are sent to the RAG API, never this app's bearer token or other cookies.
+  - Only that session id and the `X-Tab-Id` header are sent to the RAG API, never the user's bearer token or this app's other cookies.
+  - The RAG API requires a Keycloak token. The proxy authenticates as its own service account (client credentials, `app/utils/rag-token.ts`), caches the token until shortly before it expires, and retries once with a fresh token if the RAG API answers 401.
 - Messages are rate limited per user, keyed on the token's `sub` claim (or the IDIR GUID if a token has none).
 
 | Variable                       | Default   | Description                                                                                                                                                                              |
 | ------------------------------ | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `CHATBOT_ENABLED`              | `false`   | `true` shows the widget and enables the proxy routes. When disabled, the routes return 404.                                                                                              |
 | `RAG_API_URL`                  |           | Base URL of the sso-rag API, including the API Gateway stage, e.g. `https://plpr40y2m0.execute-api.ca-central-1.amazonaws.com/sandbox/`. The chatbot stays disabled while this is empty. |
+| `RAG_TOKEN_URL`                |           | Keycloak token endpoint for the RAG service account, e.g. `https://sandbox.loginproxy.gov.bc.ca/auth/realms/standard/protocol/openid-connect/token` for the sandbox namespaces.          |
+| `RAG_CLIENT_ID`                |           | Client id of the RAG service account. Deployed from the `<ENV>_RAG_CLIENT_ID` GitHub secret through the chart's Secret, not `values-*.yaml`.                                             |
+| `RAG_CLIENT_SECRET`            |           | Client secret of the RAG service account. Deployed from the `<ENV>_RAG_CLIENT_SECRET` GitHub secret through the chart's Secret, not `values-*.yaml`.                                     |
 | `CHATBOT_RATE_LIMIT`           | `10`      | Messages allowed per user in each window. Stored in Redis when `REDIS_HOST` is set, otherwise in memory.                                                                                 |
 | `CHATBOT_RATE_LIMIT_WINDOW_MS` | `3600000` | Length of the rate-limit window, in milliseconds.                                                                                                                                        |
 | `CHATBOT_MAX_PROMPT_LENGTH`    | `500`     | Maximum characters per question. Enforced by both the widget and the proxy.                                                                                                              |
 
-These are server-side settings, read at runtime, so the chatbot can be turned on or off per environment in `helm/values-*.yaml` without rebuilding the image.
+These are server-side settings, read at runtime, so the chatbot can be turned on or off per environment in `helm/values-*.yaml` without rebuilding the image. The chatbot stays disabled until `RAG_API_URL`, `RAG_TOKEN_URL`, `RAG_CLIENT_ID` and `RAG_CLIENT_SECRET` are all set.
 
-To try it locally, add `CHATBOT_ENABLED=true` and `RAG_API_URL=<sandbox URL>` to `app/.env`, then log in.
+To try it locally, add `CHATBOT_ENABLED=true`, `RAG_API_URL`, `RAG_TOKEN_URL`, `RAG_CLIENT_ID` and `RAG_CLIENT_SECRET` (sandbox values) to `app/.env`, then log in. Keep the client secret out of version control.
 
 ## Local vs Docker setup
 

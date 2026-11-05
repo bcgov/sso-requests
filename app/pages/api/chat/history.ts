@@ -8,8 +8,8 @@ import {
   applyUpstreamSessionCookie,
   chatConfig,
   chatUserId,
+  fetchUpstream,
   upstreamHeaders,
-  upstreamUrl,
 } from '@app/utils/chat-proxy';
 
 const log = logger.child({ module: 'api/chat/history' });
@@ -32,7 +32,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void>
 
   if (req.method === 'DELETE') {
     try {
-      const upstream = await fetch(upstreamUrl('chat/history'), {
+      const upstream = await fetchUpstream('chat/history', {
         method: 'DELETE',
         headers: upstreamHeaders(req, userId),
       });

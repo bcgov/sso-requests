@@ -10,8 +10,8 @@ import {
   applyUpstreamSessionCookie,
   chatConfig,
   chatUserId,
+  fetchUpstream,
   upstreamHeaders,
-  upstreamUrl,
 } from '@app/utils/chat-proxy';
 
 const log = logger.child({ module: 'api/chat' });
@@ -54,7 +54,7 @@ async function sendMessage(req: NextApiRequest, res: NextApiResponse, userId: st
   try {
     let upstream: Response;
     try {
-      upstream = await fetch(upstreamUrl('chat'), {
+      upstream = await fetchUpstream('chat', {
         method: 'POST',
         headers: upstreamHeaders(req, userId, { 'Content-Type': 'application/json', Accept: 'text/event-stream' }),
         body: JSON.stringify({ prompt }),
@@ -104,7 +104,7 @@ async function sendMessage(req: NextApiRequest, res: NextApiResponse, userId: st
 
 async function resetConversation(req: NextApiRequest, res: NextApiResponse, userId: string) {
   try {
-    const upstream = await fetch(upstreamUrl('chat'), { method: 'DELETE', headers: upstreamHeaders(req, userId) });
+    const upstream = await fetchUpstream('chat', { method: 'DELETE', headers: upstreamHeaders(req, userId) });
     applyUpstreamSessionCookie(upstream, res, userId);
     if (!upstream.ok) {
       log.error({ upstreamStatus: upstream.status }, 'chat reset upstream returned an error');

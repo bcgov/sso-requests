@@ -8,10 +8,13 @@
  *
  * Only signed-in users can chat. The cookie is tied to the user it was issued to, so another user signing in on the
  * same browser starts a new conversation instead of continuing (and seeing the context of) the previous user's one.
+ *
+ * The RAG API itself only accepts calls with this app's service-account token (utils/rag-token.ts).
  */
 import { createHash } from 'node:crypto';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type { Session } from '@app/shared/interfaces';
+import { getRagAccessToken, invalidateRagAccessToken, ragTokenConfigured } from '@app/utils/rag-token';
 
 export const UPSTREAM_SESSION_COOKIE = 'strands_session';
 export const CHAT_SESSION_COOKIE = 'css_chat_session';
@@ -35,7 +38,8 @@ export const positiveInt = (value: string | undefined, fallback: number) => {
 export const chatConfig = () => {
   const ragApiUrl = (process.env.RAG_API_URL || '').trim();
   return {
-    enabled: process.env.CHATBOT_ENABLED === 'true' && ragApiUrl !== '',
+    // The RAG API rejects calls without a service-account token, so the assistant is off until one can be fetched.
+    enabled: process.env.CHATBOT_ENABLED === 'true' && ragApiUrl !== '' && ragTokenConfigured(),
     ragApiUrl,
     maxPromptLength: positiveInt(process.env.CHATBOT_MAX_PROMPT_LENGTH, DEFAULT_MAX_PROMPT_LENGTH),
   };
@@ -45,6 +49,28 @@ export const chatConfig = () => {
 export const upstreamUrl = (path: string) => {
   const base = chatConfig().ragApiUrl;
   return new URL(path, base.endsWith('/') ? base : `${base}/`).toString();
+};
+
+/**
+ * Calls the RAG API with the service-account token. If the RAG API rejects the token (401: revoked, or the client's
+ * secret was rotated), the cached token is dropped and the call is retried once with a new one; nothing has run
+ * upstream at that point, so the retry is safe. Throws if no token can be fetched.
+ */
+export const fetchUpstream = async (path: string, init: RequestInit & { headers: Record<string, string> }) => {
+  const send = async () => {
+    const token = await getRagAccessToken();
+    const response = await fetch(upstreamUrl(path), {
+      ...init,
+      headers: { ...init.headers, Authorization: `Bearer ${token}` },
+    });
+    return { response, token };
+  };
+
+  const first = await send();
+  if (first.response.status !== 401) return first.response;
+  invalidateRagAccessToken(first.token);
+  await first.response.body?.cancel().catch(() => undefined);
+  return (await send()).response;
 };
 
 export const validTabId = (req: NextApiRequest) => {

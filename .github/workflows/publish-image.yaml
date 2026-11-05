@@ -136,6 +136,8 @@ jobs:
           GRAFANA_API_URL=https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
           SDX_CLIENT_ID=${{ secrets.DEV_SDX_CLIENT_ID }}
           SDX_CLIENT_SECRET=${{ secrets.DEV_SDX_CLIENT_SECRET }}
+          RAG_CLIENT_ID=${{ secrets.DEV_RAG_CLIENT_ID }}
+          RAG_CLIENT_SECRET=${{ secrets.DEV_RAG_CLIENT_SECRET }}
 
           MS_GRAPH_API_CLIENT_ID=${{ secrets.DEV_MS_GRAPH_API_CLIENT_ID }}
           MS_GRAPH_API_CLIENT_SECRET=${{ secrets.DEV_MS_GRAPH_API_CLIENT_SECRET }}
@@ -178,6 +180,8 @@ jobs:
           GRAFANA_API_URL=https://sso-grafana-sandbox.apps.gold.devops.gov.bc.ca/api
           SDX_CLIENT_ID=${{ secrets.TEST_SDX_CLIENT_ID }}
           SDX_CLIENT_SECRET=${{ secrets.TEST_SDX_CLIENT_SECRET }}
+          RAG_CLIENT_ID=${{ secrets.TEST_RAG_CLIENT_ID }}
+          RAG_CLIENT_SECRET=${{ secrets.TEST_RAG_CLIENT_SECRET }}
 
           MS_GRAPH_API_CLIENT_ID=${{ secrets.DEV_MS_GRAPH_API_CLIENT_ID }}
           MS_GRAPH_API_CLIENT_SECRET=${{ secrets.DEV_MS_GRAPH_API_CLIENT_SECRET }}
@@ -220,6 +224,8 @@ jobs:
           GRAFANA_API_URL=https://sso-grafana.apps.gold.devops.gov.bc.ca/api
           SDX_CLIENT_ID=${{ secrets.PROD_SDX_CLIENT_ID }}
           SDX_CLIENT_SECRET=${{ secrets.PROD_SDX_CLIENT_SECRET }}
+          RAG_CLIENT_ID=${{ secrets.PROD_RAG_CLIENT_ID }}
+          RAG_CLIENT_SECRET=${{ secrets.PROD_RAG_CLIENT_SECRET }}
 
           MS_GRAPH_API_CLIENT_ID=${{ secrets.PROD_MS_GRAPH_API_CLIENT_ID }}
           MS_GRAPH_API_CLIENT_SECRET=${{ secrets.PROD_MS_GRAPH_API_CLIENT_SECRET }}
@@ -391,6 +397,8 @@ jobs:
           --set backup-storage.env.WEBHOOK_URL.value="${{ secrets.RC_SSO_OPS_WEBHOOK }}" \
           --set envVars.sdxClientId="${{ env.SDX_CLIENT_ID }}" \
           --set envVars.sdxClientSecret="${{ env.SDX_CLIENT_SECRET }}" \
+          --set envVars.ragClientId="${{ env.RAG_CLIENT_ID }}" \
+          --set envVars.ragClientSecret="${{ env.RAG_CLIENT_SECRET }}" \
           --timeout 15m
         working-directory: ./helm
 

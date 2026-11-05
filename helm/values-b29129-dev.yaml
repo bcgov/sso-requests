@@ -48,6 +48,8 @@ env:
   # CSS Assistant chatbot (proxied to the sso-rag API by app/pages/api/chat)
   CHATBOT_ENABLED: 'true'
   RAG_API_URL: 'https://plpr40y2m0.execute-api.ca-central-1.amazonaws.com/sandbox/'
+  # Keycloak token endpoint for the RAG service account; its client id and secret come from the chart's Secret.
+  RAG_TOKEN_URL: 'https://sandbox.loginproxy.gov.bc.ca/auth/realms/standard/protocol/openid-connect/token'
   CHATBOT_RATE_LIMIT: '10'
   CHATBOT_RATE_LIMIT_WINDOW_MS: '3600000'
   CHATBOT_MAX_PROMPT_LENGTH: '500'
