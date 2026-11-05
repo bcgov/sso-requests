@@ -9,6 +9,7 @@ import Head from 'next/head';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import SurveyBox from '@app/components/SurveyBox';
+import ChatWidget from '@app/components/ChatWidget';
 import { KeycloakTokenParsed } from 'keycloak-js';
 import keycloak from '@app/utils/keycloak';
 import { hasValidEmail } from '@app/utils/session';
@@ -203,6 +204,8 @@ function MyApp({ Component, pageProps }: AppProps) {
                 triggerEvent={surveyTriggerEvent}
               />
             )}
+            {/* Signed-in users only, and never alongside the survey box in the same corner. */}
+            {session && user && <ChatWidget userId={session.sub || String(user.id)} hidden={displaySurvey} />}
           </>
         )}
       </SurveyContext.Provider>

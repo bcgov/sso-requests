@@ -54,6 +54,33 @@ _**Note:** The defaults will get you up and running, but actual credentials are 
 
 These secrets and configuration variables can be requested from other team developers or found in the dev test and prod sandbox environments. `(dev., test.,'')sandbox.loginproxy.gov.bc.ca`.
 
+### CSS Assistant (chatbot)
+
+Signed-in users see a chatbot, the CSS Assistant, in the bottom-right corner of every page. It answers questions from the CSS documentation through the [sso-rag](https://github.com/bcgov/sso-rag) agent. The design, and its limitations, are recorded in [ADR 0003](adr/0003-css-assistant-chatbot.md).
+
+- The widget appears only once a user has logged in and their profile has loaded. It lives in `app/components/ChatWidget/` and is rendered from `app/pages/_app.tsx`.
+  - It is hidden while the survey box is displayed and comes back once the survey has closed, so the two never overlap.
+  - The conversation on screen is kept in `sessionStorage`, under the tab id the RAG API uses for it and tagged with the signed-in user (`app/utils/chat/history.ts`). A page refresh restores it in the same tab. New chat, Delete history or another user signing in clears it, and closing the tab ends it.
+  - The RAG API has no endpoint for reading a conversation back, so the browser copy is what's shown. If the RAG API has already discarded the conversation (it keeps them for 3 days), the restored messages stay on screen but the assistant no longer has them as context.
+- The browser only calls this app's `/api/chat`, `/api/chat/history` and `/api/chat/status` routes (`app/pages/api/chat/`). These routes proxy the requests to the RAG API and stream the answer back.
+  - The production CSP doesn't allow the page to call other origins, so the browser can't call the RAG API directly.
+  - `/api/chat` and `/api/chat/history` require the user's bearer token and return 401 without it. `/api/chat/status` only reports whether the assistant is enabled.
+  - The proxy keeps the RAG session in its own HttpOnly cookie (`css_chat_session`), tagged with a hash of the user it belongs to. Another user signing in on the same browser therefore starts a new conversation instead of continuing the previous user's.
+  - Only that session id and the `X-Tab-Id` header are sent to the RAG API, never this app's bearer token or other cookies.
+- Messages are rate limited per user, keyed on the token's `sub` claim (or the IDIR GUID if a token has none).
+
+| Variable                       | Default   | Description                                                                                                                                                                              |
+| ------------------------------ | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CHATBOT_ENABLED`              | `false`   | `true` shows the widget and enables the proxy routes. When disabled, the routes return 404.                                                                                              |
+| `RAG_API_URL`                  |           | Base URL of the sso-rag API, including the API Gateway stage, e.g. `https://plpr40y2m0.execute-api.ca-central-1.amazonaws.com/sandbox/`. The chatbot stays disabled while this is empty. |
+| `CHATBOT_RATE_LIMIT`           | `10`      | Messages allowed per user in each window. Stored in Redis when `REDIS_HOST` is set, otherwise in memory.                                                                                 |
+| `CHATBOT_RATE_LIMIT_WINDOW_MS` | `3600000` | Length of the rate-limit window, in milliseconds.                                                                                                                                        |
+| `CHATBOT_MAX_PROMPT_LENGTH`    | `500`     | Maximum characters per question. Enforced by both the widget and the proxy.                                                                                                              |
+
+These are server-side settings, read at runtime, so the chatbot can be turned on or off per environment in `helm/values-*.yaml` without rebuilding the image.
+
+To try it locally, add `CHATBOT_ENABLED=true` and `RAG_API_URL=<sandbox URL>` to `app/.env`, then log in.
+
 ## Local vs Docker setup
 
 You could run the apps locally on your host machine using npm commands or in your docker environment using docker compose

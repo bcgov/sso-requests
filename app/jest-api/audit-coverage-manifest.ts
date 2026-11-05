@@ -9,6 +9,8 @@ export type CoverageEntry = { actions: string[] } | { unaudited: string };
 const READ_AS_POST = 'A read sent as POST: nothing changes.';
 const USER_IMPORT =
   'Imports an IDIR user into Keycloak ahead of a role grant. The grant itself is audited (role-assign); the import is not.';
+const CHAT_PROXY =
+  'Proxies a signed-in user to the CSS Assistant (sso-rag). Its chat history is kept by that service; no CSS resource changes.';
 
 export const AUDIT_COVERAGE: Record<string, CoverageEntry> = {
   // Integrations
@@ -73,6 +75,11 @@ export const AUDIT_COVERAGE: Record<string, CoverageEntry> = {
   'POST /api/surveys': { unaudited: 'A satisfaction survey response, not a change to any resource.' },
   'POST /api/bceid-webservice/idir/import': { unaudited: USER_IMPORT },
   'POST /api/ms-graph/idir/import': { unaudited: USER_IMPORT },
+
+  // CSS Assistant (documentation chatbot)
+  'POST /api/chat': { unaudited: CHAT_PROXY },
+  'DELETE /api/chat': { unaudited: CHAT_PROXY },
+  'DELETE /api/chat/history': { unaudited: CHAT_PROXY },
 
   // Writes made by scheduled jobs through GET
   'GET /api/processRequestQueue': {
