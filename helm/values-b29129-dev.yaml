@@ -52,7 +52,7 @@ env:
   RAG_TOKEN_URL: 'https://sandbox.loginproxy.gov.bc.ca/auth/realms/standard/protocol/openid-connect/token'
   CHATBOT_RATE_LIMIT: '10'
   CHATBOT_RATE_LIMIT_WINDOW_MS: '3600000'
-  CHATBOT_MAX_PROMPT_LENGTH: '500'
+  CHATBOT_MAX_PROMPT_LENGTH: '200'
 
 envVars: {}
 
