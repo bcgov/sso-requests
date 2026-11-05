@@ -53,6 +53,7 @@ const validateJWTSignature = async (token: string): Promise<Session | boolean> =
     // jwt.verify throws error if invalid
     // If setting ignoreExpiration to true, you can control the maxAge on the backend
     const {
+      sub,
       identity_provider,
       idir_user_guid: idir_userid,
       email,
@@ -72,7 +73,7 @@ const validateJWTSignature = async (token: string): Promise<Session | boolean> =
       throw new createHttpError.Unauthorized('invalid email claim in token');
     }
 
-    return { idir_userid, email, client_roles: client_roles || [], family_name, given_name, bearerToken: '' };
+    return { idir_userid, sub, email, client_roles: client_roles || [], family_name, given_name, bearerToken: '' };
   } catch (err) {
     // Expired and malformed tokens land here on every stale browser tab, so this is not an error.
     log.warn({ err }, 'rejected bearer token');

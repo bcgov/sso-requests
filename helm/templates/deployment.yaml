@@ -201,6 +201,16 @@ spec:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
                   key: sdx-client-secret
+            - name: RAG_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: rag-client-id
+            - name: RAG_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: rag-client-secret
             {{- range $key, $val := .Values.env }}
             - name: {{  $key | quote | upper }}
               value: {{ $val | quote }}
