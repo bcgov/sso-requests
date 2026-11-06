@@ -45,7 +45,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@azure/msal-node": "^5.5.0",
+    "@azure/msal-node": "^7.1.2",
     "@types/cors": "^2.8.19",
     "ajv": "^8.18.0",
     "ajv-errors": "^3.0.0",
