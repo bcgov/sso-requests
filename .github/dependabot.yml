@@ -5,8 +5,7 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
-      interval: 'cron'
-      cron: 'weekly'
+      interval: 'weekly'
     open-pull-requests-limit: 3
     commit-message:
       prefix: 'chore'
@@ -23,8 +22,7 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/app'
     schedule:
-      interval: 'cron'
-      cron: 'weekly'
+      interval: 'weekly'
     open-pull-requests-limit: 3
     commit-message:
       prefix: 'chore'
@@ -41,8 +39,7 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/api'
     schedule:
-      interval: 'cron'
-      cron: 'weekly'
+      interval: 'weekly'
     open-pull-requests-limit: 3
     commit-message:
       prefix: 'chore'
@@ -59,8 +56,7 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/cron'
     schedule:
-      interval: 'cron'
-      cron: 'weekly'
+      interval: 'weekly'
     open-pull-requests-limit: 3
     commit-message:
       prefix: 'chore'
@@ -77,8 +73,7 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/db'
     schedule:
-      interval: 'cron'
-      cron: 'weekly'
+      interval: 'weekly'
     open-pull-requests-limit: 3
     commit-message:
       prefix: 'chore'
@@ -95,8 +90,7 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/role-migration'
     schedule:
-      interval: 'cron'
-      cron: 'weekly'
+      interval: 'weekly'
     open-pull-requests-limit: 3
     commit-message:
       prefix: 'chore'
@@ -113,8 +107,7 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/packages/audit'
     schedule:
-      interval: 'cron'
-      cron: 'weekly'
+      interval: 'weekly'
     open-pull-requests-limit: 3
     commit-message:
       prefix: 'chore'
@@ -131,8 +124,7 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/packages/authz'
     schedule:
-      interval: 'cron'
-      cron: 'weekly'
+      interval: 'weekly'
     open-pull-requests-limit: 3
     commit-message:
       prefix: 'chore'
@@ -149,8 +141,7 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/packages/logs-query'
     schedule:
-      interval: 'cron'
-      cron: 'weekly'
+      interval: 'weekly'
     open-pull-requests-limit: 3
     commit-message:
       prefix: 'chore'
@@ -168,8 +159,7 @@ updates:
   - package-ecosystem: 'docker'
     directory: '/'
     schedule:
-      interval: 'cron'
-      cron: 'weekly'
+      interval: 'weekly'
     open-pull-requests-limit: 3
     commit-message:
       prefix: 'chore'
@@ -186,8 +176,7 @@ updates:
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
-      interval: 'cron'
-      cron: 'weekly'
+      interval: 'weekly'
     open-pull-requests-limit: 3
     commit-message:
       prefix: 'chore'
