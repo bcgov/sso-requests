@@ -16,7 +16,7 @@
     "@types/node": "^22.0.0",
     "jest": "^30.3.0",
     "ts-jest": "^29.4.9",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "resolutions": {
     "brace-expansion": ">=5.0.11"
