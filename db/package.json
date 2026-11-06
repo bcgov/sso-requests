@@ -22,7 +22,7 @@
     "pino": "^10.4.0",
     "sequelize": "^6.37.8",
     "tsc-alias": "^1.8.16",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.2",
     "umzug": "^3.1.1"
   }
 }
