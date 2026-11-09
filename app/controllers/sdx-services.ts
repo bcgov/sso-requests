@@ -67,18 +67,24 @@ export const getSdxServicesForClient = async (
   };
 
   try {
-    for (const env of Object.values(envs)) {
-      const response = await fetch(
-        `${process.env.SDX_API || ''}/integrations/${current?.id}/allowed-services?environment=${env}&status=${status}`,
-        {
-          headers: {
-            Authorization: `Bearer ${await getToken()}`,
+    const token = await getToken();
+    const resourceServersByEnvironment = await Promise.all(
+      Object.values(envs).map((env) =>
+        fetch(
+          `${process.env.SDX_API || ''}/integrations/${
+            current?.id
+          }/allowed-services?environment=${env}&status=${status}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           },
-        },
-      );
-      const resourceServers = (await response.json()).resourceServers as SDXResourceServer[];
-      data.resourceServers.push(...resourceServers);
-    }
+        )
+          .then((response) => response.json())
+          .then((response) => response.resourceServers as SDXResourceServer[]),
+      ),
+    );
+    data.resourceServers.push(...resourceServersByEnvironment.flat());
     return data;
   } catch (err) {
     log.error({ err }, 'Error fetching SDX services');
@@ -88,17 +94,18 @@ export const getSdxServicesForClient = async (
 
 export const listSdxResourceServers = async (): Promise<SDXResourceServer[]> => {
   try {
-    let resourceServers: SDXResourceServer[] = [];
-
-    for (const env of Object.values(getSdxEnvironments())) {
-      const response = await fetch(`${process.env.SDX_API || ''}/resource-servers?environment=${env}`, {
-        headers: {
-          Authorization: `Bearer ${await getToken()}`,
-        },
-      });
-      resourceServers.push(...(await response.json()));
-    }
-    return resourceServers;
+    const token = await getToken();
+    const resourceServersByEnvironment = await Promise.all(
+      Object.values(getSdxEnvironments()).map(async (env) => {
+        const response = await fetch(`${process.env.SDX_API || ''}/resource-servers?environment=${env}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        return (await response.json()) as SDXResourceServer[];
+      }),
+    );
+    return resourceServersByEnvironment.flat();
   } catch (err) {
     log.error({ err }, 'Error fetching SDX resource servers');
     throw new Error('Failed to fetch SDX resource servers');
@@ -160,13 +167,15 @@ const removeSdxAccessByScopes = async (clientId: string, environment: string, sc
 
   const scopesToRemove = scopes.filter((scope) => existingScopeNames.has(scope));
 
-  for (const scope of scopesToRemove) {
-    await kcAdminClient.clients.delDefaultClientScope({
-      id: client.id!,
-      realm: 'standard',
-      clientScopeId: existingScopes.find((s) => s.name === scope)?.id!,
-    });
-  }
+  await Promise.all(
+    scopesToRemove.map((scope) =>
+      kcAdminClient.clients.delDefaultClientScope({
+        id: client.id!,
+        realm: 'standard',
+        clientScopeId: existingScopes.find((s) => s.name === scope)?.id!,
+      }),
+    ),
+  );
 };
 
 const removeSdxAccessFromKeycloak = async (clientId: string, environment: string, scopes: string[]) => {
@@ -239,12 +248,15 @@ export const createSdxRequest = async (session: Session, request: Integration) =
       if (subSystem?.status === 'registered') {
         const existingSdxAccess = await getSdxServicesForClient(session, request.id!, 'approved');
         const removedScopesByEnv = getRemovedScopes(existingSdxAccess.resourceServers, resourceServers);
-        for (const [sdxEnvironment, scopes] of Object.entries(removedScopesByEnv)) {
-          await removeSdxAccessFromKeycloak(existingSdxAccess.clientId, sdxEnvironment, scopes);
-        }
+        await Promise.all(
+          Object.entries(removedScopesByEnv).map(([sdxEnvironment, scopes]) =>
+            removeSdxAccessFromKeycloak(existingSdxAccess.clientId, sdxEnvironment, scopes),
+          ),
+        );
       }
     }
   } catch (error) {
+    console.error('Error creating SDX request:', error);
     throw error;
   }
 
@@ -274,13 +286,14 @@ const initializeScopes = async (resourceServers: SDXResourceServer[]) => {
     }
   }
 
-  for (const [environment, scopes] of Object.entries(sdxScopes)) {
-    if (isProductionSdxEnvironment(environment)) {
-      await keycloakSyncScopes('prod', 'standard', Array.from(scopes));
-    } else {
-      await Promise.all(['dev', 'test'].map((env) => keycloakSyncScopes(env, 'standard', Array.from(scopes))));
-    }
-  }
+  await Promise.all(
+    Object.entries(sdxScopes).map(([environment, scopes]) => {
+      if (isProductionSdxEnvironment(environment)) {
+        return keycloakSyncScopes('prod', 'standard', Array.from(scopes));
+      }
+      return Promise.all(['dev', 'test'].map((env) => keycloakSyncScopes(env, 'standard', Array.from(scopes))));
+    }),
+  );
 };
 
 const keycloakSyncScopes = async (environment: string, realmName: string, scopes: string[]) => {
@@ -292,27 +305,29 @@ const keycloakSyncScopes = async (environment: string, realmName: string, scopes
     clientId: tokenExchangerClientId,
   });
 
-  for (const scopeName of scopes) {
-    let scopeId = null;
-    if (!existingScopeNames.has(scopeName)) {
-      const scope = await kcAdminClient.clientScopes.create({
-        realm: realmName,
-        name: scopeName,
-        protocol: 'openid-connect',
-      });
-      scopeId = scope.id!;
-    } else {
-      scopeId = existingScopes.find((scope) => scope.name === scopeName)?.id || null;
-    }
+  await Promise.all(
+    scopes.map(async (scopeName) => {
+      let scopeId = null;
+      if (!existingScopeNames.has(scopeName)) {
+        const scope = await kcAdminClient.clientScopes.create({
+          realm: realmName,
+          name: scopeName,
+          protocol: 'openid-connect',
+        });
+        scopeId = scope.id!;
+      } else {
+        scopeId = existingScopes.find((scope) => scope.name === scopeName)?.id || null;
+      }
 
-    if (kongClient && kongClient.length > 0 && scopeId) {
-      await kcAdminClient.clients.addOptionalClientScope({
-        id: kongClient[0].id!,
-        realm: realmName,
-        clientScopeId: scopeId,
-      });
-    }
-  }
+      if (kongClient && kongClient.length > 0 && scopeId) {
+        await kcAdminClient.clients.addOptionalClientScope({
+          id: kongClient[0].id!,
+          realm: realmName,
+          clientScopeId: scopeId,
+        });
+      }
+    }),
+  );
 };
 
 export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAccessRequest) => {
@@ -345,20 +360,26 @@ export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAcce
     },
     async () => {
       if (data.resourceServers && data.resourceServers.length > 0) {
+        const scopesByEnvironment = new Map<string, Set<string>>();
         for (const rs of data.resourceServers) {
           for (const service of rs.services || []) {
             if (service.scopes && service.scopes.length > 0) {
-              const scopes = service.scopes.map(getScopeLabel);
-              if (isProductionSdxEnvironment(rs.environment)) {
-                await manageKeycloakScopes(integrationData.clientId, 'prod', scopes);
-              } else {
-                await Promise.all(
-                  ['dev', 'test'].map(async (env) => await manageKeycloakScopes(integrationData.clientId, env, scopes)),
-                );
+              const environments = isProductionSdxEnvironment(rs.environment) ? ['prod'] : ['dev', 'test'];
+              for (const environment of environments) {
+                const scopes = scopesByEnvironment.get(environment) || new Set<string>();
+                for (const scope of service.scopes.map(getScopeLabel)) {
+                  scopes.add(scope);
+                }
+                scopesByEnvironment.set(environment, scopes);
               }
             }
           }
         }
+        await Promise.all(
+          Array.from(scopesByEnvironment, ([environment, scopes]) =>
+            manageKeycloakScopes(integrationData.clientId, environment, Array.from(scopes)),
+          ),
+        );
       }
     },
   );
@@ -395,24 +416,28 @@ export const manageKeycloakScopes = async (clientId: string, environment: string
   const scopesToRemove = sdxAssignedScopes.filter((scope) => !scopes.includes(scope));
 
   if (scopesToRemove.length > 0) {
-    for (const scope of scopesToRemove) {
-      await kcAdminClient.clients.delDefaultClientScope({
-        id: client.id!,
-        realm: 'standard',
-        clientScopeId: allKeycloakScopes.find((s) => s.name === scope)?.id!,
-      });
-    }
+    await Promise.all(
+      scopesToRemove.map((scope) =>
+        kcAdminClient.clients.delDefaultClientScope({
+          id: client.id!,
+          realm: 'standard',
+          clientScopeId: allKeycloakScopes.find((s) => s.name === scope)?.id!,
+        }),
+      ),
+    );
   }
 
   const scopesToAdd = scopes.filter((scope) => !allAssignedScopesNames.has(scope));
 
-  for (const scope of scopesToAdd) {
-    await kcAdminClient.clients.addOptionalClientScope({
-      id: client.id!,
-      realm: 'standard',
-      clientScopeId: allKeycloakScopes.find((s) => s.name === scope)?.id!,
-    });
-  }
+  await Promise.all(
+    scopesToAdd.map((scope) =>
+      kcAdminClient.clients.addOptionalClientScope({
+        id: client.id!,
+        realm: 'standard',
+        clientScopeId: allKeycloakScopes.find((s) => s.name === scope)?.id!,
+      }),
+    ),
+  );
 
   const kongClient = await kcAdminClient.clients.find({
     realm: 'standard',
