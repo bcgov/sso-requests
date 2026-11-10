@@ -7,9 +7,13 @@ updates:
     schedule:
       interval: 'weekly'
     open-pull-requests-limit: 3
+    rebase-strategy: 'auto'
     commit-message:
       prefix: 'chore'
       include: 'scope'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       npm-dependencies:
         patterns:
@@ -24,9 +28,13 @@ updates:
     schedule:
       interval: 'weekly'
     open-pull-requests-limit: 3
+    rebase-strategy: 'auto'
     commit-message:
       prefix: 'chore'
       include: 'scope'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       npm-dependencies:
         patterns:
@@ -41,9 +49,13 @@ updates:
     schedule:
       interval: 'weekly'
     open-pull-requests-limit: 3
+    rebase-strategy: 'auto'
     commit-message:
       prefix: 'chore'
       include: 'scope'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       npm-dependencies:
         patterns:
@@ -58,9 +70,13 @@ updates:
     schedule:
       interval: 'weekly'
     open-pull-requests-limit: 3
+    rebase-strategy: 'auto'
     commit-message:
       prefix: 'chore'
       include: 'scope'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       npm-dependencies:
         patterns:
@@ -75,9 +91,13 @@ updates:
     schedule:
       interval: 'weekly'
     open-pull-requests-limit: 3
+    rebase-strategy: 'auto'
     commit-message:
       prefix: 'chore'
       include: 'scope'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       npm-dependencies:
         patterns:
@@ -92,9 +112,13 @@ updates:
     schedule:
       interval: 'weekly'
     open-pull-requests-limit: 3
+    rebase-strategy: 'auto'
     commit-message:
       prefix: 'chore'
       include: 'scope'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       npm-dependencies:
         patterns:
@@ -109,9 +133,13 @@ updates:
     schedule:
       interval: 'weekly'
     open-pull-requests-limit: 3
+    rebase-strategy: 'auto'
     commit-message:
       prefix: 'chore'
       include: 'scope'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       npm-dependencies:
         patterns:
@@ -126,9 +154,13 @@ updates:
     schedule:
       interval: 'weekly'
     open-pull-requests-limit: 3
+    rebase-strategy: 'auto'
     commit-message:
       prefix: 'chore'
       include: 'scope'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       npm-dependencies:
         patterns:
@@ -143,9 +175,13 @@ updates:
     schedule:
       interval: 'weekly'
     open-pull-requests-limit: 3
+    rebase-strategy: 'auto'
     commit-message:
       prefix: 'chore'
       include: 'scope'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       npm-dependencies:
         patterns:
@@ -161,9 +197,13 @@ updates:
     schedule:
       interval: 'weekly'
     open-pull-requests-limit: 3
+    rebase-strategy: 'auto'
     commit-message:
       prefix: 'chore'
       include: 'scope'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       docker-dependencies:
         patterns:
@@ -178,9 +218,13 @@ updates:
     schedule:
       interval: 'weekly'
     open-pull-requests-limit: 3
+    rebase-strategy: 'auto'
     commit-message:
       prefix: 'chore'
       include: 'scope'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       github-actions:
         patterns:
