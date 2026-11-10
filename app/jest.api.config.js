@@ -24,7 +24,8 @@ module.exports = {
   testSequencer: '<rootDir>/jest-api/testSequencer.js',
   globalSetup: '<rootDir>/jest-api/global-setup.js',
   testPathIgnorePatterns: ['/node_modules/', '/build/', '<rootDir>/jest-api/helpers/fixtures.ts'],
-  transformIgnorePatterns: ['/node_modules/(?!(@keycloak|url-join|url-template|camelize-ts)/)'],
+  // @microsoft/kiota-* is keycloak-admin-client's http layer; ships ES modules only.
+  transformIgnorePatterns: ['/node_modules/(?!(@keycloak|@microsoft/kiota-.*|url-join|url-template|camelize-ts)/)'],
   moduleNameMapper: {
     '^@app/(.*)$': '<rootDir>/$1',
     '^@sso/authz$': '<rootDir>/../packages/authz/src',

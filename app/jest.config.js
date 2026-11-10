@@ -23,6 +23,8 @@ module.exports = {
     `<rootDir>/node_modules/(?!(${[
       '@rjsf',
       '@keycloak',
+      // keycloak-admin-client's http layer; ships ES modules only.
+      '@microsoft/kiota-.*',
       'url-join',
       'url-template',
       'camelize-ts',

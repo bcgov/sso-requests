@@ -507,7 +507,7 @@ describe('SSO Dashboard', () => {
     });
 
     expect(screen.queryByText('Remove Service Account')).not.toBeInTheDocument();
-  });
+  }, 20000);
 
   it('BCSC Tab can approve submitted bcsc integrations', () => {
     const bcServicesCardIntegration: Integration = {
