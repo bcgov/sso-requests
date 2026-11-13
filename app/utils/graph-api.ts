@@ -273,6 +273,10 @@ function invalidateAzureAccessToken(): void {
 
 /** Search for an idir email address. Lookup uses the "startswith" function so expects the beggining of the address. */
 export const searchIdirEmail = async (email: string) => {
+  // Local/e2e environments have no MS Graph access; return the configured test account instead.
+  if (process.env.MOCK_IDIR_LOOKUP_EMAIL) {
+    return [{ mail: process.env.MOCK_IDIR_LOOKUP_EMAIL, id: 1 }];
+  }
   if (process.env.CYPRESS_RUNNER) {
     return CYPRESS_MOCKED_IDIR_LOOKUP;
   }

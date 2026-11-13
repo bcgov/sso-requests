@@ -660,6 +660,49 @@ describe('Client Sessions', () => {
   });
 });
 
+/**
+ * Which Basic Info fields the schema shows for each protocol/usecase. These rules used to be exercised only implicitly
+ * by the e2e suite re-implementing them; they belong here. The e2e suite (e2e/) only checks what gets provisioned.
+ */
+describe('Basic Info - fields by protocol and usecase', () => {
+  const fields = {
+    usecase: 'Select Usecase',
+    clientType: 'Select Client Type',
+    idps: 'Choose Identity Provider(s)',
+    roleAttribute: 'Additional Role Attribute (optional)',
+  };
+  type Field = keyof typeof fields;
+
+  it.each<[string, Partial<Integration>, Field[]]>([
+    [
+      'OIDC browser login',
+      { protocol: 'oidc', authType: 'browser-login', devIdps: ['githubbcgov'] },
+      ['usecase', 'clientType', 'idps', 'roleAttribute'],
+    ],
+    ['OIDC service account', { protocol: 'oidc', authType: 'service-account', devIdps: [] }, ['usecase']],
+    [
+      'OIDC browser login and service account',
+      { protocol: 'oidc', authType: 'both', devIdps: ['githubbcgov'] },
+      ['usecase', 'idps', 'roleAttribute'],
+    ],
+    ['SAML', { protocol: 'saml', authType: 'browser-login', devIdps: ['githubbcgov'] }, ['idps']],
+    [
+      'OIDC with only non role-assignable IdPs',
+      { protocol: 'oidc', authType: 'browser-login', devIdps: ['digitalcredential'] },
+      ['usecase', 'clientType', 'idps'],
+    ],
+  ])('%s shows exactly the expected fields', async (_, request, shown) => {
+    setUpRender({ id: 0, serviceType: 'gold', status: 'draft', environments: ['dev'], ...request });
+    fireEvent.click(sandbox.basicInfoBox);
+    await screen.findByText('Select Client Protocol', { exact: false });
+
+    for (const [field, title] of Object.entries(fields) as [Field, string][]) {
+      const present = screen.queryAllByText(title, { exact: false }).length > 0;
+      expect({ field, present }).toEqual({ field, present: shown.includes(field) });
+    }
+  });
+});
+
 describe('Basic Info - Identity Providers', () => {
   it('should be able to change/unselect BCeID type in draft', async () => {
     const { getByText } = setUpRender({

@@ -1,0 +1,24 @@
+# Overrides for running the Playwright e2e suite (see e2e/README.md).
+#
+#   docker compose -f docker-compose.yml -f docker-compose.e2e.yml up -d --build
+#
+# The app logs in against the local dev keycloak (`css-app-e2e` client, seeded by local/terraform/e2e.tf) instead of
+# dev.loginproxy + Azure IDIR, so no external IdP or credentials are needed.
+#
+# `dev-keycloak.localtest.me` resolves to 127.0.0.1 from the host (public DNS) and to the keycloak container from inside
+# the compose network (network alias), so the browser, the test runner and the app server all see the same token issuer.
+x-e2e-sso: &e2e-sso
+  NEXT_PUBLIC_SSO_URL: http://dev-keycloak.localtest.me:9080/auth
+  NEXT_PUBLIC_SSO_CLIENT_ID: css-app-e2e
+  NEXT_PUBLIC_SSO_IDP_HINT: ''
+  NEXT_PUBLIC_SSO_CONFIGURATION_ENDPOINT: http://dev-keycloak.localtest.me:9080/auth/realms/standard/.well-known/openid-configuration
+
+services:
+  sso-requests:
+    image: sso-requests:e2e
+    build:
+      args: *e2e-sso
+    environment:
+      <<: *e2e-sso
+      # IDIR lookups (e.g. adding a team member) return the seeded additional user instead of calling MS Graph.
+      MOCK_IDIR_LOOKUP_EMAIL: e2e.additional-user@gov.bc.ca

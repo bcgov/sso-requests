@@ -1,0 +1,19 @@
+{
+  "name": "sso-requests-e2e",
+  "private": true,
+  "description": "Playwright end-to-end tests for the CSS app. See README.md.",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test:ci": "playwright test --project=ci",
+    "test:live": "playwright test --project=live",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@keycloak/keycloak-admin-client": "26.8.2",
+    "@playwright/test": "1.64.1",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.3"
+  },
+  "type": "module"
+}

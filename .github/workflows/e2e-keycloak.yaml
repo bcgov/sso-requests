@@ -138,3 +138,57 @@ jobs:
             cypress/e2e/external/integration-roles.cy.ts
             cypress/e2e/ci/integrations-crud.cy.ts
           browser: electron
+
+  # Playwright live tier (e2e/tests/live): real IdP logins and SSO sessions against sandbox.
+  # Runs alongside the Cypress jobs until it has proven stable; see e2e/README.md.
+  # playwright-live:
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 60
+  #   env:
+  #     CI: true
+  #   steps:
+  #     - name: Mask sensitive user fields
+  #       shell: bash
+  #       env:
+  #         E2E_LIVE_USERS: ${{ secrets.CYPRESS_USERS }}
+  #       run: |
+  #         set -euo pipefail
+  #         encoded=$(jq -r '.[] | (.username, .password, .otpsecret, .email)
+  #                          | select(. != null and . != "") | @base64' <<< "$E2E_LIVE_USERS")
+  #         if [ -z "$encoded" ]; then
+  #           echo "::error::No credentials found to mask; refusing to run with unmasked secrets."
+  #           exit 1
+  #         fi
+  #         while IFS= read -r b64; do
+  #           val=$(printf '%s' "$b64" | base64 -d)
+  #           escaped=$(printf '%s' "$val" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g')
+  #           printf '::add-mask::%s\n' "$escaped"
+  #         done <<< "$encoded"
+
+  #     - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+  #     - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+  #       with:
+  #         node-version: 22
+
+  #     # No secrets in scope here, so package lifecycle scripts can't read credentials.
+  #     - name: Install e2e dependencies
+  #       run: yarn install --frozen-lockfile --ignore-scripts && npx playwright install --with-deps chromium
+  #       working-directory: e2e
+
+  #     - name: Run Playwright (live tier)
+  #       run: npx playwright test --project=live --workers=1
+  #       working-directory: e2e
+  #       env:
+  #         E2E_LIVE_USERS: ${{ secrets.CYPRESS_USERS }}
+
+  #     # Failure screenshots only. ::add-mask:: doesn't apply to artifacts, and the HTML report and test-results
+  #     # (error-context.md page snapshots, traces) can contain the typed credentials in plain text.
+  #     - name: Upload failure screenshots
+  #       if: ${{ !cancelled() }}
+  #       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+  #       with:
+  #         name: playwright-live-screenshots
+  #         path: e2e/test-results/**/*.png
+  #         if-no-files-found: ignore
+  #         retention-days: 14
