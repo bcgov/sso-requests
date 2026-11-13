@@ -5,13 +5,17 @@ export const searchAzureIdirUsers = async ({
   field,
   search,
   idp,
+  includeGuestAccounts,
 }: {
   field: string;
   search: string;
   idp: string;
+  includeGuestAccounts: boolean;
 }): Promise<(IdirUser[] | null)[]> => {
   try {
-    const result = await instance.post('ms-graph/idir/search', { field, search, idp }).then((res) => res.data);
+    const result = await instance
+      .post('ms-graph/idir/search', { field, search, idp, includeGuestAccounts })
+      .then((res) => res.data);
     return [result, null];
   } catch (err: any) {
     console.error('Failed to search Azure IDIR users from Graph API:', err);

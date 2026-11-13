@@ -4,14 +4,6 @@ import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/f
 import { clearMockAuth, createMockAuth } from './mocks/authenticate';
 import { cleanUpDatabaseTables, generateRandomName } from './helpers/utils';
 
-jest.mock('@app/controllers/requests', () => {
-  const original = jest.requireActual('@app/controllers/requests');
-  return {
-    ...original,
-    processIntegrationRequest: jest.fn(() => true),
-  };
-});
-
 describe('authentication', () => {
   try {
     beforeAll(async () => {

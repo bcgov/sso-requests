@@ -5,7 +5,7 @@ import type { RenderResult } from '../index';
 import { SSO_EMAIL_ADDRESS } from '@app/shared/local';
 import { getEmailTemplate } from '../helpers';
 
-const SUBJECT_TEMPLATE = `In-active IDIR User Removed From Team`;
+const SUBJECT_TEMPLATE = `Inactive IDIR User Removed From Team`;
 const template = getEmailTemplate('remove-inactive-idir-user-from-team/remove-inactive-idir-user-from-team.html');
 
 const bodyHandler = Handlebars.compile(template, { noEscape: true });

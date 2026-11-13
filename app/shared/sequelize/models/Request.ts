@@ -417,7 +417,7 @@ const init = (sequelize: any, DataTypes: any) => {
         type: DataTypes.BOOLEAN,
         allowNull: true,
       },
-      bcgovidirApproved: {
+      entraGuestAccountsEnabled: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,

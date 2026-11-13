@@ -10,6 +10,8 @@ import GoldNotificationModal from './GoldNotificationModal';
 import { docusaurusURL, KEYCLOAK_TEAMS_CHANNEL_URL } from '@app/utils/constants';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import Nav from 'react-bootstrap/Nav';
+import { Alert } from '@bcgov-sso/common-react-components';
+import TopAlertWrapper from 'components/TopAlertWrapper';
 import {
   MAIN_NAV_APP_BAR_BOTTOM_BORDER_COLOR,
   MAIN_NAV_APP_BAR_COLOR,
@@ -138,11 +140,13 @@ const LeftMenuItems = ({
   currentPath,
   query,
   mobileMenu = false,
+  emailInvalid = true,
 }: {
   session: any;
   currentPath: string;
   query: any;
   mobileMenu?: boolean;
+  emailInvalid?: boolean;
 }) => {
   let roles = ['guest'];
   if (session) {
@@ -154,7 +158,7 @@ const LeftMenuItems = ({
   return (
     <>
       {routes.map((route) => {
-        const isAllowed = !route.private || hasAppPermission(roles, route.permission || '');
+        const isAllowed = !route.private || (!emailInvalid && hasAppPermission(roles, route.permission || ''));
 
         if (!isAllowed) return null;
 
@@ -221,10 +225,12 @@ const RightMenuItems = () => (
 
 const MobileMenu = ({
   session,
+  emailInvalid,
   onLoginClick,
   onLogoutClick,
 }: {
   session: any;
+  emailInvalid: boolean;
   onLoginClick: () => void;
   onLogoutClick: () => void;
 }) => {
@@ -270,7 +276,13 @@ const MobileMenu = ({
   const authLabel = isLoggedIn ? 'Logout' : 'Login';
   return (
     <MobileSubMenu>
-      <LeftMenuItems session={session} currentPath={pathname} query={router.query} mobileMenu />
+      <LeftMenuItems
+        session={session}
+        currentPath={pathname}
+        query={router.query}
+        mobileMenu
+        emailInvalid={emailInvalid}
+      />
 
       <div style={containerStyle}>
         <div>Need Help?</div>
@@ -293,7 +305,7 @@ const MobileMenu = ({
   );
 };
 
-function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
+function Layout({ children, session, user, onLoginClick, onLogoutClick, emailInvalid = true }: any) {
   const router = useRouter();
   const pathname = router.pathname;
 
@@ -321,7 +333,14 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
       <Navigation
         title={() => <HeaderTitle>Common Hosted Single Sign-on (CSS)</HeaderTitle>}
         rightSide={rightSide}
-        mobileMenu={<MobileMenu session={session} onLoginClick={onLoginClick} onLogoutClick={onLogoutClick} />}
+        mobileMenu={
+          <MobileMenu
+            session={session}
+            emailInvalid={emailInvalid}
+            onLoginClick={onLoginClick}
+            onLogoutClick={onLogoutClick}
+          />
+        }
         onBannerClick={console.log}
       >
         <SubMenu>
@@ -330,7 +349,7 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
               display: 'flex',
             }}
           >
-            <LeftMenuItems session={session} currentPath={pathname} query={router.query} />
+            <LeftMenuItems session={session} currentPath={pathname} query={router.query} emailInvalid={emailInvalid} />
           </div>
           <SubRightMenu>
             <RightMenuItems />
@@ -338,6 +357,15 @@ function Layout({ children, session, user, onLoginClick, onLogoutClick }: any) {
         </SubMenu>
       </Navigation>
       <MainContent>
+        {emailInvalid && (
+          <TopAlertWrapper data-testid="invalid-email-banner">
+            <Alert
+              variant="danger"
+              closable={false}
+              content="Your account requires a valid email address to use this application. Please contact your IDIR administrator, then log out and log in again."
+            />
+          </TopAlertWrapper>
+        )}
         <TopAlert>{children}</TopAlert>
       </MainContent>
       <div style={{ background: MAIN_NAV_APP_BAR_COLOR }}>

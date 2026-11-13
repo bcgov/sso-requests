@@ -7,7 +7,7 @@ import {
   RESTRICTED_IDPS,
 } from '@app/utils/constants';
 import { LoggedInUser, Team, User } from '@app/interfaces/team';
-import { Integration, Option, GoldIDPOption, Division, BcgovUnit } from '@app/interfaces/Request';
+import { Integration, Option, GoldIDPOption } from '@app/interfaces/Request';
 import { getStatusDisplayName } from '@app/utils/status';
 import {
   usesBceid,
@@ -22,7 +22,6 @@ import {
   usesOTP,
   checkNotOTP,
   usesBcgovIdir,
-  checkNotBcgovIdir,
 } from '@app/helpers/integration';
 import { IntegrationData, Session } from '@app/shared/interfaces';
 import { sortBy, compact, omit, isString } from 'lodash';
@@ -77,7 +76,6 @@ export const getRequestedEnvironments = (integration: Integration) => {
     bceidApproved,
     githubApproved,
     bcServicesCardApproved,
-    bcgovidirApproved,
     environments = [],
     serviceType,
     socialApproved,
@@ -102,7 +100,6 @@ export const getRequestedEnvironments = (integration: Integration) => {
     const testBceidApplying = checkIfTargetValueUpdated(integration, 'testBceidApproved');
     const githubApplying = checkIfGithubProdApplying(integration);
     const bcServicesCardApplying = checkIfBcServicesCardProdApplying(integration);
-    const bcgovidirApplying = checkIfBcgovIdirProdApplying(integration);
     const socialApplying = checkIfSocialProdApplying(integration);
     const otpApplying = checkIfOTPProdApplying(integration);
 
@@ -126,12 +123,6 @@ export const getRequestedEnvironments = (integration: Integration) => {
     if (hasBcServicesCard && (!bcServicesCardApproved || bcServicesCardApplying))
       envs = envs.map((env) => {
         if (env.name === 'prod') env.idps = env.idps.filter(checkNotBcServicesCard);
-        return env;
-      });
-
-    if (hasBcgovIdir && (!bcgovidirApproved || bcgovidirApplying))
-      envs = envs.map((env) => {
-        if (env.name === 'prod') env.idps = env.idps.filter(checkNotBcgovIdir);
         return env;
       });
 
@@ -329,10 +320,6 @@ export const checkIfBcServicesCardProdApplying = (integration: Integration) => {
   return prodApplying;
 };
 
-export const checkIfBcgovIdirProdApplying = (integration: Integration) => {
-  return checkIfTargetValueUpdated(integration, 'bcgovidirApproved');
-};
-
 export const checkIfSocialProdApplying = (integration: Integration) => {
   const prodApplying = checkIfTargetValueUpdated(integration, 'socialApproved');
   return prodApplying;
@@ -369,16 +356,11 @@ export const isBcServicesCardApprover = (session: LoggedInUser | null) => {
   return hasAppPermission(session?.client_roles, appPermissions.APPROVE_BC_SERVICES_CARD);
 };
 
-export const isBcgovIdirApprover = (session: LoggedInUser | null) => {
-  return hasAppPermission(session?.client_roles, appPermissions.APPROVE_BCGOVIDIR);
-};
-
 export const isIdpApprover = (session: LoggedInUser | null) => {
   if (
     isBceidApprover(session) ||
     isGithubApprover(session) ||
     isBcServicesCardApprover(session) ||
-    isBcgovIdirApprover(session) ||
     isSocialApprover(session) ||
     isOTPApprover(session)
   )
@@ -505,7 +487,6 @@ export const omitNonFormFields = (data: Integration) =>
     'createdAt',
     'archived',
     'status',
-    'environments',
     'actionNumber',
     'prNumber',
     'userId',
@@ -601,10 +582,18 @@ export const normalizeRequest = (data: Integration, isMerged: boolean) => {
   return data;
 };
 
+const isEmptyValue = (value: any) => value === null || value === undefined || value === '';
+
 export const getDifferences = (newData: any, originalData: Integration) => {
   newData = canonicalizeArrayFields(newData);
+  originalData = canonicalizeArrayFields(originalData);
   if (newData.usesTeam === true) newData.teamId = parseInt(newData.teamId);
-  return diff(omitNonFormFields(originalData), omitNonFormFields(newData));
+  const changes = diff(omitNonFormFields(originalData), omitNonFormFields(newData));
+  // The client sends '' for empty optional strings that may be stored as null; that is not a change.
+  const meaningful = changes?.filter(
+    (change: any) => change.kind === 'A' || !(isEmptyValue(change.lhs) && isEmptyValue(change.rhs)),
+  );
+  return meaningful?.length ? meaningful : undefined;
 };
 
 export const isAdmin = (session: Session) => session?.client_roles?.includes('sso-admin');

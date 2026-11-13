@@ -42,7 +42,9 @@ export interface UserTeam {
 
 export interface Session {
   idir_userid: string;
-  email?: string;
+  /** The token's subject: the user's unique id in the SSO realm. */
+  sub?: string;
+  email: string;
   client_roles: string[];
   given_name: string;
   family_name: string;

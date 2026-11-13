@@ -13,20 +13,19 @@ export const fetchDatasourceUID = async (datasourceName: string) => {
 };
 
 export const queryGrafana = async (query: string, start: number, end: number, limit: number) => {
-  const lokiUID = await fetchDatasourceUID('SSO Loki');
+  const trinoUID = await fetchDatasourceUID('SIEM Trino');
   const response = await axios.post(
     `${process.env.GRAFANA_API_URL}/ds/query`,
     {
       queries: [
         {
           refId: 'logs',
-          expr: query,
-          queryType: 'range',
+          rawSql: `${query.trim().replace(/;$/, '')} LIMIT ${Number(limit)}`,
+          format: 1, // sqlds FormatQueryOption: 1 = table
           datasource: {
-            type: 'loki',
-            uid: lokiUID,
+            type: 'trino',
+            uid: trinoUID,
           },
-          maxLines: limit,
         },
       ],
       from: String(start),
@@ -34,7 +33,7 @@ export const queryGrafana = async (query: string, start: number, end: number, li
     },
     {
       params: {
-        ds_type: 'loki',
+        ds_type: 'trino',
       },
       headers: {
         Authorization: `Bearer ${process.env.GRAFANA_API_TOKEN}`,
@@ -44,7 +43,7 @@ export const queryGrafana = async (query: string, start: number, end: number, li
     },
   );
   return response.data.results.logs.frames.reduce((acc, curr) => {
-    // Raw logs are in third array position. First entries are filenames and IDs
-    return acc.concat(curr.data.values[2]);
+    // The query selects a single column (log_line), so it is the first values array
+    return acc.concat(curr.data.values[0] ?? []);
   }, []);
 };

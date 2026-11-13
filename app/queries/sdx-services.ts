@@ -7,11 +7,15 @@ export const createSdxAccessRequest = async (
   userDisplayName: string,
   requestId: number,
   sdxRequestData: SDXAccessRequest,
+  transaction?: Transaction,
 ) => {
-  return await models.SdxRequest.create({
-    request_id: requestId,
-    submission_id: submissionId,
-    requester: userDisplayName,
-    access_request: sdxRequestData,
-  });
+  return await models.SdxRequest.create(
+    {
+      request_id: requestId,
+      submission_id: submissionId,
+      requester: userDisplayName,
+      access_request: sdxRequestData,
+    },
+    { transaction },
+  );
 };

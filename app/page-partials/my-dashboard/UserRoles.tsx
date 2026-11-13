@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef, useCallback, useContext } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import styled from 'styled-components';
 import Select, { MultiValue, ActionMeta } from 'react-select';
-import { get, startCase, throttle, reduce } from 'lodash';
+import { get, startCase, reduce } from 'lodash';
 import { faExclamationCircle, faEye } from '@fortawesome/free-solid-svg-icons';
 import { Grid as SpinnerGrid } from 'react-loader-spinner';
 import { Integration } from 'interfaces/Request';
@@ -10,7 +10,7 @@ import { Header, LastSavedMessage, SearchBar } from '@bcgov-sso/common-react-com
 import { ActionButtonContainer } from 'components/ActionButtons';
 import { ModalRef, emptyRef } from 'components/GenericModal';
 import UserDetailModal from 'page-partials/my-dashboard/UserDetailModal';
-import { searchKeycloakUsers, listClientRoles, listUserRoles, manageUserRoles } from 'services/keycloak';
+import { searchKeycloakUsers, listClientRoles, listUserRoles, updateUserRoles } from 'services/keycloak';
 import { canManageUserRoleMappings } from 'helpers/permissions';
 import InfoOverlay from 'components/InfoOverlay';
 import { idpMap } from 'helpers/meta';
@@ -23,6 +23,9 @@ import ActionButton from '@app/components/ActionButton';
 import { searchIdirUsers, importIdirUser } from 'services/bceid-webservice';
 import { importAzureIdirUser, searchAzureIdirUsers } from '@app/services/ms-graph';
 import { KC_ENTRA_IDP_REALM } from '@app/utils/constants';
+import { IntegrationData } from '@app/shared/interfaces';
+import { hasChanges } from '@app/helpers/roles';
+import { useRoleSync } from '@app/hooks/useRoleSync';
 
 const Label = styled.label`
   font-weight: bold;
@@ -183,7 +186,15 @@ interface Props {
   alert: TopAlert;
 }
 
-const fetchIdpUsers = async ({ idp, userQuery }: { idp: string; userQuery: { property: string; value: string } }) => {
+const fetchIdpUsers = async ({
+  integration,
+  idp,
+  userQuery,
+}: {
+  integration: IntegrationData;
+  idp: string;
+  userQuery: { property: string; value: string };
+}) => {
   if (idp == 'idir') {
     if (userQuery.property === 'idir_username') userQuery.property = 'userId';
     const [data, err] = await searchIdirUsers({
@@ -213,6 +224,7 @@ const fetchIdpUsers = async ({ idp, userQuery }: { idp: string; userQuery: { pro
       field: userQuery.property,
       search: userQuery.value,
       idp,
+      includeGuestAccounts: integration.entraGuestAccountsEnabled || false,
     });
     if (err) return [null, err];
     return [data, null];
@@ -234,7 +246,7 @@ const importUserToKeycloak = async (user: KeycloakUser & { source: string }) => 
     await importAzureIdirUser({
       guid: user.username.split('@')[0].toUpperCase(),
       userId: user.attributes['idir_username'] || '',
-      idirGuid: user.attributes['idir_user_id'].toUpperCase() || '',
+      idirGuid: user?.attributes['idir_user_id']?.toUpperCase() || '',
       idp: user.username.split('@')[1],
     });
   }
@@ -260,7 +272,6 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const [allUsers, setAllUsers] = useState<(KeycloakUser & { source: string })[]>([]);
   const [rows, setRows] = useState<(KeycloakUser & { source: string })[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
-  const [userRoles, setUserRoles] = useState<string[]>([]);
   const [compositeResult, setCompositeResult] = useState<boolean[]>([]);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('dev');
   //@ts-ignore
@@ -277,47 +288,43 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
   const sliceRows = (page: number, rows: any[]) => rows.slice((page - 1) * limit, page * limit);
 
-  const throttleUpdate = useCallback(
-    throttle(
-      async (roleNames: string[]) => {
-        setSaving(true);
+  const {
+    roles: userRoles,
+    select: selectRoles,
+    load: showSavedRoles,
+  } = useRoleSync(async (changes) => {
+    setSaving(true);
 
-        if (selectedUser?.source === 'idp') {
-          try {
-            await importUserToKeycloak(selectedUser);
-          } catch (err) {
-            console.error('Failed to import user to Keycloak:', err);
-            setSaving(false);
-            setUserAssignmentError(true);
-            setSavingMessage('Failed to import user to Keycloak.');
-            return false;
-          }
-        }
-
-        setSavingMessage('Assigning role...');
-        setUserAssignmentError(false);
-        const [, err] = await manageUserRoles({
-          environment: selectedEnvironment,
-          integrationId: selectedRequest.id as number,
-          username: selectedUser?.username as string,
-          roleNames,
-        });
+    if (selectedUser?.source === 'idp') {
+      try {
+        await importUserToKeycloak(selectedUser);
+      } catch (err) {
+        console.error('Failed to import user to Keycloak:', err);
         setSaving(false);
-        if (err) {
-          setUserAssignmentError(true);
-          setSavingMessage('Failed to update roles.');
-          return false;
-        } else {
-          setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
-          surveyContext?.setShowSurvey(true, 'addUserToRole');
-          return true;
-        }
-      },
-      2000,
-      { trailing: true },
-    ),
-    [selectedRequest?.id, selectedEnvironment, selectedUser?.username, surveyContext],
-  );
+        setUserAssignmentError(true);
+        setSavingMessage('Failed to import user to Keycloak.');
+        return null;
+      }
+    }
+
+    setSavingMessage('Assigning role...');
+    setUserAssignmentError(false);
+    const [result, err] = await updateUserRoles({
+      environment: selectedEnvironment,
+      integrationId: selectedRequest.id as number,
+      username: selectedUser?.username as string,
+      ...changes,
+    });
+    setSaving(false);
+    if (err || hasChanges(result!.failed)) {
+      setUserAssignmentError(true);
+      setSavingMessage('Failed to update roles.');
+    } else {
+      setSavingMessage(`Last saved at ${new Date().toLocaleString()}`);
+      surveyContext?.setShowSurvey(true, 'addUserToRole');
+    }
+    return result ? result.roles : null;
+  });
 
   const getRoles = async () => {
     if (!selectedRequest) return;
@@ -348,7 +355,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
   const reset = () => {
     setAllUsers([]);
     setRows([]);
-    setUserRoles([]);
+    showSavedRoles([]);
     setPage(1);
     setCount(0);
     setSelectedUser(undefined);
@@ -383,7 +390,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       return;
     }
 
-    setUserRoles(data || []);
+    showSavedRoles(data || []);
     setLoadingRight(false);
   };
 
@@ -436,7 +443,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     if (selectedUser) {
       checkIfUserExistsInKeycloak().then((exists) => {
         if (exists) fetchUserRoles(selectedUser.username);
-        else setUserRoles([]);
+        else showSavedRoles([]);
       });
     }
   }, [selectedUser?.username]);
@@ -450,7 +457,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
     setSelectedProperty(property);
     setAllUsers([]);
     setRows([]);
-    setUserRoles([]);
+    showSavedRoles([]);
     setSelectedUser(undefined);
     setCount(0);
 
@@ -471,6 +478,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
       const [idpUsers, err] = await fetchIdpUsers({
         idp: selectedIdp,
         userQuery: { property, value: searchKey },
+        integration: selectedRequest,
       });
 
       if (!err && idpUsers && idpUsers?.length > 0) {
@@ -540,10 +548,7 @@ const UserRoles = ({ selectedRequest, alert }: Props) => {
 
     // Only send update if roles have been added or removed. Prevents excessive API calls if jamming backspace button when empty.
     if (newRoles.length !== userRoles.length) {
-      const succeeded = await throttleUpdate(newRoles);
-      if (succeeded) {
-        setUserRoles(newRoles);
-      }
+      selectRoles(newRoles);
     }
   };
 

@@ -13,7 +13,7 @@ import { cleanUpDatabaseTables } from './helpers/utils';
 import { Integration } from '@app/interfaces/Request';
 import { renderTemplate } from '@app/shared/templates';
 import { EMAILS } from '@app/shared/enums';
-import { IDIM_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS } from '@app/shared/local';
+import { IDIM_EMAIL_ADDRESS, SSO_EMAIL_ADDRESS, WAM_EMAIL_ADDRESS } from '@app/shared/local';
 import { buildIntegration } from './helpers/modules/common';
 import { createMockAuth } from './mocks/authenticate';
 import { createMockSendEmail } from './mocks/mail';
@@ -97,7 +97,7 @@ describe('integration email updates for teams', () => {
       // Expecting 5 recipients as all the team members are added
       expect(emailList[0].to.length).toEqual(5);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc).toEqual([]);
+      expect(emailList[0].cc).toEqual([WAM_EMAIL_ADDRESS]);
     });
 
     it('should render the expected template after approval of service account', async () => {
@@ -127,7 +127,7 @@ describe('integration email updates for teams', () => {
       // Expecting 5 recipients as all the team members are added
       expect(emailList[0].to.length).toEqual(5);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc).toEqual([]);
+      expect(emailList[0].cc).toEqual([WAM_EMAIL_ADDRESS]);
     });
 
     it('should render the expected template after applying approved bceid integration in non prod', async () => {

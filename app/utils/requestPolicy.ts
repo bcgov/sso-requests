@@ -73,7 +73,6 @@ export const FIELD_AUTHORITY: Record<string, Permission> = {
   testBceidApproved: 'integrations:approve-bceid',
   githubApproved: 'integrations:approve-github',
   bcServicesCardApproved: 'integrations:approve-bcsc',
-  bcgovidirApproved: 'integrations:approve-bcgovidir',
   socialApproved: 'integrations:approve-social',
   otpApproved: 'integrations:approve-otp',
 

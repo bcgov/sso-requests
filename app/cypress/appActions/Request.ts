@@ -624,7 +624,6 @@ class Request {
   }
 
   processRoles(roles: any, environment: string) {
-    console.log(roles);
     if (roles?.addusertorole) {
       roles.addusertorole.forEach((role: any) => {
         this.addUsertoRole(this.id, role.role, environment, role.user);

@@ -272,6 +272,15 @@ export default function getSchema(
         content: `Provide a brief description about your project`,
       },
     };
+
+    properties.entraGuestAccountsEnabled = {
+      type: 'boolean',
+      title: 'Allow Guest Accounts',
+      tooltip: {
+        content: `Allow guest account users to access your project. After enabling this option, you must contact Web Access Management (WAM) at wam@gov.bc.ca to complete the required configuration.`,
+      },
+      default: false,
+    };
   }
 
   properties.environments = {

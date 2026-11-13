@@ -22,10 +22,16 @@ const user: User = {
   pending: false,
 };
 
-function LayoutComponent() {
+function LayoutComponent({ emailInvalid = false }: { emailInvalid?: boolean }) {
   return (
     <SessionContext.Provider value={{ session, user } as any}>
-      <Layout session={session} user={user} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
+      <Layout
+        session={session}
+        user={user}
+        onLoginClick={handleLogin}
+        onLogoutClick={handleLogout}
+        emailInvalid={emailInvalid}
+      />
     </SessionContext.Provider>
   );
 }
@@ -134,5 +140,18 @@ describe('Layout page', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Log in' }));
     expect(handleLogin).toHaveBeenCalled();
+  });
+
+  it('shows a banner and no dashboard link for a user without a valid email', () => {
+    render(<LayoutComponent emailInvalid />);
+
+    expect(screen.getByTestId('invalid-email-banner')).toHaveTextContent(/requires a valid email/i);
+    expect(screen.queryByRole('link', { name: 'My Dashboard' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Log in' })).not.toBeInTheDocument();
+  });
+
+  it('does not show the banner for a valid session', () => {
+    render(<LayoutComponent />);
+    expect(screen.queryByTestId('invalid-email-banner')).not.toBeInTheDocument();
   });
 });
