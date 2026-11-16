@@ -299,12 +299,12 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
   useEffect(() => {
     let interval: any;
     if (hasAnyPendingStatus(rows)) {
-      interval = setTimeout(() => {
+      interval = setInterval(() => {
         void loadData(false);
       }, 2000); // Poll every 2 seconds
     }
     return () => {
-      if (interval) clearTimeout(interval);
+      if (interval) clearInterval(interval);
     };
   }, [rows]);
 

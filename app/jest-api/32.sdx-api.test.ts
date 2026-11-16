@@ -5,12 +5,9 @@ import { getConfiguration } from '@app/utils/authenticate';
 import { getAdminClient } from '@app/keycloak/adminClient';
 import { getUserById } from '@app/queries/user';
 import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
-import {
-  createSdxRequest,
-  getRemovedScopes,
-  getSdxSubsystemStatus,
-  processSdxWorkflowUpdates,
-} from '@app/controllers/sdx-services';
+import * as sdxServices from '@app/controllers/sdx-services';
+import { getRemovedScopes, getSdxSubsystemStatus } from '@app/controllers/sdx-services';
+import { systemActor, userActor, withActor } from '@sso/audit/server';
 import { SDXResourceServer, Session } from '@app/shared/interfaces';
 import { TEAM_ADMIN_IDIR_EMAIL_01, TEAM_ADMIN_IDIR_USERID_01 } from './helpers/fixtures';
 import { buildIntegration } from './helpers/modules/common';
@@ -200,6 +197,12 @@ const setUpKeycloak = ({
 };
 
 const adminClientEnvironments = () => (getAdminClient as jest.Mock).mock.calls.map(([args]) => args.environment).sort();
+
+// Called directly rather than through their routes, so each runs under the actor its route would set.
+const createSdxRequest = (session: Session, integration: Integration) =>
+  withActor(userActor(session.idir_userid!, 'Test User'), () => sdxServices.createSdxRequest(session, integration));
+const processSdxWorkflowUpdates = (...args: Parameters<typeof sdxServices.processSdxWorkflowUpdates>) =>
+  withActor(systemActor('sdx-callback'), () => sdxServices.processSdxWorkflowUpdates(...args));
 
 const adminSession = {
   idir_userid: TEAM_ADMIN_IDIR_USERID_01,

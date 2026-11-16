@@ -5,6 +5,7 @@ import { KeycloakService } from '@/services/keycloak-service';
 import { BceidWebserviceService } from '@/services/bceid-webservice';
 import { MsGraphService } from '@/services/ms-graph-idir';
 import { seedApiAccount, seedIntergrations, seedTeamAndMembers } from './helpers/seeder';
+import models from '@/sequelize/models/models';
 
 const API_BASE_PATH = '/api/v1';
 let team: any;
@@ -87,6 +88,49 @@ describe('roles-new endpoint', () => {
     expect(createUserMock).not.toHaveBeenCalled();
     expect(bceidVerifyMock).not.toHaveBeenCalled();
     expect(result.body.data[0].name).toBe('role1');
+  });
+
+  it('records one assignment event per role in a multi-role request', async () => {
+    mockRoleAssignment();
+    const username = 'event-query-user@idir';
+    jest
+      .spyOn(KeycloakService.prototype, 'getUser')
+      .mockImplementation(() => Promise.resolve({ id: 'user-1', username }));
+
+    jest
+      .spyOn(KeycloakService.prototype, 'listClientRoles')
+      .mockImplementation(() => Promise.resolve([...clientRoles, { name: 'role2', composite: false }]));
+    jest
+      .spyOn(KeycloakService.prototype, 'listClientUserRoleMappings')
+      .mockResolvedValueOnce([])
+      .mockResolvedValue([{ name: 'role1' }, { name: 'role2' }]);
+
+    await supertest(app)
+      .post(`${API_BASE_PATH}/integrations/${integration.id}/dev/users/${username}/roles`)
+      .send([{ name: 'role1' }, { name: 'role2' }])
+      .set('Accept', 'application/json')
+      .expect(201);
+
+    const events = await models.event.findAll({
+      where: { requestId: integration.id, targetId: username },
+      order: [['id', 'ASC']],
+      raw: true,
+    });
+
+    // One role-assign operation per role, under a role-bulk-update parent, attributed to the API account.
+    expect(events.map((event: any) => [event.eventCode, event.outcome])).toEqual([
+      ['role-bulk-update', 'requested'],
+      ['role-assign', 'requested'],
+      ['role-assign', 'requested'],
+      ['role-assign', 'success'],
+      ['role-assign', 'success'],
+      ['role-bulk-update', 'success'],
+    ]);
+    const assigned = events.filter((event: any) => event.eventCode === 'role-assign' && event.outcome === 'success');
+    expect(assigned.map((event: any) => event.details.roleName).sort()).toEqual(['role1', 'role2']);
+    expect(
+      events.every((event: any) => event.actorType === 'service-account' && event.actorId === apiAccount.clientId),
+    ).toBe(true);
   });
 
   it('verifies and imports a new idir user via the BCeID webservice, then assigns the role', async () => {
@@ -211,10 +255,9 @@ describe('roles-new endpoint', () => {
       jest
         .spyOn(KeycloakService.prototype, 'getClient')
         .mockImplementation(() => Promise.resolve({ id: 'client-1', enabled: true, name: 'test client' }));
-      // addClientUserRoleMapping looks the user up internally and 404s if not found; simulate that
-      // here since we don't call getUser ourselves for non-auto-provisionable idps like github.
+      // Listing the user's current roles looks the user up and 404s if not found, before anything is recorded.
       jest
-        .spyOn(KeycloakService.prototype, 'addClientUserRoleMapping')
+        .spyOn(KeycloakService.prototype, 'listClientUserRoleMappings')
         .mockRejectedValue(new (require('http-errors')[404])('user not found'));
       const createUserMock = jest.spyOn(KeycloakService.prototype, 'createUser');
 

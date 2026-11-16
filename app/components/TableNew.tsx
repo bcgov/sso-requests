@@ -247,6 +247,15 @@ const Table = <T extends object>(
 
   const [columnVisibility, setColumnVisibility] = React.useState(initialVisibility);
 
+  // Keep the displayed page in sync when the parent changes the server-side page (e.g. after a refetch shrinks the results)
+  useEffect(() => {
+    if (serverPageIndex > 0) {
+      setPagination((prev) =>
+        prev.pageIndex === serverPageIndex - 1 ? prev : { ...prev, pageIndex: serverPageIndex - 1 },
+      );
+    }
+  }, [serverPageIndex]);
+
   const table = useReactTable({
     data,
     columns,

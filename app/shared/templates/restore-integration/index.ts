@@ -6,6 +6,7 @@ import { sendEmail } from '@app/utils/ches';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
+import { usesBcServicesCard, usesBcgovIdir } from '@app/helpers/integration';
 
 const SUBJECT_TEMPLATE = `SSO request restored`;
 const template = getEmailTemplate('restore-integration/restore-integration.html');
@@ -16,11 +17,18 @@ const bodyHandler = Handlebars.compile(template, { noEscape: true });
 interface DataProps {
   integration: IntegrationData;
   hasClientSecret: boolean;
+  usesBcServicesCardIdp?: boolean;
+  usesBcgovIdirIdp?: boolean;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
   const { integration } = originalData;
-  const data = { ...originalData, integration: await processRequest(integration) };
+  const data = {
+    ...originalData,
+    integration: await processRequest(integration),
+    usesBcServicesCardIdp: usesBcServicesCard(integration),
+    usesBcgovIdirIdp: usesBcgovIdir(integration),
+  };
 
   return {
     subject: subjectHandler(data),

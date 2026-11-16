@@ -114,7 +114,8 @@ export const generateRequest = async (data: IntegrationData) => {
   return models.request.create(data);
 };
 
-export const getEventsByRequestId = async (id: number) => models.event.findAll({ where: { requestId: id } });
+export const getEventsByRequestId = async (id: number) =>
+  models.event.findAll({ where: { requestId: id }, order: [['id', 'ASC']] });
 
 export const submitNewIntegration = async (integration: IntegrationData) => {
   const { projectName, projectLead, serviceType, usesTeam } = integration;

@@ -2,23 +2,110 @@
 # yarn lockfile v1
 
 
-"@keycloak/keycloak-admin-client@26.4.7":
-  version "26.4.7"
-  resolved "https://registry.yarnpkg.com/@keycloak/keycloak-admin-client/-/keycloak-admin-client-26.4.7.tgz#17e2992cd2b243e7512c776a75d12bf6f442e0b0"
-  integrity sha512-6AqwZjWuWBzM0nPVggWDV4Oep+CO8ATfNEvVhXgC1dH7PkBCl/4hCRj9ZFHnX1OtQJ+zozD6LQ1giwArcAU6qQ==
+"@keycloak/keycloak-admin-client@26.8.2":
+  version "26.8.2"
+  resolved "https://registry.yarnpkg.com/@keycloak/keycloak-admin-client/-/keycloak-admin-client-26.8.2.tgz#088e95d06382fd214467edaf34987372b9c5cf6d"
+  integrity sha512-+DCQwK0u4owm3aKg5tSVJPrw96lIJFT+EJ613FKu6g0KldkrCF2eCL3x4jpmcxe/+lbyitzUGxXkQO9YZ9vQSQ==
   dependencies:
+    "@microsoft/kiota-abstractions" "1.0.0-preview.103"
+    "@microsoft/kiota-http-fetchlibrary" "1.0.0-preview.103"
+    "@microsoft/kiota-serialization-form" "1.0.0-preview.103"
+    "@microsoft/kiota-serialization-json" "1.0.0-preview.103"
+    "@microsoft/kiota-serialization-multipart" "1.0.0-preview.103"
+    "@microsoft/kiota-serialization-text" "1.0.0-preview.103"
     camelize-ts "^3.0.0"
     url-template "^3.1.1"
+
+"@microsoft/kiota-abstractions@1.0.0-preview.103":
+  version "1.0.0-preview.103"
+  resolved "https://registry.yarnpkg.com/@microsoft/kiota-abstractions/-/kiota-abstractions-1.0.0-preview.103.tgz#66f48c5c63589b7d98646f1fd0cce3f24f9df642"
+  integrity sha512-om7nKH8nWyEAQ0lgbIdKdrkmznhkdDJdliCnAIo31X/hlUah1aBzvfUx+pbyp67Q040yLK+2J6P7AnvGSoN/qQ==
+  dependencies:
+    "@opentelemetry/api" "^1.7.0"
+    "@std-uritemplate/std-uritemplate" "^2.0.0"
+    tinyduration "^3.3.0"
+    tslib "^2.6.2"
+
+"@microsoft/kiota-abstractions@^1.0.0-preview.103":
+  version "1.0.0-preview.113"
+  resolved "https://registry.yarnpkg.com/@microsoft/kiota-abstractions/-/kiota-abstractions-1.0.0-preview.113.tgz#91db00bccb41f5700d07bdf1fe3e908c9ba29f9b"
+  integrity sha512-q/ap7b16LGTQeBtdI8eXAJ/0u/RBiEmanYJregrIELsr6VQ0xzbwchWx0Mw7HU21I2IIkytfg44sSZ/S81drUg==
+  dependencies:
+    "@opentelemetry/api" "^1.10.0"
+    "@std-uritemplate/std-uritemplate" "^2.0.0"
+    tinyduration "^3.3.0"
+    tslib "^2.9.1"
+
+"@microsoft/kiota-http-fetchlibrary@1.0.0-preview.103":
+  version "1.0.0-preview.103"
+  resolved "https://registry.yarnpkg.com/@microsoft/kiota-http-fetchlibrary/-/kiota-http-fetchlibrary-1.0.0-preview.103.tgz#2233aae58653e207e2a01da864bc3a406f41872e"
+  integrity sha512-DbhGL+pdVjtv2AVvxB4fxvNC/GMzKbYyeQsknaXJXwqnPR/oIClWjaXlIxWL5SBK72DOmrZ18leaWMB2vfWvpw==
+  dependencies:
+    "@microsoft/kiota-abstractions" "^1.0.0-preview.103"
+    "@opentelemetry/api" "^1.7.0"
+    tslib "^2.6.2"
+
+"@microsoft/kiota-serialization-form@1.0.0-preview.103":
+  version "1.0.0-preview.103"
+  resolved "https://registry.yarnpkg.com/@microsoft/kiota-serialization-form/-/kiota-serialization-form-1.0.0-preview.103.tgz#0efa3786b2edc3532d0030e70c5d3ae2f9761468"
+  integrity sha512-AD5Q59Qu61DfhaLLN7Mvgx4Zw0Zmftqx04XAbrRreC+r9hwT1BqTf0EReCraMzEoC4sdrp/8haI2Arm8dWUWuQ==
+  dependencies:
+    "@microsoft/kiota-abstractions" "^1.0.0-preview.103"
+    tslib "^2.6.2"
+
+"@microsoft/kiota-serialization-json@1.0.0-preview.103":
+  version "1.0.0-preview.103"
+  resolved "https://registry.yarnpkg.com/@microsoft/kiota-serialization-json/-/kiota-serialization-json-1.0.0-preview.103.tgz#130322184838b1d6da907a1a212b4c4c6a4a2bcc"
+  integrity sha512-dTr8q6H42TSe+HaCPBXU4Pv6ypo7MjMGRo/r9GRbnCuy8VCWfe+Vh38rnAZJx4r8cmvOUD7Yw74IJ6q4Hjv3mg==
+  dependencies:
+    "@microsoft/kiota-abstractions" "^1.0.0-preview.103"
+    tslib "^2.6.2"
+
+"@microsoft/kiota-serialization-multipart@1.0.0-preview.103":
+  version "1.0.0-preview.103"
+  resolved "https://registry.yarnpkg.com/@microsoft/kiota-serialization-multipart/-/kiota-serialization-multipart-1.0.0-preview.103.tgz#c7d2d9cb169c663bebf42057be1f9f3b7e43ec04"
+  integrity sha512-b3ePXYgFv/2TQtbzFQ8ZY+hzMtCRkz4Cx5y/Pf8vtoQu56KU0/9rYq5kA9wySDdCx/oZxfubQQRV/8QSTxmejw==
+  dependencies:
+    "@microsoft/kiota-abstractions" "^1.0.0-preview.103"
+    tslib "^2.6.2"
+
+"@microsoft/kiota-serialization-text@1.0.0-preview.103":
+  version "1.0.0-preview.103"
+  resolved "https://registry.yarnpkg.com/@microsoft/kiota-serialization-text/-/kiota-serialization-text-1.0.0-preview.103.tgz#dbd15b0e3536e02b1763919cbac45eb9622c58ae"
+  integrity sha512-FkiboqpNtT2F40xUC9LETHK9ckHd+WuocLJE70ljI4EYvD59MQDsrTERYAwbmkfPIJ6JRE4OfLXFVh510LG1/Q==
+  dependencies:
+    "@microsoft/kiota-abstractions" "^1.0.0-preview.103"
+    tslib "^2.6.2"
+
+"@opentelemetry/api@^1.10.0", "@opentelemetry/api@^1.7.0":
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.10.0.tgz#31d2e3d36ffc6cdd5ce165251e7fa13bbad0fd8a"
+  integrity sha512-lMkyes8iHrG+mk6WH7X70MdCLI2RS0FwNBY1PyQ8UemaijE2m5mv5A0Niy3HtbYTFrgkUEQjFMXmSAk2hQDuPQ==
+
+"@std-uritemplate/std-uritemplate@^2.0.0":
+  version "2.0.13"
+  resolved "https://registry.yarnpkg.com/@std-uritemplate/std-uritemplate/-/std-uritemplate-2.0.13.tgz#108e54820aff5845ba007cd3b38424871c267425"
+  integrity sha512-T1E3n3OUphqYkGWyOJt0MAUgKc1DO8TcGFdgX+iXmIOB+qXSNRVsQQDiV6S8o6blMqOOuL93hanYzH3PHyiI0g==
 
 camelize-ts@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/camelize-ts/-/camelize-ts-3.0.0.tgz#b9a7b4ff802464dc3d6475637a64a9742ad3db09"
   integrity sha512-cgRwKKavoDKLTjO4FQTs3dRBePZp/2Y9Xpud0FhuCOTE86M2cniKN4CCXgRnsyXNMmQMifVHcv6SPaMtTx6ofQ==
 
-dotenv@^17.3.1:
-  version "17.3.1"
-  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-17.3.1.tgz#2706f5b0165e45a1503348187b8468f87fe6aae2"
-  integrity sha512-IO8C/dzEb6O3F9/twg6ZLXz164a2fhTnEWb95H23Dm4OuN+92NmEAlTrupP9VW6Jm3sO26tQlqyvyi4CsnY9GA==
+dotenv@^17.4.2:
+  version "17.4.2"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-17.4.2.tgz#c07e54a746e11eba021dd9e1047ced5afdc1c034"
+  integrity sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==
+
+tinyduration@^3.3.0:
+  version "3.4.1"
+  resolved "https://registry.yarnpkg.com/tinyduration/-/tinyduration-3.4.1.tgz#16e864c1af751ce30efa59429f141390ea27f108"
+  integrity sha512-NemFoamVYn7TmtwZKZ3OiliM9fZkr6EWiTM+wKknco6POSy2gS689xx/pXip0JYp40HXpUw6k65CUYHWYUXdaA==
+
+tslib@^2.6.2, tslib@^2.9.1:
+  version "2.9.1"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.9.1.tgz#8986213ba2f17f38ba39a7c43d0e565a9134ff5f"
+  integrity sha512-a4Ux9VKuIMHsOS7ENbEq6hK2ZGYIT27Rtl0E4eD9KqwxhKiQeMZE/9xb3IdYwWaSOyIBQLExhQgXDTYoiCxnWA==
 
 url-template@^3.1.1:
   version "3.1.1"

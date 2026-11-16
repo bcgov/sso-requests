@@ -1,8 +1,14 @@
 import { models } from '@app/shared/sequelize/models/models';
-import { EVENTS } from '@app/shared/enums';
 import { keycloakClient } from '@app/keycloak/integration';
-import { createEvent } from '@app/queries/event';
-import { restoreIntegrationRoles, sendRestoreIntegrationEmail, updatePlannedIntegration } from '../effects';
+import { recordWorkflowEvent } from '../audit';
+import {
+  RolesSnapshot,
+  restoreIntegrationRoles,
+  sendRestoreIntegrationEmail,
+  snapshotIntegrationRoles,
+  updatePlannedIntegration,
+} from '../effects';
+import { updateStep } from '../store';
 import { WorkflowRecord, WorkflowStepDefinition, WorkflowType, STEP_NAMES, TransientStepError } from '../types';
 
 const ENVIRONMENT_ORDER = ['dev', 'test', 'prod'];
@@ -22,24 +28,6 @@ export const orderedEnvironments = (workflow: WorkflowRecord): string[] =>
 
 const setRequestStatus = async (requestId: number, status: string) => {
   await models.request.update({ status }, { where: { id: requestId } });
-};
-
-/**
- * Writes an event at most once per workflow. The workflow id is stamped into `details` so a replay after a
- * crash between the insert and the step-state commit does not duplicate the audit trail.
- */
-export const emitWorkflowEventOnce = async (workflow: WorkflowRecord, eventCode: string, details: any = {}) => {
-  const existing = await models.event.count({
-    where: { requestId: workflow.requestId, eventCode, details: { workflowId: workflow.id } },
-  });
-
-  if (existing > 0) return;
-
-  await createEvent({
-    eventCode,
-    requestId: workflow.requestId,
-    details: { ...details, workflowId: workflow.id },
-  } as any);
 };
 
 const applyEnvironmentStep = (workflow: WorkflowRecord, environment: string): WorkflowStepDefinition => {
@@ -69,7 +57,7 @@ const planStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
   label: 'Request received and validated',
   execute: async () => {
     await setRequestStatus(workflow.requestId, 'planned');
-    await emitWorkflowEventOnce(workflow, EVENTS.REQUEST_PLAN_SUCCESS);
+    await recordWorkflowEvent(workflow, { outcome: 'success', step: 'request-plan' });
     return { planned: true };
   },
 });
@@ -77,8 +65,14 @@ const planStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
 const restoreRolesStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
   name: STEP_NAMES.RESTORE_ROLES,
   label: 'Restoring roles',
-  execute: async () => {
-    await restoreIntegrationRoles(workflow.requestId);
+  execute: async ({ step }) => {
+    // Taken once, before anything changes, so every attempt measures what it records against the same state.
+    let before: RolesSnapshot | undefined = step.result?.rolesBefore;
+    if (!before) {
+      before = await snapshotIntegrationRoles(workflow.requestId);
+      await updateStep(step.id, { result: { rolesBefore: before } });
+    }
+    await restoreIntegrationRoles(workflow, before);
     return { rolesRestored: true };
   },
 });
@@ -87,8 +81,8 @@ const finalizeStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
   name: STEP_NAMES.FINALIZE,
   label: 'Finalizing integration',
   execute: async () => {
-    const isRestore = workflow.type === WorkflowType.INTEGRATION_RESTORE;
-    await emitWorkflowEventOnce(workflow, isRestore ? EVENTS.REQUEST_RESTORE_SUCCESS : EVENTS.REQUEST_APPLY_SUCCESS);
+    // The operation's terminal outcome. NOTIFY after it is best effort and cannot change it.
+    await recordWorkflowEvent(workflow, { outcome: 'success' });
     await setRequestStatus(workflow.requestId, 'applied');
     return { finalized: true };
   },

@@ -64,7 +64,6 @@ export interface ApprovalContext {
   hasBcServicesCard: boolean;
   hasBcgovIdir: boolean;
   bcServicesCardApproved: boolean;
-  bcgovidirApproved: boolean;
   hasOTP: boolean;
   bceidApproved: boolean;
   devBceidApproved: boolean;
@@ -76,10 +75,8 @@ export interface ApprovalContext {
   awaitingGithubProd: boolean;
   awaitingOTPProd: boolean;
   awaitingBcServicesCardProd: boolean;
-  awaitingBcgovIdirProd: boolean;
   awaitingSocialProd: boolean;
   bceidProdApplying: boolean;
   githubProdApplying: boolean;
   bcServicesCardProdApplying: boolean;
-  bcgovIdirProdApplying: boolean;
 }

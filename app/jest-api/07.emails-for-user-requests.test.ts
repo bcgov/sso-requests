@@ -15,6 +15,7 @@ import {
   OTP_EMAIL_ADDRESS_CC,
   SOCIAL_APPROVAL_EMAIL_ADDRESS,
   SSO_EMAIL_ADDRESS,
+  WAM_EMAIL_ADDRESS,
 } from '@app/shared/local';
 import { buildIntegration } from './helpers/modules/common';
 import { createMockAuth } from './mocks/authenticate';
@@ -87,7 +88,7 @@ describe('integration email updates for individual users', () => {
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(1);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc).toEqual([]);
+      expect(emailList[0].cc).toEqual([WAM_EMAIL_ADDRESS]);
     });
 
     it('should cc the bceid team when removing bceid idps from a previously approved integration', async () => {
@@ -154,7 +155,7 @@ describe('integration email updates for individual users', () => {
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(1);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc).toEqual([]);
+      expect(emailList[0].cc).toEqual([WAM_EMAIL_ADDRESS]);
     });
 
     it('should render the expected template after applying approved bceid integration in non prod', async () => {
@@ -191,7 +192,7 @@ describe('integration email updates for individual users', () => {
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(1);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc).toEqual([IDIM_EMAIL_ADDRESS]);
+      expect(emailList[0].cc).toEqual([IDIM_EMAIL_ADDRESS, WAM_EMAIL_ADDRESS]);
     });
 
     it('should render the expected template after applying non prod approved bceid integration', async () => {
@@ -224,7 +225,6 @@ describe('integration email updates for individual users', () => {
         integration,
         hasBceid: true,
         waitingBceidProdApproval: true,
-        waitingBcgovIdirProdApproval: true,
       });
 
       expect(emailList.length).toEqual(1);
@@ -232,7 +232,7 @@ describe('integration email updates for individual users', () => {
       expect(emailList[0].body).toEqual(template.body);
       expect(emailList[0].to.length).toEqual(1);
       expect(emailList[0].to).toContain(TEAM_ADMIN_IDIR_EMAIL_01);
-      expect(emailList[0].cc).toEqual([IDIM_EMAIL_ADDRESS]);
+      expect(emailList[0].cc).toEqual([IDIM_EMAIL_ADDRESS, WAM_EMAIL_ADDRESS]);
     });
 
     it('should render the expected template after bceid prod approval of an integration', async () => {
@@ -521,7 +521,7 @@ describe('integration email updates for individual users', () => {
       expect(integrationRes.status).toEqual(200);
       integration = integrationRes.body;
       expect(emailList.length).toEqual(1);
-      expect(emailList[0].cc).toEqual(OTP_EMAIL_ADDRESS_CC);
+      expect(emailList[0].cc).toEqual([...OTP_EMAIL_ADDRESS_CC, WAM_EMAIL_ADDRESS]);
       expect(emailList[0].bcc).toEqual(OTP_EMAIL_ADDRESS_BCC);
     });
 

@@ -18,3 +18,6 @@ export const OTP_EMAIL_ADDRESS_CC =
     : ['bcgov.sso@gov.bc.ca'];
 export const OTP_EMAIL_ADDRESS_BCC =
   process.env.NEXT_PUBLIC_APP_ENV === 'production' ? ['olena.mitovska@gov.bc.ca'] : ['bcgov.sso@gov.bc.ca'];
+
+export const WAM_EMAIL_ADDRESS =
+  process.env.NEXT_PUBLIC_APP_ENV === 'production' ? 'wam@gov.bc.ca' : 'bcgov.sso@gov.bc.ca';

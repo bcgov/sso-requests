@@ -1,7 +1,7 @@
 import { IntegrationService } from './integration-service';
 import { container, inject, injectable } from 'tsyringe';
 import { ListUserRoleMappingQuery, Role, RolePayload, User, UserRoleMappingPayload } from '../types';
-import { RoleService } from '@/services/role-service';
+import { RoleService, assertRolesExist } from '@/services/role-service';
 import createHttpError from 'http-errors';
 import { updateUserProps } from '@/helpers/users';
 import { updateRoleProps } from '@/helpers/roles';
@@ -12,6 +12,8 @@ import { BceidWebserviceService, BCEID_SOAP_IDPS, BceidSoapIdp, BceidAccount } f
 import { MsGraphService, AzureIdirAccount } from '@/services/ms-graph-idir';
 import { AuthContext } from '@/modules/authorization';
 import { ACTIONS, RESOURCES } from '@sso/authz';
+import { audit } from '@/utils';
+import { Environment, roleMappingOperations } from '@sso/audit';
 
 /** IDPs supported for the auto-provisioning ("roles-new") flow, and how each is verified. */
 const AUTO_PROVISION_IDPS = [...BCEID_SOAP_IDPS, 'azureidir'] as const;
@@ -151,32 +153,78 @@ export class UserRoleMappingService {
 
     const { username, roleName, operation } = userRoleMapping;
 
-    const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-
-    if (roleName) {
-      roles = updateRoleProps(await keycloakService.listClientRoles(int.clientId));
-      const roleExists = roles.find((role: RolePayload) => role.name === roleName);
-      if (!roleExists) throw new createHttpError[404](`role ${roleName} not found`);
-    }
-
-    if (username) {
-      users = (await keycloakService.getUser(username)) as User[];
-      if (users.length === 0) throw new createHttpError[404](`user ${username} not found`);
-    }
-
     if (!['add', 'del'].includes(operation))
       throw new createHttpError[400](`invalid operation #${operation}. valid values are (add, del)`);
 
+    const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
+
+    // Validation runs before anything is recorded: a 404 here stays in the request log.
+    if (roleName) await assertRolesExist(keycloakService, int.clientId, [roleName]);
+    // getUser returns the one user (or 404s), not a list.
+    if (username) users = [(await keycloakService.getUser(username)) as User];
     if (operation === 'del') {
-      const users = await this.usersByRole(int, environment, roleName);
-      if (users.length === 0) throw new createHttpError[404]('no user role mappings found');
+      const roleUsers = await this.usersByRole(int, environment, roleName);
+      if (roleUsers.length === 0) throw new createHttpError[404]('no user role mappings found');
     }
-    roles = (await this.manageUserRole(int, { environment, username, roleName, mode: operation })) as Role[];
+    if (!username.startsWith('service-account-')) {
+      const idp = username.split('@')[1];
+      if (!int.devIdps.includes(idp)) throw new createHttpError.BadRequest(`invalid idp ${idp}`);
+    }
+
+    roles = await this.applyRoleMappingChanges(int, environment, username, {
+      add: operation === 'add' ? [roleName] : [],
+      remove: operation === 'del' ? [roleName] : [],
+    });
 
     return {
       users: updateUserProps(users),
       roles: updateRoleProps(roles),
     };
+  }
+
+  /**
+   * Grants and revokes the given roles, one audited operation per actual change (under a `role-bulk-update`
+   * parent when there is more than one), built exactly as the app builds them. Adding a role the user
+   * already holds, or removing one they do not, changes nothing and is not recorded. Throws the first
+   * failure once every change has been attempted; otherwise returns the user's roles afterwards.
+   */
+  private async applyRoleMappingChanges(
+    int: any,
+    environment: string,
+    username: string,
+    { add = [], remove = [] }: { add?: string[]; remove?: string[] },
+  ): Promise<Role[]> {
+    const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
+    const current = ((await keycloakService.listClientUserRoleMappings(int.clientId, username)) as Role[]).map(
+      (role) => role.name,
+    );
+    const { parent, changes } = roleMappingOperations({
+      requestId: int.id,
+      environment: environment as Environment,
+      clientId: int.clientId,
+      username,
+      add: add.filter((roleName) => !current.includes(roleName)),
+      remove: remove.filter((roleName) => current.includes(roleName)),
+    });
+
+    // Every grant goes to Keycloak in one request, which applies all of them or none; each role's operation
+    // waits on that shared request, so the roles are recorded one by one but share its outcome.
+    const added = changes.filter(({ mode }) => mode === 'add').map(({ roleName }) => ({ name: roleName }));
+    let grant: Promise<unknown> | undefined;
+    const grantAll = () => (grant ??= keycloakService.addClientUserRoleMapping(int.clientId, username, added));
+
+    const results = await audit.runAuditedBatch(
+      parent,
+      changes.map(({ roleName, mode, operation }) => ({
+        operation,
+        call: () =>
+          mode === 'add' ? grantAll() : keycloakService.deleteClientUserRoleMapping(int.clientId, username, roleName),
+      })),
+    );
+    const rejected = results.find((result) => result.status === 'rejected');
+    if (rejected?.status === 'rejected') throw rejected.reason;
+
+    return keycloakService.listClientUserRoleMappings(int.clientId, username);
   }
 
   public async listRolesByUsername(authz: AuthContext, integrationId: number, environment: string, username: string) {
@@ -222,9 +270,11 @@ export class UserRoleMappingService {
     for (let role of roles) {
       this.roleService.validateRole(role);
     }
+    const roleNames = roles.map(({ name }) => name);
+    await assertRolesExist(keycloakService, int.clientId, roleNames);
 
     return {
-      data: updateRoleProps(await keycloakService.addClientUserRoleMapping(int.clientId, parsedUsername, roles)),
+      data: updateRoleProps(await this.applyRoleMappingChanges(int, environment, parsedUsername, { add: roleNames })),
     };
   }
 
@@ -256,8 +306,12 @@ export class UserRoleMappingService {
       this.roleService.validateRole(role);
     }
 
-    const isServiceAccount = parsedUsername.startsWith('service-account-');
+    const roleNames = roles.map(({ name }) => name);
+    await assertRolesExist(keycloakService, int.clientId, roleNames);
 
+    // Importing the user is a precondition of the grant, not part of it: it runs first, unaudited, and a
+    // user who cannot be verified upstream is rejected before any role change is recorded.
+    const isServiceAccount = parsedUsername.startsWith('service-account-');
     if (!isServiceAccount) {
       const parts = parsedUsername.split('@');
       if (parts.length !== 2 || !parts[0] || !parts[1]) {
@@ -280,12 +334,11 @@ export class UserRoleMappingService {
       } else if (!(ROLE_ONLY_IDPS as readonly string[]).includes(idp)) {
         throw new createHttpError.BadRequest(`invalid idp ${idp}`);
       }
-      // else: idp is in ROLE_ONLY_IDPS (e.g. github) - skip provisioning; addClientUserRoleMapping
-      // below will look the user up itself and 404 if they don't already exist in Keycloak.
     }
 
-    const added = await keycloakService.addClientUserRoleMapping(int.clientId, parsedUsername, roles);
-    const data = updateRoleProps(added);
+    const data = updateRoleProps(
+      await this.applyRoleMappingChanges(int, environment, parsedUsername, { add: roleNames }),
+    );
     return {
       data,
     };
@@ -348,58 +401,7 @@ export class UserRoleMappingService {
     });
     const parsedUsername = this.parseUsername(int.clientId, username);
     const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-    await keycloakService.deleteClientUserRoleMapping(int.clientId, parsedUsername, roleName);
-  }
-
-  public async manageUserRole(
-    integration: any,
-    {
-      environment,
-      username,
-      roleName,
-      mode,
-    }: {
-      environment: string;
-      username: string;
-      roleName: string;
-      mode: 'add' | 'del';
-    },
-  ) {
-    if (!username.startsWith('service-account-')) {
-      const idp = username.split('@')[1];
-      if (!integration.devIdps.includes(idp)) throw new createHttpError.BadRequest(`invalid idp ${idp}`);
-    }
-
-    const keycloakService = this.keycloakServiceFactory.getKeycloakService(environment);
-
-    const client = await keycloakService.getClient(integration.clientId);
-
-    const user = await keycloakService.getUser(username);
-
-    if (!user) throw new createHttpError.NotFound(`user ${username} not found`);
-
-    const role = await keycloakService.getClientRole(integration.clientId, roleName);
-    if (!role) throw new createHttpError.NotFound(`role ${roleName} not found`);
-
-    const roleMapping = {
-      realm: 'standard',
-      id: user.id,
-      clientUniqueId: client.id,
-    };
-
-    const roleMappingUpdate = { ...roleMapping, roles: [{ id: role.id, name: role.name }] };
-
-    if (mode === 'del') {
-      roleMappingUpdate.roles.map(async (r) => {
-        await keycloakService.deleteClientUserRoleMapping(client.id, user.username, r.name);
-      });
-    } else {
-      roleMappingUpdate.roles.map(async (r) => {
-        await keycloakService.addClientUserRoleMapping(client.id, user.username, r.name);
-      });
-    }
-
-    const roles = await keycloakService.listClientUserRoleMappings(client.id, user.username);
-    return roles;
+    await assertRolesExist(keycloakService, int.clientId, [roleName]);
+    await this.applyRoleMappingChanges(int, environment, parsedUsername, { remove: [roleName] });
   }
 }

@@ -1,3 +1,4 @@
+import createHttpError from 'http-errors';
 import {
   TEAM_ADMIN_IDIR_USERID_01,
   TEAM_ADMIN_IDIR_EMAIL_01,
@@ -127,12 +128,16 @@ describe('emails for teams', () => {
         submitted: true,
       });
 
-      integrationRoles.forEach(async (role) => {
+      // One at a time, each new to Keycloak, so no queued mock is left over for a later test to consume.
+      for (const role of integrationRoles) {
+        jest
+          .spyOn(KeycloakService.prototype, 'getClientRole')
+          .mockRejectedValueOnce(new createHttpError.NotFound('role not found'));
         jest.spyOn(KeycloakService.prototype, 'createClientRole').mockImplementationOnce(() => {
-          return Promise.resolve({ name: role, composite: false });
+          return Promise.resolve({ name: role.name, composite: false });
         });
         await createIntegrationRoles(role.name, integration.id, 'dev');
-      });
+      }
 
       jest.spyOn(KeycloakService.prototype, 'getUsers').mockImplementation(() => {
         return Promise.resolve(searchUsersByIdpRows);
@@ -177,6 +182,10 @@ describe('emails for teams', () => {
     });
 
     it('creates team integration role for an environment', async () => {
+      // The role does not exist yet, so the request is accepted.
+      jest
+        .spyOn(KeycloakService.prototype, 'getClientRole')
+        .mockRejectedValueOnce(new createHttpError.NotFound('role not found'));
       const createClientRoleMock = jest.spyOn(KeycloakService.prototype, 'createClientRole').mockImplementation(() => {
         return Promise.resolve({ name: createIntegrationRole, composite: false });
       });
@@ -187,6 +196,11 @@ describe('emails for teams', () => {
     });
 
     it('updates team integration role for an environment', async () => {
+      // The role being renamed exists and the new name is free.
+      jest
+        .spyOn(KeycloakService.prototype, 'getClientRole')
+        .mockResolvedValueOnce({ name: createIntegrationRole, composite: false })
+        .mockRejectedValueOnce(new createHttpError.NotFound('role not found'));
       const updateClientRoleMock = jest.spyOn(KeycloakService.prototype, 'updateClientRole').mockImplementation(() => {
         return Promise.resolve({ name: 'role5', composite: false });
       });
@@ -202,6 +216,7 @@ describe('emails for teams', () => {
     });
 
     it('create composite role', async () => {
+      jest.spyOn(KeycloakService.prototype, 'getCompositeRoles').mockImplementationOnce(() => Promise.resolve([]));
       const createCompositeRoleMock = jest
         .spyOn(KeycloakService.prototype, 'createCompositeRole')
         .mockImplementation(() => {
@@ -456,8 +471,9 @@ describe('emails for teams', () => {
         return Promise.resolve(integrationUserRoles);
       });
 
+      // As the real getUser does: the one user, not a list.
       jest.spyOn(KeycloakService.prototype, 'getUser').mockImplementation(() => {
-        return Promise.resolve(integrationRoleUsers);
+        return Promise.resolve(integrationRoleUsers[0]);
       });
 
       jest.spyOn(KeycloakService.prototype, 'getClient').mockImplementation(() => {
@@ -584,6 +600,11 @@ describe('emails for teams', () => {
     });
 
     it('assign a role to an user for an environment', async () => {
+      // The user does not hold the role yet; afterwards they do.
+      jest
+        .spyOn(KeycloakService.prototype, 'listClientUserRoleMappings')
+        .mockResolvedValueOnce([])
+        .mockResolvedValue([{ name: 'role1', composite: false }]);
       const addClientUserRoleMappingMock = jest
         .spyOn(KeycloakService.prototype, 'addClientUserRoleMapping')
         .mockImplementation(() => Promise.resolve([{ name: 'role1', composite: false }]));
@@ -600,6 +621,11 @@ describe('emails for teams', () => {
     });
 
     it('Remaps client id to service account username on role assignment', async () => {
+      // The user does not hold the role yet; afterwards they do.
+      jest
+        .spyOn(KeycloakService.prototype, 'listClientUserRoleMappings')
+        .mockResolvedValueOnce([])
+        .mockResolvedValue([{ name: 'role1', composite: false }]);
       const addClientUserRoleMappingMock = jest
         .spyOn(KeycloakService.prototype, 'addClientUserRoleMapping')
         .mockImplementation(() => Promise.resolve([{ name: 'role1', composite: false }]));

@@ -158,12 +158,12 @@ export const getUpdateIntegrationData = (args: {
   testBceidApproved?: boolean;
   githubApproved?: boolean;
   bcServicesCardApproved?: boolean;
-  bcgovidirApproved?: boolean;
   socialApproved?: boolean;
   otpApproved?: boolean;
   devHomePageUri?: string;
   testHomePageUri?: string;
   prodHomePageUri?: string;
+  entraGuestAccountsEnabled?: boolean;
 }) => {
   const {
     projectName = args.integration.projectName,
@@ -177,12 +177,12 @@ export const getUpdateIntegrationData = (args: {
     testBceidApproved = args.integration.testBceidApproved || false,
     githubApproved = args.integration.githubApproved || false,
     bcServicesCardApproved = args.integration.bcServicesCardApproved || false,
-    bcgovidirApproved = args.integration.bcgovidirApproved || false,
     socialApproved = args.integration.socialApproved || false,
     otpApproved = args.integration.otpApproved || false,
     devHomePageUri = args.integration.devHomePageUri || '',
     testHomePageUri = args.integration.testHomePageUri || '',
     prodHomePageUri = args.integration.prodHomePageUri || '',
+    entraGuestAccountsEnabled = args.integration.entraGuestAccountsEnabled || false,
   } = args;
 
   const samlIntegration = protocol === 'saml';
@@ -207,9 +207,9 @@ export const getUpdateIntegrationData = (args: {
     testBceidApproved,
     githubApproved,
     bcServicesCardApproved,
-    bcgovidirApproved,
     socialApproved,
     otpApproved,
+    entraGuestAccountsEnabled,
     devSamlLogoutPostBindingUri: samlIntegration ? 'https://a' : undefined,
     testSamlLogoutPostBindingUri: samlIntegration && envs?.includes('test') ? 'https://a' : undefined,
     prodSamlLogoutPostBindingUri: samlIntegration && envs?.includes('prod') ? 'https://a' : undefined,

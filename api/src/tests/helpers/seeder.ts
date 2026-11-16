@@ -98,6 +98,13 @@ export const seedApiAccount = async (teamId: number | null) => {
   return account;
 };
 
+/** A team with a single admin plus the team API account that authenticates requests on its behalf. */
+export const seedTeamWithApiAccount = async (teamName: string, admin: { idirUserId: string; email: string }) => {
+  const team = await seedTeamAndMembers(teamName, [{ ...admin, role: 'admin' }]);
+  const apiAccount = await seedApiAccount(team.id);
+  return { team, apiAccount };
+};
+
 /** An organization row, for the links an organization account resolves through. */
 export const seedOrganization = async (name: string) => {
   const [rows]: any = await sequelize.query(

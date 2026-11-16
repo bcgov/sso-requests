@@ -11,10 +11,17 @@ import { getDisplayName } from '@app/utils/helpers';
 import { lowcase } from '@app/helpers/string';
 import { sequelize, models } from '@app/shared/sequelize/models/models';
 import { sendTemplate } from '@app/shared/templates';
-import { EMAILS, EVENTS } from '@app/shared/enums';
+import { getTeamEmails } from '@app/shared/templates/helpers';
+import { EMAILS } from '@app/shared/enums';
 import { User, Team, Member, Session } from '@app/shared/interfaces';
-import { processIntegrationRequest, checkIfRequestMerged } from '@app/controllers/requests';
-import { createEvent } from '@app/queries/event';
+import {
+  checkIfRequestMerged,
+  assertWorkflowCompleted,
+  enqueueIntegrationWorkflow,
+  runIntegrationWorkflow,
+} from '@app/controllers/requests';
+import { audit } from '@app/queries/event';
+import { serviceAccountUsername } from '@sso/audit';
 import { getTeamById, findAllowedTeamUsers } from '../queries/team';
 import { getTeamIdLiteralOutOfRange } from '../queries/literals';
 import { getUserById } from '../queries/user';
@@ -26,6 +33,10 @@ import { logger } from '@app/utils/logger';
 
 const log = logger.child({ module: 'controllers/team' });
 
+// Team events name the team in `team_id`; membership events also target the member's app user row.
+const teamTarget = (teamId: number) => ({ type: 'team' as const, id: String(teamId) });
+const memberTarget = (userId: number) => ({ type: 'app-user' as const, id: String(userId) });
+
 export const listTeams = async (user: User) => {
   const result = await findTeamsForUser(user.id, { raw: true });
   return result;
@@ -33,8 +44,34 @@ export const listTeams = async (user: User) => {
 
 export const createTeam = async (session: Session, data: Team) => {
   const { name, members } = data;
-  const team = await models.team.create({ name });
-  await models.usersTeam.create({ teamId: team.id, userId: session?.user?.id, role: 'admin', pending: false });
+  const team = await sequelize.transaction(async (transaction) => {
+    const createdTeam = await models.team.create({ name }, { transaction });
+    await models.usersTeam.create(
+      { teamId: createdTeam.id, userId: session?.user?.id, role: 'admin', pending: false },
+      { transaction },
+    );
+    await audit.createEvent(
+      {
+        action: 'team-create',
+        outcome: 'success',
+        teamId: createdTeam.id,
+        target: teamTarget(createdTeam.id),
+        details: { name },
+      },
+      transaction,
+    );
+    await audit.createEvent(
+      {
+        action: 'team-member-add',
+        outcome: 'success',
+        teamId: createdTeam.id,
+        target: memberTarget(session?.user?.id as number),
+        details: { role: 'admin' },
+      },
+      transaction,
+    );
+    return createdTeam;
+  });
   await addUsersToTeam(session, team.id, members);
   return team;
 };
@@ -90,7 +127,23 @@ export const addUsersToTeam = async (session: Session, teamId: number, members: 
   // Return IDs of new users
   const userTeams = await Promise.all(
     allUsers.map(async (user) => {
-      const userTeam = await models.usersTeam.create({ teamId, userId: user.id, role: user.role, pending: false });
+      const userTeam = await sequelize.transaction(async (transaction) => {
+        const membership = await models.usersTeam.create(
+          { teamId, userId: user.id, role: user.role, pending: false },
+          { transaction },
+        );
+        await audit.createEvent(
+          {
+            action: 'team-member-add',
+            outcome: 'success',
+            teamId,
+            target: memberTarget(user.id),
+            details: { role: user.role },
+          },
+          transaction,
+        );
+        return membership;
+      });
       await sendTemplate(EMAILS.TEAM_MEMBER_ADDED, { email: user.idirEmail, team, role: user.role });
       return userTeam;
     }),
@@ -102,22 +155,31 @@ export const addUsersToTeam = async (session: Session, teamId: number, members: 
 export const updateTeam = async (session: Session, teamId: string, data: { name: string }) => {
   if (!(await authorizeTeam(session, Number(teamId), teamPermissions.UPDATE_TEAM)))
     throw new createHttpError.Forbidden('not allowed to update team');
-  const updated = await models.team.update(
-    { name: data.name },
-    {
-      where: {
-        id: teamId,
+  const currentTeam = await models.team.findByPk(teamId);
+  if (!currentTeam) throw new createHttpError.NotFound('team not found');
+  const updated = await sequelize.transaction(async (transaction) => {
+    const [count, rows] = await models.team.update(
+      { name: data.name },
+      {
+        where: { id: teamId },
+        returning: true,
+        transaction,
       },
-      returning: true,
-      plain: true,
-    },
-  );
-
-  if (updated.length < 2) {
-    throw new createHttpError.UnprocessableEntity('update failed');
-  }
-
-  return updated[1].dataValues;
+    );
+    if (count === 0) throw new createHttpError.UnprocessableEntity('update failed');
+    await audit.createEvent(
+      {
+        action: 'team-update',
+        outcome: 'success',
+        teamId: Number(teamId),
+        target: teamTarget(Number(teamId)),
+        details: { before: { name: currentTeam.name }, after: { name: data.name } },
+      },
+      transaction,
+    );
+    return rows[0];
+  });
+  return updated.dataValues;
 };
 
 export const deleteTeam = async (session: Session, teamId: number) => {
@@ -142,21 +204,59 @@ export const deleteTeam = async (session: Session, teamId: number) => {
     }
   }
 
-  // Clear fkey from teams archived requests
-  await models.request.update(
-    { teamId: null },
-    {
-      where: {
-        teamId,
-        archived: true,
-      },
-      returning: true,
-      omitNull: false,
-    },
-  );
+  // Destroying the team cascades to its memberships, so the recipients are resolved first.
+  const emails = await getTeamEmails(team.id);
 
-  await sendTemplate(EMAILS.TEAM_DELETED, { team });
-  await team.destroy();
+  await sequelize.transaction(async (transaction) => {
+    // Clear fkey from teams archived requests
+    await models.request.update(
+      { teamId: null },
+      { where: { teamId, archived: true }, returning: true, omitNull: false, transaction },
+    );
+    const [memberships, organizationLinks] = await Promise.all([
+      models.usersTeam.findAll({ where: { teamId }, transaction }),
+      models.organizationTeam.findAll({ where: { teamId }, transaction }),
+    ]);
+    await team.destroy({ transaction });
+    // team_id has no foreign key, so the events keep naming the team after its row is gone.
+    for (const membership of memberships) {
+      await audit.createEvent(
+        {
+          action: 'team-member-remove',
+          outcome: 'success',
+          teamId: Number(teamId),
+          target: memberTarget(membership.userId),
+          details: { role: membership.role, reason: 'team-deleted' },
+        },
+        transaction,
+      );
+    }
+    // The team's organization links cascade too.
+    for (const link of organizationLinks) {
+      await audit.createEvent(
+        {
+          action: 'organization-team-leave',
+          outcome: 'success',
+          organizationId: link.organizationId,
+          teamId: Number(teamId),
+          target: teamTarget(Number(teamId)),
+          details: { removedBy: 'team', reason: 'team-deleted' },
+        },
+        transaction,
+      );
+    }
+    await audit.createEvent(
+      {
+        action: 'team-delete',
+        outcome: 'success',
+        teamId: Number(teamId),
+        target: teamTarget(Number(teamId)),
+        details: { name: team.name },
+      },
+      transaction,
+    );
+  });
+  await sendTemplate(EMAILS.TEAM_DELETED, { team, emails });
   return true;
 };
 
@@ -180,29 +280,26 @@ const canRemoveUser = async (userId: number, teamId: number) => {
 };
 
 export const removeUserFromTeam = async (session: Session, memberUserId: number, teamId: number) => {
-  const userId = session?.user?.id as number;
   if (!(await authorizeTeam(session, teamId, teamPermissions.REMOVE_MEMBER)))
     throw new createHttpError.Forbidden('not allowed to remove member from team');
   const canRemove = await canRemoveUser(memberUserId, teamId);
   if (!canRemove) throw new createHttpError.Forbidden('not allowed to remove user');
 
   const userTeamRecord = await models.usersTeam.findOne({ where: { userId: memberUserId, teamId } });
-  if (userTeamRecord.role === 'admin' && userTeamRecord.pending === false) {
-    const user = await getUserById(userId);
-    await createEvent({
-      eventCode: EVENTS.TEAM_ADMIN_REMOVAL,
-      idirUserid: user?.idirUserid,
-      idirUserDisplayName: user?.displayName,
-      details: {
-        removerId: userId,
+  if (!userTeamRecord) throw new createHttpError.NotFound('team member not found');
+  await sequelize.transaction(async (transaction) => {
+    await userTeamRecord.destroy({ transaction });
+    await audit.createEvent(
+      {
+        action: 'team-member-remove',
+        outcome: 'success',
         teamId,
-        removedMemberId: memberUserId,
-        action: 'removed',
+        target: memberTarget(memberUserId),
+        details: { role: userTeamRecord.role },
       },
-    });
-  }
-
-  await userTeamRecord.destroy();
+      transaction,
+    );
+  });
 
   const [user, team] = await Promise.all([getUserById(memberUserId), getTeamById(teamId)]);
   await Promise.all([
@@ -223,40 +320,33 @@ export const updateMemberInTeam = async (
   if (!(await authorizeTeam(session, teamId, teamPermissions.UPDATE_MEMBER_ROLE)))
     throw new createHttpError.Forbidden('not allowed to update member in team');
 
+  const memberCurrentRole = await getTeamRoleByUserId(memberUserId, teamId);
+  if (!memberCurrentRole) throw new createHttpError.NotFound('team member not found');
   // Cannot demote the last admin until another is added
-  if (data.role != 'admin') {
-    const memberCurrentRole = await getTeamRoleByUserId(memberUserId, teamId);
-    if (memberCurrentRole.role === 'admin') {
-      const canDemote = await canRemoveUser(memberUserId, teamId);
-      if (!canDemote) throw new createHttpError.Forbidden('not allowed to update member in team');
-      else {
-        const user = await getUserById(userId);
-        await createEvent({
-          eventCode: EVENTS.TEAM_ADMIN_REMOVAL,
-          idirUserid: user?.idirUserid,
-          idirUserDisplayName: user?.displayName,
-          details: {
-            teamId,
-            removerId: userId,
-            removedMemberId: memberUserId,
-            action: 'roleChanged',
-          },
-        });
-      }
-    }
+  const demotingAdmin = data.role !== 'admin' && memberCurrentRole.role === 'admin';
+  if (demotingAdmin && !(await canRemoveUser(memberUserId, teamId))) {
+    throw new createHttpError.Forbidden('not allowed to update member in team');
   }
-
-  await models.usersTeam.update(
-    { role: data.role },
-    {
-      where: {
-        userId: memberUserId,
+  await sequelize.transaction(async (transaction) => {
+    await models.usersTeam.update({ role: data.role }, { where: { userId: memberUserId, teamId }, transaction });
+    const updatedMemberRole = await models.usersTeam.findOne({
+      where: { userId: memberUserId, teamId },
+      attributes: ['role', 'pending'],
+      raw: true,
+      transaction,
+    });
+    if (memberCurrentRole.role === updatedMemberRole?.role) return;
+    await audit.createEvent(
+      {
+        action: 'team-member-role-update',
+        outcome: 'success',
         teamId,
+        target: memberTarget(memberUserId),
+        details: { before: memberCurrentRole.role, after: updatedMemberRole?.role },
       },
-      returning: true,
-      plain: true,
-    },
-  );
+      transaction,
+    );
+  });
 
   return getMemberOnTeam(teamId, memberUserId, { raw: true });
 };
@@ -272,36 +362,37 @@ export const requestServiceAccount = async (session: Session, teamId: number, re
   }
   const teamIdLiteral = getTeamIdLiteralOutOfRange(userId, teamId, ['admin']);
 
-  const serviceAccount = await models.request.create({
-    projectName: `Service Account for team #${teamId}`,
-    serviceType: 'gold',
-    usesTeam: true,
-    teamId: sequelize.literal(`(${teamIdLiteral})`),
-    apiServiceAccount: true,
+  // The account, its workflow and the `requested` event commit together. A team the user may not use
+  // resolves to no team, and rolling back means no account row is ever left behind for it.
+  const { serviceAccount, enqueued } = await sequelize.transaction(async (transaction) => {
+    const serviceAccount = await models.request.create(
+      {
+        projectName: `Service Account for team #${teamId}`,
+        serviceType: 'gold',
+        usesTeam: true,
+        teamId: sequelize.literal(`(${teamIdLiteral})`),
+        apiServiceAccount: true,
+      },
+      { transaction },
+    );
+
+    if (!serviceAccount.teamId) {
+      throw new createHttpError.Forbidden(`team #${teamId} is not allowed for user #${userId}`);
+    }
+
+    serviceAccount.authType = 'service-account';
+    serviceAccount.status = 'submitted';
+    serviceAccount.clientId = `service-account-team-${teamId}-${serviceAccount.id}`;
+    serviceAccount.requester = requester;
+    serviceAccount.environments = ['prod']; // service accounts are by default only created in prod
+    const saved = await serviceAccount.save({ transaction });
+
+    const enqueued = await enqueueIntegrationWorkflow(saved, { awaitCompletion: true }, transaction);
+    return { serviceAccount: saved, enqueued };
   });
 
-  if (!serviceAccount.teamId) {
-    await serviceAccount.destroy();
-    throw new createHttpError.Forbidden(`team #${teamId} is not allowed for user #${userId}`);
-  }
-
-  serviceAccount.authType = 'service-account';
-  serviceAccount.status = 'submitted';
-  serviceAccount.clientId = `service-account-team-${teamId}-${serviceAccount.id}`;
-  serviceAccount.requester = requester;
-  serviceAccount.environments = ['prod']; // service accounts are by default only created in prod
-  const saved = await serviceAccount.save();
-
   // Service account creation stays synchronous: the caller reads the client credentials right after.
-  await processIntegrationRequest(saved, false, '', false, { awaitCompletion: true });
-
-  const eventData = {
-    eventCode: EVENTS.REQUEST_CREATE_SUCCESS,
-    requestId: saved?.id,
-    idirUserid: session?.idir_userid,
-    idirUserDisplayName: requester,
-  };
-  createEvent(eventData);
+  assertWorkflowCompleted(await runIntegrationWorkflow(enqueued, { awaitCompletion: true }));
 
   return serviceAccount;
 };
@@ -349,6 +440,7 @@ export const getServiceAccountCredentials = async (session: Session, teamId: num
     throw new createHttpError.Forbidden('not allowed to fetch api account credentials');
   }
   const integration = await getServiceAccount(session, teamId, saId);
+  if (!integration) throw new createHttpError.NotFound('could not find api account');
   const installation = await generateInstallation({
     serviceType: integration.serviceType,
     environment: 'prod',
@@ -356,9 +448,24 @@ export const getServiceAccountCredentials = async (session: Session, teamId: num
     clientId: integration.clientId,
     authType: integration.authType,
   });
-
+  // Strict and before returning: credentials nobody can account for are never handed out.
+  await audit.createEvent({
+    action: 'credentials-view',
+    outcome: 'success',
+    ...apiAccountScope(integration),
+    details: {},
+  });
   return installation;
 };
+
+// An api account's secrets events: the account's own request row, its team, and its client.
+const apiAccountScope = (account: { id: number; teamId: number; clientId: string }) => ({
+  requestId: account.id,
+  teamId: account.teamId,
+  environment: 'prod' as const,
+  // The account's Keycloak username, as its role assignments name it.
+  target: { type: 'service-account' as const, id: serviceAccountUsername(account.clientId) },
+});
 
 export const deleteServiceAccount = async (session: Session, teamId: number, saId: number) => {
   const userId = session?.user?.id as number;
@@ -377,32 +484,27 @@ export const deleteServiceAccount = async (session: Session, teamId: number, saI
     serviceAccount.status = 'submitted';
     serviceAccount.archived = true;
     serviceAccount.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
-    const saved = await serviceAccount.save();
 
-    if (isMerged) {
-      // Trigger workflow with empty environments to delete client
-      await processIntegrationRequest(saved, false, '', false, { awaitCompletion: true });
-    }
+    // An applied account is deleted by a workflow that removes its client; one that never reached
+    // Keycloak is deleted by this change alone.
+    const enqueued = await sequelize.transaction(async (transaction) => {
+      await serviceAccount.save({ transaction });
+      if (isMerged) return enqueueIntegrationWorkflow(serviceAccount, { awaitCompletion: true }, transaction);
+      await audit.createEvent(
+        { action: 'api-account-delete', outcome: 'success', requestId: saId, teamId, details: {} },
+        transaction,
+      );
+      return undefined;
+    });
+
+    if (isMerged) assertWorkflowCompleted(await runIntegrationWorkflow(enqueued, { awaitCompletion: true }));
 
     await sendTemplate(EMAILS.DELETE_TEAM_API_ACCOUNT_SUBMITTED, { team, requester });
 
-    createEvent({
-      eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_SUCCESS,
-      requestId: saId,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session.user?.displayName,
-    });
-
     return serviceAccount;
   } catch (err) {
+    // No event here: a failure before the commit left nothing behind, and one after it is the engine's.
     log.error({ err }, 'deleteServiceAccount failed');
-
-    createEvent({
-      eventCode: EVENTS.TEAM_API_ACCOUNT_DELETE_FAILURE,
-      requestId: saId,
-      idirUserid: session?.idir_userid,
-      idirUserDisplayName: session.user?.displayName,
-    });
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
   }
 };
@@ -412,12 +514,15 @@ export const updateServiceAccountSecret = async (session: Session, teamId: numbe
     throw new createHttpError.Forbidden('not allowed to update api account credentials');
   }
   const integration = await getServiceAccount(session, teamId, saId);
-  return await updateClientSecret({
-    serviceType: integration.serviceType,
-    environment: 'prod',
-    realmName: 'standard',
-    clientId: integration.clientId,
-  });
+  if (!integration) throw new createHttpError.NotFound('could not find api account');
+  return audit.runAuditedOperation({ action: 'secret-rotate', ...apiAccountScope(integration), details: {} }, () =>
+    updateClientSecret({
+      serviceType: integration.serviceType,
+      environment: 'prod',
+      realmName: 'standard',
+      clientId: integration.clientId,
+    }),
+  );
 };
 
 export const restoreTeamServiceAccount = async (session: Session, teamId: number, saId: number) => {
@@ -435,9 +540,12 @@ export const restoreTeamServiceAccount = async (session: Session, teamId: number
   serviceAccount.status = 'submitted';
   serviceAccount.archived = false;
   serviceAccount.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
-  const saved = await serviceAccount.save();
 
-  await processIntegrationRequest(saved, true, '', false, { awaitCompletion: true });
+  const enqueued = await sequelize.transaction(async (transaction) => {
+    const saved = await serviceAccount.save({ transaction });
+    return enqueueIntegrationWorkflow(saved, { restore: true, awaitCompletion: true }, transaction);
+  });
+  assertWorkflowCompleted(await runIntegrationWorkflow(enqueued, { awaitCompletion: true }));
 
   const teamIntegrations = await models.request.findAll({
     where: {
@@ -454,13 +562,6 @@ export const restoreTeamServiceAccount = async (session: Session, teamId: number
     requester,
     team,
     integrations: teamIntegrations,
-  });
-
-  createEvent({
-    eventCode: EVENTS.REQUEST_RESTORE_SUCCESS,
-    requestId: saId,
-    idirUserid: session?.idir_userid,
-    idirUserDisplayName: session?.user?.displayName,
   });
 
   return serviceAccount;

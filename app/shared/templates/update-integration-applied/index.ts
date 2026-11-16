@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import Handlebars from 'handlebars';
 import { getEmailTemplate, processRequest } from '../helpers';
 import { IntegrationData } from '@app/shared/interfaces';
@@ -8,16 +7,19 @@ import {
   IDIM_EMAIL_ADDRESS,
   DIT_ADDITIONAL_EMAIL_ADDRESS,
   SOCIAL_APPROVAL_EMAIL_ADDRESS,
+  WAM_EMAIL_ADDRESS,
 } from '@app/shared/local';
 import { getIntegrationEmails } from '../helpers';
 import { EMAILS } from '@app/shared/enums';
 import type { RenderResult } from '../index';
 import {
+  usesBcServicesCard,
   usesBcServicesCardProd,
   usesBceid,
   usesDigitalCredential,
   usesDigitalCredentialProd,
   usesSocial,
+  usesBcgovIdir,
 } from '@app/helpers/integration';
 
 const SUBJECT_TEMPLATE = `SSO change request complete`;
@@ -31,14 +33,21 @@ interface DataProps {
   hadBceid?: boolean;
   waitingGithubProdApproval?: boolean;
   waitingBcServicesCardProdApproval?: boolean;
-  waitingBcgovIdirProdApproval?: boolean;
   addingProd: boolean;
+  usesBcServicesCardIdp?: boolean;
+  usesBcgovIdirIdp?: boolean;
 }
 
 export const render = async (originalData: DataProps): Promise<RenderResult> => {
   const { integration } = originalData;
   const readableDiff = getReadableIntegrationDiff(integration?.lastChanges!);
-  const data = { ...originalData, integration: await processRequest(integration), changes: readableDiff };
+  const data = {
+    ...originalData,
+    integration: await processRequest(integration),
+    changes: readableDiff,
+    usesBcServicesCardIdp: usesBcServicesCard(integration),
+    usesBcgovIdirIdp: usesBcgovIdir(integration),
+  };
 
   return {
     subject: subjectHandler(data),
@@ -59,6 +68,7 @@ export const send = async (data: DataProps, rendered: RenderResult) => {
   if (usesDigitalCredential(integration) && addingProd) cc.push(DIT_EMAIL_ADDRESS);
   if (usesDigitalCredentialProd(integration)) cc.push(DIT_ADDITIONAL_EMAIL_ADDRESS);
   if (usesSocial(integration)) cc.push(SOCIAL_APPROVAL_EMAIL_ADDRESS);
+  if (usesBcgovIdir(integration)) cc.push(WAM_EMAIL_ADDRESS);
 
   return sendEmail({
     code: EMAILS.UPDATE_INTEGRATION_APPLIED,
