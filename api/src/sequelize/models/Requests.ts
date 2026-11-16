@@ -851,11 +851,11 @@ export class Requests extends Model<RequestsAttributes, RequestsCreationAttribut
           allowNull: true,
           field: 'bc_services_card_approved',
         },
-        bcgovidirApproved: {
+        entraGuestAccountsEnabled: {
           type: DataTypes.BOOLEAN,
           allowNull: false,
           defaultValue: false,
-          field: 'bcgovidir_approved',
+          field: 'entra_guest_accounts_enabled',
         },
         confirmSocial: {
           type: DataTypes.BOOLEAN,

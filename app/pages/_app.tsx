@@ -9,8 +9,10 @@ import Head from 'next/head';
 import GenericModal, { ModalRef, emptyRef } from 'components/GenericModal';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import SurveyBox from '@app/components/SurveyBox';
+import ChatWidget from '@app/components/ChatWidget';
 import { KeycloakTokenParsed } from 'keycloak-js';
 import keycloak from '@app/utils/keycloak';
+import { hasValidEmail } from '@app/utils/session';
 import App from 'next/app';
 import { SessionContext, SurveyContext } from '@app/utils/context';
 import '@bcgov/bc-sans/css/BCSans.css';
@@ -18,9 +20,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'styles/globals.css';
 
 const authenticatedUris = [
-  `${process.env.NEXT_PUBLIC_BASE_PATH}/my-dashboard`,
-  `${process.env.NEXT_PUBLIC_BASE_PATH}/request`,
-  `${process.env.NEXT_PUBLIC_BASE_PATH}/admin-dashboard`,
+  `${process.env.NEXT_PUBLIC_APP_URL}/my-dashboard`,
+  `${process.env.NEXT_PUBLIC_APP_URL}/request`,
+  `${process.env.NEXT_PUBLIC_APP_URL}/admin-dashboard`,
 ];
 
 const proccessSession = (session?: KeycloakTokenParsed | null) => {
@@ -121,14 +123,15 @@ function MyApp({ Component, pageProps }: AppProps) {
     }
   }, []);
 
+  const emailInvalid = !!session && !hasValidEmail(session);
   useEffect(() => {
     const getUser = async () => {
       const [data, err] = await getProfile();
       setUser(data);
     };
 
-    if (session) getUser();
-  }, [session]);
+    if (session && !emailInvalid) getUser();
+  }, [session, emailInvalid]);
 
   const handleLogin = async () =>
     keycloak.login({
@@ -142,7 +145,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   if (loading) return <PageLoader />;
 
-  if (authenticatedUris.some((url) => location.pathname.startsWith(url)) && !keycloak.authenticated) {
+  if (authenticatedUris.some((url) => location.href.startsWith(url)) && (!keycloak.authenticated || emailInvalid)) {
     router.push('/');
     return null;
   }
@@ -154,7 +157,13 @@ function MyApp({ Component, pageProps }: AppProps) {
           <Component {...pageProps} />
         ) : (
           <>
-            <Layout session={session} user={user} onLoginClick={handleLogin} onLogoutClick={handleLogout}>
+            <Layout
+              session={session}
+              user={user}
+              emailInvalid={emailInvalid}
+              onLoginClick={handleLogin}
+              onLogoutClick={handleLogout}
+            >
               <Head>
                 <html lang="en" />
                 <title>Common Hosted Single Sign-on (CSS)</title>
@@ -195,6 +204,8 @@ function MyApp({ Component, pageProps }: AppProps) {
                 triggerEvent={surveyTriggerEvent}
               />
             )}
+            {/* Signed-in users only, and never alongside the survey box in the same corner. */}
+            {session && user && <ChatWidget userId={session.sub || String(user.id)} hidden={displaySurvey} />}
           </>
         )}
       </SurveyContext.Provider>

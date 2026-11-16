@@ -17,11 +17,11 @@
     "dotenv": "^17.3.1",
     "lodash.tolower": "^4.1.2",
     "lodash.trim": "^4.5.1",
-    "pg": "^8.20.0",
+    "pg": "^8.23.1",
     "pg-format": "^1.0.4",
     "pino": "^10.4.0",
     "sequelize": "^6.37.8",
-    "tsc-alias": "^1.8.16",
+    "tsc-alias": "^1.9.10",
     "typescript": "^5.9.3",
     "umzug": "^3.1.1"
   }

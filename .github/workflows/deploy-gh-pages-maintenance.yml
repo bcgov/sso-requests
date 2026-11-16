@@ -38,16 +38,20 @@ jobs:
 
       - name: Set env to development
         if: ${{endsWith(github.ref,'/dev') && github.event.inputs.environment  == 'dev' }}
+        env:
+          OPENSHIFT_NAMESPACE: ${{ secrets.DEV_OPENSHIFT_NAMESPACE }}
         run: |
           cat >> $GITHUB_ENV <<EOF
-          OPENSHIFT_NAMESPACE=${{ secrets.DEV_OPENSHIFT_NAMESPACE }}
+          OPENSHIFT_NAMESPACE=$OPENSHIFT_NAMESPACE
           EOF
 
       - name: Set env to production
         if: ${{endsWith(github.ref,'/main') && github.event.inputs.environment  == 'prod' }}
+        env:
+          OPENSHIFT_NAMESPACE: ${{ secrets.PROD_OPENSHIFT_NAMESPACE }}
         run: |
           cat >> $GITHUB_ENV <<EOF
-          OPENSHIFT_NAMESPACE=${{ secrets.PROD_OPENSHIFT_NAMESPACE }}
+          OPENSHIFT_NAMESPACE=$OPENSHIFT_NAMESPACE
           EOF
 
       - name: Authenticate and set context
@@ -59,7 +63,7 @@ jobs:
 
       - name: Set CSS Maintenance Mode to Active or Inactive
         run: |
-          namespace=${{ env.OPENSHIFT_NAMESPACE }}
+          namespace=$OPENSHIFT_NAMESPACE
           maintenanceEnabled=${{ github.event.inputs.maintenanceEnabled }}
           oc set env deployment/sso-requests MAINTENANCE_MODE_ACTIVE=${maintenanceEnabled} -n ${namespace}
           oc set env deployment/sso-requests-api MAINTENANCE_MODE_ACTIVE=${maintenanceEnabled} -n ${namespace}

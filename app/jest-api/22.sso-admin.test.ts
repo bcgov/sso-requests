@@ -34,21 +34,24 @@ jest.mock('@app/keycloak/users', () => {
       ]),
     ),
     listRoleUsers: jest.fn(() =>
-      Promise.resolve([
-        {
-          id: '11111111-1111-1111-1111-111111111111',
-          enabled: true,
-          username: 'user1',
-          firstName: 'user1',
-          lastName: 'user1',
-          email: 'user1@example.com',
-          attributes: {
-            idir_user_guid: '11111111-1111-1111-1111-111111111111',
-            idir_username: 'USER1',
-            display_name: 'user1',
+      Promise.resolve({
+        totalCount: 1,
+        data: [
+          {
+            id: '11111111-1111-1111-1111-111111111111',
+            enabled: true,
+            username: 'user1',
+            firstName: 'user1',
+            lastName: 'user1',
+            email: 'user1@example.com',
+            attributes: {
+              idir_user_guid: '11111111-1111-1111-1111-111111111111',
+              idir_username: 'USER1',
+              display_name: 'user1',
+            },
           },
-        },
-      ]),
+        ],
+      }),
     ),
     getCompositeClientRoles: jest.fn(() => Promise.resolve(['comp-role1', 'comp-role2'])),
   };
@@ -85,6 +88,7 @@ describe('SSO Admin', () => {
 
     const usersRes = await listClientRoleUsers(integration.id!, 'role1');
     expect(usersRes.status).toEqual(200);
-    expect(usersRes.body[0].username).toEqual('user1');
+    expect(usersRes?.body?.data?.[0].username).toEqual('user1');
+    expect(usersRes?.body?.totalCount).toEqual(1);
   });
 });

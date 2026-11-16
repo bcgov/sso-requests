@@ -4,6 +4,7 @@ import { Session } from '@app/shared/interfaces';
 import { handleError, withApiLogging } from '@app/utils/api';
 import { processUserSession } from '@app/controllers/user';
 import { getSdxServicesForClient, processSdxWorkflowUpdates } from '@app/controllers/sdx-services';
+import { systemActor, withActor } from '@sso/audit/server';
 import jws from 'jws';
 import jwkToPem from 'jwk-to-pem';
 import jwt, { JwtPayload } from 'jsonwebtoken';
@@ -60,7 +61,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const { id } = req.query || {};
       if (!id) return res.status(400).json({ success: false, message: 'Integration ID is required' });
 
-      await processSdxWorkflowUpdates(Number(id), req.body);
+      await withActor(systemActor('sdx-callback'), () => processSdxWorkflowUpdates(Number(id), req.body));
       return res.status(200).json({ success: true });
     } else {
       res.setHeader('Allow', ['GET', 'PUT']);

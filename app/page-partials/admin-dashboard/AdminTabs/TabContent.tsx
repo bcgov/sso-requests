@@ -10,7 +10,6 @@ import {
   checkIfBcServicesCardProdApplying,
   checkIfSocialProdApplying,
   checkIfOTPProdApplying,
-  checkIfBcgovIdirProdApplying,
 } from '@app/utils/helpers';
 import { ErrorMessage } from '@app/components/MessageBox';
 import Link from '@app/components/Link';
@@ -25,7 +24,7 @@ const TabWrapper = styled.div`
 
 interface Props {
   integration: Integration;
-  type: 'bceid' | 'github' | 'BCServicesCard' | 'BCGOV IDIR' | 'social' | 'otp';
+  type: 'bceid' | 'github' | 'BCServicesCard' | 'social' | 'otp';
   canApproveProd: boolean;
   notApplied: boolean;
   onApproved?: () => void;
@@ -35,7 +34,6 @@ const approvalTypeMap = {
   bceid: 'bceidApproved',
   github: 'githubApproved',
   BCServicesCard: 'bcServicesCardApproved',
-  'BCGOV IDIR': 'bcgovidirApproved',
   social: 'socialApproved',
   otp: 'otpApproved',
 };
@@ -74,7 +72,6 @@ function TabContent({ integration, type, canApproveProd, notApplied, onApproved 
     integration?.bceidApproved,
     integration?.githubApproved,
     integration?.bcServicesCardApproved,
-    integration?.bcgovidirApproved,
     integration?.otpApproved,
   ]);
 
@@ -96,9 +93,6 @@ function TabContent({ integration, type, canApproveProd, notApplied, onApproved 
       break;
     case 'BCServicesCard':
       typeApproved = checkIfBcServicesCardProdApplying(integration);
-      break;
-    case 'BCGOV IDIR':
-      typeApproved = checkIfBcgovIdirProdApplying(integration);
       break;
     case 'social':
       typeApproved = checkIfSocialProdApplying(integration);

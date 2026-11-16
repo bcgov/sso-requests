@@ -1,8 +1,10 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import OrganizationList from '@app/page-partials/my-dashboard/OrganizationList';
 import OrganizationInfoTabs from '@app/page-partials/my-dashboard/OrganizationInfoTabs';
+import TopAlertProvider, { TopAlert } from '@app/layout/TopAlert';
 import { PRESETS } from '@sso/authz';
 import {
+  addOrganizationMember,
   createOrganizationApiAccount,
   deleteOrganization,
   deleteOrganizationApiAccount,
@@ -10,11 +12,16 @@ import {
   getOrganizationMembers,
   getOrganizationTeams,
   removeOrganizationMember,
+  updateOrganizationMemberRole,
   removeTeamFromOrganization,
   searchTeamsForOrganization,
   getTeamIntegrationsForOrganization,
   updateOrganizationApiAccountSecret,
 } from '@app/services/organization';
+
+jest.mock('@app/utils/users', () => ({
+  throttledIdirSearch: jest.fn(async () => [{ value: 'member-12@gov.bc.ca', label: 'member-12@gov.bc.ca' }]),
+}));
 
 jest.mock('@app/services/organization', () => ({
   addOrganizationMember: jest.fn(),
@@ -29,6 +36,7 @@ jest.mock('@app/services/organization', () => ({
   getTeamIntegrationsForOrganization: jest.fn(),
   inviteTeamToOrganization: jest.fn(),
   removeOrganizationMember: jest.fn(),
+  updateOrganizationMemberRole: jest.fn(),
   removeTeamFromOrganization: jest.fn(),
   searchTeamsForOrganization: jest.fn(),
   updateOrganizationApiAccountSecret: jest.fn(),
@@ -38,6 +46,7 @@ const organization = { id: 1, name: 'Alpha', description: 'Alpha organization', 
 const cssAdmin = { email: 'admin@gov.bc.ca', isAdmin: true, client_roles: ['sso-admin'] };
 const organizationAdmin = { email: 'org-admin@gov.bc.ca', isAdmin: false, client_roles: ['user'] };
 
+const mockedAddOrganizationMember = jest.mocked(addOrganizationMember);
 const mockedCreateOrganizationApiAccount = jest.mocked(createOrganizationApiAccount);
 const mockedDeleteOrganization = jest.mocked(deleteOrganization);
 const mockedDeleteOrganizationApiAccount = jest.mocked(deleteOrganizationApiAccount);
@@ -45,6 +54,7 @@ const mockedGetOrganizationApiAccounts = jest.mocked(getOrganizationApiAccounts)
 const mockedGetOrganizationMembers = jest.mocked(getOrganizationMembers);
 const mockedGetOrganizationTeams = jest.mocked(getOrganizationTeams);
 const mockedRemoveOrganizationMember = jest.mocked(removeOrganizationMember);
+const mockedUpdateOrganizationMemberRole = jest.mocked(updateOrganizationMemberRole);
 const mockedRemoveTeamFromOrganization = jest.mocked(removeTeamFromOrganization);
 const mockedSearchTeams = jest.mocked(searchTeamsForOrganization);
 const mockedUpdateOrganizationApiAccountSecret = jest.mocked(updateOrganizationApiAccountSecret);
@@ -256,17 +266,12 @@ describe('Organization deletion', () => {
     expect(screen.getByRole('button', { name: 'copy-credentials' })).toHaveAttribute('aria-disabled', 'false');
   });
 
-  it('holds the API account actions back from an ordinary organization member', async () => {
+  it('hides the API account from an ordinary organization member', async () => {
     render(<OrganizationInfoTabs organization={{ ...organization, role: 'member' }} currentUser={organizationAdmin} />);
 
-    fireEvent.click(await screen.findByRole('tab', { name: 'CSS API Account' }));
-    expect(await screen.findByText('service-account-org-1-11')).toBeInTheDocument();
-    ['copy-credentials', 'download-credentials', 'update-secret', 'delete-api-account'].forEach((name) => {
-      expect(screen.getByRole('button', { name })).toHaveAttribute('aria-disabled', 'true');
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: 'delete-api-account' }));
-    expect(screen.queryByText(/Are you sure that you want to delete this CSS API Account/)).not.toBeInTheDocument();
+    await screen.findByRole('tab', { name: 'Members' });
+    expect(screen.queryByRole('tab', { name: 'CSS API Account' })).not.toBeInTheDocument();
+    expect(mockedGetOrganizationApiAccounts).not.toHaveBeenCalled();
   });
 });
 
@@ -325,13 +330,85 @@ describe('Organization management', () => {
     expect(mockedRemoveOrganizationMember).not.toHaveBeenCalled();
   });
 
+  it('tells the admin when the person they add is already a member', async () => {
+    // The list the screen holds is stale, so only the server can say they are already in.
+    mockedGetOrganizationMembers.mockResolvedValue([[member(11, 'admin')], null]);
+    mockedAddOrganizationMember.mockResolvedValue([null, 'user is already a member of this organization' as any]);
+    render(
+      <TopAlertProvider>
+        <TopAlert>
+          <OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />
+        </TopAlert>
+      </TopAlertProvider>,
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: '+ Add Member' }));
+    const input = document.getElementById('org-member-email') as HTMLElement;
+    fireEvent.change(input, { target: { value: 'member-12' } });
+    fireEvent.click(await screen.findByRole('option', { name: 'member-12@gov.bc.ca' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+
+    await waitFor(() =>
+      expect(mockedAddOrganizationMember).toHaveBeenCalledWith(organization.id, {
+        idirEmail: 'member-12@gov.bc.ca',
+        role: 'member',
+      }),
+    );
+    expect(
+      await screen.findByText('member-12@gov.bc.ca is already a member of this organization.'),
+    ).toBeInTheDocument();
+  });
+
+  it('flags an existing member as soon as they are picked, without calling the server', async () => {
+    render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
+
+    fireEvent.click(await screen.findByRole('button', { name: '+ Add Member' }));
+    const input = document.getElementById('org-member-email') as HTMLElement;
+    fireEvent.change(input, { target: { value: 'member-12' } });
+    fireEvent.click(await screen.findByRole('option', { name: 'member-12@gov.bc.ca' }));
+
+    expect(
+      await screen.findByText('member-12@gov.bc.ca is already a member of this organization.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add' })).toBeDisabled();
+    expect(mockedAddOrganizationMember).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.click(await screen.findByRole('button', { name: '+ Add Member' }));
+    expect(screen.queryByText(/is already a member of this organization/)).not.toBeInTheDocument();
+  });
+
+  it('changes a member’s role', async () => {
+    mockedGetOrganizationMembers.mockResolvedValue([[member(11, 'admin'), member(12, 'member')], null]);
+    mockedUpdateOrganizationMemberRole.mockResolvedValue([{}, null] as any);
+    render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
+
+    await screen.findByLabelText('organization-member-role-12');
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const select = screen.getByLabelText('organization-member-role-12');
+    fireEvent.mouseDown(select.closest('div[class*="control"]') as HTMLElement);
+    fireEvent.click(await screen.findByRole('option', { name: 'Admin' }));
+
+    await waitFor(() => expect(mockedUpdateOrganizationMemberRole).toHaveBeenCalledWith(organization.id, 12, 'admin'));
+  });
+
+  it('offers no role change for the only admin', async () => {
+    mockedGetOrganizationMembers.mockResolvedValue([[member(11, 'admin'), member(12, 'member')], null]);
+    render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
+
+    await screen.findByLabelText('organization-member-role-12');
+    expect(screen.queryByLabelText('organization-member-role-11')).not.toBeInTheDocument();
+  });
+
   it('removes an admin once a second one is there', async () => {
     mockedGetOrganizationMembers.mockResolvedValue([[member(11, 'admin'), member(12, 'admin')], null]);
     render(<OrganizationInfoTabs organization={organization} currentUser={organizationAdmin} />);
 
     await screen.findByRole('button', { name: 'remove-organization-member-11' });
     fireEvent.click(screen.getByRole('button', { name: 'remove-organization-member-11' }));
+    expect(mockedRemoveOrganizationMember).not.toHaveBeenCalled();
 
+    fireEvent.click(await screen.findByRole('button', { name: 'Remove Member' }));
     await waitFor(() => expect(mockedRemoveOrganizationMember).toHaveBeenCalledWith(organization.id, 11));
   });
 

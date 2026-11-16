@@ -4,6 +4,7 @@ import { Event } from 'interfaces/Event';
 interface EventSearchCriteria {
   requestId: number;
   eventCode: string;
+  outcome?: string;
   order?: any;
   limit?: number;
   page?: number;
