@@ -36,56 +36,6 @@ module.exports = {
     '/*': ['node_modules/pg-format/**/*'],
   },
   async headers() {
-    return APP_ENV === 'production'
-      ? [
-          {
-            source: '/(.*)',
-            // Content-Security-Policy is set per request in proxy.ts (needs a nonce).
-            headers: [
-              {
-                key: 'X-Frame-Options',
-                value: 'DENY',
-              },
-              {
-                key: 'Referrer-Policy',
-                value: 'no-referrer',
-              },
-              {
-                key: 'Permissions-Policy',
-                value:
-                  'accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=()',
-              },
-              {
-                key: 'X-XSS-Protection',
-                value: '1; mode=block',
-              },
-              {
-                key: 'Cache-Control',
-                value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
-              },
-              {
-                key: 'Pragma',
-                value: 'no-cache',
-              },
-              {
-                key: 'Expires',
-                value: '0',
-              },
-              {
-                key: 'Surrogate-Control',
-                value: 'no-store',
-              },
-              {
-                key: 'Strict-Transport-Security',
-                value: 'max-age=63072000; includeSubDomains; preload',
-              },
-              {
-                key: 'X-Content-Type-Options',
-                value: 'nosniff',
-              },
-            ],
-          },
-        ]
-      : [];
+    return [];
   },
 };
