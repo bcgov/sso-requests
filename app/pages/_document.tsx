@@ -1,8 +1,12 @@
 import Document, { Html, Head, Main, NextScript, DocumentContext, DocumentInitialProps } from 'next/document';
 import { ServerStyleSheet } from 'styled-components';
 
-export default class MyDocument extends Document {
-  static async getInitialProps(ctx: DocumentContext) {
+interface DocumentProps extends DocumentInitialProps {
+  nonce?: string;
+}
+
+export default class MyDocument extends Document<DocumentProps> {
+  static async getInitialProps(ctx: DocumentContext): Promise<DocumentProps> {
     const sheet = new ServerStyleSheet();
     const originalRenderPage = ctx.renderPage;
 
@@ -18,19 +22,21 @@ export default class MyDocument extends Document {
       return {
         ...initialProps,
         styles: [initialProps.styles, sheet.getStyleElement()],
-      } as DocumentInitialProps;
+        nonce: ctx.req?.headers['x-nonce'] as string | undefined,
+      };
     } finally {
       sheet.seal();
     }
   }
 
   render() {
+    const { nonce } = this.props;
     return (
       <Html lang="en">
-        <Head />
+        <Head nonce={nonce} />
         <body>
           <Main />
-          <NextScript />
+          <NextScript nonce={nonce} />
         </body>
       </Html>
     );
