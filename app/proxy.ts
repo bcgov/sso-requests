@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const APP_ENV = process.env.NEXT_PUBLIC_APP_ENV || 'development';
 
+// keycloak-js (check-sso) frames the SSO server and calls its token endpoint.
+const ssoOrigin = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SSO_URL || '').origin;
+  } catch {
+    return '';
+  }
+})();
+
 // Turbopack production builds inline a per-page bootstrap <script>, so the CSP
 // needs a per-request nonce; _document reads it from the x-nonce request header.
 export function proxy(request: NextRequest) {
@@ -10,6 +19,8 @@ export function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
   const csp = [
     "default-src 'self'",
+    `connect-src 'self' ${ssoOrigin}`.trim(),
+    `frame-src 'self' ${ssoOrigin}`.trim(),
     "base-uri 'self'",
     'block-all-mixed-content',
     "font-src 'self' https: data:",
