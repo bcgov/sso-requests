@@ -35,12 +35,13 @@ app. Configuration and day-to-day details are in the
 
 The browser only calls the app's own routes (`app/pages/api/chat/`), which forward to `RAG_API_URL`:
 
-| Route                      | Upstream               | Purpose                                                          |
-| -------------------------- | ---------------------- | ---------------------------------------------------------------- |
-| `POST /api/chat`           | `POST /chat`           | Ask a question; the answer streams back as server-sent events.   |
-| `DELETE /api/chat`         | `DELETE /chat`         | End this tab's conversation (New chat).                          |
-| `DELETE /api/chat/history` | `DELETE /chat/history` | Delete every conversation this user has in this browser.         |
-| `GET /api/chat/status`     | none                   | Whether the assistant is enabled, and the question length limit. |
+| Route                      | Upstream               | Purpose                                                                                        |
+| -------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------- |
+| `POST /api/chat`           | `POST /chat`           | Ask a question; the answer streams back as server-sent events.                                 |
+| `DELETE /api/chat`         | `DELETE /chat`         | End this tab's conversation (New chat).                                                        |
+| `DELETE /api/chat/history` | `DELETE /chat/history` | Delete every conversation this user has in this browser.                                       |
+| `POST /api/chat/feedback`  | `POST /chat/feedback`  | Rate an answer 👍 or 👎, or clear the rating.                                                  |
+| `GET /api/chat/status`     | `GET /chat/config`     | Whether the assistant is enabled, the question length limit, and whether answers can be rated. |
 
 - Upstream requests are built from an allowlist: the app's service-account token (section 2), the session id (as
   `strands_session`), a valid `X-Tab-Id` and the content headers. The user's bearer token, Keycloak cookies and other
@@ -68,7 +69,8 @@ The browser only calls the app's own routes (`app/pages/api/chat/`), which forwa
 
 ### 3. Signed-in users only
 
-- `POST /api/chat`, `DELETE /api/chat` and `DELETE /api/chat/history` call `authenticate()` and return 401 without a
+- `POST /api/chat`, `DELETE /api/chat`, `DELETE /api/chat/history` and `POST /api/chat/feedback` call `authenticate()`
+  and return 401 without a
   valid bearer token. `authenticate()` now also returns the token's `sub` claim.
 - The widget is rendered from `pages/_app.tsx` only when there is a Keycloak session and the user's profile has loaded
   (`session && user`), and it sends `Authorization` from `getAuthHeader()` on every call.
@@ -183,7 +185,9 @@ Because the RAG API can't return a conversation (constraint 5), `useChat` keeps 
 - **ESM-only dependencies.** `react-markdown` and the unified/remark packages it depends on are listed in
   `app/jest.config.js` `transformIgnorePatterns`, so Jest can load them. That list may need updating when they are
   upgraded.
-- **`GET /api/chat/status` is public.** It only reports whether the assistant is enabled and the question length limit.
+- **`GET /api/chat/status` is public.** It only reports whether the assistant is enabled, the question length limit
+  and whether answers can be rated. The last comes from the RAG API's `GET /chat/config` and is cached per pod for 5
+  minutes (1 minute after a failure, during which no thumbs are shown).
 
 ## Alternatives considered
 

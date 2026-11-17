@@ -3,7 +3,7 @@ import { getAuthHeader } from '@app/services/auth';
 import { createTypewriter, type Typewriter } from '@app/utils/chat/typewriter';
 import { parseSseLine, splitSseBuffer } from '@app/utils/chat/sse';
 import { clearHistory, loadHistory, saveHistory } from '@app/utils/chat/history';
-import type { ChatMessage, Citation, GroundingStatus } from '@app/utils/chat/types';
+import type { ChatMessage, Citation, GroundingStatus, Rating } from '@app/utils/chat/types';
 
 // Same-origin proxy routes (pages/api/chat), for signed-in users only. The proxy keeps the conversation under an
 // HttpOnly cookie plus this tab's id, so it stays separate per tab; the messages on screen are kept in sessionStorage
@@ -12,10 +12,12 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 export const CHAT_URL = `${API_URL}/chat`;
 export const CHAT_HISTORY_URL = `${API_URL}/chat/history`;
 export const CHAT_STATUS_URL = `${API_URL}/chat/status`;
+export const CHAT_FEEDBACK_URL = `${API_URL}/chat/feedback`;
 
 const TAB_ID_HEADER = 'X-Tab-Id';
 const TAB_ID_KEY = 'css-assistant-tab-id';
 const GENERIC_ERROR = 'The assistant failed to respond. Please try again.';
+const RATING_FAILED_MESSAGE = 'Your rating could not be saved. Please try again.';
 
 const newId = (): string => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
@@ -111,6 +113,9 @@ export function useChat(owner: string) {
     typewriterRef.current = typewriter;
     const citations: Citation[] = [];
     let grounding: GroundingStatus | undefined;
+    let turnId: string | undefined;
+    // The RAG API stores a turn just before its "stop" chunk, so only a stopped answer can be rated.
+    let stopped = false;
 
     try {
       const response = await fetch(CHAT_URL, {
@@ -151,9 +156,12 @@ export function useChat(owner: string) {
           // The status is already 200 once streaming starts, so failures are reported in-band.
           if (event.type === 'error') throw new Error(event.error);
 
+          // Every chunk carries the turn's id.
+          turnId ??= event.chunk.id;
           const choice = event.chunk.choices[0];
           if (!choice) continue;
           if (choice.finish_reason === 'stop') {
+            stopped = true;
             done = true;
             break;
           }
@@ -175,6 +183,7 @@ export function useChat(owner: string) {
         status: undefined,
         groundingStatus: grounding,
         citations: citations.length ? citations : undefined,
+        turnId: stopped ? turnId : undefined,
       });
     } catch (err) {
       typewriter.cancel();
@@ -239,5 +248,31 @@ export function useChat(owner: string) {
     rotateTabId();
   }, [stopStreaming]);
 
-  return { messages, isStreaming, error, sendMessage, clearMessages, deleteHistory };
+  /**
+   * Rates an answer ("up" or "down", or null to clear the rating). The buttons update at once and roll back if the
+   * rating can't be saved; one request at a time per answer.
+   */
+  const rateMessage = useCallback(async (message: ChatMessage, rating: Rating | null) => {
+    if (!message.turnId || message.ratingPending) return;
+    const previous = message.rating ?? null;
+    const patch = (fields: Partial<ChatMessage>) =>
+      setMessages((prev) => prev.map((m) => (m.id === message.id ? { ...m, ...fields } : m)));
+
+    patch({ rating, ratingPending: true });
+    try {
+      const response = await fetch(CHAT_FEEDBACK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: await getAuthHeader() },
+        credentials: 'include',
+        body: JSON.stringify({ turnId: message.turnId, rating }),
+      });
+      if (!response.ok) throw new Error(await responseErrorMessage(response));
+      patch({ ratingPending: false });
+    } catch (err) {
+      patch({ rating: previous, ratingPending: false });
+      setError(err instanceof Error && err.message ? err.message : RATING_FAILED_MESSAGE);
+    }
+  }, []);
+
+  return { messages, isStreaming, error, sendMessage, clearMessages, deleteHistory, rateMessage };
 }

@@ -73,6 +73,50 @@ export const fetchUpstream = async (path: string, init: RequestInit & { headers:
   return (await send()).response;
 };
 
+const UPSTREAM_CONFIG_TIMEOUT_MS = 5_000;
+const UPSTREAM_CONFIG_TTL_MS = 5 * 60_000;
+const UPSTREAM_CONFIG_RETRY_MS = 60_000;
+
+let feedbackConfig: { enabled: boolean; expiresAt: number } | null = null;
+let feedbackConfigRequest: Promise<boolean> | null = null;
+
+const fetchFeedbackEnabled = async () => {
+  try {
+    const response = await fetchUpstream('chat/config', {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(UPSTREAM_CONFIG_TIMEOUT_MS),
+    });
+    if (!response.ok) throw new Error(`chat config returned ${response.status}`);
+    const body = await response.json();
+    const enabled = body?.feedback_enabled === true;
+    feedbackConfig = { enabled, expiresAt: Date.now() + UPSTREAM_CONFIG_TTL_MS };
+    return enabled;
+  } catch {
+    // Without the setting no thumbs are shown; try again a little later rather than on every page load.
+    feedbackConfig = { enabled: false, expiresAt: Date.now() + UPSTREAM_CONFIG_RETRY_MS };
+    return false;
+  }
+};
+
+/**
+ * Whether the RAG API accepts ratings of its answers (`GET /chat/config`). It is off when the RAG API doesn't store
+ * turns, so the widget only offers thumbs that can be saved. Cached, and shared by concurrent callers, since the
+ * public status route asks on every page load.
+ */
+export const ragFeedbackEnabled = async (): Promise<boolean> => {
+  if (feedbackConfig && feedbackConfig.expiresAt > Date.now()) return feedbackConfig.enabled;
+  feedbackConfigRequest ??= fetchFeedbackEnabled().finally(() => {
+    feedbackConfigRequest = null;
+  });
+  return feedbackConfigRequest;
+};
+
+/** Forgets the cached RAG API settings, so the next call asks again. */
+export const clearRagConfigCache = () => {
+  feedbackConfig = null;
+};
+
 export const validTabId = (req: NextApiRequest) => {
   const header = req.headers[TAB_ID_HEADER];
   const value = Array.isArray(header) ? header[0] : header;

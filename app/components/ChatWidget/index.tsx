@@ -194,6 +194,15 @@ const SWindow = styled.section`
     border: 1px solid #2e8540;
     border-radius: 0.3rem;
   }
+
+  .ai-notice {
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0 1rem 0.5rem 1rem;
+    font-size: 0.75rem;
+    color: #606060;
+    text-align: center;
+  }
 `;
 
 // The menu's trigger: an icon button, without the caret and button styling Bootstrap's toggle adds.
@@ -211,6 +220,8 @@ const MenuToggle = forwardRef<HTMLButtonElement, ComponentPropsWithoutRef<'butto
 interface ChatStatus {
   enabled: boolean;
   maxPromptLength?: number;
+  /** Answers can be rated with a thumbs up or down. */
+  feedbackEnabled?: boolean;
 }
 
 interface Props {
@@ -227,7 +238,7 @@ function ChatWidget({ userId, hidden = false }: Readonly<Props>) {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [concealed, setConcealed] = useState(hidden);
   const [menuOpen, setMenuOpen] = useState(false);
-  const { messages, isStreaming, error, sendMessage, clearMessages, deleteHistory } = useChat(userId);
+  const { messages, isStreaming, error, sendMessage, clearMessages, deleteHistory, rateMessage } = useChat(userId);
 
   const launcherRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<ChatInputRef>(null);
@@ -320,6 +331,7 @@ function ChatWidget({ userId, hidden = false }: Readonly<Props>) {
   if (!status?.enabled) return null;
 
   const maxPromptLength = status.maxPromptLength ?? DEFAULT_MAX_PROMPT_LENGTH;
+  const onRate = status.feedbackEnabled ? rateMessage : undefined;
 
   return (
     <div
@@ -385,7 +397,7 @@ function ChatWidget({ userId, hidden = false }: Readonly<Props>) {
               </div>
             )}
             {messages.map((message) => (
-              <ChatMessageBubble key={message.id} message={message} />
+              <ChatMessageBubble key={message.id} message={message} onRate={onRate} />
             ))}
             {error && (
               <p className="error-message" role="alert">
@@ -398,6 +410,9 @@ function ChatWidget({ userId, hidden = false }: Readonly<Props>) {
           </div>
 
           <ChatInput ref={inputRef} onSend={sendMessage} disabled={isStreaming} maxLength={maxPromptLength} />
+          <p className="ai-notice" data-testid="chat-ai-notice">
+            CSS Assistant is AI and can make mistakes.
+          </p>
         </SWindow>
       ) : (
         <SLauncher
