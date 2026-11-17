@@ -396,9 +396,6 @@ export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAcce
       }
     },
   );
-
-  const returnValue = { requestId, resourceServers: data.resourceServers };
-  return returnValue;
 };
 
 export const manageKeycloakScopes = async (clientId: string, environment: string, scopes: string[]) => {
