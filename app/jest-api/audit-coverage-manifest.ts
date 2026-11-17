@@ -80,6 +80,9 @@ export const AUDIT_COVERAGE: Record<string, CoverageEntry> = {
   'POST /api/chat': { unaudited: CHAT_PROXY },
   'DELETE /api/chat': { unaudited: CHAT_PROXY },
   'DELETE /api/chat/history': { unaudited: CHAT_PROXY },
+  'POST /api/chat/feedback': {
+    unaudited: 'Forwards a rating of an assistant answer to sso-rag, which stores it; no CSS resource changes.',
+  },
 
   // Writes made by scheduled jobs through GET
   'GET /api/processRequestQueue': {

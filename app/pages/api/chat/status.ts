@@ -1,12 +1,19 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { withApiLogging } from '@app/utils/api';
-import { chatConfig } from '@app/utils/chat-proxy';
+import { chatConfig, ragFeedbackEnabled } from '@app/utils/chat-proxy';
 
-/** Read at runtime by the chat widget, so the assistant can be turned on or off per environment without a rebuild. */
-function handler(req: NextApiRequest, res: NextApiResponse): void {
+/**
+ * Read at runtime by the chat widget, so the assistant can be turned on or off per environment without a rebuild.
+ * `feedbackEnabled` comes from the RAG API and says whether answers can be rated.
+ */
+async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
   if (req.method === 'GET') {
     const { enabled, maxPromptLength } = chatConfig();
-    res.status(200).json(enabled ? { enabled, maxPromptLength } : { enabled });
+    if (!enabled) {
+      res.status(200).json({ enabled });
+      return;
+    }
+    res.status(200).json({ enabled, maxPromptLength, feedbackEnabled: await ragFeedbackEnabled() });
     return;
   }
 

@@ -2,9 +2,16 @@ import { memo } from 'react';
 import styled from 'styled-components';
 import Markdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faThumbsDown, faThumbsUp, type IconDefinition } from '@fortawesome/free-solid-svg-icons';
 import { SECONDARY_BLUE } from '@app/styles/theme';
 import { stabilizeStreamingMarkdown } from '@app/utils/chat/markdown';
-import type { ChatMessage, Citation, ProgressStatus } from '@app/utils/chat/types';
+import type { ChatMessage, Citation, ProgressStatus, Rating } from '@app/utils/chat/types';
+
+const RATING_OPTIONS: { value: Rating; label: string; icon: IconDefinition }[] = [
+  { value: 'up', label: 'Helpful', icon: faThumbsUp },
+  { value: 'down', label: 'Not helpful', icon: faThumbsDown },
+];
 
 const PROGRESS_LABELS: Record<ProgressStatus | 'thinking', string> = {
   thinking: 'Thinking…',
@@ -132,14 +139,58 @@ const SBubble = styled.div<{ $isUser: boolean }>`
     opacity: 0.6;
   }
 
-  .partial-note {
+  .partial-note,
+  .general-note {
     margin: 0.6rem 0 0 0;
     padding: 0.4rem 0.6rem;
     font-size: 0.8rem;
+    border-radius: 0.3rem;
+  }
+
+  .partial-note {
     color: #6c4a00;
     background-color: #fef1d8;
     border: 1px solid #f8bb47;
-    border-radius: 0.3rem;
+  }
+
+  .general-note {
+    color: #003366;
+    background-color: #d9eaf7;
+    border: 1px solid #38598a;
+  }
+
+  .rating {
+    display: flex;
+    gap: 0.25rem;
+    margin-top: 0.4rem;
+
+    button {
+      padding: 0.15rem 0.4rem;
+      background: none;
+      border: none;
+      border-radius: 0.25rem;
+      font-size: 0.85rem;
+      line-height: 1;
+      color: #9f9d9c;
+
+      &:hover:not(:disabled) {
+        color: ${SECONDARY_BLUE};
+        background-color: rgba(0, 0, 0, 0.06);
+      }
+
+      &[aria-pressed='true'] {
+        color: ${SECONDARY_BLUE};
+      }
+
+      &:disabled {
+        cursor: wait;
+      }
+
+      &:focus-visible {
+        outline: 3px solid #3b99fc;
+        outline-offset: 1px;
+      }
+    }
   }
 
   .sources {
@@ -189,13 +240,41 @@ function CitationList({ citations }: Readonly<{ citations: Citation[] }>) {
   );
 }
 
+function RatingButtons({ message, onRate }: Readonly<Required<Props>>) {
+  return (
+    <div className="rating" role="group" aria-label="Rate this answer">
+      {RATING_OPTIONS.map(({ value, label, icon }) => {
+        const selected = message.rating === value;
+        return (
+          <button
+            key={value}
+            type="button"
+            aria-label={label}
+            aria-pressed={selected}
+            title={selected ? `${label} (select again to clear)` : label}
+            disabled={message.ratingPending}
+            // Selecting the chosen thumb again clears the rating.
+            onClick={() => onRate(message, selected ? null : value)}
+          >
+            <FontAwesomeIcon icon={icon} />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 interface Props {
   message: ChatMessage;
+  /** Rates the answer (null clears it); no buttons when omitted. */
+  onRate?: (message: ChatMessage, rating: Rating | null) => void;
 }
 
 // Memoized: while one answer streams, the other bubbles keep the same message object and skip re-parsing Markdown.
-export const ChatMessageBubble = memo(function ChatMessageBubble({ message }: Readonly<Props>) {
+export const ChatMessageBubble = memo(function ChatMessageBubble({ message, onRate }: Readonly<Props>) {
   const isUser = message.role === 'user';
+  // Only checked answers can be rated: not greetings, clarifying questions or errors.
+  const canRate = !message.streaming && message.turnId !== undefined && message.groundingStatus !== undefined;
 
   return (
     <SRow $isUser={isUser} data-testid={`chat-message-${message.role}`}>
@@ -224,9 +303,18 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({ message }: Re
           <p className="partial-note">The documentation covers only part of this question.</p>
         )}
 
+        {!message.streaming && message.groundingStatus === 'GENERAL' && (
+          <p className="general-note">
+            General guidance, not from the CSS documentation. Check your identity provider&apos;s documentation for
+            details.
+          </p>
+        )}
+
         {!message.streaming && message.citations && message.citations.length > 0 && (
           <CitationList citations={message.citations} />
         )}
+
+        {onRate && canRate && <RatingButtons message={message} onRate={onRate} />}
       </SBubble>
     </SRow>
   );

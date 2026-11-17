@@ -3,7 +3,9 @@ import * as authenticateModule from '@app/utils/authenticate';
 import { testClient } from './helpers/test-client';
 import { API_BASE_PATH } from './helpers/constants';
 import { invalidateRagAccessToken } from '@app/utils/rag-token';
+import { clearRagConfigCache } from '@app/utils/chat-proxy';
 import chatHandler from '@app/pages/api/chat';
+import chatFeedbackHandler from '@app/pages/api/chat/feedback';
 import chatHistoryHandler from '@app/pages/api/chat/history';
 import chatStatusHandler from '@app/pages/api/chat/status';
 
@@ -12,6 +14,7 @@ const TOKEN_URL = 'https://sso.example/auth/realms/standard/protocol/openid-conn
 const SERVICE_TOKEN = 'service-account-token';
 const TAB_ID = '1b4e28ba-2fa1-41d2-883f-0016d3cca427';
 const SESSION = 'sess_0b4e28ba-2fa1-41d2-883f-0016d3cca427';
+const TURN_ID = 'chatcmpl-1b6f0c2e-5d1a-4c3e-9f7a-2a1d3c4b5e6f';
 const AUTH = 'Bearer test-token';
 
 const SSE_ANSWER = [
@@ -68,6 +71,11 @@ const upstreamCall = (index = 0) => {
 const post = (body: object) =>
   testClient(chatHandler).post(`${API_BASE_PATH}/chat`).set('Authorization', AUTH).send(body);
 
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+
+const getStatus = () => testClient(chatStatusHandler).get(`${API_BASE_PATH}/chat/status`);
+
 describe('CSS Assistant proxy', () => {
   beforeEach(() => {
     fetchSpy.mockReset();
@@ -77,6 +85,7 @@ describe('CSS Assistant proxy', () => {
       String(url) === TOKEN_URL ? tokenEndpoint() : upstream(String(url), init!),
     );
     invalidateRagAccessToken();
+    clearRagConfigCache();
     signIn();
     process.env.CHATBOT_ENABLED = 'true';
     process.env.RAG_API_URL = RAG_API_URL;
@@ -102,22 +111,97 @@ describe('CSS Assistant proxy', () => {
   });
 
   describe('GET /api/chat/status', () => {
-    it('reports the assistant as enabled with its prompt limit', async () => {
-      const res = await testClient(chatStatusHandler).get(`${API_BASE_PATH}/chat/status`);
+    it('reports the assistant as enabled with its prompt limit and whether answers can be rated', async () => {
+      upstream.mockResolvedValueOnce(json({ max_prompt_chars: 2000, feedback_enabled: true }));
+      const res = await getStatus();
       expect(res.status).toBe(200);
-      expect(res.body).toEqual({ enabled: true, maxPromptLength: 20 });
+      expect(res.body).toEqual({ enabled: true, maxPromptLength: 20, feedbackEnabled: true });
+      const { url, headers } = upstreamCall();
+      expect(url).toBe(`${RAG_API_URL}chat/config`);
+      expect(headers.Authorization).toBe(`Bearer ${SERVICE_TOKEN}`);
+
+      // Cached: later page loads don't call the RAG API again.
+      expect((await getStatus()).body.feedbackEnabled).toBe(true);
+      expect(upstream).toHaveBeenCalledTimes(1);
+    });
+
+    it('offers no rating when the RAG API turns it off or cannot be reached', async () => {
+      upstream.mockResolvedValueOnce(json({ feedback_enabled: false }));
+      expect((await getStatus()).body).toEqual({ enabled: true, maxPromptLength: 20, feedbackEnabled: false });
+
+      clearRagConfigCache();
+      upstream.mockRejectedValueOnce(new Error('ECONNREFUSED'));
+      expect((await getStatus()).body).toEqual({ enabled: true, maxPromptLength: 20, feedbackEnabled: false });
     });
 
     it('reports the assistant as disabled without a RAG API URL or when switched off', async () => {
       delete process.env.RAG_API_URL;
-      expect((await testClient(chatStatusHandler).get(`${API_BASE_PATH}/chat/status`)).body).toEqual({
-        enabled: false,
-      });
+      expect((await getStatus()).body).toEqual({ enabled: false });
       process.env.RAG_API_URL = RAG_API_URL;
       process.env.CHATBOT_ENABLED = 'false';
-      expect((await testClient(chatStatusHandler).get(`${API_BASE_PATH}/chat/status`)).body).toEqual({
-        enabled: false,
-      });
+      expect((await getStatus()).body).toEqual({ enabled: false });
+      expect(upstream).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('POST /api/chat/feedback', () => {
+    const rate = (body: object, cookie?: string) => {
+      const request = testClient(chatFeedbackHandler).post(`${API_BASE_PATH}/chat/feedback`).set('Authorization', AUTH);
+      return (cookie ? request.set('Cookie', cookie) : request).send(body);
+    };
+
+    it('requires a signed-in user', async () => {
+      signOut();
+      expect((await rate({ turnId: TURN_ID, rating: 'up' })).status).toBe(401);
+      expect(upstream).not.toHaveBeenCalled();
+    });
+
+    it('returns 404 when the assistant is disabled', async () => {
+      process.env.CHATBOT_ENABLED = 'false';
+      expect((await rate({ turnId: TURN_ID, rating: 'up' })).status).toBe(404);
+      expect(upstream).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['a missing turn id', { rating: 'up' }],
+      ['a turn id not issued by the RAG API', { turnId: 'c1', rating: 'up' }],
+      ['an unknown rating', { turnId: TURN_ID, rating: 'meh' }],
+      ['a missing rating', { turnId: TURN_ID }],
+    ])('rejects %s without calling the assistant', async (_case, body) => {
+      expect((await rate(body)).status).toBe(400);
+      expect(upstream).not.toHaveBeenCalled();
+    });
+
+    it.each(['up', 'down', null])("forwards a rating of %s with the user's session", async (rating) => {
+      const sub = signIn();
+      upstream.mockResolvedValueOnce(new Response(null, { status: 204 }));
+
+      const res = await rate({ turnId: TURN_ID, rating }, cookieFor(sub));
+
+      expect(res.status).toBe(204);
+      const { url, init, headers } = upstreamCall();
+      expect(url).toBe(`${RAG_API_URL}chat/feedback`);
+      expect(init.method).toBe('POST');
+      expect(JSON.parse(init.body as string)).toEqual({ turn_id: TURN_ID, rating });
+      expect(headers.Cookie).toBe(`strands_session=${SESSION}`);
+      expect(headers.Authorization).toBe(`Bearer ${SERVICE_TOKEN}`);
+    });
+
+    it("returns 404 for an answer the RAG API won't let this session rate", async () => {
+      upstream.mockResolvedValueOnce(json({ detail: "This answer can't be rated." }, 404));
+      const res = await rate({ turnId: TURN_ID, rating: 'down' });
+      expect(res.status).toBe(404);
+      expect(res.body.message).toBe("This answer can't be rated.");
+    });
+
+    it('returns 502 when the rating cannot be saved', async () => {
+      upstream.mockResolvedValueOnce(json({ detail: 'x' }, 500));
+      const failing = await rate({ turnId: TURN_ID, rating: 'down' });
+      expect(failing.status).toBe(502);
+      expect(failing.body.message).toBe('Your rating could not be saved. Please try again.');
+
+      upstream.mockRejectedValueOnce(new Error('ECONNREFUSED'));
+      expect((await rate({ turnId: TURN_ID, rating: 'down' })).status).toBe(502);
     });
   });
 

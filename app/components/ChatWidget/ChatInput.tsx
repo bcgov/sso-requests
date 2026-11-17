@@ -7,7 +7,7 @@ const SForm = styled.form`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: 0.75rem 1rem 1rem 1rem;
+  padding: 0.75rem 1rem 0.5rem 1rem;
   border-top: 1px solid #e0e0e0;
 
   textarea {

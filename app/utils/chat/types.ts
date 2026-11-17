@@ -2,7 +2,17 @@
 
 export type ProgressStatus = 'searching' | 'writing';
 
-export type GroundingStatus = 'SUPPORTED' | 'PARTIALLY_SUPPORTED' | 'NOT_SUPPORTED';
+// `GENERAL`: general identity guidance that isn't from the documentation.
+export type GroundingStatus = 'SUPPORTED' | 'PARTIALLY_SUPPORTED' | 'NOT_SUPPORTED' | 'GENERAL';
+
+export const GROUNDING_STATUSES: readonly GroundingStatus[] = [
+  'SUPPORTED',
+  'PARTIALLY_SUPPORTED',
+  'NOT_SUPPORTED',
+  'GENERAL',
+];
+
+export type Rating = 'up' | 'down';
 
 export interface CitationLocation {
   uri?: string;
@@ -54,4 +64,9 @@ export interface ChatMessage {
   /** Latest progress update, shown until the answer text arrives. */
   status?: ProgressStatus;
   groundingStatus?: GroundingStatus;
+  /** The RAG API's id for this answer (its stream chunks' `id`); ratings refer to it. */
+  turnId?: string;
+  rating?: Rating | null;
+  /** A rating is being saved. */
+  ratingPending?: boolean;
 }

@@ -1,4 +1,4 @@
-import type { ChatMessage, Citation } from './types';
+import { GROUNDING_STATUSES, type ChatMessage, type Citation } from './types';
 
 // The conversation shown in the chat window, kept per tab so a page refresh restores it. sessionStorage lasts as long
 // as the tab, like the tab id the RAG API keys this conversation by, and is never shared with other tabs.
@@ -16,6 +16,8 @@ const historyKey = (tabId: string) => `${HISTORY_KEY_PREFIX}${tabId}`;
 
 const isHttpUrl = (value: unknown): value is string => typeof value === 'string' && /^https?:\/\//i.test(value);
 
+const TURN_ID_PATTERN = /^chatcmpl-[0-9a-f-]{36}$/i;
+
 // Stored data is read back from the browser, so only well-formed messages are restored.
 const toCitation = (value: any): Citation | null => {
   if (!value || typeof value !== 'object') return null;
@@ -32,9 +34,11 @@ const toMessage = (value: any): ChatMessage | null => {
 
   const message: ChatMessage = { id: value.id, role: value.role, content: value.content };
   if (value.role === 'assistant') {
-    if (['SUPPORTED', 'PARTIALLY_SUPPORTED', 'NOT_SUPPORTED'].includes(value.groundingStatus)) {
+    if (GROUNDING_STATUSES.includes(value.groundingStatus)) {
       message.groundingStatus = value.groundingStatus;
     }
+    if (typeof value.turnId === 'string' && TURN_ID_PATTERN.test(value.turnId)) message.turnId = value.turnId;
+    if (value.rating === 'up' || value.rating === 'down') message.rating = value.rating;
     const citations = Array.isArray(value.citations)
       ? value.citations.map(toCitation).filter((c: Citation | null): c is Citation => c !== null)
       : [];
@@ -66,7 +70,9 @@ export function loadHistory(tabId: string, owner: string): ChatMessage[] {
 export function saveHistory(tabId: string, owner: string, messages: ChatMessage[]) {
   const streamingAt = messages.findIndex((m) => m.streaming);
   const finished = streamingAt < 0 ? messages : messages.slice(0, Math.max(streamingAt - 1, 0));
-  const kept = finished.slice(-MAX_STORED_MESSAGES).map(({ streaming: _streaming, status: _status, ...m }) => m);
+  const kept = finished
+    .slice(-MAX_STORED_MESSAGES)
+    .map(({ streaming: _streaming, status: _status, ratingPending: _ratingPending, ...m }) => m);
 
   try {
     if (kept.length === 0) {

@@ -62,13 +62,16 @@ Signed-in users see a chatbot, the CSS Assistant, in the bottom-right corner of 
   - It is hidden while the survey box is displayed and comes back once the survey has closed, so the two never overlap.
   - The conversation on screen is kept in `sessionStorage`, under the tab id the RAG API uses for it and tagged with the signed-in user (`app/utils/chat/history.ts`). A page refresh restores it in the same tab. New chat, Delete history or another user signing in clears it, and closing the tab ends it.
   - The RAG API has no endpoint for reading a conversation back, so the browser copy is what's shown. If the RAG API has already discarded the conversation (it keeps them for 3 days), the restored messages stay on screen but the assistant no longer has them as context.
-- The browser only calls this app's `/api/chat`, `/api/chat/history` and `/api/chat/status` routes (`app/pages/api/chat/`). These routes proxy the requests to the RAG API and stream the answer back.
+- The browser only calls this app's `/api/chat`, `/api/chat/history`, `/api/chat/feedback` and `/api/chat/status` routes (`app/pages/api/chat/`). These routes proxy the requests to the RAG API and stream the answer back.
   - The production CSP doesn't allow the page to call other origins, so the browser can't call the RAG API directly.
-  - `/api/chat` and `/api/chat/history` require the user's bearer token and return 401 without it. `/api/chat/status` only reports whether the assistant is enabled.
+  - `/api/chat`, `/api/chat/history` and `/api/chat/feedback` require the user's bearer token and return 401 without it. `/api/chat/status` only reports whether the assistant is enabled, its question length limit, and whether answers can be rated.
   - The proxy keeps the RAG session in its own HttpOnly cookie (`css_chat_session`), tagged with a hash of the user it belongs to. Another user signing in on the same browser therefore starts a new conversation instead of continuing the previous user's.
   - Only that session id and the `X-Tab-Id` header are sent to the RAG API, never the user's bearer token or this app's other cookies.
   - The RAG API requires a Keycloak token. The proxy authenticates as its own service account (client credentials, `app/utils/rag-token.ts`), caches the token until shortly before it expires, and retries once with a fresh token if the RAG API answers 401.
 - Messages are rate limited per user, keyed on the token's `sub` claim (or the IDIR GUID if a token has none).
+- Users can rate each checked answer 👍 or 👎 (selecting the same thumb again clears it). The rating is sent to the RAG API's `POST /chat/feedback` with the answer's turn id (the `id` of its stream chunks), and stored there with the question and answer for analysis; see [sso-rag analytics](https://github.com/bcgov/sso-rag/blob/main/docs/components/analytics.md).
+  - The thumbs appear only when the RAG API's `GET /chat/config` reports `feedback_enabled`, and only on answers that finished (not on greetings, clarifying questions or errors).
+  - The RAG API only accepts ratings from the session that asked the question, so answers from before Delete history (or another browser) can no longer be rated.
 
 | Variable                       | Default   | Description                                                                                                                                                                              |
 | ------------------------------ | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
