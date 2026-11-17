@@ -5,7 +5,6 @@ import { authorizeIntegration } from '@app/queries/integrationAccess';
 import { audit } from '@app/queries/event';
 import { getAdminClient } from '@app/keycloak/adminClient';
 import { getClientScopes } from '@app/keycloak/clientScopes';
-import ClientScopeRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientScopeRepresentation';
 import { createSdxAccessRequest } from '@app/queries/sdx-services';
 import { Integration } from '@app/interfaces/Request';
 import { getUserById } from '@app/queries/user';
@@ -151,6 +150,32 @@ export const getRemovedScopes = (
   return removedByEnv;
 };
 
+type AdminClient = Awaited<ReturnType<typeof getAdminClient>>['kcAdminClient'];
+
+// SDX grants its scopes as optional client scopes, so only those are ever removed. Default scopes are left alone.
+const listOptionalClientScopeIds = async (kcAdminClient: AdminClient, id: string) => {
+  const optionalScopes = await kcAdminClient.clients.listOptionalClientScopes({ id, realm: 'standard' });
+  return new Map(optionalScopes.map((scope) => [scope.name!, scope.id!]));
+};
+
+const removeOptionalClientScopes = (
+  kcAdminClient: AdminClient,
+  id: string,
+  optionalScopeIds: Map<string, string>,
+  scopes: string[],
+) =>
+  Promise.all(
+    scopes
+      .filter((scope) => optionalScopeIds.has(scope))
+      .map((scope) =>
+        kcAdminClient.clients.delOptionalClientScope({
+          id,
+          realm: 'standard',
+          clientScopeId: optionalScopeIds.get(scope)!,
+        }),
+      ),
+  );
+
 const removeSdxAccessByScopes = async (clientId: string, environment: string, scopes: string[]) => {
   const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
   const result = await kcAdminClient.clients.find({ realm: 'standard', clientId });
@@ -161,21 +186,9 @@ const removeSdxAccessByScopes = async (clientId: string, environment: string, sc
   }
 
   const client = result[0];
+  const optionalScopeIds = await listOptionalClientScopeIds(kcAdminClient, client.id!);
 
-  const existingScopes = await kcAdminClient.clients.listDefaultClientScopes({ id: client.id!, realm: 'standard' });
-  const existingScopeNames = new Set(existingScopes.map((scope) => scope.name));
-
-  const scopesToRemove = scopes.filter((scope) => existingScopeNames.has(scope));
-
-  await Promise.all(
-    scopesToRemove.map((scope) =>
-      kcAdminClient.clients.delDefaultClientScope({
-        id: client.id!,
-        realm: 'standard',
-        clientScopeId: existingScopes.find((s) => s.name === scope)?.id!,
-      }),
-    ),
-  );
+  await removeOptionalClientScopes(kcAdminClient, client.id!, optionalScopeIds, scopes);
 };
 
 const removeSdxAccessFromKeycloak = async (clientId: string, environment: string, scopes: string[]) => {
@@ -386,7 +399,7 @@ export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAcce
 };
 
 export const manageKeycloakScopes = async (clientId: string, environment: string, scopes: string[]) => {
-  const allScopes = Array.from(
+  const allSdxScopes = Array.from(
     new Set(
       (await listSdxResourceServers()).flatMap((rs) =>
         (rs.services || []).flatMap((service) => (service.scopes || []).map((scope) => getScopeLabel(scope))),
@@ -403,31 +416,20 @@ export const manageKeycloakScopes = async (clientId: string, environment: string
 
   const client: ClientRepresentation = result[0];
 
-  const allAssignedScopes = await kcAdminClient.clients.listDefaultClientScopes({
-    realm: 'standard',
-    id: client.id!,
-  });
-  const allAssignedScopesNames = new Set(allAssignedScopes.map((scope: ClientScopeRepresentation) => scope.name));
+  const [optionalScopeIds, defaultScopes] = await Promise.all([
+    listOptionalClientScopeIds(kcAdminClient, client.id!),
+    kcAdminClient.clients.listDefaultClientScopes({ realm: 'standard', id: client.id! }),
+  ]);
+  const defaultScopeNames = new Set(defaultScopes.map((scope) => scope.name));
 
   const allKeycloakScopes = await kcAdminClient.clientScopes.find({ realm: 'standard' });
 
-  const sdxAssignedScopes = allScopes.filter((scope) => allAssignedScopesNames.has(scope));
+  // Only optional scopes that SDX knows about are reconciled; any other client scope is not ours to remove.
+  const scopesToRemove = allSdxScopes.filter((scope) => !scopes.includes(scope));
+  await removeOptionalClientScopes(kcAdminClient, client.id!, optionalScopeIds, scopesToRemove);
 
-  const scopesToRemove = sdxAssignedScopes.filter((scope) => !scopes.includes(scope));
-
-  if (scopesToRemove.length > 0) {
-    await Promise.all(
-      scopesToRemove.map((scope) =>
-        kcAdminClient.clients.delDefaultClientScope({
-          id: client.id!,
-          realm: 'standard',
-          clientScopeId: allKeycloakScopes.find((s) => s.name === scope)?.id!,
-        }),
-      ),
-    );
-  }
-
-  const scopesToAdd = scopes.filter((scope) => !allAssignedScopesNames.has(scope));
+  // A scope already on the client, as optional or default, is not added again.
+  const scopesToAdd = scopes.filter((scope) => !optionalScopeIds.has(scope) && !defaultScopeNames.has(scope));
 
   await Promise.all(
     scopesToAdd.map((scope) =>

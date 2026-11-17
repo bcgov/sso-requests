@@ -145,6 +145,8 @@ const keycloak = {
   listDefaultClientScopes: jest.fn(),
   addDefaultClientScope: jest.fn(),
   delDefaultClientScope: jest.fn(),
+  listOptionalClientScopes: jest.fn(),
+  delOptionalClientScope: jest.fn(),
   clientScopesFind: jest.fn(),
   clientScopesCreate: jest.fn(),
   clientScopesFindOneByName: jest.fn(),
@@ -156,6 +158,7 @@ const keycloak = {
 const setUpKeycloak = ({
   existingClientScopes = [] as string[],
   existingDefaultClientScopes = [] as string[],
+  existingOptionalClientScopes = [] as string[],
   existingAudienceMapper = false,
   clients = [{ id: 'kc-client-uuid', clientId: 'test-client' }],
   kongClients = [{ id: 'kong-client-uuid', clientId: 'sdx-rg-pzgw' }],
@@ -167,6 +170,8 @@ const setUpKeycloak = ({
   keycloak.listDefaultClientScopes.mockResolvedValue(existingDefaultClientScopes.map((name) => ({ name, id: name })));
   keycloak.addDefaultClientScope.mockResolvedValue(undefined);
   keycloak.delDefaultClientScope.mockResolvedValue(undefined);
+  keycloak.listOptionalClientScopes.mockResolvedValue(existingOptionalClientScopes.map((name) => ({ name, id: name })));
+  keycloak.delOptionalClientScope.mockResolvedValue(undefined);
   // Keycloak scope ids differ from names in reality, but the name is a stable stand-in here.
   keycloak.clientScopesFind.mockResolvedValue(existingClientScopes.map((name) => ({ name, id: name })));
   keycloak.clientScopesCreate.mockImplementation(async ({ name }: { name: string }) => ({ id: name, name }));
@@ -183,6 +188,8 @@ const setUpKeycloak = ({
         listDefaultClientScopes: keycloak.listDefaultClientScopes,
         addDefaultClientScope: keycloak.addDefaultClientScope,
         delDefaultClientScope: keycloak.delDefaultClientScope,
+        listOptionalClientScopes: keycloak.listOptionalClientScopes,
+        delOptionalClientScope: keycloak.delOptionalClientScope,
         addOptionalClientScope: keycloak.addOptionalClientScope,
       },
       clientScopes: {
@@ -521,7 +528,7 @@ describe('SDX APIs', () => {
       });
       setUpKeycloak({
         existingClientScopes: ['patient.read', 'patient.write'],
-        existingDefaultClientScopes: ['patient.read', 'patient.write'],
+        existingOptionalClientScopes: ['patient.read', 'patient.write'],
       });
 
       await createSdxRequest(
@@ -529,13 +536,38 @@ describe('SDX APIs', () => {
         withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])]),
       );
 
-      expect(keycloak.delDefaultClientScope).toHaveBeenCalledTimes(2);
-      expect(keycloak.delDefaultClientScope).toHaveBeenCalledWith({
+      expect(keycloak.delOptionalClientScope).toHaveBeenCalledTimes(2);
+      expect(keycloak.delOptionalClientScope).toHaveBeenCalledWith({
         id: 'kc-client-uuid',
         realm: 'standard',
         clientScopeId: 'patient.write',
       });
       expect(adminClientEnvironments()).toEqual(expect.arrayContaining(['dev', 'test']));
+    });
+
+    it('Does not remove a previously approved scope the client holds as a default scope', async () => {
+      const integration = await buildSdxIntegration('sdx-create-request-default-scope');
+      setUpSdxApi({
+        subsystemStatus: 'registered',
+        allowedServices: {
+          [`${NON_PRODUCTION_ENV}:approved`]: [
+            selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read', 'patient.write']),
+          ],
+        },
+      });
+      setUpKeycloak({
+        existingClientScopes: ['patient.read', 'patient.write'],
+        existingDefaultClientScopes: ['patient.write'],
+        existingOptionalClientScopes: ['patient.read'],
+      });
+
+      await createSdxRequest(
+        adminSession,
+        withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])]),
+      );
+
+      expect(keycloak.delDefaultClientScope).not.toHaveBeenCalled();
+      expect(keycloak.delOptionalClientScope).not.toHaveBeenCalled();
     });
 
     it('Does not remove scopes that are still requested', async () => {
@@ -1049,6 +1081,43 @@ describe('SDX APIs', () => {
 
       await putSdxAllowedAccess(integration.id, approvalPayload(NON_PRODUCTION_ENV, ['patient.read']), signToken());
       expect(keycloak.addDefaultClientScope).not.toHaveBeenCalled();
+    });
+
+    it('Removes a previously granted optional scope that is no longer approved', async () => {
+      setUpSdxApi({ resourceServers: { [NON_PRODUCTION_ENV]: [nonProductionResourceServer] } });
+      setUpKeycloak({
+        existingClientScopes: ['patient.read', 'patient.write', 'offline_access', 'profile', 'email'],
+        existingDefaultClientScopes: ['profile', 'email'],
+        existingOptionalClientScopes: ['patient.read', 'patient.write', 'offline_access'],
+      });
+      const integration = await buildSdxIntegration('sdx-approval-remove-optional-scope');
+
+      await putSdxAllowedAccess(integration.id, approvalPayload(NON_PRODUCTION_ENV, ['patient.read']), signToken());
+
+      // Once each for dev and test; scopes outside the SDX resource servers are left alone.
+      expect(keycloak.delOptionalClientScope.mock.calls).toEqual([
+        [{ id: 'kc-client-uuid', realm: 'standard', clientScopeId: 'patient.write' }],
+        [{ id: 'kc-client-uuid', realm: 'standard', clientScopeId: 'patient.write' }],
+      ]);
+      expect(keycloak.delDefaultClientScope).not.toHaveBeenCalled();
+      expect(keycloak.addOptionalClientScope).not.toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'kc-client-uuid', clientScopeId: 'patient.read' }),
+      );
+    });
+
+    it('Does not remove an SDX scope the client holds as a default scope', async () => {
+      setUpSdxApi({ resourceServers: { [NON_PRODUCTION_ENV]: [nonProductionResourceServer] } });
+      setUpKeycloak({
+        existingClientScopes: ['patient.read', 'patient.write'],
+        existingDefaultClientScopes: ['patient.write'],
+        existingOptionalClientScopes: ['patient.read'],
+      });
+      const integration = await buildSdxIntegration('sdx-approval-keep-default-scope');
+
+      await putSdxAllowedAccess(integration.id, approvalPayload(NON_PRODUCTION_ENV, ['patient.read']), signToken());
+
+      expect(keycloak.delDefaultClientScope).not.toHaveBeenCalled();
+      expect(keycloak.delOptionalClientScope).not.toHaveBeenCalled();
     });
 
     it('Fails when the integration does not exist', async () => {
