@@ -2,7 +2,7 @@ import { testClient } from '../test-client';
 import { API_BASE_PATH } from '../constants';
 import sdxResourceServersHandler from '@app/pages/api/sdx-resource-servers';
 import sdxAllowedAccessHandler from '@app/pages/api/requests/[id]/sdx-allowed-access';
-import { SDXAccessRequest } from '@app/shared/interfaces';
+import { SDXAllowedAccessUpdate } from '@app/shared/interfaces';
 
 export const getSdxResourceServers = async () => {
   return await testClient(sdxResourceServersHandler)
@@ -32,7 +32,7 @@ export const getSdxAllowedAccessWithoutId = async () => {
 
 export const putSdxAllowedAccess = async (
   integrationId: number,
-  data: Partial<SDXAccessRequest>,
+  data: Partial<SDXAllowedAccessUpdate>,
   bearerToken?: string,
 ) => {
   const client = testClient(sdxAllowedAccessHandler)
@@ -46,7 +46,7 @@ export const putSdxAllowedAccess = async (
 
 export const putSdxAllowedAccessWithRawAuthorization = async (
   integrationId: number,
-  data: Partial<SDXAccessRequest>,
+  data: Partial<SDXAllowedAccessUpdate>,
   authorization: string,
 ) => {
   return await testClient(sdxAllowedAccessHandler)
