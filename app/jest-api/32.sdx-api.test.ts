@@ -734,7 +734,7 @@ describe('SDX APIs', () => {
           adminSession,
           withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])]),
         ),
-      ).rejects.toThrow('Failed to create SDX request');
+      ).rejects.toThrow('Failed to process request for SDX services');
 
       const stored = await models.SdxRequest.findOne({ where: { request_id: integration.id } });
       expect(stored).toBeNull();
