@@ -10,11 +10,12 @@ import {
   SelectedScopesByTab,
 } from 'form-components/FieldSdxServices';
 import { updateRequest } from 'services/request';
-import { getSdxAllowedAccessForClient, getSdxSubsytemStatus } from 'services/sdx-services';
+import { getSdxAllowedAccessForClient, getSdxSubsytemStatus, listSdxResourceServers } from 'services/sdx-services';
 import { Integration } from 'interfaces/Request';
 import { SDXResourceServer } from '@app/shared/interfaces';
 import { setUpRouter } from './utils/setup';
 import { SDX_ENVIRONMENTS } from '@app/utils/constants';
+import TopAlertProvider, { TopAlert } from 'layout/TopAlert';
 
 jest.mock('next/router', () => ({
   useRouter: jest.fn(),
@@ -536,6 +537,19 @@ describe('SDX Services Form', () => {
     await waitFor(() => expect(screen.queryByText('Please select at least one scope')).toBeNull());
   });
 
+  it('Shows the scope error on an applied integration only after the user moves past the stage', async () => {
+    mockSdxApprovedAccessResponse = emptySdxAllowedAccess;
+    mockSdxPendingAccessResponse = emptySdxAllowedAccess;
+    await renderSdxForm({ status: 'applied' });
+
+    expect(screen.queryByText('Please select at least one scope')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.click(screen.getByTestId('stage-sdx-services'));
+
+    await screen.findByText('Please select at least one scope');
+  });
+
   it('Does not apply the access of one environment to the identical scopes of the other environment', async () => {
     mockSdxResourceServersResponse = sharedLabelResourceServers;
     mockSdxApprovedAccessResponse = sharedLabelAllowedAccess(['shared.read']);
@@ -748,6 +762,150 @@ describe('SDX Services Form', () => {
     expect(JSON.stringify(lastSavedSdxServices())).not.toContain('$$');
   });
 
+  // Autosaves of one integration only; another test's throttled autosave can still fire during this one.
+  const savedDataOf = (id: number) =>
+    (updateRequest as jest.Mock).mock.calls.map(([data]) => data).filter((data) => data.id === id);
+
+  it('Does not rewrite the saved selection when the stage is opened', async () => {
+    await renderSdxForm({ id: 77, sdxServices: savedSdxServices });
+    // Past the autosave throttle window.
+    await act(() => new Promise((resolve) => setTimeout(resolve, 2100)));
+
+    savedDataOf(77).forEach((data) => expect(data.sdxServices).toEqual(savedSdxServices));
+  });
+
+  it('Keeps the saved selection when the SDX catalog cannot be loaded', async () => {
+    mockSdxResourceServersResponse = null;
+    await renderSdxForm({ id: 78, sdxServices: savedSdxServices });
+
+    fireEvent.click(screen.getByTestId('stage-review-submit'));
+
+    expect(within(screen.getByTestId('sdx-services-non-production')).getByText('patient.write')).toBeInTheDocument();
+    expect(within(screen.getByTestId('sdx-services-production')).getByText('payment.write')).toBeInTheDocument();
+    savedDataOf(78).forEach((data) => expect(data.sdxServices).toEqual(savedSdxServices));
+  });
+
+  const renderWithAlerts = (requestOverrides: object) =>
+    render(
+      <TopAlertProvider>
+        <TopAlert>
+          <FormTemplate
+            currentUser={userSession}
+            request={{ ...defaultRender, sdxEnabled: true, ...requestOverrides }}
+          />
+        </TopAlert>
+      </TopAlertProvider>,
+    );
+
+  const servicesLoadError = 'Failed to load the SDX services. Please reload the page.';
+  const accessLoadError = 'Failed to load the current SDX access of this integration. Please reload the page.';
+
+  it.each([
+    [
+      'the SDX services request throws',
+      'draft',
+      () => (listSdxResourceServers as jest.Mock).mockRejectedValueOnce(new Error('network down')),
+      servicesLoadError,
+    ],
+    [
+      'the SDX services cannot be loaded',
+      'draft',
+      () => (listSdxResourceServers as jest.Mock).mockResolvedValueOnce([null, new Error('unavailable')]),
+      servicesLoadError,
+    ],
+    [
+      'the SDX subsystem status cannot be loaded',
+      'applied',
+      () => (getSdxSubsytemStatus as jest.Mock).mockResolvedValueOnce([null, new Error('unavailable')]),
+      accessLoadError,
+    ],
+    [
+      'the SDX access request throws',
+      'applied',
+      () => (getSdxAllowedAccessForClient as jest.Mock).mockRejectedValueOnce(new Error('network down')),
+      accessLoadError,
+    ],
+  ])('Warns and logs when %s', async (_, status, failLoad, message) => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+    failLoad();
+
+    try {
+      renderWithAlerts({ status });
+
+      await screen.findByText(message);
+      expect(consoleError).toHaveBeenCalledWith(expect.stringContaining('Failed to load'), expect.any(Error));
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  it('Warns and preselects nothing when the current SDX access cannot be loaded', async () => {
+    mockSdxApprovedAccessResponse = null;
+    renderWithAlerts({ status: 'applied' });
+
+    await screen.findByText(accessLoadError);
+    fireEvent.click(screen.getByTestId('stage-sdx-services'));
+    await screen.findByRole('tab', { name: NON_PROD_TAB });
+
+    expect(scopeCheckbox('patient.read')).not.toBeChecked();
+    expect(scopeCheckbox('patient.v2.read')).not.toBeChecked();
+  });
+
+  it('Starts from the current SDX access even when part of it is malformed', async () => {
+    mockSdxApprovedAccessResponse = {
+      ...sampleSdxApprovedAccess,
+      resourceServers: [
+        { id: 'broken-rs', environment: SDX_ENVIRONMENTS['sandbox']['non-production'] },
+        ...sampleSdxApprovedAccess.resourceServers,
+      ],
+    };
+    setUpRender({ ...defaultRender, sdxEnabled: true, status: 'applied' }, userSession);
+    await act(async () => {});
+
+    fireEvent.click(screen.getByTestId('stage-review-submit'));
+
+    const nonProductionPreview = screen.getByTestId('sdx-services-non-production');
+    expect(within(nonProductionPreview).getByText('patient.read')).toBeInTheDocument();
+    expect(within(nonProductionPreview).getByText('patient.v2.read')).toBeInTheDocument();
+  });
+
+  it('Selects every offered version of approved access that has no version', async () => {
+    mockSdxResourceServersResponse = [
+      {
+        ...sampleSdxResourceServers[0],
+        services: [
+          { name: 'patient-api', title: 'Patient API', version: 'v1', scopes: [sdxScope('read'), sdxScope('write')] },
+          { name: 'patient-api', title: 'Patient API', version: 'v2', scopes: [sdxScope('read')] },
+        ],
+      },
+    ];
+    mockSdxApprovedAccessResponse = {
+      clientId: 'sdx-client',
+      resourceServers: [
+        {
+          id: 'health-rs',
+          environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
+          services: [{ name: 'patient-api', scopes: [sdxScope('read')] }],
+        },
+      ],
+    };
+    mockSdxPendingAccessResponse = emptySdxAllowedAccess;
+    await renderSdxForm({ status: 'applied' });
+
+    const checkbox = (version: string, label: string) =>
+      document.getElementById(
+        `scope-${SDX_ENVIRONMENTS['sandbox']['non-production']}-${getScopeId(
+          'health-rs',
+          'patient-api',
+          version,
+          label,
+        )}`,
+      ) as HTMLInputElement;
+    expect(checkbox('v1', 'read')).toBeChecked();
+    expect(checkbox('v2', 'read')).toBeChecked();
+    expect(checkbox('v1', 'write')).not.toBeChecked();
+  });
+
   it('Removes the SDX services stage when the SDX flag is turned off', async () => {
     await renderSdxForm();
 
@@ -906,6 +1064,38 @@ describe('SDX Services Selection Helpers', () => {
       );
 
       expect(Array.from(approvedScopeIds['non-production'])).toEqual([readScopeId, writeScopeId]);
+    });
+
+    it('Matches access to its own version, and to every version only when its version is not offered', () => {
+      const catalog = [
+        {
+          ...sharedCatalog[0],
+          services: [
+            { name: 'patient-api', version: 'v1', scopes: ['read'] },
+            { name: 'patient-api', version: 'v2', scopes: ['read'] },
+          ],
+        },
+      ] as SDXResourceServer[];
+      const accessForVersion = (version?: string) => ({
+        clientId: 'sdx-client',
+        resourceServers: [
+          {
+            id: 'health-rs',
+            environment: SDX_ENVIRONMENTS['sandbox']['non-production'],
+            services: [{ name: 'patient-api', version, scopes: ['read'] }],
+          } as SDXResourceServer,
+        ],
+      });
+      const approvedFor = (version?: string) =>
+        Array.from(getClientScopeState(accessForVersion(version), null, catalog).approvedScopeIds['non-production']);
+      const pendingFor = (version?: string) =>
+        Array.from(getClientScopeState(null, accessForVersion(version), catalog).pendingScopeIds['non-production']);
+      const v2ReadScopeId = getScopeId('health-rs', 'patient-api', 'v2', 'read');
+
+      expect(approvedFor('v1')).toEqual([readScopeId]);
+      expect(pendingFor('v2')).toEqual([v2ReadScopeId]);
+      expect(approvedFor(undefined)).toEqual([readScopeId, v2ReadScopeId]);
+      expect(approvedFor('v0')).toEqual([readScopeId, v2ReadScopeId]);
     });
   });
 

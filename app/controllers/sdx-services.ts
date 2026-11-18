@@ -1,5 +1,6 @@
-import type { SDXAccessRequest, Session } from '@app/shared/interfaces';
+import type { SDXAccessRequest, SDXService, SDXServiceScope, Session } from '@app/shared/interfaces';
 import { SDXResourceServer } from '@app/shared/interfaces';
+import createHttpError from 'http-errors';
 import { getIntegrationById } from '@app/queries/request';
 import { authorizeIntegration } from '@app/queries/integrationAccess';
 import { audit } from '@app/queries/event';
@@ -198,17 +199,153 @@ const removeSdxAccessFromKeycloak = async (clientId: string, environment: string
   );
 };
 
-export const createSdxRequest = async (session: Session, request: Integration) => {
-  try {
-    if (!request.sdxServices) throw new Error('SDX services cannot be empty');
-    const resourceServers = request.sdxServices.resourceServers || [];
-    if (resourceServers.length === 0) throw new Error('SDX resource servers cannot be empty');
+const catalogKey = (...parts: string[]) => parts.join('###');
 
+const isNonEmptyString = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
+
+type RequestedService = { environment: string; id: string; name: string; version?: string; labels: string[] };
+
+/**
+ * Checks the shape of the requested access and flattens it to one entry per service that requests scopes. Throws a
+ * 400 naming every malformed field, so nothing malformed is matched against the catalog or sent on. Resource servers
+ * and services that request no scope are skipped. A missing or empty version means "any version".
+ */
+const parseRequestedServices = (requested: unknown): RequestedService[] => {
+  if (!Array.isArray(requested)) throw new createHttpError.BadRequest('Invalid SDX access request: resourceServers');
+
+  const invalid: string[] = [];
+  const parsed: RequestedService[] = [];
+
+  requested.forEach((resourceServer, resourceServerIndex) => {
+    const resourceServerPath = `resourceServers[${resourceServerIndex}]`;
+    const services = resourceServer?.services;
+    if (services === undefined || services === null) return;
+    if (!Array.isArray(services)) {
+      invalid.push(`${resourceServerPath}.services`);
+      return;
+    }
+
+    services.forEach((service, serviceIndex) => {
+      const servicePath = `${resourceServerPath}.services[${serviceIndex}]`;
+      const scopes = service?.scopes;
+      if (scopes === undefined || scopes === null || (Array.isArray(scopes) && scopes.length === 0)) return;
+      if (!Array.isArray(scopes)) {
+        invalid.push(`${servicePath}.scopes`);
+        return;
+      }
+
+      const fieldErrors: string[] = [];
+      if (!isNonEmptyString(resourceServer.environment)) fieldErrors.push(`${resourceServerPath}.environment`);
+      if (!isNonEmptyString(resourceServer.id)) fieldErrors.push(`${resourceServerPath}.id`);
+      if (!isNonEmptyString(service.name)) fieldErrors.push(`${servicePath}.name`);
+      const hasVersion = service.version !== undefined && service.version !== null && service.version !== '';
+      if (hasVersion && !isNonEmptyString(service.version)) fieldErrors.push(`${servicePath}.version`);
+
+      const labels = scopes.map((scope: unknown) =>
+        typeof scope === 'string' ? scope : (scope as SDXServiceScope | null)?.label,
+      );
+      labels.forEach((label, scopeIndex) => {
+        if (!isNonEmptyString(label)) fieldErrors.push(`${servicePath}.scopes[${scopeIndex}]`);
+      });
+
+      if (fieldErrors.length > 0) {
+        invalid.push(...fieldErrors.filter((field) => !invalid.includes(field)));
+        return;
+      }
+
+      parsed.push({
+        environment: resourceServer.environment,
+        id: resourceServer.id,
+        name: service.name,
+        version: hasVersion ? service.version : undefined,
+        labels: labels as string[],
+      });
+    });
+  });
+
+  if (invalid.length > 0) {
+    throw new createHttpError.BadRequest(`Invalid SDX access request: ${invalid.join(', ')}`);
+  }
+
+  return parsed;
+};
+
+/**
+ * Checks the requested access against the SDX catalog and rebuilds it from the catalog entries, so only offered
+ * scopes and known fields reach SDX and Keycloak. A service requested without a version (allowed access SDX returned
+ * without one) matches every catalog version of it that offers the scope, the same fallback the form uses. Resource
+ * servers and services that request no scope are dropped.
+ */
+export const validateSdxResourceServers = async (requested: SDXResourceServer[]): Promise<SDXResourceServer[]> => {
+  const requestedServices = parseRequestedServices(requested);
+
+  type CatalogService = { resourceServer: SDXResourceServer; service: SDXService };
+  const catalogServices = new Map<string, CatalogService[]>();
+  for (const resourceServer of await listSdxResourceServers()) {
+    for (const service of resourceServer.services || []) {
+      const key = catalogKey(resourceServer.environment, resourceServer.id, service.name);
+      catalogServices.set(key, [...(catalogServices.get(key) || []), { resourceServer, service }]);
+    }
+  }
+
+  const unknownScopes: string[] = [];
+  const validated = new Map<string, SDXResourceServer>();
+
+  const addScope = ({ resourceServer, service }: CatalogService, label: string) => {
+    const resourceServerKey = catalogKey(resourceServer.environment, resourceServer.id);
+    const entry = validated.get(resourceServerKey) ?? {
+      id: resourceServer.id,
+      name: resourceServer.name,
+      organization: resourceServer.organization,
+      description: resourceServer.description,
+      environment: resourceServer.environment,
+      services: [],
+    };
+    const existingService = entry.services.find(
+      (candidate) => candidate.name === service.name && candidate.version === service.version,
+    );
+    if (!existingService) entry.services.push({ name: service.name, version: service.version, scopes: [label] });
+    else if (!(existingService.scopes as string[]).includes(label)) (existingService.scopes as string[]).push(label);
+    validated.set(resourceServerKey, entry);
+  };
+
+  for (const { environment, id, name, version, labels } of requestedServices) {
+    const candidates = (catalogServices.get(catalogKey(environment, id, name)) || []).filter(
+      (candidate) => !version || candidate.service.version === version,
+    );
+
+    for (const label of labels) {
+      const offering = candidates.filter((candidate) =>
+        (candidate.service.scopes || []).some((scope) => getScopeLabel(scope) === label),
+      );
+      if (offering.length === 0) unknownScopes.push(`${id}/${name}/${version || '(any version)'}/${label}`);
+      offering.forEach((candidate) => addScope(candidate, label));
+    }
+  }
+
+  if (unknownScopes.length > 0) {
+    throw new createHttpError.BadRequest(`SDX scopes not offered by SDX: ${unknownScopes.join(', ')}`);
+  }
+
+  return Array.from(validated.values());
+};
+
+export const createSdxRequest = async (session: Session, request: Integration) => {
+  // Rejected before anything is sent to SDX or recorded, so a bad request leaves no audit row.
+  if (!request.sdxServices) throw new createHttpError.BadRequest('SDX services cannot be empty');
+  if ((request.sdxServices.resourceServers || []).length === 0) {
+    throw new createHttpError.BadRequest('SDX resource servers cannot be empty');
+  }
+  const resourceServers = await validateSdxResourceServers(request.sdxServices.resourceServers);
+  if (resourceServers.length === 0) throw new createHttpError.BadRequest('SDX resource servers cannot be empty');
+
+  try {
     const user = await getUserById(session.user?.id || 0, { raw: true });
 
     const privacyZoneUri = await getPrivacyZoneURI('prod', request.bcscPrivacyZone || '');
     const sdxRequestData = {
-      ...request.sdxServices,
+      integrationId: request.id!,
+      resourceServers,
       requester: {
         displayName: user?.displayName || '',
         email: user?.idirEmail || '',
@@ -221,7 +358,7 @@ export const createSdxRequest = async (session: Session, request: Integration) =
     // The access request row mirrors what SDX accepted, so it commits with the success event. The Keycloak
     // scope sync below follows it; a failure there fails the request but not the recorded SDX submission.
     await audit.runAuditedOperation(
-      { action: 'sdx-request-create', requestId: request.id, details: { services: request.sdxServices } },
+      { action: 'sdx-request-create', requestId: request.id, details: { services: { resourceServers } } },
       async () => {
         const response = await fetch(`${process.env.SDX_API || ''}/integrations/${request.id!}/access-requests`, {
           method: 'POST',
@@ -234,7 +371,8 @@ export const createSdxRequest = async (session: Session, request: Integration) =
 
         if (!response.ok) {
           const errorText = await response.text();
-          throw new Error(`Failed to create SDX request: ${errorText}`);
+          log.error(`Failed to create SDX request: ${errorText}`);
+          throw new Error('Failed to create SDX request');
         }
 
         return response.json();
@@ -269,8 +407,8 @@ export const createSdxRequest = async (session: Session, request: Integration) =
       }
     }
   } catch (error) {
-    console.error('Error creating SDX request:', error);
-    throw error;
+    log.error({ err: error }, 'error creating SDX request');
+    throw new Error('Failed to process request for SDX services');
   }
 
   return {
@@ -278,7 +416,7 @@ export const createSdxRequest = async (session: Session, request: Integration) =
     message: 'SDX request created successfully',
     data: {
       requestId: request.id!,
-      ...request.sdxServices,
+      resourceServers,
     },
   };
 };
@@ -490,7 +628,8 @@ export const getSdxSubsystemStatus = async (requestId: number) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Failed to fetch SDX status: ${errorText}`);
+      log.error(`Failed to fetch SDX status: ${errorText}`);
+      throw new Error('Failed to fetch SDX status');
     }
 
     const data = await response.json();

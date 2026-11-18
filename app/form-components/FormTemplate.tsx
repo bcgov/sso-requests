@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useContext } from 'react';
+import { useState, useEffect, useCallback, useContext, useRef } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { isNil, throttle, padStart, difference, trim } from 'lodash';
@@ -144,6 +144,31 @@ const preserveCrossStageFields = (nextFormData: any, previousFormData: any) => (
   sdxServices: nextFormData?.sdxServices ?? previousFormData?.sdxServices,
 });
 
+/**
+ * Fills in the name of allowed SDX access from the catalog, and a missing version only when the catalog has exactly
+ * one version of that service. Otherwise the version stays unset and the access matches every offered version, rather
+ * than being narrowed to an arbitrary one. Tolerates partial data.
+ */
+const withCatalogDetails = (resourceServers: SDXResourceServer[] | undefined, catalog: SDXResourceServer[]) =>
+  (Array.isArray(resourceServers) ? resourceServers : []).map((resourceServer) => {
+    const catalogResourceServer = catalog.find(
+      (server) => server.id === resourceServer.id && server.environment === resourceServer.environment,
+    );
+    return {
+      ...resourceServer,
+      services: (resourceServer.services || []).map((service) => {
+        if (service.version) return service;
+        const catalogVersions = new Set(
+          (catalogResourceServer?.services || [])
+            .filter((candidate: SDXService) => candidate.name === service.name)
+            .map((candidate: SDXService) => candidate.version),
+        );
+        return catalogVersions.size === 1 ? { ...service, version: Array.from(catalogVersions)[0] } : service;
+      }),
+      name: catalogResourceServer?.name || resourceServer.name,
+    };
+  });
+
 interface Props {
   currentUser: LoggedInUser | null;
   request?: Integration | undefined;
@@ -195,6 +220,9 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const isLastStage = formStage === schemas.length - 1;
   const isFirstStage = formStage === 0;
   const schema = schemas[formStage] || {};
+  // Applied integrations validate every stage as it is shown, since those stages start out filled in. The SDX
+  // stage starts empty when SDX is newly enabled, so like a draft it is only validated once the user moves on.
+  const liveValidate = visited[formStage] || (isApplied && !schema.properties?.sdxServices);
 
   const throttleUpdate = useCallback(
     throttle(
@@ -359,52 +387,70 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     }
   };
 
+  const sdxLoadRef = useRef(0);
+
+  const showSdxLoadError = (content: string) =>
+    alert.show({ variant: 'danger', fadeOut: 10000, closable: true, content });
+
   const loadSdxResources = async (loadClientAccess = formData?.sdxEnabled && formData?.status === 'applied') => {
-    const [resourceServers] = await listSdxResourceServers({} as any);
-    setSdxResourceServers(resourceServers || []);
+    // Only the latest load applies its results, so an earlier, slower one cannot overwrite them.
+    const loadId = ++sdxLoadRef.current;
+    const isLatestLoad = () => loadId === sdxLoadRef.current;
+    const accessLoadError = 'Failed to load the current SDX access of this integration. Please reload the page.';
 
-    if (loadClientAccess) {
-      const [data] = await getSdxSubsytemStatus(request?.id!);
-
-      if (data?.status === 'registered') {
-        const [approved] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'approved');
-        setSdxServicesApprovedForClient(approved || []);
-
-        const [pending] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'pending');
-        setSdxServicesPendingForClient(pending || []);
-
-        const currApprovedAndPending = [approved, pending].map((access) => ({
-          ...access,
-          resourceServers: access.resourceServers.map((resourceServer: SDXResourceServer) => {
-            const catalogResourceServer = resourceServers.find(
-              (server: SDXResourceServer) => server.id === resourceServer.id,
-            );
-            return {
-              ...resourceServer,
-              services: resourceServer.services.map((service) => {
-                const catalogService = catalogResourceServer?.services.find(
-                  (candidate: SDXService) =>
-                    candidate.name === service.name && (!service.version || candidate.version === service.version),
-                );
-                return {
-                  ...service,
-                  version: service.version || catalogService?.version || '',
-                };
-              }),
-              name: catalogResourceServer?.name || resourceServer.name,
-            };
-          }),
-        }));
-
-        if (!formData?.sdxServices) {
-          setFormData((previousFormData) => ({
-            ...previousFormData,
-            sdxServices: {
-              resourceServers: [...currApprovedAndPending.flatMap((rs) => rs.resourceServers)],
-            } as any,
-          }));
-        }
+    // Runs from effects and event handlers, so nothing may escape as an unhandled rejection.
+    try {
+      const [resourceServers, resourceServersErr] = await listSdxResourceServers({} as any);
+      if (!isLatestLoad()) return;
+      if (resourceServersErr) {
+        console.error('Failed to load the SDX services', resourceServersErr);
+        showSdxLoadError('Failed to load the SDX services. Please reload the page.');
       }
+      const catalog: SDXResourceServer[] = Array.isArray(resourceServers) ? resourceServers : [];
+      setSdxResourceServers(catalog);
+
+      if (!loadClientAccess) return;
+
+      const [data, statusErr] = await getSdxSubsytemStatus(request?.id!);
+      if (!isLatestLoad()) return;
+      // Without the status it is unknown whether there is approved access to keep, so this fails like the access load.
+      if (statusErr) {
+        console.error('Failed to load the SDX subsystem status', statusErr);
+        showSdxLoadError(accessLoadError);
+        return;
+      }
+      if (data?.status !== 'registered') return;
+
+      const [[approved, approvedErr], [pending, pendingErr]] = await Promise.all([
+        getSdxAllowedAccessForClient({} as any, request?.id!, 'approved'),
+        getSdxAllowedAccessForClient({} as any, request?.id!, 'pending'),
+      ]);
+      if (!isLatestLoad()) return;
+
+      // Without the current access the selection would start without the approved scopes, and submitting it would
+      // revoke them, so nothing is preselected and the user is told to reload.
+      if (approvedErr || pendingErr || !approved || !pending) {
+        console.error('Failed to load the SDX access of the integration', approvedErr || pendingErr);
+        showSdxLoadError(accessLoadError);
+        return;
+      }
+
+      setSdxServicesApprovedForClient(approved);
+      setSdxServicesPendingForClient(pending);
+
+      const currentAccess = [approved, pending].flatMap((access) =>
+        withCatalogDetails(access.resourceServers, catalog),
+      );
+      // Reads the latest form data, so a selection made while loading is kept.
+      setFormData((previousFormData) =>
+        previousFormData?.sdxServices
+          ? previousFormData
+          : ({ ...previousFormData, sdxServices: { resourceServers: currentAccess } } as Integration),
+      );
+    } catch (err) {
+      if (!isLatestLoad()) return;
+      console.error('Failed to load the SDX services', err);
+      showSdxLoadError(loadClientAccess ? accessLoadError : 'Failed to load the SDX services. Please reload the page.');
     }
   };
 
@@ -616,6 +662,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         </Description>
       </HeaderContainer>
       <Form
+        // A fresh form per stage, so validation run on one stage cannot leave errors on another.
+        key={formStage}
         schema={schema}
         uiSchema={uiSchema}
         onChange={handleChange}
@@ -633,7 +681,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           sdxServicesPendingForClient,
         }}
         templates={{ FieldTemplate, ArrayFieldTemplate }}
-        liveValidate={visited[formStage] || isApplied}
+        liveValidate={liveValidate}
         customValidate={customValidate}
         validator={validator}
       >
