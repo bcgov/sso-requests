@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, waitFor, screen } from '@testing-library/react';
 import RequestPage from 'pages/request/[rid]';
-import { getRequest } from 'services/request';
+import { getRequest, isRequestBcscExcluded } from 'services/request';
 import { setUpRouter } from './utils/setup';
 
 jest.mock('next/router', () => ({
@@ -42,5 +42,14 @@ describe('Fetching data', () => {
     expect(getRequest).toHaveBeenCalled();
     screen.getByText('Loading information...');
     await waitFor(() => screen.getByText('Requester Info'));
+  });
+
+  it('Only checks the BCSC exclusion once the request has loaded', async () => {
+    (getRequest as jest.Mock).mockResolvedValueOnce([{ id: 1, serviceType: 'gold' }, null]);
+    setUpRouter('/request/1', sandbox, { rid: 1 });
+    render(<RequestPage currentUser={{}} />);
+    await waitFor(() => screen.getByText('Requester Info'));
+    expect(isRequestBcscExcluded).toHaveBeenCalledTimes(1);
+    expect(isRequestBcscExcluded).toHaveBeenCalledWith(1);
   });
 });
