@@ -61,8 +61,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const { id } = req.query || {};
       if (!id) return res.status(400).json({ success: false, message: 'Integration ID is required' });
 
-      await withActor(systemActor('sdx-callback'), () => processSdxWorkflowUpdates(Number(id), req.body));
-      return res.status(200).json({ success: true });
+      const result = await withActor(systemActor('sdx-callback'), () =>
+        processSdxWorkflowUpdates(Number(id), req.body),
+      );
+      return res.status(200).json({ success: true, data: result });
     } else {
       res.setHeader('Allow', ['GET', 'PUT']);
       res.status(405).end(`Method ${req.method} Not Allowed`);

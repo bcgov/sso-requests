@@ -1,4 +1,9 @@
-import type { SDXAccessRequest, Session } from '@app/shared/interfaces';
+import type {
+  SDXAccessRequest,
+  SDXAllowedAccessUpdate,
+  SDXAllowedAccessUpdateResult,
+  Session,
+} from '@app/shared/interfaces';
 import { SDXResourceServer } from '@app/shared/interfaces';
 import { getIntegrationById } from '@app/queries/request';
 import { authorizeIntegration } from '@app/queries/integrationAccess';
@@ -25,6 +30,13 @@ const getSdxEnvironments = () => {
 };
 
 const isProductionSdxEnvironment = (environment: string) => environment === getSdxEnvironments().production;
+
+const keycloakEnvironmentsForSdxEnvironment = (environment: string) => {
+  const configured = getSdxEnvironments();
+  if (environment === configured.production) return ['prod'];
+  if (environment === configured['non-production']) return ['dev', 'test'];
+  throw new Error(`Unsupported SDX environment '${environment}'`);
+};
 
 const getScopeLabel = (scope: SDXResourceServer['services'][number]['scopes'][number]) =>
   typeof scope === 'string' ? scope : scope.label;
@@ -111,45 +123,6 @@ export const listSdxResourceServers = async (): Promise<SDXResourceServer[]> => 
   }
 };
 
-const collectScopesByEnvironment = (resourceServers: SDXResourceServer[] = []) => {
-  const byEnvironment: { [environment: string]: Set<string> } = {};
-
-  for (const rs of resourceServers) {
-    for (const service of rs.services || []) {
-      for (const scope of service.scopes || []) {
-        if (!byEnvironment[rs.environment]) byEnvironment[rs.environment] = new Set();
-        byEnvironment[rs.environment].add(`${rs.id}###${service.name}###${service.version}###${getScopeLabel(scope)}`);
-      }
-    }
-  }
-
-  return byEnvironment;
-};
-
-/**
- * Compares the existing access state against the new state and returns, per environment, the scopes
- * that are no longer requested. Covers removal of a scope, a version, a service, or a whole resource server.
- */
-export const getRemovedScopes = (
-  existingResourceServers: SDXResourceServer[] = [],
-  newResourceServers: SDXResourceServer[] = [],
-): { [environment: string]: string[] } => {
-  const existingByEnvironment = collectScopesByEnvironment(existingResourceServers);
-  const newByEnvironment = collectScopesByEnvironment(newResourceServers);
-
-  const removedByEnv: { [environment: string]: string[] } = {};
-
-  for (const [environment, scopes] of Object.entries(existingByEnvironment)) {
-    const retained = newByEnvironment[environment] || new Set<string>();
-    const removedScopes = Array.from(scopes).filter((scope) => !retained.has(scope));
-    if (removedScopes.length > 0) {
-      removedByEnv[environment] = removedScopes.map((scope) => scope.split('###')[3]); // Extract the scope part from the composite key
-    }
-  }
-
-  return removedByEnv;
-};
-
 type AdminClient = Awaited<ReturnType<typeof getAdminClient>>['kcAdminClient'];
 
 // SDX grants its scopes as optional client scopes, so only those are ever removed. Default scopes are left alone.
@@ -175,28 +148,6 @@ const removeOptionalClientScopes = (
         }),
       ),
   );
-
-const removeSdxAccessByScopes = async (clientId: string, environment: string, scopes: string[]) => {
-  const { kcAdminClient } = await getAdminClient({ serviceType: 'gold', environment });
-  const result = await kcAdminClient.clients.find({ realm: 'standard', clientId });
-
-  if (!result || result.length === 0) {
-    log.info({ clientId, environment }, 'client not found in Keycloak, skipping scope removal');
-    return;
-  }
-
-  const client = result[0];
-  const optionalScopeIds = await listOptionalClientScopeIds(kcAdminClient, client.id!);
-
-  await removeOptionalClientScopes(kcAdminClient, client.id!, optionalScopeIds, scopes);
-};
-
-const removeSdxAccessFromKeycloak = async (clientId: string, environment: string, scopes: string[]) => {
-  const keycloakEnvironments = isProductionSdxEnvironment(environment) ? ['prod'] : ['dev', 'test'];
-  await Promise.all(
-    keycloakEnvironments.map((keycloakEnvironment) => removeSdxAccessByScopes(clientId, keycloakEnvironment, scopes)),
-  );
-};
 
 export const createSdxRequest = async (session: Session, request: Integration) => {
   try {
@@ -253,21 +204,6 @@ export const createSdxRequest = async (session: Session, request: Integration) =
     );
 
     await initializeScopes(resourceServers);
-
-    // If the request is already applied, we need to check for removed scopes and remove them from Keycloak
-    if (request.status === 'applied') {
-      const subSystem = await getSdxSubsystemStatus(request.id!);
-
-      if (subSystem?.status === 'registered') {
-        const existingSdxAccess = await getSdxServicesForClient(session, request.id!, 'approved');
-        const removedScopesByEnv = getRemovedScopes(existingSdxAccess.resourceServers, resourceServers);
-        await Promise.all(
-          Object.entries(removedScopesByEnv).map(([sdxEnvironment, scopes]) =>
-            removeSdxAccessFromKeycloak(existingSdxAccess.clientId, sdxEnvironment, scopes),
-          ),
-        );
-      }
-    }
   } catch (error) {
     console.error('Error creating SDX request:', error);
     throw error;
@@ -343,7 +279,10 @@ const keycloakSyncScopes = async (environment: string, realmName: string, scopes
   );
 };
 
-export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAccessRequest) => {
+export const processSdxWorkflowUpdates = async (
+  requestId: number,
+  data: SDXAllowedAccessUpdate,
+): Promise<SDXAllowedAccessUpdateResult> => {
   const integrationData = await getIntegrationById(requestId, [
     'id',
     'environments',
@@ -364,37 +303,73 @@ export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAcce
     throw new Error(`Integration with ID ${requestId} is not in applied state`);
   }
 
+  if (data.clientId && data.clientId !== integrationData.clientId) {
+    throw new Error(`SDX callback client ID does not match integration with ID ${requestId}`);
+  }
+
   // Runs as the `sdx-callback` system actor, set by the route.
-  await audit.runAuditedOperation(
+  return await audit.runAuditedOperation(
     {
       action: 'sdx-access-request-update',
       requestId,
-      details: { resourceServers: data.resourceServers },
+      details: {
+        clientId: data.clientId,
+        submissionId: data.submissionId,
+        environment: data.environment,
+        resourceServers: data.resourceServers,
+      },
     },
     async () => {
-      if (data.resourceServers && data.resourceServers.length > 0) {
-        const scopesByEnvironment = new Map<string, Set<string>>();
-        for (const rs of data.resourceServers) {
-          for (const service of rs.services || []) {
-            if (service.scopes && service.scopes.length > 0) {
-              const environments = isProductionSdxEnvironment(rs.environment) ? ['prod'] : ['dev', 'test'];
-              for (const environment of environments) {
-                const scopes = scopesByEnvironment.get(environment) || new Set<string>();
-                for (const scope of service.scopes.map(getScopeLabel)) {
-                  scopes.add(scope);
-                }
-                scopesByEnvironment.set(environment, scopes);
-              }
+      const resourceServers = data.resourceServers || [];
+      const sdxEnvironments = new Set(data.environment ? [data.environment] : []);
+
+      for (const rs of resourceServers) {
+        if (data.environment && rs.environment !== data.environment) {
+          throw new Error(
+            `SDX callback environment '${data.environment}' does not match resource server environment '${rs.environment}'`,
+          );
+        }
+        sdxEnvironments.add(rs.environment);
+      }
+
+      if (sdxEnvironments.size === 0) {
+        throw new Error('SDX callback environment is required when resourceServers is empty');
+      }
+
+      const scopesByEnvironment = new Map<string, Set<string>>();
+      for (const sdxEnvironment of Array.from(sdxEnvironments)) {
+        const environments = keycloakEnvironmentsForSdxEnvironment(sdxEnvironment);
+        for (const environment of environments) {
+          if (!scopesByEnvironment.has(environment)) scopesByEnvironment.set(environment, new Set());
+        }
+      }
+
+      for (const rs of resourceServers) {
+        const environments = keycloakEnvironmentsForSdxEnvironment(rs.environment);
+        for (const service of rs.services || []) {
+          for (const environment of environments) {
+            const scopes = scopesByEnvironment.get(environment)!;
+            for (const scope of service.scopes || []) {
+              scopes.add(getScopeLabel(scope));
             }
           }
         }
-        await Promise.all(
-          Array.from(scopesByEnvironment, ([environment, scopes]) =>
-            manageKeycloakScopes(integrationData.clientId, environment, Array.from(scopes)),
-          ),
-        );
       }
+
+      const reconciliations = await Promise.all(
+        Array.from(scopesByEnvironment, ([environment, scopes]) =>
+          manageKeycloakScopes(integrationData.clientId, environment, Array.from(scopes)),
+        ),
+      );
+
+      return {
+        integrationId: requestId,
+        submissionId: data.submissionId,
+        status: 'applied' as const,
+        reconciliations,
+      };
     },
+    { successDetails: (result) => ({ status: result.status, reconciliations: result.reconciliations }) },
   );
 };
 
@@ -410,8 +385,7 @@ export const manageKeycloakScopes = async (clientId: string, environment: string
   const result = await kcAdminClient.clients.find({ realm: 'standard', clientId });
 
   if (!result || result.length === 0) {
-    log.info({ clientId, environment }, 'client not found in Keycloak, skipping scope management');
-    return;
+    throw new Error(`Client '${clientId}' not found in Keycloak environment '${environment}'`);
   }
 
   const client: ClientRepresentation = result[0];
@@ -426,6 +400,7 @@ export const manageKeycloakScopes = async (clientId: string, environment: string
 
   // Only optional scopes that SDX knows about are reconciled; any other client scope is not ours to remove.
   const scopesToRemove = allSdxScopes.filter((scope) => !scopes.includes(scope));
+  const removedScopes = scopesToRemove.filter((scope) => optionalScopeIds.has(scope));
   await removeOptionalClientScopes(kcAdminClient, client.id!, optionalScopeIds, scopesToRemove);
 
   // A scope already on the client, as optional or default, is not added again.
@@ -478,6 +453,8 @@ export const manageKeycloakScopes = async (clientId: string, environment: string
       }
     }
   }
+
+  return { environment, addedScopes: scopesToAdd, removedScopes };
 };
 
 export const getSdxSubsystemStatus = async (requestId: number) => {

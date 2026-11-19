@@ -179,6 +179,29 @@ export interface SDXAccessRequest {
   resourceServers: SDXResourceServer[];
 }
 
+export interface SDXAllowedAccessUpdate {
+  integrationId: number | string;
+  clientId?: string;
+  submissionId?: string;
+  /**
+   * Identifies the authoritative snapshot when no resource servers remain.
+   * Older non-empty callbacks can continue to derive it from each resource server.
+   */
+  environment?: string;
+  resourceServers: SDXResourceServer[];
+}
+
+export interface SDXAllowedAccessUpdateResult {
+  integrationId: number;
+  submissionId?: string;
+  status: 'applied';
+  reconciliations: Array<{
+    environment: string;
+    addedScopes: string[];
+    removedScopes: string[];
+  }>;
+}
+
 export interface SDXAllowedAccessForClient {
   clientId: string;
   resourceServers: SDXResourceServer[];

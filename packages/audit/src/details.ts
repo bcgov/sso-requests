@@ -47,7 +47,14 @@ export type AuditDetailsMap = {
   'role-replicate': { roleName: string; sourceIdp: string; targetIdp: string };
 
   'sdx-request-create': { services: unknown };
-  'sdx-access-request-update': { status?: string; resourceServers?: unknown[] };
+  'sdx-access-request-update': {
+    status?: string;
+    clientId?: string;
+    submissionId?: string;
+    environment?: string;
+    resourceServers?: unknown[];
+    reconciliations?: unknown[];
+  };
 
   'team-create': { name: string };
   'team-update': { before?: Record<string, unknown>; after?: Record<string, unknown> };
