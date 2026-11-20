@@ -58,7 +58,7 @@ jobs:
         working-directory: app
 
       - name: Pre-requisites for test run
-        uses: cypress-io/github-action@be1bab96b388bbd9ce3887e397d373c8557e15af # v6.9.2
+        uses: cypress-io/github-action@f790eee7a50d9505912f50c2095510be7de06aa7 # v6.10.9
         id: prereq
         continue-on-error: false
         env:
@@ -118,7 +118,7 @@ jobs:
         working-directory: app
 
       - name: E2E Tests
-        uses: cypress-io/github-action@be1bab96b388bbd9ce3887e397d373c8557e15af # v6.9.2
+        uses: cypress-io/github-action@f790eee7a50d9505912f50c2095510be7de06aa7 # v6.10.9
         id: smoke
         continue-on-error: false
         env:
