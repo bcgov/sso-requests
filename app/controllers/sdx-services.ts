@@ -112,14 +112,14 @@ export const listSdxResourceServers = async (): Promise<SDXResourceServer[]> => 
   }
 };
 
-const collectScopesByEnvironment = (resourceServers: SDXResourceServer[] = []) => {
+const collectScopeLabelsByEnvironment = (resourceServers: SDXResourceServer[] = []) => {
   const byEnvironment: { [environment: string]: Set<string> } = {};
 
   for (const rs of resourceServers) {
     for (const service of rs.services || []) {
       for (const scope of service.scopes || []) {
         if (!byEnvironment[rs.environment]) byEnvironment[rs.environment] = new Set();
-        byEnvironment[rs.environment].add(`${rs.id}###${service.name}###${service.version}###${getScopeLabel(scope)}`);
+        byEnvironment[rs.environment].add(getScopeLabel(scope));
       }
     }
   }
@@ -128,24 +128,24 @@ const collectScopesByEnvironment = (resourceServers: SDXResourceServer[] = []) =
 };
 
 /**
- * Compares the existing access state against the new state and returns, per environment, the scopes
- * that are no longer requested. Covers removal of a scope, a version, a service, or a whole resource server.
+ * Compares the existing access state against the new state and returns, per environment, the scope labels that are
+ * no longer requested. Keycloak holds one client scope per label, so a label still requested by any resource server,
+ * service or version in the same environment is kept: removing it for a dropped or re-versioned entry would revoke
+ * access that is still requested.
  */
 export const getRemovedScopes = (
   existingResourceServers: SDXResourceServer[] = [],
   newResourceServers: SDXResourceServer[] = [],
 ): { [environment: string]: string[] } => {
-  const existingByEnvironment = collectScopesByEnvironment(existingResourceServers);
-  const newByEnvironment = collectScopesByEnvironment(newResourceServers);
+  const existingByEnvironment = collectScopeLabelsByEnvironment(existingResourceServers);
+  const newByEnvironment = collectScopeLabelsByEnvironment(newResourceServers);
 
   const removedByEnv: { [environment: string]: string[] } = {};
 
-  for (const [environment, scopes] of Object.entries(existingByEnvironment)) {
+  for (const [environment, labels] of Object.entries(existingByEnvironment)) {
     const retained = newByEnvironment[environment] || new Set<string>();
-    const removedScopes = Array.from(scopes).filter((scope) => !retained.has(scope));
-    if (removedScopes.length > 0) {
-      removedByEnv[environment] = removedScopes.map((scope) => scope.split('###')[3]); // Extract the scope part from the composite key
-    }
+    const removedLabels = Array.from(labels).filter((label) => !retained.has(label));
+    if (removedLabels.length > 0) removedByEnv[environment] = removedLabels;
   }
 
   return removedByEnv;
@@ -203,12 +203,12 @@ const catalogKey = (...parts: string[]) => parts.join('###');
 
 const isNonEmptyString = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
 
-type RequestedService = { environment: string; id: string; name: string; version?: string; labels: string[] };
+type RequestedService = { environment: string; id: string; name: string; version: string; labels: string[] };
 
 /**
  * Checks the shape of the requested access and flattens it to one entry per service that requests scopes. Throws a
  * 400 naming every malformed field, so nothing malformed is matched against the catalog or sent on. Resource servers
- * and services that request no scope are skipped. A missing or empty version means "any version".
+ * and services that request no scope are skipped. Every requested service needs a version.
  */
 const parseRequestedServices = (requested: unknown): RequestedService[] => {
   if (!Array.isArray(requested)) throw new createHttpError.BadRequest('Invalid SDX access request: resourceServers');
@@ -238,8 +238,7 @@ const parseRequestedServices = (requested: unknown): RequestedService[] => {
       if (!isNonEmptyString(resourceServer.environment)) fieldErrors.push(`${resourceServerPath}.environment`);
       if (!isNonEmptyString(resourceServer.id)) fieldErrors.push(`${resourceServerPath}.id`);
       if (!isNonEmptyString(service.name)) fieldErrors.push(`${servicePath}.name`);
-      const hasVersion = service.version !== undefined && service.version !== null && service.version !== '';
-      if (hasVersion && !isNonEmptyString(service.version)) fieldErrors.push(`${servicePath}.version`);
+      if (!isNonEmptyString(service.version)) fieldErrors.push(`${servicePath}.version`);
 
       const labels = scopes.map((scope: unknown) =>
         typeof scope === 'string' ? scope : (scope as SDXServiceScope | null)?.label,
@@ -257,7 +256,7 @@ const parseRequestedServices = (requested: unknown): RequestedService[] => {
         environment: resourceServer.environment,
         id: resourceServer.id,
         name: service.name,
-        version: hasVersion ? service.version : undefined,
+        version: service.version,
         labels: labels as string[],
       });
     });
@@ -272,9 +271,8 @@ const parseRequestedServices = (requested: unknown): RequestedService[] => {
 
 /**
  * Checks the requested access against the SDX catalog and rebuilds it from the catalog entries, so only offered
- * scopes and known fields reach SDX and Keycloak. A service requested without a version (allowed access SDX returned
- * without one) matches every catalog version of it that offers the scope, the same fallback the form uses. Resource
- * servers and services that request no scope are dropped.
+ * scopes and known fields reach SDX and Keycloak. Each service matches only the catalog entry of the same version.
+ * Resource servers and services that request no scope are dropped.
  */
 export const validateSdxResourceServers = async (requested: SDXResourceServer[]): Promise<SDXResourceServer[]> => {
   const requestedServices = parseRequestedServices(requested);
@@ -311,14 +309,14 @@ export const validateSdxResourceServers = async (requested: SDXResourceServer[])
 
   for (const { environment, id, name, version, labels } of requestedServices) {
     const candidates = (catalogServices.get(catalogKey(environment, id, name)) || []).filter(
-      (candidate) => !version || candidate.service.version === version,
+      (candidate) => candidate.service.version === version,
     );
 
     for (const label of labels) {
       const offering = candidates.filter((candidate) =>
         (candidate.service.scopes || []).some((scope) => getScopeLabel(scope) === label),
       );
-      if (offering.length === 0) unknownScopes.push(`${id}/${name}/${version || '(any version)'}/${label}`);
+      if (offering.length === 0) unknownScopes.push(`${id}/${name}/${version}/${label}`);
       offering.forEach((candidate) => addScope(candidate, label));
     }
   }
@@ -370,8 +368,10 @@ export const createSdxRequest = async (session: Session, request: Integration) =
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
-          log.error(`Failed to create SDX request: ${errorText}`);
+          log.error(
+            { requestId: request.id, status: response.status, statusText: response.statusText },
+            'failed to create SDX request',
+          );
           throw new Error('Failed to create SDX request');
         }
 
@@ -627,8 +627,7 @@ export const getSdxSubsystemStatus = async (requestId: number) => {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      log.error(`Failed to fetch SDX status: ${errorText}`);
+      log.error({ requestId, status: response.status, statusText: response.statusText }, 'failed to fetch SDX status');
       throw new Error('Failed to fetch SDX status');
     }
 

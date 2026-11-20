@@ -19,6 +19,11 @@ const TabWrapper = styled.div<{ short?: boolean }>`
   ${(props) => (props.short ? 'max-width: 800px;' : '')}
 `;
 
+const AccessStatus = styled.p`
+  padding-top: ${FORM_TOP_SPACING};
+  max-width: 850px;
+`;
+
 export type EnvironmentKey = 'non-production' | 'production';
 export type SelectedScopesByTab = Record<EnvironmentKey, Set<string>>;
 
@@ -31,9 +36,33 @@ type SdxServicesPayload = {
   resourceServers: SDXResourceServer[];
 };
 
+/**
+ * Whether the current SDX access of the integration has loaded. Until it has, the selection may lack approved scopes,
+ * and submitting it would revoke them, so the selection can be neither edited nor submitted.
+ */
+export type SdxAccessState = 'loading' | 'ready' | 'failed';
+
+export const SDX_ACCESS_LOADING_MESSAGE = 'Loading the current SDX access of this integration…';
+export const SDX_ACCESS_FAILED_MESSAGE =
+  'The current SDX access of this integration could not be loaded, so the SDX services cannot be changed. Please reload the page.';
+
 /** Safely converts nullable values to arrays to avoid repeated null checks. */
 function asArray<T>(value: T[] | undefined | null): T[] {
   return Array.isArray(value) ? value : [];
+}
+
+/** Every SDX service has a version, so a catalog service without one is not offered for selection. */
+export function withoutVersionlessServices(resourceServers: SDXResourceServer[]): SDXResourceServer[] {
+  return asArray(resourceServers).map((resourceServer) =>
+    Array.isArray(resourceServer?.services)
+      ? {
+          ...resourceServer,
+          services: resourceServer.services.filter(
+            (service) => typeof service?.version === 'string' && service.version.trim() !== '',
+          ),
+        }
+      : resourceServer,
+  );
 }
 
 const ENVIRONMENT_VALUES =
@@ -73,14 +102,6 @@ function getScopeLabelFromScopeId(scopeId: string): string {
 /** Builds a normalized matcher key used for approved/pending matching. */
 function getScopeMatcherKey(resourceServerKey: string, apiKey: string, versionKey: string, scopeKey: string) {
   return [resourceServerKey, apiKey, versionKey, scopeKey].join(SCOPE_ID_SEPARATOR).toLowerCase();
-}
-
-/**
- * Looser matcher key, ignoring version, still scoped to the same resource server and service. Only used for allowed
- * access whose version is missing or no longer offered, so access to one offered version never selects another.
- */
-function getServiceScopeKey(resourceServerKey: string, apiKey: string, scopeKey: string) {
-  return [resourceServerKey, apiKey, scopeKey].join(SCOPE_ID_SEPARATOR).toLowerCase();
 }
 
 /** Returns a stable service key even when fields are partially populated. */
@@ -140,30 +161,10 @@ export function getClientScopeState(
 
   if (!Array.isArray(sdxServices)) return { approvedScopeIds, pendingScopeIds };
 
-  const catalogMatcherKeys: Record<EnvironmentKey, Set<string>> = {
-    'non-production': new Set<string>(),
-    production: new Set<string>(),
-  };
-  sdxServices.forEach((resourceServer) => {
-    const environment = normalizeEnvironment(resourceServer?.environment);
-    const resourceServerKey = getResourceServerKey(resourceServer);
-    asArray(resourceServer?.services).forEach((service) => {
-      getServiceScopes(service).forEach((scope) => {
-        catalogMatcherKeys[environment].add(
-          getScopeMatcherKey(resourceServerKey, getServiceKey(service), service.version, getScopeLabel(scope)),
-        );
-      });
-    });
-  });
-
-  // Matcher keys are grouped by environment and resource server so allowed access never leaks
-  // into a different organization, service or tab that happens to share a scope label.
+  // Matcher keys are grouped by environment and include the resource server, service and version, so allowed access
+  // never leaks into a different organization, service, version or tab that happens to share a scope label.
   const collectKeysByEnvironment = (allowed: SDXAllowedAccessForClient | null) => {
     const matcherKeys: Record<EnvironmentKey, Set<string>> = {
-      'non-production': new Set<string>(),
-      production: new Set<string>(),
-    };
-    const serviceScopeKeys: Record<EnvironmentKey, Set<string>> = {
       'non-production': new Set<string>(),
       production: new Set<string>(),
     };
@@ -174,15 +175,14 @@ export function getClientScopeState(
       asArray(resourceServer?.services).forEach((service) => {
         const serviceKey = getServiceKey(service);
         getServiceScopes(service).forEach((scope) => {
-          const scopeLabel = getScopeLabel(scope);
-          const matcherKey = getScopeMatcherKey(resourceServerKey, serviceKey, service.version, scopeLabel);
-          if (catalogMatcherKeys[environment].has(matcherKey)) matcherKeys[environment].add(matcherKey);
-          else serviceScopeKeys[environment].add(getServiceScopeKey(resourceServerKey, serviceKey, scopeLabel));
+          matcherKeys[environment].add(
+            getScopeMatcherKey(resourceServerKey, serviceKey, service.version, getScopeLabel(scope)),
+          );
         });
       });
     });
 
-    return { matcherKeys, serviceScopeKeys };
+    return matcherKeys;
   };
 
   const approvedKeys = collectKeysByEnvironment(approved);
@@ -198,18 +198,9 @@ export function getClientScopeState(
         const scopeLabel = getScopeLabel(scope);
         const scopeId = getScopeId(resourceServerKey, serviceKey, service.version, scopeLabel);
         const matcherKey = getScopeMatcherKey(resourceServerKey, serviceKey, service.version, scopeLabel);
-        const serviceScopeKey = getServiceScopeKey(resourceServerKey, serviceKey, scopeLabel);
 
-        if (
-          pendingKeys.matcherKeys[environment].has(matcherKey) ||
-          pendingKeys.serviceScopeKeys[environment].has(serviceScopeKey)
-        )
-          pendingScopeIds[environment].add(scopeId);
-        if (
-          approvedKeys.matcherKeys[environment].has(matcherKey) ||
-          approvedKeys.serviceScopeKeys[environment].has(serviceScopeKey)
-        )
-          approvedScopeIds[environment].add(scopeId);
+        if (pendingKeys[environment].has(matcherKey)) pendingScopeIds[environment].add(scopeId);
+        if (approvedKeys[environment].has(matcherKey)) approvedScopeIds[environment].add(scopeId);
       });
     });
   });
@@ -390,60 +381,6 @@ export function restoreSelectedScopesByTab(
   });
 }
 
-/**
- * Maps restored scope ids whose version is missing or no longer offered onto every offered version of the same scope,
- * the fallback `getClientScopeState` uses, so access saved without a version still shows as selected. Ids that match
- * nothing in the catalog are kept as they are.
- */
-export function resolveScopeVersions(
-  selected: SelectedScopesByTab,
-  sdxServices: SDXResourceServer[],
-): SelectedScopesByTab {
-  const catalogScopeIds: Record<EnvironmentKey, Set<string>> = {
-    'non-production': new Set<string>(),
-    production: new Set<string>(),
-  };
-  const scopeIdsByServiceScope: Record<EnvironmentKey, Map<string, string[]>> = {
-    'non-production': new Map(),
-    production: new Map(),
-  };
-
-  asArray(sdxServices).forEach((resourceServer) => {
-    const environment = normalizeEnvironment(resourceServer?.environment);
-    const resourceServerKey = getResourceServerKey(resourceServer);
-    asArray(resourceServer?.services).forEach((service) => {
-      const serviceKey = getServiceKey(service);
-      getServiceScopes(service).forEach((scope) => {
-        const scopeLabel = getScopeLabel(scope);
-        const scopeId = getScopeId(resourceServerKey, serviceKey, service.version, scopeLabel);
-        const serviceScopeKey = getServiceScopeKey(resourceServerKey, serviceKey, scopeLabel);
-        catalogScopeIds[environment].add(scopeId);
-        scopeIdsByServiceScope[environment].set(serviceScopeKey, [
-          ...(scopeIdsByServiceScope[environment].get(serviceScopeKey) ?? []),
-          scopeId,
-        ]);
-      });
-    });
-  });
-
-  const resolve = (environment: EnvironmentKey) => {
-    const resolved = new Set<string>();
-    (selected[environment] ?? new Set<string>()).forEach((scopeId) => {
-      const segments = scopeId.split(SCOPE_ID_SEPARATOR);
-      const matches =
-        !catalogScopeIds[environment].has(scopeId) && segments.length >= 4
-          ? scopeIdsByServiceScope[environment].get(
-              getServiceScopeKey(segments[0], segments[1], segments[segments.length - 1]),
-            )
-          : undefined;
-      (matches ?? [scopeId]).forEach((id) => resolved.add(id));
-    });
-    return resolved;
-  };
-
-  return { 'non-production': resolve('non-production'), production: resolve('production') };
-}
-
 /** Returns `current` itself when it already holds every added scope, otherwise a new set with them added. */
 function withScopes(current: Set<string> | undefined, ...additions: Set<string>[]): Set<string> {
   const base = current ?? new Set<string>();
@@ -498,9 +435,11 @@ const tabItems = (
 
 export default function FieldSdxServices(props: Readonly<FieldTemplateProps>) {
   const { formContext, onChange } = props;
-  const { sdxResourceServers, sdxServicesApprovedForClient, sdxServicesPendingForClient, formData } = formContext || {};
+  const { sdxResourceServers, sdxServicesApprovedForClient, sdxServicesPendingForClient, sdxAccessState, formData } =
+    formContext || {};
+  const accessReady = (sdxAccessState ?? 'ready') === 'ready';
   const normalizedSdxServices = useMemo<SDXResourceServer[]>(
-    () => (Array.isArray(sdxResourceServers) ? sdxResourceServers : []),
+    () => withoutVersionlessServices(Array.isArray(sdxResourceServers) ? sdxResourceServers : []),
     [sdxResourceServers],
   );
   const normalizedApprovedClientSdxServices = useMemo(
@@ -548,12 +487,8 @@ export default function FieldSdxServices(props: Readonly<FieldTemplateProps>) {
     [pendingScopeIds],
   );
   const persistedSelectedScopesByTab = useMemo(
-    () =>
-      resolveScopeVersions(
-        restoreSelectedScopesByTab(formData?.sdxServices, requiredSelectedScopeIds, defaultSelectedScopeIds),
-        normalizedSdxServices,
-      ),
-    [formData?.sdxServices, requiredSelectedScopeIds, defaultSelectedScopeIds, normalizedSdxServices],
+    () => restoreSelectedScopesByTab(formData?.sdxServices, requiredSelectedScopeIds, defaultSelectedScopeIds),
+    [formData?.sdxServices, requiredSelectedScopeIds, defaultSelectedScopeIds],
   );
   const [activeTab, setActiveTab] = useState<EnvironmentKey>('non-production');
 
@@ -634,15 +569,19 @@ export default function FieldSdxServices(props: Readonly<FieldTemplateProps>) {
   };
 
   useEffect(() => {
-    if (!hasUserChangesRef.current || normalizedSdxServices.length === 0) return;
+    if (!accessReady || !hasUserChangesRef.current || normalizedSdxServices.length === 0) return;
 
     const sdxServicesPayload: SdxServicesPayload = {
       resourceServers: buildSdxRequestPayloadFromSelectedScopes(selectedScopesByTab, normalizedSdxServices),
     };
     onChangeRef.current?.(sdxServicesPayload);
-  }, [selectedScopesByTab, normalizedSdxServices]);
+  }, [accessReady, selectedScopesByTab, normalizedSdxServices]);
 
-  const top = (
+  const top = !accessReady ? (
+    <AccessStatus role={sdxAccessState === 'failed' ? 'alert' : 'status'} data-testid="sdx-access-status">
+      {sdxAccessState === 'failed' ? SDX_ACCESS_FAILED_MESSAGE : SDX_ACCESS_LOADING_MESSAGE}
+    </AccessStatus>
+  ) : (
     <Tabs
       activeKey={activeTab}
       onChange={(key) => setActiveTab(key as EnvironmentKey)}

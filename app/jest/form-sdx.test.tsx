@@ -7,6 +7,8 @@ import {
   getScopeId,
   normalizeEnvironment,
   restoreSelectedScopesByTab,
+  SDX_ACCESS_FAILED_MESSAGE,
+  SDX_ACCESS_LOADING_MESSAGE,
   SelectedScopesByTab,
 } from 'form-components/FieldSdxServices';
 import { updateRequest } from 'services/request';
@@ -633,18 +635,33 @@ describe('SDX Services Form', () => {
   });
 
   it('Restores the scopes saved on the integration into the matching environment tab', async () => {
-    await renderSdxForm({ sdxServices: savedSdxServices, status: 'applied' });
+    await renderSdxForm({ sdxServices: savedSdxServices });
 
     expect(scopeCheckbox('patient.write')).toBeChecked();
     expect(scopeCheckbox('patient.read')).not.toBeChecked();
-    // Pending scopes stay selected even when they are missing from the saved payload.
-    expect(scopeCheckbox('patient.v2.read')).toBeChecked();
-    expect(screen.getByRole('tab', { name: 'Non-Production (2)' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Non-Production (1)' })).toBeInTheDocument();
 
     openProductionTab();
     expect(scopeCheckbox('payment.write')).toBeChecked();
     expect(scopeCheckbox('payment.read')).not.toBeChecked();
     expect(screen.getByRole('tab', { name: 'Production (1)' })).toBeInTheDocument();
+  });
+
+  it('Adds the current approved and pending access to the scopes saved on an applied integration', async () => {
+    await renderSdxForm({ sdxServices: savedSdxServices, status: 'applied' });
+
+    expect(scopeCheckbox('patient.write')).toBeChecked();
+    expect(scopeCheckbox('patient.read')).toBeChecked();
+    expect(scopeCheckbox('patient.v2.read')).toBeChecked();
+    expect(screen.getByRole('tab', { name: 'Non-Production (3)' })).toBeInTheDocument();
+
+    // The form data that is submitted holds the approved scope as well, so submitting does not revoke it.
+    fireEvent.click(screen.getByTestId('stage-review-submit'));
+    const nonProductionPreview = screen.getByTestId('sdx-services-non-production');
+    ['patient.read', 'patient.write', 'patient.v2.read'].forEach((label) =>
+      expect(within(nonProductionPreview).getAllByText(label)).toHaveLength(1),
+    );
+    expect(within(screen.getByTestId('sdx-services-production')).getByText('payment.write')).toBeInTheDocument();
   });
 
   it('Keeps the selection when navigating to another stage and back', async () => {
@@ -839,16 +856,54 @@ describe('SDX Services Form', () => {
     }
   });
 
-  it('Warns and preselects nothing when the current SDX access cannot be loaded', async () => {
+  it('Locks the SDX selection and blocks submission when the current SDX access cannot be loaded', async () => {
     mockSdxApprovedAccessResponse = null;
     renderWithAlerts({ status: 'applied' });
 
     await screen.findByText(accessLoadError);
     fireEvent.click(screen.getByTestId('stage-sdx-services'));
-    await screen.findByRole('tab', { name: NON_PROD_TAB });
 
-    expect(scopeCheckbox('patient.read')).not.toBeChecked();
-    expect(scopeCheckbox('patient.v2.read')).not.toBeChecked();
+    expect(await screen.findByTestId('sdx-access-status')).toHaveTextContent(SDX_ACCESS_FAILED_MESSAGE);
+    expect(screen.queryByRole('tab', { name: NON_PROD_TAB })).toBeNull();
+    expect(screen.queryByLabelText('patient.read')).toBeNull();
+
+    fireEvent.click(screen.getByTestId('stage-review-submit'));
+    fireEvent.click(screen.getByRole('button', { name: 'Update' }));
+
+    expect(await screen.findByText(accessLoadError)).toBeInTheDocument();
+    expect(screen.queryByText(/There were errors with your submission/)).toBeNull();
+    expect(screen.queryByText(/ready to submit your request/)).toBeNull();
+    expect(updateRequest).not.toHaveBeenCalledWith(expect.anything(), true);
+  });
+
+  it('Locks the SDX selection and blocks submission until the current SDX access has loaded', async () => {
+    let resolveApproved: (value: any) => void = () => {};
+    (getSdxAllowedAccessForClient as jest.Mock).mockImplementationOnce(
+      () => new Promise((resolve) => (resolveApproved = resolve)),
+    );
+    renderWithAlerts({ status: 'applied', sdxServices: savedSdxServices });
+    await act(async () => {});
+
+    fireEvent.click(screen.getByTestId('stage-sdx-services'));
+    expect(screen.getByTestId('sdx-access-status')).toHaveTextContent(SDX_ACCESS_LOADING_MESSAGE);
+    expect(screen.queryByLabelText('patient.read')).toBeNull();
+
+    fireEvent.click(screen.getByTestId('stage-review-submit'));
+    fireEvent.click(screen.getByRole('button', { name: 'Update' }));
+    await screen.findByText(
+      'The current SDX access of this integration is still loading. Please try again in a moment.',
+    );
+    expect(screen.queryByText(/ready to submit your request/)).toBeNull();
+    expect(updateRequest).not.toHaveBeenCalledWith(expect.anything(), true);
+
+    await act(async () => resolveApproved([sampleSdxApprovedAccess, null]));
+
+    fireEvent.click(screen.getByTestId('stage-sdx-services'));
+    await screen.findByRole('tab', { name: 'Non-Production (3)' });
+    expect(screen.queryByTestId('sdx-access-status')).toBeNull();
+    // The approved access that arrived after the saved selection was restored is added to it.
+    expect(scopeCheckbox('patient.read')).toBeChecked();
+    expect(scopeCheckbox('patient.write')).toBeChecked();
   });
 
   it('Starts from the current SDX access even when part of it is malformed', async () => {
@@ -869,13 +924,14 @@ describe('SDX Services Form', () => {
     expect(within(nonProductionPreview).getByText('patient.v2.read')).toBeInTheDocument();
   });
 
-  it('Selects every offered version of approved access that has no version', async () => {
+  it('Does not offer catalog services without a version, nor select access without a version', async () => {
     mockSdxResourceServersResponse = [
       {
         ...sampleSdxResourceServers[0],
         services: [
-          { name: 'patient-api', title: 'Patient API', version: 'v1', scopes: [sdxScope('read'), sdxScope('write')] },
-          { name: 'patient-api', title: 'Patient API', version: 'v2', scopes: [sdxScope('read')] },
+          { name: 'patient-api', title: 'Patient API', version: 'v1', scopes: [sdxScope('read')] },
+          { name: 'legacy-api', title: 'Legacy API', scopes: [sdxScope('legacy.read')] },
+          { name: 'records-api', title: 'Records API', version: '', scopes: [sdxScope('records.read')] },
         ],
       },
     ];
@@ -892,18 +948,12 @@ describe('SDX Services Form', () => {
     mockSdxPendingAccessResponse = emptySdxAllowedAccess;
     await renderSdxForm({ status: 'applied' });
 
-    const checkbox = (version: string, label: string) =>
-      document.getElementById(
-        `scope-${SDX_ENVIRONMENTS['sandbox']['non-production']}-${getScopeId(
-          'health-rs',
-          'patient-api',
-          version,
-          label,
-        )}`,
-      ) as HTMLInputElement;
-    expect(checkbox('v1', 'read')).toBeChecked();
-    expect(checkbox('v2', 'read')).toBeChecked();
-    expect(checkbox('v1', 'write')).not.toBeChecked();
+    expect(scopeCheckbox('read')).not.toBeChecked();
+    expect(screen.queryByText('Legacy API')).toBeNull();
+    expect(screen.queryByLabelText('legacy.read')).toBeNull();
+    expect(screen.queryByText('Records API')).toBeNull();
+    expect(screen.queryByLabelText('records.read')).toBeNull();
+    expect(screen.getByRole('tab', { name: 'Non-Production (0)' })).toBeInTheDocument();
   });
 
   it('Removes the SDX services stage when the SDX flag is turned off', async () => {
@@ -1066,7 +1116,7 @@ describe('SDX Services Selection Helpers', () => {
       expect(Array.from(approvedScopeIds['non-production'])).toEqual([readScopeId, writeScopeId]);
     });
 
-    it('Matches access to its own version, and to every version only when its version is not offered', () => {
+    it('Matches access only to the catalog entry of the same version', () => {
       const catalog = [
         {
           ...sharedCatalog[0],
@@ -1094,8 +1144,8 @@ describe('SDX Services Selection Helpers', () => {
 
       expect(approvedFor('v1')).toEqual([readScopeId]);
       expect(pendingFor('v2')).toEqual([v2ReadScopeId]);
-      expect(approvedFor(undefined)).toEqual([readScopeId, v2ReadScopeId]);
-      expect(approvedFor('v0')).toEqual([readScopeId, v2ReadScopeId]);
+      expect(approvedFor(undefined)).toEqual([]);
+      expect(approvedFor('v0')).toEqual([]);
     });
   });
 
