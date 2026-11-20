@@ -2,7 +2,7 @@ import { Tabs } from '@bcgov-sso/common-react-components';
 import FieldTemplate from './FieldTemplate';
 import { FieldTemplateProps } from '@rjsf/utils/lib/types';
 import styled from 'styled-components';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FORM_TOP_SPACING } from 'styles/theme';
 import {
   SDXAllowedAccessForClient,
@@ -19,6 +19,11 @@ const TabWrapper = styled.div<{ short?: boolean }>`
   ${(props) => (props.short ? 'max-width: 800px;' : '')}
 `;
 
+const AccessStatus = styled.p`
+  padding-top: ${FORM_TOP_SPACING};
+  max-width: 850px;
+`;
+
 export type EnvironmentKey = 'non-production' | 'production';
 export type SelectedScopesByTab = Record<EnvironmentKey, Set<string>>;
 
@@ -31,9 +36,33 @@ type SdxServicesPayload = {
   resourceServers: SDXResourceServer[];
 };
 
+/**
+ * Whether the current SDX access of the integration has loaded. Until it has, the selection may lack approved scopes,
+ * and submitting it would revoke them, so the selection can be neither edited nor submitted.
+ */
+export type SdxAccessState = 'loading' | 'ready' | 'failed';
+
+export const SDX_ACCESS_LOADING_MESSAGE = 'Loading the current SDX access of this integration…';
+export const SDX_ACCESS_FAILED_MESSAGE =
+  'The current SDX access of this integration could not be loaded, so the SDX services cannot be changed. Please reload the page.';
+
 /** Safely converts nullable values to arrays to avoid repeated null checks. */
 function asArray<T>(value: T[] | undefined | null): T[] {
   return Array.isArray(value) ? value : [];
+}
+
+/** Every SDX service has a version, so a catalog service without one is not offered for selection. */
+export function withoutVersionlessServices(resourceServers: SDXResourceServer[]): SDXResourceServer[] {
+  return asArray(resourceServers).map((resourceServer) =>
+    Array.isArray(resourceServer?.services)
+      ? {
+          ...resourceServer,
+          services: resourceServer.services.filter(
+            (service) => typeof service?.version === 'string' && service.version.trim() !== '',
+          ),
+        }
+      : resourceServer,
+  );
 }
 
 const ENVIRONMENT_VALUES =
@@ -73,11 +102,6 @@ function getScopeLabelFromScopeId(scopeId: string): string {
 /** Builds a normalized matcher key used for approved/pending matching. */
 function getScopeMatcherKey(resourceServerKey: string, apiKey: string, versionKey: string, scopeKey: string) {
   return [resourceServerKey, apiKey, versionKey, scopeKey].join(SCOPE_ID_SEPARATOR).toLowerCase();
-}
-
-/** Looser matcher key, ignoring version, still scoped to the same resource server and service. */
-function getServiceScopeKey(resourceServerKey: string, apiKey: string, scopeKey: string) {
-  return [resourceServerKey, apiKey, scopeKey].join(SCOPE_ID_SEPARATOR).toLowerCase();
 }
 
 /** Returns a stable service key even when fields are partially populated. */
@@ -137,14 +161,10 @@ export function getClientScopeState(
 
   if (!Array.isArray(sdxServices)) return { approvedScopeIds, pendingScopeIds };
 
-  // Matcher keys are grouped by environment and resource server so allowed access never leaks
-  // into a different organization, service or tab that happens to share a scope label.
+  // Matcher keys are grouped by environment and include the resource server, service and version, so allowed access
+  // never leaks into a different organization, service, version or tab that happens to share a scope label.
   const collectKeysByEnvironment = (allowed: SDXAllowedAccessForClient | null) => {
     const matcherKeys: Record<EnvironmentKey, Set<string>> = {
-      'non-production': new Set<string>(),
-      production: new Set<string>(),
-    };
-    const serviceScopeKeys: Record<EnvironmentKey, Set<string>> = {
       'non-production': new Set<string>(),
       production: new Set<string>(),
     };
@@ -155,14 +175,14 @@ export function getClientScopeState(
       asArray(resourceServer?.services).forEach((service) => {
         const serviceKey = getServiceKey(service);
         getServiceScopes(service).forEach((scope) => {
-          const scopeLabel = getScopeLabel(scope);
-          serviceScopeKeys[environment].add(getServiceScopeKey(resourceServerKey, serviceKey, scopeLabel));
-          matcherKeys[environment].add(getScopeMatcherKey(resourceServerKey, serviceKey, service.version, scopeLabel));
+          matcherKeys[environment].add(
+            getScopeMatcherKey(resourceServerKey, serviceKey, service.version, getScopeLabel(scope)),
+          );
         });
       });
     });
 
-    return { matcherKeys, serviceScopeKeys };
+    return matcherKeys;
   };
 
   const approvedKeys = collectKeysByEnvironment(approved);
@@ -178,18 +198,9 @@ export function getClientScopeState(
         const scopeLabel = getScopeLabel(scope);
         const scopeId = getScopeId(resourceServerKey, serviceKey, service.version, scopeLabel);
         const matcherKey = getScopeMatcherKey(resourceServerKey, serviceKey, service.version, scopeLabel);
-        const serviceScopeKey = getServiceScopeKey(resourceServerKey, serviceKey, scopeLabel);
 
-        if (
-          pendingKeys.matcherKeys[environment].has(matcherKey) ||
-          pendingKeys.serviceScopeKeys[environment].has(serviceScopeKey)
-        )
-          pendingScopeIds[environment].add(scopeId);
-        if (
-          approvedKeys.matcherKeys[environment].has(matcherKey) ||
-          approvedKeys.serviceScopeKeys[environment].has(serviceScopeKey)
-        )
-          approvedScopeIds[environment].add(scopeId);
+        if (pendingKeys[environment].has(matcherKey)) pendingScopeIds[environment].add(scopeId);
+        if (approvedKeys[environment].has(matcherKey)) approvedScopeIds[environment].add(scopeId);
       });
     });
   });
@@ -370,6 +381,13 @@ export function restoreSelectedScopesByTab(
   });
 }
 
+/** Returns `current` itself when it already holds every added scope, otherwise a new set with them added. */
+function withScopes(current: Set<string> | undefined, ...additions: Set<string>[]): Set<string> {
+  const base = current ?? new Set<string>();
+  const missing = additions.flatMap((scopes) => Array.from(scopes)).filter((scopeId) => !base.has(scopeId));
+  return missing.length === 0 && current ? current : new Set<string>([...Array.from(base), ...missing]);
+}
+
 const tabItems = (
   sdxServices: SDXResourceServer[],
   scopeReferences: Record<string, ScopeReference>,
@@ -417,17 +435,27 @@ const tabItems = (
 
 export default function FieldSdxServices(props: Readonly<FieldTemplateProps>) {
   const { formContext, onChange } = props;
-  const { sdxResourceServers, sdxServicesApprovedForClient, sdxServicesPendingForClient, formData, setFormData } =
+  const { sdxResourceServers, sdxServicesApprovedForClient, sdxServicesPendingForClient, sdxAccessState, formData } =
     formContext || {};
-  const normalizedSdxServices = Array.isArray(sdxResourceServers) ? sdxResourceServers : [];
-  const normalizedApprovedClientSdxServices =
-    sdxServicesApprovedForClient && typeof sdxServicesApprovedForClient === 'object'
-      ? (sdxServicesApprovedForClient as SDXAllowedAccessForClient)
-      : null;
-  const normalizedPendingClientSdxServices =
-    sdxServicesPendingForClient && typeof sdxServicesPendingForClient === 'object'
-      ? (sdxServicesPendingForClient as SDXAllowedAccessForClient)
-      : null;
+  const accessReady = (sdxAccessState ?? 'ready') === 'ready';
+  const normalizedSdxServices = useMemo<SDXResourceServer[]>(
+    () => withoutVersionlessServices(Array.isArray(sdxResourceServers) ? sdxResourceServers : []),
+    [sdxResourceServers],
+  );
+  const normalizedApprovedClientSdxServices = useMemo(
+    () =>
+      sdxServicesApprovedForClient && typeof sdxServicesApprovedForClient === 'object'
+        ? (sdxServicesApprovedForClient as SDXAllowedAccessForClient)
+        : null,
+    [sdxServicesApprovedForClient],
+  );
+  const normalizedPendingClientSdxServices = useMemo(
+    () =>
+      sdxServicesPendingForClient && typeof sdxServicesPendingForClient === 'object'
+        ? (sdxServicesPendingForClient as SDXAllowedAccessForClient)
+        : null,
+    [sdxServicesPendingForClient],
+  );
   const scopeReferences = useMemo(() => getScopeReferences(normalizedSdxServices), [normalizedSdxServices]);
   const { approvedScopeIds, pendingScopeIds } = useMemo(
     () =>
@@ -470,21 +498,33 @@ export default function FieldSdxServices(props: Readonly<FieldTemplateProps>) {
   }));
 
   useEffect(() => {
-    setSelectedScopesByTab((previous) => ({
-      'non-production': new Set<string>([
-        ...Array.from(previous['non-production'] ?? new Set<string>()),
-        ...Array.from(persistedSelectedScopesByTab['non-production']),
-        ...Array.from(requiredSelectedScopeIds['non-production']),
-      ]),
-      production: new Set<string>([
-        ...Array.from(previous.production ?? new Set<string>()),
-        ...Array.from(persistedSelectedScopesByTab.production),
-        ...Array.from(requiredSelectedScopeIds.production),
-      ]),
-    }));
+    // Keeps the same state when nothing new arrives, so writing the selection back cannot feed this effect.
+    setSelectedScopesByTab((previous) => {
+      const nonProduction = withScopes(
+        previous['non-production'],
+        persistedSelectedScopesByTab['non-production'],
+        requiredSelectedScopeIds['non-production'],
+      );
+      const production = withScopes(
+        previous.production,
+        persistedSelectedScopesByTab.production,
+        requiredSelectedScopeIds.production,
+      );
+      if (nonProduction === previous['non-production'] && production === previous.production) return previous;
+      return { 'non-production': nonProduction, production };
+    });
   }, [persistedSelectedScopesByTab, requiredSelectedScopeIds]);
 
+  // Only user changes are written back. Opening the stage must not rewrite or autosave the saved selection, and
+  // nothing is written before the catalog loads, since the payload keeps only the scopes the catalog offers.
+  const hasUserChangesRef = useRef(false);
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  });
+
   const onToggleScope = (tabKey: EnvironmentKey, scopeId: string) => {
+    hasUserChangesRef.current = true;
     setSelectedScopesByTab((previous) => {
       if (pendingScopeIds[tabKey].has(scopeId)) return previous;
       const currentSet = previous[tabKey] ?? new Set<string>();
@@ -501,6 +541,7 @@ export default function FieldSdxServices(props: Readonly<FieldTemplateProps>) {
   };
 
   const onToggleVersion = (tabKey: EnvironmentKey, scopeIds: string[]) => {
+    hasUserChangesRef.current = true;
     setSelectedScopesByTab((previous) => {
       const currentSet = previous[tabKey] ?? new Set<string>();
       const nextSet = new Set(currentSet);
@@ -520,6 +561,7 @@ export default function FieldSdxServices(props: Readonly<FieldTemplateProps>) {
   };
 
   const onClearTabScopes = (tabKey: EnvironmentKey) => {
+    hasUserChangesRef.current = true;
     setSelectedScopesByTab((previous) => ({
       ...previous,
       [tabKey]: new Set<string>(pendingScopeIds[tabKey]),
@@ -527,27 +569,19 @@ export default function FieldSdxServices(props: Readonly<FieldTemplateProps>) {
   };
 
   useEffect(() => {
-    const selectedResourceServers = buildSdxRequestPayloadFromSelectedScopes(
-      selectedScopesByTab,
-      normalizedSdxServices,
-    );
+    if (!accessReady || !hasUserChangesRef.current || normalizedSdxServices.length === 0) return;
 
     const sdxServicesPayload: SdxServicesPayload = {
-      resourceServers: selectedResourceServers,
+      resourceServers: buildSdxRequestPayloadFromSelectedScopes(selectedScopesByTab, normalizedSdxServices),
     };
-    if (typeof setFormData === 'function') {
-      setFormData((previousFormData: any) => ({
-        ...previousFormData,
-        sdxServices: sdxServicesPayload,
-      }));
-    }
+    onChangeRef.current?.(sdxServicesPayload);
+  }, [accessReady, selectedScopesByTab, normalizedSdxServices]);
 
-    if (typeof onChange === 'function') {
-      onChange(sdxServicesPayload);
-    }
-  }, [selectedScopesByTab, normalizedSdxServices, formData?.id, setFormData, onChange]);
-
-  const top = (
+  const top = !accessReady ? (
+    <AccessStatus role={sdxAccessState === 'failed' ? 'alert' : 'status'} data-testid="sdx-access-status">
+      {sdxAccessState === 'failed' ? SDX_ACCESS_FAILED_MESSAGE : SDX_ACCESS_LOADING_MESSAGE}
+    </AccessStatus>
+  ) : (
     <Tabs
       activeKey={activeTab}
       onChange={(key) => setActiveTab(key as EnvironmentKey)}
