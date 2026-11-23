@@ -391,8 +391,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         content: 'Failed to load BC Gov units. Please refresh.',
       });
     } else {
-      const sortedBcgovUnits = bcgovUnits?.sort((a, b) => a.name.localeCompare(b.name))!;
-      setBcgovUnits(sortedBcgovUnits || []);
+      bcgovUnits?.sort((a, b) => a.name.localeCompare(b.name))!;
+      setBcgovUnits(bcgovUnits || []);
     }
   };
 
@@ -404,8 +404,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         content: 'Failed to load divisions. Please refresh.',
       });
     } else {
-      const sortedDivisions = divisions?.sort((a, b) => a.name.localeCompare(b.name))!;
-      setDivisions(sortedDivisions || []);
+      divisions?.sort((a, b) => a.name.localeCompare(b.name));
+      setDivisions(divisions || []);
     }
   };
 
