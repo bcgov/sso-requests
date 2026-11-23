@@ -78,6 +78,12 @@ const productionResourceServer: SDXResourceServer = {
   services: [{ name: 'payment-api', title: 'Payment API', version: 'v1', scopes: [scope('payment.read')] }],
 };
 
+// What the SDX API offers unless a test sets its own catalog; access requests are checked against it.
+const defaultCatalog: Record<string, SDXResourceServer[]> = {
+  [NON_PRODUCTION_ENV]: [nonProductionResourceServer],
+  [PRODUCTION_ENV]: [productionResourceServer],
+};
+
 const selectedResourceServer = (environment: string, scopes: string[], overrides: Partial<SDXResourceServer> = {}) =>
   ({
     id: 'health-rs',
@@ -117,7 +123,7 @@ const setUpSdxApi = (options: SdxFetchOptions = {}) => {
     const environment = parsed.searchParams.get('environment') || '';
 
     if (parsed.pathname.endsWith('/resource-servers')) {
-      return jsonResponse(options.resourceServers?.[environment] ?? []);
+      return jsonResponse(options.resourceServers?.[environment] ?? defaultCatalog[environment] ?? []);
     }
 
     if (parsed.pathname.endsWith('/allowed-services')) {
@@ -493,19 +499,34 @@ describe('SDX APIs', () => {
 
     it('Posts the access request payload to the SDX API', async () => {
       const integration = await buildSdxIntegration('sdx-create-request-payload');
-      const sdxRequestData = {
-        integrationId: integration.id,
-        clientId: 'test-client',
-        resourceServers: [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])],
+      const requested = {
+        ...selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read']),
+        name: 'Renamed by the client',
+        approved: true,
       };
 
-      await createSdxRequest(adminSession, withSdxServices(integration, sdxRequestData.resourceServers));
+      await createSdxRequest(adminSession, {
+        ...withSdxServices(integration, [requested as SDXResourceServer]),
+        sdxServices: { resourceServers: [requested], status: 'approved' },
+      } as unknown as Integration);
 
       const [, options] = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/access-requests'))!;
       expect(options.method).toBe('POST');
       expect(options.headers.Authorization).toBe('Bearer sdx-access-token');
+      // Rebuilt from the catalog: fields the client added or changed are not forwarded.
       expect(JSON.parse(options.body)).toEqual({
-        ...sdxRequestData,
+        integrationId: integration.id,
+        clientId: 'test-client',
+        resourceServers: [
+          {
+            id: 'health-rs',
+            name: 'Health Resource Server',
+            organization: 'Ministry of Health',
+            description: 'Health data services',
+            environment: NON_PRODUCTION_ENV,
+            services: [{ name: 'patient-api', version: 'v1', scopes: ['patient.read'] }],
+          },
+        ],
         requester: {
           displayName: 'Test User',
           email: TEAM_ADMIN_IDIR_EMAIL_01,
@@ -514,6 +535,83 @@ describe('SDX APIs', () => {
         privacyZone: 'urn:ca:bc:gov:health:prod',
       });
       expect(getPrivacyZoneURI).toHaveBeenCalledWith('prod', '');
+    });
+
+    it.each([
+      ['a scope the service does not offer', selectedResourceServer(NON_PRODUCTION_ENV, ['patient.delete'])],
+      [
+        'a service version the catalog does not have',
+        selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'], {
+          services: [{ name: 'patient-api', version: 'v9', scopes: ['patient.read'] }],
+        }),
+      ],
+      ['a resource server of another environment', selectedResourceServer(PRODUCTION_ENV, ['patient.read'])],
+    ])('Rejects %s before anything is sent or recorded', async (_, resourceServer) => {
+      const integration = await buildSdxIntegration('sdx-create-request-unknown');
+
+      await expect(
+        createSdxRequest(adminSession, withSdxServices(integration, [resourceServer as SDXResourceServer])),
+      ).rejects.toMatchObject({ status: 400, message: expect.stringContaining('SDX scopes not offered by SDX') });
+
+      expect(sdxApiCalls('/access-requests')).toHaveLength(0);
+      expect(getAdminClient).not.toHaveBeenCalled();
+      expect(
+        await models.event.findOne({ where: { requestId: integration.id, eventCode: 'sdx-request-create' } }),
+      ).toBeNull();
+    });
+
+    it.each([
+      [
+        'a scope without a label',
+        { services: [{ name: 'patient-api', version: 'v1', scopes: [{ label: undefined }] }] },
+        'resourceServers[0].services[0].scopes[0]',
+      ],
+      [
+        'a blank scope label',
+        { services: [{ name: 'patient-api', version: 'v1', scopes: ['  '] }] },
+        'resourceServers[0].services[0].scopes[0]',
+      ],
+      ['a resource server without an id', { id: undefined }, 'resourceServers[0].id'],
+      ['a resource server without an environment', { environment: '' }, 'resourceServers[0].environment'],
+      [
+        'a service without a name',
+        { services: [{ version: 'v1', scopes: ['patient.read'] }] },
+        'resourceServers[0].services[0].name',
+      ],
+      [
+        'a service version that is not a string',
+        { services: [{ name: 'patient-api', version: 1, scopes: ['patient.read'] }] },
+        'resourceServers[0].services[0].version',
+      ],
+      [
+        'a service without a version',
+        { services: [{ name: 'patient-api', scopes: ['patient.read'] }] },
+        'resourceServers[0].services[0].version',
+      ],
+      [
+        'a blank service version',
+        { services: [{ name: 'patient-api', version: ' ', scopes: ['patient.read'] }] },
+        'resourceServers[0].services[0].version',
+      ],
+      [
+        'scopes that are not a list',
+        { services: [{ name: 'patient-api', version: 'v1', scopes: 'patient.read' }] },
+        'resourceServers[0].services[0].scopes',
+      ],
+      ['services that are not a list', { services: { name: 'patient-api' } }, 'resourceServers[0].services'],
+    ])('Rejects %s as a malformed request', async (_, overrides, field) => {
+      const integration = await buildSdxIntegration('sdx-create-request-malformed');
+      const resourceServer = { ...selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read']), ...overrides };
+
+      await expect(
+        createSdxRequest(adminSession, withSdxServices(integration, [resourceServer as any])),
+      ).rejects.toMatchObject({ status: 400, message: `Invalid SDX access request: ${field}` });
+
+      expect(sdxApiCalls('/resource-servers')).toHaveLength(0);
+      expect(sdxApiCalls('/access-requests')).toHaveLength(0);
+      expect(
+        await models.event.findOne({ where: { requestId: integration.id, eventCode: 'sdx-request-create' } }),
+      ).toBeNull();
     });
 
     it('Removes the previously approved scopes that are no longer requested', async () => {
@@ -588,6 +686,34 @@ describe('SDX APIs', () => {
       expect(keycloak.delDefaultClientScope).not.toHaveBeenCalled();
     });
 
+    it('Does not remove an approved scope whose label is still requested under another version', async () => {
+      const integration = await buildSdxIntegration('sdx-create-request-version-change');
+      const requestedVersion = (version: string) =>
+        selectedResourceServer(NON_PRODUCTION_ENV, [], {
+          services: [{ name: 'patient-api', version, scopes: ['patient.read'] }],
+        });
+      setUpSdxApi({
+        subsystemStatus: 'registered',
+        resourceServers: {
+          [NON_PRODUCTION_ENV]: [
+            {
+              ...nonProductionResourceServer,
+              services: [
+                { name: 'patient-api', version: 'v1', scopes: [scope('patient.read')] },
+                { name: 'patient-api', version: 'v2', scopes: [scope('patient.read')] },
+              ],
+            },
+          ],
+        },
+        allowedServices: { [`${NON_PRODUCTION_ENV}:approved`]: [requestedVersion('v1')] },
+      });
+      setUpKeycloak({ existingClientScopes: ['patient.read'], existingOptionalClientScopes: ['patient.read'] });
+
+      await createSdxRequest(adminSession, withSdxServices(integration, [requestedVersion('v2')]));
+
+      expect(keycloak.delOptionalClientScope).not.toHaveBeenCalled();
+    });
+
     it('Creates the keycloak client scopes that do not exist yet', async () => {
       const integration = await buildSdxIntegration('sdx-create-request-scopes');
       setUpKeycloak({ existingClientScopes: ['patient.read'] });
@@ -614,7 +740,7 @@ describe('SDX APIs', () => {
           adminSession,
           withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])]),
         ),
-      ).rejects.toThrow('Failed to create SDX request');
+      ).rejects.toThrow('Failed to process request for SDX services');
 
       const stored = await models.SdxRequest.findOne({ where: { request_id: integration.id } });
       expect(stored).toBeNull();
@@ -676,7 +802,12 @@ describe('SDX APIs', () => {
 
       await createSdxRequest(
         adminSession,
-        withSdxServices(integration, [selectedResourceServer(PRODUCTION_ENV, ['payment.read'])]),
+        withSdxServices(integration, [
+          selectedResourceServer(PRODUCTION_ENV, ['payment.read'], {
+            id: 'finance-rs',
+            services: [{ name: 'payment-api', version: 'v1', scopes: ['payment.read'] }],
+          }),
+        ]),
       );
 
       expect(adminClientEnvironments()).toEqual(expect.arrayContaining(['prod']));
@@ -831,25 +962,35 @@ describe('SDX APIs', () => {
       });
     });
 
-    it('Treats a scope moved to a new version as removed even though the label is unchanged', () => {
-      const previousVersionOnly = [
+    it('Keeps a label still requested by another version or service in the same environment', () => {
+      const previous = [
         {
           id: 'health-rs',
           environment: NON_PRODUCTION_ENV,
+          services: [
+            { name: 'patient-api', version: 'v1', scopes: ['patient.read'] },
+            { name: 'records-api', version: 'v1', scopes: ['shared.read'] },
+          ],
+        },
+        {
+          id: 'health-rs',
+          environment: PRODUCTION_ENV,
           services: [{ name: 'patient-api', version: 'v1', scopes: ['patient.read'] }],
         },
       ] as unknown as SDXResourceServer[];
-      const newVersionOnly = [
+      const next = [
         {
           id: 'health-rs',
           environment: NON_PRODUCTION_ENV,
-          services: [{ name: 'patient-api', version: 'v2', scopes: ['patient.read'] }],
+          services: [
+            { name: 'patient-api', version: 'v2', scopes: ['patient.read'] },
+            { name: 'other-api', version: 'v1', scopes: ['shared.read'] },
+          ],
         },
       ] as unknown as SDXResourceServer[];
 
-      expect(getRemovedScopes(previousVersionOnly, newVersionOnly)).toEqual({
-        [NON_PRODUCTION_ENV]: ['patient.read'],
-      });
+      // Only the environment that no longer requests the label loses it.
+      expect(getRemovedScopes(previous, next)).toEqual({ [PRODUCTION_ENV]: ['patient.read'] });
     });
 
     it('Treats scope labels as case-sensitive', () => {
