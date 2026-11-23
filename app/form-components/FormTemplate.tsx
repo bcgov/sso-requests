@@ -437,8 +437,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       const [data, statusErr] = await getSdxSubsytemStatus(request?.id!);
       if (!isLatestLoad()) return;
       // Without the status it is unknown whether there is approved access to keep, so this fails like the access load.
-      if (statusErr) {
-        console.error('Failed to load the SDX subsystem status', statusErr);
+      if (statusErr || typeof data?.status !== 'string' || data.status.trim() === '') {
+        console.error(
+          'Failed to load the SDX subsystem status',
+          statusErr || new Error('Invalid SDX subsystem status response'),
+        );
         showSdxLoadError(accessLoadError);
         setSdxAccessState('failed');
         return;
