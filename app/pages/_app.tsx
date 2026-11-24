@@ -14,9 +14,12 @@ import { KeycloakTokenParsed } from 'keycloak-js';
 import keycloak from '@app/utils/keycloak';
 import { hasValidEmail } from '@app/utils/session';
 import App from 'next/app';
+import { CacheProvider } from '@emotion/react';
 import { SessionContext, SurveyContext } from '@app/utils/context';
+import { createEmotionCache } from '@app/utils/emotion-cache';
 import '@bcgov/bc-sans/css/BCSans.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import '@fortawesome/fontawesome-svg-core/styles.css';
 import 'styles/globals.css';
 
 const authenticatedUris = [
@@ -45,6 +48,7 @@ const defaultUserSurveys: UserSurveyInformation = {
 function MyApp({ Component, pageProps }: AppProps) {
   const sessionExpiringModalRef = useRef<ModalRef>(emptyRef);
   const router = useRouter();
+  const [emotionCache] = useState(createEmotionCache);
   const [session, setSession] = useState<KeycloakTokenParsed | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -151,65 +155,67 @@ function MyApp({ Component, pageProps }: AppProps) {
   }
 
   return (
-    <SessionContext.Provider value={sessionContext}>
-      <SurveyContext.Provider value={surveyContext}>
-        {pageProps?.maintenanceMode ? (
-          <Component {...pageProps} />
-        ) : (
-          <>
-            <Layout
-              session={session}
-              user={user}
-              emailInvalid={emailInvalid}
-              onLoginClick={handleLogin}
-              onLogoutClick={handleLogout}
-            >
-              <Head>
-                <html lang="en" />
-                <title>Common Hosted Single Sign-on (CSS)</title>
-                <link rel="icon" href="/bcid-favicon-32x32.png" />
-              </Head>
-              <Component {...pageProps} session={session} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
-            </Layout>
-            <GenericModal
-              ref={sessionExpiringModalRef}
-              style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
-              title={refreshTokenStatus === 'expired' ? 'Session Expired' : 'Session Expiring'}
-              icon={faExclamationTriangle}
-              onConfirm={() => {
-                if (refreshTokenStatus === 'expired') handleLogin();
-                else if (refreshTokenStatus === 'expiring') keycloak.updateToken();
-              }}
-              onCancel={() => {
-                if (refreshTokenStatus === 'expired') router.push('/');
-                else if (refreshTokenStatus === 'expiring') handleLogout();
-              }}
-              confirmButtonVariant="primary"
-              cancelButtonVariant="secondary"
-              showConfirmButton={true}
-              showCancelButton={true}
-            >
-              <div>
-                <div>Your session {refreshTokenStatus === 'expired' ? 'has expired' : 'will soon expire'}.</div>
-                <br />
-                <div>Do you want to {refreshTokenStatus === 'expired' ? 'sign back in' : 'continue'}?</div>{' '}
-              </div>
-            </GenericModal>
-            {user && (
-              <SurveyBox
-                setOpenSurvey={setOpenSurvey}
-                open={openSurvey}
-                display={displaySurvey}
-                setDisplaySurvey={setDisplaySurvey}
-                triggerEvent={surveyTriggerEvent}
-              />
-            )}
-            {/* Signed-in users only, and never alongside the survey box in the same corner. */}
-            {session && user && <ChatWidget userId={session.sub || String(user.id)} hidden={displaySurvey} />}
-          </>
-        )}
-      </SurveyContext.Provider>
-    </SessionContext.Provider>
+    <CacheProvider value={emotionCache}>
+      <SessionContext.Provider value={sessionContext}>
+        <SurveyContext.Provider value={surveyContext}>
+          {pageProps?.maintenanceMode ? (
+            <Component {...pageProps} />
+          ) : (
+            <>
+              <Layout
+                session={session}
+                user={user}
+                emailInvalid={emailInvalid}
+                onLoginClick={handleLogin}
+                onLogoutClick={handleLogout}
+              >
+                <Head>
+                  <html lang="en" />
+                  <title>Common Hosted Single Sign-on (CSS)</title>
+                  <link rel="icon" href="/bcid-favicon-32x32.png" />
+                </Head>
+                <Component {...pageProps} session={session} onLoginClick={handleLogin} onLogoutClick={handleLogout} />
+              </Layout>
+              <GenericModal
+                ref={sessionExpiringModalRef}
+                style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
+                title={refreshTokenStatus === 'expired' ? 'Session Expired' : 'Session Expiring'}
+                icon={faExclamationTriangle}
+                onConfirm={() => {
+                  if (refreshTokenStatus === 'expired') handleLogin();
+                  else if (refreshTokenStatus === 'expiring') keycloak.updateToken();
+                }}
+                onCancel={() => {
+                  if (refreshTokenStatus === 'expired') router.push('/');
+                  else if (refreshTokenStatus === 'expiring') handleLogout();
+                }}
+                confirmButtonVariant="primary"
+                cancelButtonVariant="secondary"
+                showConfirmButton={true}
+                showCancelButton={true}
+              >
+                <div>
+                  <div>Your session {refreshTokenStatus === 'expired' ? 'has expired' : 'will soon expire'}.</div>
+                  <br />
+                  <div>Do you want to {refreshTokenStatus === 'expired' ? 'sign back in' : 'continue'}?</div>{' '}
+                </div>
+              </GenericModal>
+              {user && (
+                <SurveyBox
+                  setOpenSurvey={setOpenSurvey}
+                  open={openSurvey}
+                  display={displaySurvey}
+                  setDisplaySurvey={setDisplaySurvey}
+                  triggerEvent={surveyTriggerEvent}
+                />
+              )}
+              {/* Signed-in users only, and never alongside the survey box in the same corner. */}
+              {session && user && <ChatWidget userId={session.sub || String(user.id)} hidden={displaySurvey} />}
+            </>
+          )}
+        </SurveyContext.Provider>
+      </SessionContext.Provider>
+    </CacheProvider>
   );
 }
 

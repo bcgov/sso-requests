@@ -19,11 +19,13 @@ interface Props {
 
 function RequestEdit({ session, alert }: Props) {
   const router = useRouter();
-  const [loading, setLoading] = useState<boolean>(false);
+  // Start in the loading state so FormTemplate doesn't mount without the request and fire its loaders with no id.
+  const [loading, setLoading] = useState<boolean>(true);
   const [request, setRequest] = useState<Integration | null>(null);
   const { rid } = router.query;
 
   useEffect(() => {
+    if (!rid) return;
     const getData = async () => {
       setLoading(true);
       const [data, err] = await getRequest(rid as string);
