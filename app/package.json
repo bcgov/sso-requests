@@ -17,7 +17,7 @@
     "jest-preview": "jest-preview"
   },
   "dependencies": {
-    "@azure/msal-node": "^5.6.0",
+    "@azure/msal-node": "^7.1.0",
     "@babel/plugin-transform-private-methods": "^7.25.9",
     "@babel/preset-env": "^7.27.2",
     "@bcgov-sso/common-react-components": "^2.1.3",
