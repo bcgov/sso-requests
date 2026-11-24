@@ -99,7 +99,7 @@ import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
 import { hasAppPermission, appPermissions, commonPermissionsForAppRoles } from '@app/utils/authorize';
 import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
-import { createSdxRequest } from './sdx-services';
+import { createSdxRequest, isSdxRevokeAll } from './sdx-services';
 import { getEntraClientByRequestId, saveEntraClient } from '@app/queries/entra-client';
 import { audit } from '@app/queries/event';
 import { EnqueueResult, enqueueRequestWorkflow, executeEnqueuedWorkflow } from '@app/workflow/request-workflow';
@@ -625,8 +625,9 @@ export const updateRequest = async (
       }
 
       // SDX related operations
-      if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true' && usesSdxServices(current) && current?.sdxServices) {
-        await createSdxRequest(session, current);
+      if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true') {
+        if (isSdxRevokeAll(originalData, current)) await createSdxRequest(session, current, { revokeAll: true });
+        else if (usesSdxServices(current) && current?.sdxServices) await createSdxRequest(session, current);
       }
 
       // Ensures requested client ID is not reserved

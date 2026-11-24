@@ -11,6 +11,7 @@ import {
   SDX_ACCESS_LOADING_MESSAGE,
   SelectedScopesByTab,
 } from 'form-components/FieldSdxServices';
+import * as validate from 'utils/validate';
 import { updateRequest } from 'services/request';
 import { getSdxAllowedAccessForClient, getSdxSubsytemStatus, listSdxResourceServers } from 'services/sdx-services';
 import { Integration } from 'interfaces/Request';
@@ -954,6 +955,71 @@ describe('SDX Services Form', () => {
     expect(screen.queryByText('Records API')).toBeNull();
     expect(screen.queryByLabelText('records.read')).toBeNull();
     expect(screen.getByRole('tab', { name: 'Non-Production (0)' })).toBeInTheDocument();
+  });
+
+  describe('turning SDX off on an integration with approved access', () => {
+    const checkbox = () => screen.getByLabelText('Secure Data Exchange (SDX) Services') as HTMLInputElement;
+
+    const toggleOff = async () => {
+      setUpRender({ ...defaultRender, sdxEnabled: true, status: 'applied' }, userSession);
+      await act(async () => {});
+      fireEvent.click(sandbox.basicInfoBox);
+      fireEvent.click(checkbox());
+      return screen.findByTestId('sdx-revoke-access');
+    };
+
+    it('Asks for confirmation, listing the approved access, and keeps SDX on when cancelled', async () => {
+      const list = await toggleOff();
+      expect(list).toHaveTextContent('Ministry of Health');
+      expect(list).toHaveTextContent('patient.read');
+
+      fireEvent.click(screen.getByTestId('cancel-turn-off-sdx-services'));
+      await waitFor(() => expect(screen.queryByTestId('sdx-revoke-access')).toBeNull());
+      expect(checkbox().checked).toBe(true);
+      expect(screen.getByTestId('stage-sdx-services')).toBeVisible();
+    });
+
+    it('Submits an empty selection with SDX off once the revoke is confirmed', async () => {
+      const validateSpy = jest.spyOn(validate, 'validateForm').mockReturnValue({});
+      await toggleOff();
+      fireEvent.click(screen.getByTestId('confirm-delete-turn-off-sdx-services'));
+
+      await waitFor(() => expect(screen.queryByTestId('stage-sdx-services')).toBeNull());
+      expect(checkbox().checked).toBe(false);
+
+      fireEvent.click(screen.getByTestId('stage-review-submit'));
+      fireEvent.click(screen.getByRole('button', { name: 'Update' }));
+      fireEvent.click(await screen.findByTestId('confirm-delete-submitting-request'));
+      await waitFor(() =>
+        expect(updateRequest).toHaveBeenCalledWith(
+          expect.objectContaining({ sdxEnabled: false, sdxServices: expect.objectContaining({ resourceServers: [] }) }),
+          true,
+        ),
+      );
+      validateSpy.mockRestore();
+    });
+
+    it('Starts with no selected scopes when SDX is turned on again after a confirmed revoke', async () => {
+      await toggleOff();
+      fireEvent.click(screen.getByTestId('confirm-delete-turn-off-sdx-services'));
+      await waitFor(() => expect(screen.queryByTestId('stage-sdx-services')).toBeNull());
+
+      fireEvent.click(checkbox());
+      fireEvent.click(await screen.findByTestId('stage-sdx-services'));
+      await screen.findByRole('tab', { name: NON_PROD_TAB });
+      expect(scopeCheckbox('patient.read')).not.toBeChecked();
+    });
+
+    it('Turns SDX off without a dialog when there is no approved access', async () => {
+      mockSdxApprovedAccessResponse = emptySdxAllowedAccess;
+      setUpRender({ ...defaultRender, sdxEnabled: true, status: 'applied' }, userSession);
+      await act(async () => {});
+      fireEvent.click(sandbox.basicInfoBox);
+      fireEvent.click(checkbox());
+
+      await waitFor(() => expect(screen.queryByTestId('stage-sdx-services')).toBeNull());
+      expect(screen.queryByTestId('sdx-revoke-access')).toBeNull();
+    });
   });
 
   it('Removes the SDX services stage when the SDX flag is turned off', async () => {

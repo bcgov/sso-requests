@@ -60,6 +60,11 @@ const Description = styled.p`
   margin: 0;
 `;
 
+const SdxRevokeList = styled.ul`
+  margin: 0 0 1em;
+  padding-left: 1.25em;
+`;
+
 const HeaderContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -214,6 +219,10 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [bcscPrivacyZones, setBcscPrivacyZones] = useState<BcscPrivacyZone[]>(defaultBcscPrivacyZones());
   const [bcscAttributes, setBcscAttributes] = useState<BcscAttribute[]>(defaultBcscAttributes());
   const [openSubmissionModal, setOpenSubmissionModal] = useState(false);
+  const [openSdxRevokeModal, setOpenSdxRevokeModal] = useState(false);
+  // Remounts the form so a toggle that was not applied is shown as it was.
+  const [formResetKey, setFormResetKey] = useState(0);
+  const sdxRevokeConfirmed = useRef(false);
   const [defaultSessionSettings, setDefaultSessionSettings] = useState<GetStandardSettingsResponse>({
     dev: defaultStandardRealmSettings,
     test: defaultStandardRealmSettings,
@@ -263,8 +272,41 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     [request?.id],
   );
 
+  const approvedSdxAccess = () =>
+    withoutVersionlessServices((sdxServicesApprovedForClient as SDXAllowedAccessForClient).resourceServers ?? [])
+      .map((resourceServer) => {
+        const catalogServer = sdxResourceServers.find(
+          (server) => server.id === resourceServer.id && server.environment === resourceServer.environment,
+        );
+        return {
+          ...resourceServer,
+          name: catalogServer?.name || resourceServer.name,
+          organization: catalogServer?.organization || resourceServer.organization,
+          services: (resourceServer.services || [])
+            .filter((service) => service.scopes?.length > 0)
+            .map((service) => ({
+              ...service,
+              title:
+                service.title || catalogServer?.services?.find((candidate) => candidate.name === service.name)?.title,
+            })),
+        };
+      })
+      .filter((resourceServer) => resourceServer.services.length > 0);
+
   const handleChange = (e: any) => {
     const newData = trimFormData(e.formData);
+
+    // Turning SDX off revokes all of its access, so it is only applied once the user has confirmed.
+    if (isApplied && formData.sdxEnabled && newData.sdxEnabled === false) {
+      const blocked = sdxSubmissionBlocked();
+      const hasAccess = !blocked && approvedSdxAccess().length > 0;
+      if (blocked || hasAccess) {
+        setFormResetKey((key) => key + 1);
+        setOpenSdxRevokeModal(hasAccess);
+        return;
+      }
+    }
+
     const currentIdps = formData?.devIdps || [];
     const updatedIdps = newData.devIdps || [];
 
@@ -306,9 +348,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
     setFormData(processed);
 
-    // If the form is applied and SDX is being enabled, load the SDX services for the client.
+    // If the form is applied and SDX is being enabled, load the SDX services for the client. After a confirmed
+    // revoke the selection starts empty instead, since the previous access is not reinstated.
     if (isApplied && !formData?.sdxEnabled && newData?.sdxEnabled) {
-      loadSdxResources(true);
+      if (sdxRevokeConfirmed.current) sdxRevokeConfirmed.current = false;
+      else loadSdxResources(true);
     }
 
     if (newData.bcgovUnitId === 0) {
@@ -684,6 +728,18 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     }
   };
 
+  const confirmSdxRevoke = () => {
+    sdxRevokeConfirmed.current = true;
+    setFormData((previousFormData) => {
+      const previous = previousFormData.sdxServices;
+      return {
+        ...previousFormData,
+        sdxEnabled: false,
+        sdxServices: { ...(Array.isArray(previous) ? {} : previous), resourceServers: [] },
+      } as Integration;
+    });
+  };
+
   const backButton = isApplied ? <CancelConfirmModal onConfirm={handleBackClick} /> : null;
   const buttonTexts = { continue: '', back: '' };
   const hasDigitalCredential = formData.devIdps?.includes('digitalcredential');
@@ -722,7 +778,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       </HeaderContainer>
       <Form
         // A fresh form per stage, so validation run on one stage cannot leave errors on another.
-        key={formStage}
+        key={`${formStage}-${formResetKey}`}
         schema={schema}
         uiSchema={uiSchema}
         onChange={handleChange}
@@ -759,6 +815,44 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           <></>
         )}
       </Form>
+      <CenteredModal
+        id="sdx-revoke-confirmation"
+        openModal={openSdxRevokeModal}
+        handleClose={() => {
+          setOpenSdxRevokeModal(false);
+          setFormResetKey((key) => key + 1);
+        }}
+        content={
+          <>
+            <p>This integration currently has access to the following APIs and scopes:</p>
+            <SdxRevokeList data-testid="sdx-revoke-access">
+              {approvedSdxAccess().map((resourceServer) => (
+                <li key={`${resourceServer.id}-${resourceServer.environment}`}>
+                  <strong>{resourceServer.organization || resourceServer.name}</strong> ({resourceServer.environment})
+                  <ul>
+                    {resourceServer.services.map((service) => (
+                      <li key={`${service.name}-${service.version}`}>
+                        {service.title || service.name} {service.version}:{' '}
+                        {(service.scopes as Array<SDXServiceScope | string>).map(scopeLabel).join(', ')}
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </SdxRevokeList>
+            <p>
+              Turning off SDX services and submitting the update revokes access to all of these APIs. Turning SDX
+              services on again will not reinstate this access; it will need to be requested again and approved by the
+              respective reviewers.
+            </p>
+          </>
+        }
+        title="Turn off SDX Services"
+        confirmText="Confirm"
+        buttonStyle="danger"
+        onConfirm={confirmSdxRevoke}
+        closable
+      />
       <CenteredModal
         id={`confirmation-modal`}
         openModal={openSubmissionModal}

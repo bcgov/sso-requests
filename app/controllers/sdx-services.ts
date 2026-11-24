@@ -328,14 +328,25 @@ export const validateSdxResourceServers = async (requested: SDXResourceServer[])
   return Array.from(validated.values());
 };
 
-export const createSdxRequest = async (session: Session, request: Integration) => {
+// An applied integration that turns SDX off sends an empty selection, which SDX treats as revoking all access.
+export const isSdxRevokeAll = (original: Integration, current: Integration) =>
+  !!original.sdxEnabled &&
+  !current.sdxEnabled &&
+  current.status === 'applied' &&
+  Array.isArray(current.sdxServices?.resourceServers) &&
+  current.sdxServices.resourceServers.length === 0;
+
+export const createSdxRequest = async (session: Session, request: Integration, { revokeAll = false } = {}) => {
   // Rejected before anything is sent to SDX or recorded, so a bad request leaves no audit row.
-  if (!request.sdxServices) throw new createHttpError.BadRequest('SDX services cannot be empty');
-  if ((request.sdxServices.resourceServers || []).length === 0) {
-    throw new createHttpError.BadRequest('SDX resource servers cannot be empty');
+  let resourceServers: SDXResourceServer[] = [];
+  if (!revokeAll) {
+    if (!request.sdxServices) throw new createHttpError.BadRequest('SDX services cannot be empty');
+    if ((request.sdxServices.resourceServers || []).length === 0) {
+      throw new createHttpError.BadRequest('SDX resource servers cannot be empty');
+    }
+    resourceServers = await validateSdxResourceServers(request.sdxServices.resourceServers);
+    if (resourceServers.length === 0) throw new createHttpError.BadRequest('SDX resource servers cannot be empty');
   }
-  const resourceServers = await validateSdxResourceServers(request.sdxServices.resourceServers);
-  if (resourceServers.length === 0) throw new createHttpError.BadRequest('SDX resource servers cannot be empty');
 
   try {
     const user = await getUserById(session.user?.id || 0, { raw: true });
@@ -392,8 +403,9 @@ export const createSdxRequest = async (session: Session, request: Integration) =
 
     await initializeScopes(resourceServers);
 
-    // If the request is already applied, we need to check for removed scopes and remove them from Keycloak
-    if (request.status === 'applied') {
+    // If the request is already applied, we need to check for removed scopes and remove them from Keycloak.
+    // A revoke-all leaves that to the SDX callback, which arrives with an empty selection.
+    if (request.status === 'applied' && !revokeAll) {
       const subSystem = await getSdxSubsystemStatus(request.id!);
 
       if (subSystem?.status === 'registered') {
@@ -494,7 +506,10 @@ export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAcce
     throw new Error(`Integration with ID ${requestId} not found`);
   }
 
-  if (!integrationData.sdxEnabled) {
+  const revokeAll = Array.isArray(data.resourceServers) && data.resourceServers.length === 0;
+
+  // The callback for a revoke-all arrives after the integration has turned SDX off.
+  if (!integrationData.sdxEnabled && !revokeAll) {
     throw new Error(`SDX is not enabled for integration with ID ${requestId}`);
   }
 
@@ -510,7 +525,11 @@ export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAcce
       details: { resourceServers: data.resourceServers },
     },
     async () => {
-      if (data.resourceServers && data.resourceServers.length > 0) {
+      if (revokeAll) {
+        await Promise.all(
+          ['dev', 'test', 'prod'].map((env) => manageKeycloakScopes(integrationData.clientId, env, [])),
+        );
+      } else if (data.resourceServers && data.resourceServers.length > 0) {
         const scopesByEnvironment = new Map<string, Set<string>>();
         for (const rs of data.resourceServers) {
           for (const service of rs.services || []) {

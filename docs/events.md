@@ -82,10 +82,10 @@ A batch parent ends `success` only if every child did, with `details.total`, `su
 
 ### SDX
 
-| Action                      | Meaning                                                                                       |
-| --------------------------- | --------------------------------------------------------------------------------------------- |
-| `sdx-request-create`        | An access request was submitted to SDX; the success row carries its `submissionId`.           |
-| `sdx-access-request-update` | SDX called back with an approval and the client scopes were updated (`system: sdx-callback`). |
+| Action                      | Meaning                                                                                                                                          |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `sdx-request-create`        | An access request was submitted to SDX; the success row carries its `submissionId`. An empty `services.resourceServers` revokes all access.      |
+| `sdx-access-request-update` | SDX called back with an approval and the client scopes were updated (`system: sdx-callback`). An empty `resourceServers` removes all SDX scopes. |
 
 ### Teams
 

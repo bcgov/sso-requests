@@ -212,8 +212,10 @@ const setUpKeycloak = ({
 const adminClientEnvironments = () => (getAdminClient as jest.Mock).mock.calls.map(([args]) => args.environment).sort();
 
 // Called directly rather than through their routes, so each runs under the actor its route would set.
-const createSdxRequest = (session: Session, integration: Integration) =>
-  withActor(userActor(session.idir_userid!, 'Test User'), () => sdxServices.createSdxRequest(session, integration));
+const createSdxRequest = (session: Session, integration: Integration, options?: { revokeAll?: boolean }) =>
+  withActor(userActor(session.idir_userid!, 'Test User'), () =>
+    sdxServices.createSdxRequest(session, integration, options),
+  );
 const processSdxWorkflowUpdates = (...args: Parameters<typeof sdxServices.processSdxWorkflowUpdates>) =>
   withActor(systemActor('sdx-callback'), () => sdxServices.processSdxWorkflowUpdates(...args));
 
@@ -641,6 +643,44 @@ describe('SDX APIs', () => {
         clientScopeId: 'patient.write',
       });
       expect(adminClientEnvironments()).toEqual(expect.arrayContaining(['dev', 'test']));
+    });
+
+    it('Sends an empty selection to revoke all access, leaving the Keycloak scopes to the SDX callback', async () => {
+      const integration = await buildSdxIntegration('sdx-create-request-revoke-all');
+      setUpSdxApi({
+        subsystemStatus: 'registered',
+        allowedServices: {
+          [`${NON_PRODUCTION_ENV}:approved`]: [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])],
+        },
+      });
+      setUpKeycloak({ existingClientScopes: ['patient.read'], existingOptionalClientScopes: ['patient.read'] });
+
+      await createSdxRequest(
+        adminSession,
+        { ...integration, sdxEnabled: false, sdxServices: { resourceServers: [] } } as any,
+        {
+          revokeAll: true,
+        },
+      );
+
+      const [, options] = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/access-requests'))!;
+      expect(JSON.parse(options.body).resourceServers).toEqual([]);
+      expect(keycloak.delOptionalClientScope).not.toHaveBeenCalled();
+      expect(
+        await models.event.findOne({ where: { requestId: integration.id, eventCode: 'sdx-request-create' } }),
+      ).not.toBeNull();
+    });
+
+    it('Detects a revoke-all only when an applied integration turns SDX off with an empty selection', () => {
+      const original = { sdxEnabled: true } as Integration;
+      const off = { sdxEnabled: false, status: 'applied', sdxServices: { resourceServers: [] } } as any;
+
+      expect(sdxServices.isSdxRevokeAll(original, off)).toBe(true);
+      expect(sdxServices.isSdxRevokeAll({ sdxEnabled: false } as Integration, off)).toBe(false);
+      expect(sdxServices.isSdxRevokeAll(original, { ...off, sdxEnabled: true })).toBe(false);
+      expect(sdxServices.isSdxRevokeAll(original, { ...off, status: 'draft' })).toBe(false);
+      expect(sdxServices.isSdxRevokeAll(original, { ...off, sdxServices: undefined })).toBe(false);
+      expect(sdxServices.isSdxRevokeAll(original, { ...off, sdxServices: { resourceServers: [{}] } })).toBe(false);
     });
 
     it('Does not remove a previously approved scope the client holds as a default scope', async () => {
@@ -1319,13 +1359,34 @@ describe('SDX APIs', () => {
       expect(result.status).toBe(200);
     });
 
-    it('Accepts an approval without any resource server', async () => {
+    it('Accepts an approval without resource server data without changing any scope', async () => {
       const integration = await buildSdxIntegration('sdx-approval-empty');
+
+      const result = await putSdxAllowedAccess(integration.id, {} as any, signToken());
+
+      expect(result.status).toBe(200);
+      expect(getAdminClient).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['SDX is still enabled', true],
+      ['SDX has been turned off', false],
+    ])('Removes every SDX optional scope in all environments for an empty selection when %s', async (_, sdxEnabled) => {
+      setUpSdxApi({ resourceServers: { [NON_PRODUCTION_ENV]: [nonProductionResourceServer] } });
+      setUpKeycloak({
+        existingClientScopes: ['patient.read', 'patient.write', 'offline_access'],
+        existingOptionalClientScopes: ['patient.read', 'patient.write', 'offline_access'],
+      });
+      const integration = await buildSdxIntegration(`sdx-approval-revoke-all-${sdxEnabled}`, { sdxEnabled });
 
       const result = await putSdxAllowedAccess(integration.id, { resourceServers: [] } as any, signToken());
 
       expect(result.status).toBe(200);
-      expect(getAdminClient).not.toHaveBeenCalled();
+      expect(adminClientEnvironments()).toEqual(['dev', 'prod', 'test']);
+      const removed = keycloak.delOptionalClientScope.mock.calls.map(([args]) => args.clientScopeId);
+      expect(removed.filter((scope) => scope === 'patient.read')).toHaveLength(3);
+      expect(removed.filter((scope) => scope === 'patient.write')).toHaveLength(3);
+      expect(removed).not.toContain('offline_access');
     });
 
     it('Skips malformed resource servers without services while processing approvals', async () => {

@@ -579,7 +579,9 @@ export const normalizeRequest = (data: Integration, isMerged: boolean) => {
 
   if (data?.usesTeam === true) data.projectLead = false;
 
-  if (!data?.sdxEnabled) delete data.sdxServices;
+  // An empty selection with SDX off is a revoke-all instruction, so it is kept.
+  const revokesSdx = Array.isArray(data?.sdxServices?.resourceServers) && data.sdxServices.resourceServers.length === 0;
+  if (!data?.sdxEnabled && !revokesSdx) delete data.sdxServices;
 
   return data;
 };
