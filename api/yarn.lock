@@ -32,17 +32,17 @@
     ajv-draft-04 "^1.0.0"
     call-me-maybe "^1.0.2"
 
-"@azure/msal-common@16.13.0":
-  version "16.13.0"
-  resolved "https://registry.yarnpkg.com/@azure/msal-common/-/msal-common-16.13.0.tgz#62e424c6b21e143e8ef4374a64dbf8772dfe1a07"
-  integrity sha512-rOAy0KUcyBbdwVJ+f3uPpthXatFLLZN+/KWAsTLzk1aB23Xl9DRmmXYwSvBFOZyXj4jUQQ5FKxxRkhAFW1fOow==
+"@azure/msal-common@16.14.2":
+  version "16.14.2"
+  resolved "https://registry.yarnpkg.com/@azure/msal-common/-/msal-common-16.14.2.tgz#742eb4603448ba5700d3582423cc5781c96ca971"
+  integrity sha512-HOBR0Gfo39TMrkxNG8k6cfjRkrRjXZc3JQs3ebMWQc9S4cihuknMYra3sgmzbZB752oQBqBN9+WF7c826p2vIQ==
 
-"@azure/msal-node@^5.6.0":
-  version "5.6.0"
-  resolved "https://registry.yarnpkg.com/@azure/msal-node/-/msal-node-5.6.0.tgz#8cbfeff021b6d2f3d064a3afb82262ad985e8434"
-  integrity sha512-uFY9NxrWHw8PwZx7gAX6PDn+9vdfS05+levc/kwkx77IkjfaldnQbbcQzzDIZ5Hq5Zdr6/z92oAIoRWKp6MnOA==
+"@azure/msal-node@^7.1.0":
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/@azure/msal-node/-/msal-node-7.1.0.tgz#2fbf9022c6778da2e13e00d1b1ec98f287bf7eed"
+  integrity sha512-s1O6hSY/C/dmqykTmmeHY6GhSkDuY8N1gxyhuLyaCwbY7N+UBvU2Wu4flas7+NxZiAPcXNPVpgt3n/HP/5yL+w==
   dependencies:
-    "@azure/msal-common" "16.13.0"
+    "@azure/msal-common" "16.14.2"
     jsonwebtoken "^9.0.0"
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.27.1", "@babel/code-frame@^7.29.7":
