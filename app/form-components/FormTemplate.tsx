@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useContext } from 'react';
+import { useState, useEffect, useCallback, useContext, useRef } from 'react';
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { isNil, throttle, padStart, difference, trim } from 'lodash';
@@ -46,7 +46,13 @@ import { GetStandardSettingsResponse } from '@app/interfaces/api';
 import { hasAppPermission, appPermissions } from '@app/utils/authorize';
 import Link from '@app/components/Link';
 import { listSdxResourceServers, getSdxAllowedAccessForClient, getSdxSubsytemStatus } from '@app/services/sdx-services';
-import { SDXResourceServer, SDXAllowedAccessForClient, SDXService } from '@app/shared/interfaces';
+import { SdxAccessState, withoutVersionlessServices } from 'form-components/FieldSdxServices';
+import {
+  SDXResourceServer,
+  SDXAllowedAccessForClient,
+  SDXAccessRequest,
+  SDXServiceScope,
+} from '@app/shared/interfaces';
 import { listBcgovUnits } from '@app/services/bcgov-unit';
 import { listDivisions } from '@app/services/division';
 
@@ -144,6 +150,42 @@ const preserveCrossStageFields = (nextFormData: any, previousFormData: any) => (
   sdxServices: nextFormData?.sdxServices ?? previousFormData?.sdxServices,
 });
 
+/** Fills in the name of allowed SDX access from the catalog. Tolerates partial data. */
+const withCatalogNames = (resourceServers: SDXResourceServer[], catalog: SDXResourceServer[]) =>
+  resourceServers.map((resourceServer) => {
+    const catalogResourceServer = catalog.find(
+      (server) => server.id === resourceServer.id && server.environment === resourceServer.environment,
+    );
+    return { ...resourceServer, name: catalogResourceServer?.name || resourceServer.name };
+  });
+
+const scopeLabel = (scope: SDXServiceScope | string) => (typeof scope === 'string' ? scope : scope?.label);
+
+/** Adds every scope of `additions` that `selection` lacks, without dropping or duplicating any selected scope. */
+const mergeSdxResourceServers = (selection: SDXResourceServer[], additions: SDXResourceServer[]) => {
+  const merged: SDXResourceServer[] = [];
+  [...selection, ...additions].forEach((resourceServer) => {
+    let entry = merged.find(
+      (candidate) => candidate.id === resourceServer.id && candidate.environment === resourceServer.environment,
+    );
+    if (!entry) {
+      entry = { ...resourceServer, services: [] };
+      merged.push(entry);
+    }
+    (Array.isArray(resourceServer.services) ? resourceServer.services : []).forEach((service) => {
+      const labels = (Array.isArray(service.scopes) ? (service.scopes as Array<SDXServiceScope | string>) : [])
+        .map(scopeLabel)
+        .filter(Boolean);
+      const existing = entry!.services.find(
+        (candidate) => candidate.name === service.name && candidate.version === service.version,
+      );
+      if (!existing) entry!.services.push({ ...service, scopes: Array.from(new Set(labels)) });
+      else existing.scopes = Array.from(new Set([...(existing.scopes as string[]), ...labels]));
+    });
+  });
+  return merged;
+};
+
 interface Props {
   currentUser: LoggedInUser | null;
   request?: Integration | undefined;
@@ -181,6 +223,11 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const [sdxResourceServers, setSdxResourceServers] = useState<SDXResourceServer[]>([]);
   const [sdxServicesApprovedForClient, setSdxServicesApprovedForClient] = useState<SDXAllowedAccessForClient | []>([]);
   const [sdxServicesPendingForClient, setSdxServicesPendingForClient] = useState<SDXAllowedAccessForClient | []>([]);
+  const [sdxAccessState, setSdxAccessState] = useState<SdxAccessState>(
+    process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true' && request?.sdxEnabled && request?.status === 'applied'
+      ? 'loading'
+      : 'ready',
+  );
   const [bcgovUnits, setBcgovUnits] = useState<BcgovUnit[]>([]);
   const [divisions, setDivisions] = useState<Division[]>([]);
 
@@ -195,6 +242,9 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   const isLastStage = formStage === schemas.length - 1;
   const isFirstStage = formStage === 0;
   const schema = schemas[formStage] || {};
+  // Applied integrations validate every stage as it is shown, since those stages start out filled in. The SDX
+  // stage starts empty when SDX is newly enabled, so like a draft it is only validated once the user moves on.
+  const liveValidate = visited[formStage] || (isApplied && !schema.properties?.sdxServices);
 
   const throttleUpdate = useCallback(
     throttle(
@@ -342,8 +392,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         content: 'Failed to load BC Gov units. Please refresh.',
       });
     } else {
-      const sortedBcgovUnits = bcgovUnits?.sort((a, b) => a.name.localeCompare(b.name))!;
-      setBcgovUnits(sortedBcgovUnits || []);
+      bcgovUnits?.sort((a, b) => a.name.localeCompare(b.name))!;
+      setBcgovUnits(bcgovUnits || []);
     }
   };
 
@@ -355,57 +405,94 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         content: 'Failed to load divisions. Please refresh.',
       });
     } else {
-      const sortedDivisions = divisions?.sort((a, b) => a.name.localeCompare(b.name))!;
-      setDivisions(sortedDivisions || []);
+      divisions?.sort((a, b) => a.name.localeCompare(b.name));
+      setDivisions(divisions || []);
     }
   };
 
+  const sdxLoadRef = useRef(0);
+
+  const showSdxLoadError = (content: string) =>
+    alert.show({ variant: 'danger', fadeOut: 10000, closable: true, content });
+
   const loadSdxResources = async (loadClientAccess = formData?.sdxEnabled && formData?.status === 'applied') => {
-    const [resourceServers] = await listSdxResourceServers({} as any);
-    setSdxResourceServers(resourceServers || []);
+    // Only the latest load applies its results, so an earlier, slower one cannot overwrite them.
+    const loadId = ++sdxLoadRef.current;
+    const isLatestLoad = () => loadId === sdxLoadRef.current;
+    const accessLoadError = 'Failed to load the current SDX access of this integration. Please reload the page.';
+    setSdxAccessState(loadClientAccess ? 'loading' : 'ready');
 
-    if (loadClientAccess) {
-      const [data] = await getSdxSubsytemStatus(request?.id!);
-
-      if (data?.status === 'registered') {
-        const [approved] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'approved');
-        setSdxServicesApprovedForClient(approved || []);
-
-        const [pending] = await getSdxAllowedAccessForClient({} as any, request?.id!, 'pending');
-        setSdxServicesPendingForClient(pending || []);
-
-        const currApprovedAndPending = [approved, pending].map((access) => ({
-          ...access,
-          resourceServers: access.resourceServers.map((resourceServer: SDXResourceServer) => {
-            const catalogResourceServer = resourceServers.find(
-              (server: SDXResourceServer) => server.id === resourceServer.id,
-            );
-            return {
-              ...resourceServer,
-              services: resourceServer.services.map((service) => {
-                const catalogService = catalogResourceServer?.services.find(
-                  (candidate: SDXService) =>
-                    candidate.name === service.name && (!service.version || candidate.version === service.version),
-                );
-                return {
-                  ...service,
-                  version: service.version || catalogService?.version || '',
-                };
-              }),
-              name: catalogResourceServer?.name || resourceServer.name,
-            };
-          }),
-        }));
-
-        if (!formData?.sdxServices) {
-          setFormData((previousFormData) => ({
-            ...previousFormData,
-            sdxServices: {
-              resourceServers: [...currApprovedAndPending.flatMap((rs) => rs.resourceServers)],
-            } as any,
-          }));
-        }
+    // Runs from effects and event handlers, so nothing may escape as an unhandled rejection.
+    try {
+      const [resourceServers, resourceServersErr] = await listSdxResourceServers({} as any);
+      if (!isLatestLoad()) return;
+      if (resourceServersErr) {
+        console.error('Failed to load the SDX services', resourceServersErr);
+        showSdxLoadError('Failed to load the SDX services. Please reload the page.');
       }
+      const catalog: SDXResourceServer[] = Array.isArray(resourceServers) ? resourceServers : [];
+      setSdxResourceServers(catalog);
+
+      if (!loadClientAccess) return;
+
+      const [data, statusErr] = await getSdxSubsytemStatus(request?.id!);
+      if (!isLatestLoad()) return;
+      // Without the status it is unknown whether there is approved access to keep, so this fails like the access load.
+      if (statusErr || typeof data?.status !== 'string' || data.status.trim() === '') {
+        console.error(
+          'Failed to load the SDX subsystem status',
+          statusErr || new Error('Invalid SDX subsystem status response'),
+        );
+        showSdxLoadError(accessLoadError);
+        setSdxAccessState('failed');
+        return;
+      }
+      if (data?.status !== 'registered') {
+        setSdxAccessState('ready');
+        return;
+      }
+
+      const [[approved, approvedErr], [pending, pendingErr]] = await Promise.all([
+        getSdxAllowedAccessForClient({} as any, request?.id!, 'approved'),
+        getSdxAllowedAccessForClient({} as any, request?.id!, 'pending'),
+      ]);
+      if (!isLatestLoad()) return;
+
+      // Without the current access the selection would start without the approved scopes, and submitting it would
+      // revoke them, so the selection stays locked and the user is told to reload.
+      if (approvedErr || pendingErr || !approved || !pending) {
+        console.error('Failed to load the SDX access of the integration', approvedErr || pendingErr);
+        showSdxLoadError(accessLoadError);
+        setSdxAccessState('failed');
+        return;
+      }
+
+      setSdxServicesApprovedForClient(approved);
+      setSdxServicesPendingForClient(pending);
+
+      const currentAccess = [approved, pending].flatMap((access) =>
+        withCatalogNames(withoutVersionlessServices(access.resourceServers), catalog),
+      );
+      // The saved selection may predate access approved since, so the current access is added to it rather than
+      // replaced by it or ignored.
+      setFormData((previousFormData) => {
+        // Older integrations may hold the selection as a bare array of resource servers.
+        const previous = previousFormData?.sdxServices as SDXAccessRequest | SDXResourceServer[] | null | undefined;
+        const selection = Array.isArray(previous) ? previous : previous?.resourceServers ?? [];
+        return {
+          ...previousFormData,
+          sdxServices: {
+            ...(Array.isArray(previous) ? {} : previous),
+            resourceServers: mergeSdxResourceServers(selection, currentAccess),
+          },
+        } as Integration;
+      });
+      setSdxAccessState('ready');
+    } catch (err) {
+      if (!isLatestLoad()) return;
+      console.error('Failed to load the SDX services', err);
+      showSdxLoadError(loadClientAccess ? accessLoadError : 'Failed to load the SDX services. Please reload the page.');
+      if (loadClientAccess) setSdxAccessState('failed');
     }
   };
 
@@ -515,7 +602,23 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     setLoading(false);
   };
 
+  // Until the current SDX access has loaded, the selection may lack approved scopes that submitting would revoke.
+  const sdxSubmissionBlocked = () => {
+    if (!formData.sdxEnabled || sdxAccessState === 'ready') return false;
+    alert.show({
+      variant: 'danger',
+      fadeOut: 10000,
+      closable: true,
+      content:
+        sdxAccessState === 'loading'
+          ? 'The current SDX access of this integration is still loading. Please try again in a moment.'
+          : 'Failed to load the current SDX access of this integration. Please reload the page.',
+    });
+    return true;
+  };
+
   const handleSubmit = async () => {
+    if (sdxSubmissionBlocked()) return;
     try {
       const [data, err] = await updateRequest(formData, true);
 
@@ -564,6 +667,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   };
 
   const openConfirmModal = () => {
+    if (sdxSubmissionBlocked()) return;
     const formErrors = validateForm(formData, schemas);
     if (Object.keys(formErrors).length > 0) {
       alert.show({
@@ -617,6 +721,8 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         </Description>
       </HeaderContainer>
       <Form
+        // A fresh form per stage, so validation run on one stage cannot leave errors on another.
+        key={formStage}
         schema={schema}
         uiSchema={uiSchema}
         onChange={handleChange}
@@ -632,9 +738,10 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           sdxResourceServers,
           sdxServicesApprovedForClient,
           sdxServicesPendingForClient,
+          sdxAccessState,
         }}
         templates={{ FieldTemplate, ArrayFieldTemplate }}
-        liveValidate={visited[formStage] || isApplied}
+        liveValidate={liveValidate}
         customValidate={customValidate}
         validator={validator}
       >

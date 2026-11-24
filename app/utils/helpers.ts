@@ -265,6 +265,8 @@ export const transformErrors = (errors: any) => {
     } else if (error.property.includes('bcgovUnitId') || error.property.includes('divisionId')) {
       if (error.message === 'must be number') error.message = '';
       if (error.message === 'must be equal to one of the allowed values') error.message = '';
+    } else if (error.property.includes('sdxServices')) {
+      if (error.message === 'must be object') error.message = '';
     }
 
     return error;
