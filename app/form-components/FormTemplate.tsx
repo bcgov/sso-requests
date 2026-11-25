@@ -841,9 +841,9 @@ function FormTemplate({ currentUser, request, alert }: Props) {
               ))}
             </SdxRevokeList>
             <p>
-              Turning off SDX services and submitting the update revokes access to all of these APIs. Turning SDX
-              services on again will not reinstate this access; it will need to be requested again and approved by the
-              respective reviewers.
+              Turning off SDX services revokes access to all of these APIs. Turning SDX services on again will not
+              reinstate this access; it will need to be requested again and approved by the respective reviewers on the
+              SDX platform.
             </p>
           </>
         }
