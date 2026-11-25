@@ -513,7 +513,8 @@ export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAcce
     throw new Error(`SDX is not enabled for integration with ID ${requestId}`);
   }
 
-  if (integrationData.status !== 'applied') {
+  // allow revoke-all even if the integration is not in applied state
+  if (integrationData.status !== 'applied' && !revokeAll) {
     throw new Error(`Integration with ID ${requestId} is not in applied state`);
   }
 

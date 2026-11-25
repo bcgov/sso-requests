@@ -624,12 +624,6 @@ export const updateRequest = async (
         current.clientId = `${kebabCase(current.projectName)}-${id}`;
       }
 
-      // SDX related operations
-      if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true') {
-        if (isSdxRevokeAll(originalData, current)) await createSdxRequest(session, current, { revokeAll: true });
-        else if (usesSdxServices(current) && current?.sdxServices) await createSdxRequest(session, current);
-      }
-
       // Ensures requested client ID is not reserved
       if (!generatedClientId && (current.status === 'draft' || current.clientId !== originalData.clientId)) {
         assertClientIdNotReserved(current.clientId);
@@ -710,6 +704,12 @@ export const updateRequest = async (
       const refreshed = await authorizeIntegration(session, id!, 'integrations:read');
       if (!refreshed) throw new Error('Request not found');
       updated = refreshed.integration;
+
+      // SDX related operations
+      if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true') {
+        if (isSdxRevokeAll(originalData, updated)) await createSdxRequest(session, updated, { revokeAll: true });
+        else if (usesSdxServices(updated) && updated?.sdxServices) await createSdxRequest(session, updated);
+      }
     }
 
     return updated.get({ plain: true });

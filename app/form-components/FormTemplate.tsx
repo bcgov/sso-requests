@@ -729,6 +729,7 @@ function FormTemplate({ currentUser, request, alert }: Readonly<Props>) {
 
   const confirmSdxRevoke = () => {
     sdxRevokeConfirmed.current = true;
+    setSdxServicesPendingForClient([]);
     setFormData((previousFormData) => {
       const previous = previousFormData.sdxServices;
       return {
