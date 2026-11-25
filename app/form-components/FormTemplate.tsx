@@ -130,7 +130,7 @@ const adjustIdps = ({
 const trimRedirectUris = (urls: string[], dropEmptyRedirectUris = false) => {
   if (!urls || urls.length === 0) return [];
 
-  let items = urls.map(trim);
+  let items = urls.map((url) => trim(url));
   if (dropEmptyRedirectUris) items = items.filter((v) => v);
   if (items.length === 0) items.push('');
   return items;
@@ -197,7 +197,7 @@ interface Props {
   alert: TopAlert;
 }
 
-function FormTemplate({ currentUser, request, alert }: Props) {
+function FormTemplate({ currentUser, request, alert }: Readonly<Props>) {
   const router = useRouter();
   const { step } = router.query;
   const stage = step ? Number(step) : 0;
@@ -352,7 +352,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
     // revoke the selection starts empty instead, since the previous access is not reinstated.
     if (isApplied && !formData?.sdxEnabled && newData?.sdxEnabled) {
       if (sdxRevokeConfirmed.current) sdxRevokeConfirmed.current = false;
-      else loadSdxResources(true);
+      else void loadSdxResources(true);
     }
 
     if (newData.bcgovUnitId === 0) {
@@ -364,7 +364,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
       processed.divisionId = null;
     }
 
-    throttleUpdate(processed);
+    void throttleUpdate(processed);
   };
 
   const loadTeams = async () => {
@@ -541,14 +541,14 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   };
 
   useEffect(() => {
-    loadTeams();
-    loadBcscPrivacyZones();
-    loadBcscAttributes();
-    loadDefaultSessionSettings();
-    isBcscExcluded();
-    loadBcgovUnits();
-    loadDivisions();
-    if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true') loadSdxResources();
+    void loadTeams();
+    void loadBcscPrivacyZones();
+    void loadBcscAttributes();
+    void loadDefaultSessionSettings();
+    void isBcscExcluded();
+    void loadBcgovUnits();
+    void loadDivisions();
+    if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true') void loadSdxResources();
   }, []);
 
   // Clear other details when other is unselected
@@ -565,17 +565,17 @@ function FormTemplate({ currentUser, request, alert }: Props) {
   }, [formData, formStage, teams]);
 
   const changeStep = (newStage: number) => {
-    visited[formStage] = true;
+    const updatedVisited = { ...visited, [formStage]: true };
 
     if (newStage === schemas.length - 1) {
-      for (let x = 0; x < schemas.length; x++) visited[x] = true;
+      for (let x = 0; x < schemas.length; x++) updatedVisited[x] = true;
     }
     const newData = trimFormData(formData, { dropEmptyRedirectUris: true });
-    const formErrors = validateForm(formData, schemas, visited);
+    const formErrors = validateForm(formData, schemas, updatedVisited);
     setErrors(formErrors);
     setFormStage(newStage);
     setFormData(newData);
-    setVisited(visited);
+    setVisited((previousVisited: any) => ({ ...previousVisited, ...updatedVisited }));
     alert.hide();
   };
 
@@ -638,7 +638,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
         setFormData({ ...formData, id });
       } else {
         await updateRequest(formData);
-        handleButtonSubmit();
+        void handleButtonSubmit();
       }
     } catch (err) {
       console.error(err);
@@ -681,7 +681,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
           content: `Request ID:${padStart(String(formData.id), 8, '0')} is successfully submitted!`,
         });
 
-        router.push({
+        await router.push({
           pathname: hasAppPermission(currentUser?.client_roles || [], appPermissions.VIEW_ADMIN_DASHBOARD)
             ? '/admin-dashboard'
             : '/my-dashboard',
@@ -700,8 +700,7 @@ function FormTemplate({ currentUser, request, alert }: Props) {
 
   const handleButtonSubmit = async () => {
     if (isNew && formStage === 0) {
-      visited[formStage] = true;
-      setVisited(visited);
+      setVisited((previousVisited: any) => ({ ...previousVisited, [formStage]: true }));
     } else if (isLastStage) {
       openConfirmModal();
     } else {
