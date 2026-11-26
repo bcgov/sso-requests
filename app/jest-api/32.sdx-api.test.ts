@@ -1,6 +1,6 @@
 import { generateKeyPairSync, randomUUID } from 'crypto';
 import jwt from 'jsonwebtoken';
-import { models } from '@app/shared/sequelize/models/models';
+import { models, sequelize } from '@app/shared/sequelize/models/models';
 import { getConfiguration } from '@app/utils/authenticate';
 import { getAdminClient } from '@app/keycloak/adminClient';
 import { getUserById } from '@app/queries/user';
@@ -24,6 +24,21 @@ import { cleanUpDatabaseTables } from './helpers/utils';
 import { clearMockAuth, createMockAuth } from './mocks/authenticate';
 import { Integration } from '@app/interfaces/Request';
 import { SDX_ENVIRONMENTS } from '@app/utils/constants';
+import {
+  deleteIntegration,
+  getWorkflowForRequest,
+  getWorkflowSteps,
+  restoreIntegration,
+  updateIntegration,
+} from './helpers/modules/integrations';
+import { runWorkflow } from '@app/workflow/orchestrator';
+import { enqueueRequestWorkflow } from '@app/workflow/request-workflow';
+import * as workflowEffects from '@app/workflow/effects';
+import { keycloakClient } from '@app/keycloak/integration';
+import { testClient } from './helpers/test-client';
+import { API_BASE_PATH } from './helpers/constants';
+import resubmitHandler from '@app/pages/api/requests/[id]/resubmit';
+import * as graphApi from '@app/utils/graph-api';
 
 jest.mock('@app/keycloak/adminClient', () => {
   return {
@@ -473,6 +488,529 @@ describe('SDX APIs', () => {
   });
 
   describe('Creating an SDX access request', () => {
+    it('rejects invalid SDX selections before saving or running the integration workflow', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-invalid');
+      const previousWorkflow = await getWorkflowForRequest(integration.id);
+      const eventCount = await models.event.count({ where: { requestId: integration.id } });
+      (keycloakClient as jest.Mock).mockClear();
+      fetchMock.mockClear();
+
+      const response = await updateIntegration(
+        {
+          ...withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['unknown.scope'])]),
+          projectName: 'unsaved-invalid-update',
+        },
+        true,
+      );
+      expect(response.status).toBe(422);
+      expect(response.body.message).toContain('SDX scopes not offered by SDX');
+      expect((await getWorkflowForRequest(integration.id)).id).toBe(previousWorkflow.id);
+      expect((await models.request.findByPk(integration.id)).status).toBe('applied');
+      expect((await models.request.findByPk(integration.id)).projectName).toBe(integration.projectName);
+      expect(await models.event.count({ where: { requestId: integration.id } })).toBe(eventCount);
+      expect(keycloakClient).not.toHaveBeenCalled();
+      expect(sdxApiCalls('/access-requests')).toHaveLength(0);
+    });
+
+    it('rejects the update without starting a workflow when the SDX catalog is unavailable', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-catalog-unavailable');
+      const previousWorkflow = await getWorkflowForRequest(integration.id);
+      setUpSdxApi({ failOn: (url) => url.includes('/resource-servers') });
+      (keycloakClient as jest.Mock).mockClear();
+      fetchMock.mockClear();
+
+      const response = await updateIntegration(
+        withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])]),
+        true,
+      );
+      expect(response.status).toBe(422);
+      expect(response.body.message).toBe('Failed to fetch SDX resource servers');
+      expect((await getWorkflowForRequest(integration.id)).id).toBe(previousWorkflow.id);
+      expect((await models.request.findByPk(integration.id)).status).toBe('applied');
+      expect(keycloakClient).not.toHaveBeenCalled();
+      expect(sdxApiCalls('/access-requests')).toHaveLength(0);
+    });
+
+    it('persists and submits the validated selection without rechecking the catalog', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-submit');
+      const selection = [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'], { name: 'Untrusted name' })];
+      const validated = [
+        {
+          id: 'health-rs',
+          name: 'Health Resource Server',
+          organization: 'Ministry of Health',
+          description: 'Health data services',
+          environment: NON_PRODUCTION_ENV,
+          services: [{ name: 'patient-api', version: 'v1', scopes: ['patient.read'] }],
+        },
+      ];
+      process.env.WORKFLOW_EXECUTION_MODE = 'manual';
+      try {
+        const response = await updateIntegration(withSdxServices(integration, selection), true);
+        expect(response.status).toBe(200);
+        const workflow = await getWorkflowForRequest(integration.id);
+        expect(workflow.context.sdx.resourceServers).toEqual(validated);
+        expect((await getWorkflowSteps(workflow.id)).map((step: any) => step.name)).toContain('SDX_SUBMIT');
+        expect(sdxApiCalls('/access-requests')).toHaveLength(0);
+
+        setUpSdxApi({ failOn: (url) => url.includes('/resource-servers') });
+        fetchMock.mockClear();
+        await runWorkflow(workflow.id);
+        expect(sdxApiCalls('/access-requests')).toHaveLength(1);
+        expect(sdxApiCalls('/resource-servers')).toHaveLength(0);
+        const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/access-requests'));
+        expect(JSON.parse(call![1].body).resourceServers).toEqual(validated);
+        expect((await getWorkflowForRequest(integration.id)).state).toBe('COMPLETED');
+      } finally {
+        process.env.WORKFLOW_EXECUTION_MODE = 'synchronous';
+      }
+    });
+
+    it('revokes SDX after deleting the Keycloak clients', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-delete');
+      (keycloakClient as jest.Mock).mockClear();
+      fetchMock.mockClear();
+
+      expect((await deleteIntegration(integration.id)).status).toBe(200);
+      const workflow = await getWorkflowForRequest(integration.id);
+      const steps = await getWorkflowSteps(workflow.id);
+      expect(steps.map((step: any) => step.name)).toEqual([
+        'PLAN',
+        'APPLY_DEV',
+        'APPLY_TEST',
+        'APPLY_PROD',
+        'SDX_SUBMIT',
+        'FINALIZE',
+        'NOTIFY',
+      ]);
+      const callIndex = fetchMock.mock.calls.findIndex(([url]) => String(url).endsWith('/access-requests'));
+      expect(callIndex).toBeGreaterThanOrEqual(0);
+      expect(JSON.parse(fetchMock.mock.calls[callIndex][1].body).resourceServers).toEqual([]);
+      expect(Math.max(...(keycloakClient as jest.Mock).mock.invocationCallOrder)).toBeLessThan(
+        fetchMock.mock.invocationCallOrder[callIndex],
+      );
+      expect(workflow.state).toBe('COMPLETED');
+    });
+
+    it('blocks deletion requiring revocation when the SDX feature is disabled', async () => {
+      const integration = await buildSdxIntegration('sdx-delete-disabled-flag');
+      const before = await getWorkflowForRequest(integration.id);
+      process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES = 'false';
+      fetchMock.mockClear();
+      try {
+        const response = await deleteIntegration(integration.id);
+        expect(response.status).toBe(422);
+        expect(response.body.message).toMatch(/SDX must be enabled/);
+        expect((await models.request.findByPk(integration.id)).archived).toBe(false);
+        expect((await getWorkflowForRequest(integration.id)).id).toBe(before.id);
+        expect(sdxApiCalls('/access-requests')).toHaveLength(0);
+      } finally {
+        process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES = 'true';
+      }
+    });
+
+    it('does not repeat an accepted revoke on deletion, even when the feature is disabled', async () => {
+      const integration = await buildSdxIntegration('sdx-delete-after-revoke');
+      expect((await updateIntegration({ ...withSdxServices(integration, []), sdxEnabled: false }, true)).status).toBe(
+        200,
+      );
+      process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES = 'false';
+      fetchMock.mockClear();
+      try {
+        expect((await deleteIntegration(integration.id)).status).toBe(200);
+        expect(sdxApiCalls('/access-requests')).toHaveLength(0);
+        expect(
+          (await getWorkflowSteps((await getWorkflowForRequest(integration.id)).id)).map((s: any) => s.name),
+        ).not.toContain('SDX_SUBMIT');
+      } finally {
+        process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES = 'true';
+      }
+    });
+
+    it('revokes again if SDX access was submitted after an accepted revoke', async () => {
+      const integration = await buildSdxIntegration('sdx-delete-after-new-access');
+      expect((await updateIntegration({ ...withSdxServices(integration, []), sdxEnabled: false }, true)).status).toBe(
+        200,
+      );
+      const selection = [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])];
+      expect((await updateIntegration(withSdxServices(integration, selection), true)).status).toBe(200);
+      fetchMock.mockClear();
+      expect((await deleteIntegration(integration.id)).status).toBe(200);
+      const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/access-requests'));
+      expect(JSON.parse(call![1].body).resourceServers).toEqual([]);
+    });
+
+    it('revokes if a later access workflow failed before it could submit', async () => {
+      const integration = await buildSdxIntegration('sdx-delete-after-failed-access');
+      expect((await updateIntegration({ ...withSdxServices(integration, []), sdxEnabled: false }, true)).status).toBe(
+        200,
+      );
+      (keycloakClient as jest.Mock).mockResolvedValueOnce(false);
+      const selection = [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])];
+      expect((await updateIntegration(withSdxServices(integration, selection), true)).status).toBe(200);
+      const failed = await getWorkflowForRequest(integration.id);
+      expect(failed.state).toBe('FAILED');
+      // A queued workflow can be created before the previous revoke is accepted, then fail afterward.
+      const acceptedAt = new Date(Date.now() + 3000);
+      await models.SdxRequest.update(
+        { createdAt: acceptedAt },
+        { where: { request_id: integration.id }, silent: true },
+      );
+      await sequelize.query('UPDATE request_workflows SET updated_at = :updatedAt WHERE id = :id', {
+        replacements: { id: failed.id, updatedAt: new Date(acceptedAt.getTime() + 1000) },
+      });
+      fetchMock.mockClear();
+      expect((await deleteIntegration(integration.id)).status).toBe(200);
+      const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/access-requests'));
+      expect(JSON.parse(call![1].body).resourceServers).toEqual([]);
+    });
+
+    it('does not resubmit an archived integration after a deletion workflow fails', async () => {
+      const integration = await buildSdxIntegration('sdx-delete-retry');
+      setUpSdxApi({ accessRequestOk: false });
+      expect((await deleteIntegration(integration.id)).status).toBe(200);
+      const failed = await getWorkflowForRequest(integration.id);
+      expect(failed.state).toBe('FAILED');
+      expect((await models.request.findByPk(integration.id)).archived).toBe(true);
+      expect(
+        (await testClient(resubmitHandler).get(`${API_BASE_PATH}/requests/${integration.id}/resubmit`)).status,
+      ).toBe(422);
+      expect((await getWorkflowForRequest(integration.id)).id).toBe(failed.id);
+    });
+
+    it('retries a failed SDX submission when an integration is resubmitted', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-resubmit');
+      const selection = [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])];
+      setUpSdxApi({ accessRequestOk: false });
+      expect((await updateIntegration(withSdxServices(integration, selection), true)).status).toBe(200);
+      expect((await getWorkflowForRequest(integration.id)).state).toBe('FAILED');
+
+      setUpSdxApi({ failOn: (url) => url.includes('/resource-servers') });
+      fetchMock.mockClear();
+      const response = await testClient(resubmitHandler).get(`${API_BASE_PATH}/requests/${integration.id}/resubmit`);
+      expect(response.status).toBe(200);
+      const workflow = await getWorkflowForRequest(integration.id);
+      expect(workflow.state).toBe('COMPLETED');
+      expect(workflow.context.sdx.resourceServers[0].services[0].scopes).toEqual(['patient.read']);
+      expect(sdxApiCalls('/resource-servers')).toHaveLength(0);
+      expect((await getWorkflowSteps(workflow.id)).find((step: any) => step.name === 'SDX_SUBMIT').state).toBe(
+        'COMPLETED',
+      );
+    });
+
+    it('preserves the queued SDX selection when a running workflow is resubmitted', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-queued-resubmit');
+      const olderSelection = [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.write'])];
+      const newerSelection = [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])];
+      process.env.WORKFLOW_EXECUTION_MODE = 'manual';
+      try {
+        const running = await enqueueRequestWorkflow(integration, {
+          sdx: {
+            requesterId: 1,
+            request: { id: integration.id, clientId: integration.clientId, status: 'applied' },
+            revokeAll: false,
+            resourceServers: olderSelection,
+          },
+        });
+        expect((await updateIntegration(withSdxServices(integration, newerSelection), true)).status).toBe(200);
+        const queued = await models.requestWorkflow.findOne({
+          where: { requestId: integration.id, state: 'QUEUED' },
+          raw: true,
+        });
+        expect(queued.context.sdx.resourceServers[0].services[0].scopes).toEqual(['patient.read']);
+
+        const response = await testClient(resubmitHandler).get(`${API_BASE_PATH}/requests/${integration.id}/resubmit`);
+        expect(response.status).toBe(200);
+        const resubmitted = await models.requestWorkflow.findOne({ where: { id: queued.id }, raw: true });
+        expect(resubmitted.context.sdx).toEqual(queued.context.sdx);
+
+        fetchMock.mockClear();
+        await runWorkflow(running.workflowId);
+        await runWorkflow(queued.id);
+        const submissions = fetchMock.mock.calls
+          .filter(([url]) => String(url).endsWith('/access-requests'))
+          .map(([, options]) => JSON.parse(options.body).resourceServers[0].services[0].scopes);
+        expect(submissions).toEqual([['patient.write'], ['patient.read']]);
+        expect((await models.requestWorkflow.findByPk(queued.id)).state).toBe('COMPLETED');
+      } finally {
+        process.env.WORKFLOW_EXECUTION_MODE = 'synchronous';
+      }
+    });
+
+    it('removes previously approved scopes after an integration workflow has failed', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-reconcile-after-failure');
+      const approved = [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read', 'patient.write'])];
+      setUpSdxApi({ allowedServices: { [`${NON_PRODUCTION_ENV}:approved`]: approved } });
+      setUpKeycloak({
+        existingClientScopes: ['patient.read', 'patient.write'],
+        existingOptionalClientScopes: ['patient.read', 'patient.write'],
+      });
+      await createSdxRequest(adminSession, withSdxServices(integration, approved));
+      await models.request.update({ status: 'applyFailed' }, { where: { id: integration.id } });
+      keycloak.delOptionalClientScope.mockClear();
+
+      const response = await updateIntegration(
+        withSdxServices({ ...integration, status: 'applyFailed' }, [
+          selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read']),
+        ]),
+        true,
+      );
+      expect(response.status).toBe(200);
+      expect((await getWorkflowForRequest(integration.id)).state).toBe('COMPLETED');
+      expect(keycloak.delOptionalClientScope.mock.calls.map(([args]) => args.clientScopeId)).toEqual([
+        'patient.write',
+        'patient.write',
+      ]);
+    });
+
+    it('reconciles previously approved scopes even without local SDX submission history', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-reconcile-no-history', { status: 'applyFailed' });
+      setUpSdxApi({
+        allowedServices: {
+          [`${NON_PRODUCTION_ENV}:approved`]: [
+            selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read', 'patient.write']),
+          ],
+        },
+      });
+      setUpKeycloak({
+        existingClientScopes: ['patient.read', 'patient.write'],
+        existingOptionalClientScopes: ['patient.read', 'patient.write'],
+      });
+
+      expect(await models.SdxRequest.count({ where: { request_id: integration.id } })).toBe(0);
+      const response = await updateIntegration(
+        withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])]),
+        true,
+      );
+      expect(response.status).toBe(200);
+      expect((await getWorkflowForRequest(integration.id)).state).toBe('COMPLETED');
+      expect(keycloak.delOptionalClientScope.mock.calls.map(([args]) => args.clientScopeId)).toEqual([
+        'patient.write',
+        'patient.write',
+      ]);
+    });
+
+    it('retries a failed SDX registration check through the workflow', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-status-failure', { status: 'applyFailed' });
+      setUpSdxApi({ failOn: (url) => url.endsWith(`/integrations/${integration.id}`) });
+
+      const response = await updateIntegration(
+        withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])]),
+        true,
+      );
+      expect(response.status).toBe(200);
+      expect((await getWorkflowForRequest(integration.id)).state).toBe('FAILED');
+
+      setUpSdxApi({ subsystemStatus: 'not-registered' });
+      const retry = await testClient(resubmitHandler).get(`${API_BASE_PATH}/requests/${integration.id}/resubmit`);
+      expect(retry.status).toBe(200);
+      expect((await getWorkflowForRequest(integration.id)).state).toBe('COMPLETED');
+    });
+
+    it('revokes previously submitted SDX access even when SDX is now disabled', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-delete-disabled');
+      await createSdxRequest(
+        adminSession,
+        withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])]),
+      );
+      await models.request.update({ sdxEnabled: false }, { where: { id: integration.id } });
+      fetchMock.mockClear();
+
+      expect((await deleteIntegration(integration.id)).status).toBe(200);
+      const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/access-requests'));
+      expect(JSON.parse(call![1].body).resourceServers).toEqual([]);
+    });
+
+    it('sends a revoke-all through the workflow when SDX is disabled', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-disable');
+      fetchMock.mockClear();
+      const response = await updateIntegration(
+        {
+          ...integration,
+          sdxEnabled: false,
+          sdxServices: {
+            integrationId: integration.id,
+            clientId: integration.clientId || '',
+            privacyZone: '',
+            policyVersion: '',
+            resourceServers: [],
+          },
+        },
+        true,
+      );
+      expect(response.status).toBe(200);
+      const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/access-requests'));
+      expect(JSON.parse(call![1].body).resourceServers).toEqual([]);
+      expect((await getWorkflowForRequest(integration.id)).state).toBe('COMPLETED');
+    });
+
+    it('preserves a queued revoke-all when another update replaces the queued workflow', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-queued-revoke');
+      process.env.WORKFLOW_EXECUTION_MODE = 'manual';
+      let releaseNotify: () => void = () => {};
+      let notifyStarted: () => void = () => {};
+      const notifyGate = new Promise<void>((resolve) => {
+        releaseNotify = resolve;
+      });
+      const notificationReached = new Promise<void>((resolve) => {
+        notifyStarted = resolve;
+      });
+      const notify = jest.spyOn(workflowEffects, 'updatePlannedIntegration').mockImplementation(async () => {
+        notifyStarted();
+        await notifyGate;
+      });
+      let runningPromise: Promise<unknown> | undefined;
+      try {
+        const running = await enqueueRequestWorkflow(integration);
+        const disabled = { ...withSdxServices(integration, []), sdxEnabled: false };
+        expect((await updateIntegration(disabled, true)).status).toBe(200);
+        const queued = await models.requestWorkflow.findOne({
+          where: { requestId: integration.id, state: 'QUEUED' },
+          raw: true,
+        });
+        expect(queued.context.sdx.revokeAll).toBe(true);
+
+        runningPromise = runWorkflow(running.workflowId);
+        await notificationReached;
+        const edit = { ...integration, sdxEnabled: false, projectName: 'queued-revoke-edit' };
+        expect((await updateIntegration(edit, true)).status).toBe(200);
+        const replaced = await models.requestWorkflow.findByPk(queued.id, { raw: true });
+        expect(replaced.context.sdx).toEqual(queued.context.sdx);
+        expect(replaced.payload.projectName).toBe('queued-revoke-edit');
+
+        releaseNotify();
+        await runningPromise;
+        fetchMock.mockClear();
+        await runWorkflow(queued.id);
+        const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/access-requests'));
+        expect(JSON.parse(call![1].body).resourceServers).toEqual([]);
+        expect((await models.requestWorkflow.findByPk(queued.id)).state).toBe('COMPLETED');
+      } finally {
+        releaseNotify();
+        if (runningPromise) await runningPromise;
+        notify.mockRestore();
+        process.env.WORKFLOW_EXECUTION_MODE = 'synchronous';
+      }
+    });
+
+    it.each(['environment', 'sdx'])(
+      'carries a revoke-all after a failure at %s into a later update while SDX remains disabled',
+      async (failure) => {
+        const integration = await buildSdxIntegration(`sdx-workflow-failed-revoke-${failure}`);
+        if (failure === 'environment') (keycloakClient as jest.Mock).mockResolvedValueOnce(false);
+        else setUpSdxApi({ accessRequestOk: false });
+        const disabled = { ...withSdxServices(integration, []), sdxEnabled: false };
+        expect((await updateIntegration(disabled, true)).status).toBe(200);
+        const failed = await getWorkflowForRequest(integration.id);
+        expect(failed.state).toBe('FAILED');
+        expect((await getWorkflowSteps(failed.id)).find((step: any) => step.name === 'SDX_SUBMIT').state).toBe(
+          failure === 'environment' ? 'PENDING' : 'FAILED',
+        );
+
+        setUpSdxApi();
+        fetchMock.mockClear();
+        const edit = { ...integration, sdxEnabled: false, projectName: 'failed-revoke-edit' };
+        expect((await updateIntegration(edit, true)).status).toBe(200);
+        const workflow = await getWorkflowForRequest(integration.id);
+        expect(workflow.context.sdx.revokeAll).toBe(true);
+        expect(workflow.state).toBe('COMPLETED');
+        const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/access-requests'));
+        expect(JSON.parse(call![1].body).resourceServers).toEqual([]);
+      },
+    );
+
+    it('recovers a failed revoke-all when a newer failed workflow has no SDX context', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-recover-revoke');
+      (keycloakClient as jest.Mock).mockResolvedValueOnce(false);
+      expect((await updateIntegration({ ...withSdxServices(integration, []), sdxEnabled: false }, true)).status).toBe(
+        200,
+      );
+      const revoke = await getWorkflowForRequest(integration.id);
+      expect(revoke.state).toBe('FAILED');
+
+      process.env.WORKFLOW_EXECUTION_MODE = 'manual';
+      try {
+        (keycloakClient as jest.Mock).mockResolvedValueOnce(false);
+        const newer = await enqueueRequestWorkflow({ ...integration, sdxEnabled: false });
+        await runWorkflow(newer.workflowId);
+        const newerWorkflow = await models.requestWorkflow.findByPk(newer.workflowId, { raw: true });
+        expect(newerWorkflow.state).toBe('FAILED');
+        expect(newerWorkflow.context.sdx).toBeUndefined();
+
+        const response = await testClient(resubmitHandler).get(`${API_BASE_PATH}/requests/${integration.id}/resubmit`);
+        expect(response.status).toBe(200);
+        const workflow = await getWorkflowForRequest(integration.id);
+        expect(workflow.context.sdx).toEqual(revoke.context.sdx);
+        fetchMock.mockClear();
+        await runWorkflow(workflow.id);
+        const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/access-requests'));
+        expect(JSON.parse(call![1].body).resourceServers).toEqual([]);
+        expect((await getWorkflowForRequest(integration.id)).state).toBe('COMPLETED');
+      } finally {
+        process.env.WORKFLOW_EXECUTION_MODE = 'synchronous';
+      }
+    });
+
+    it('does not repeat a completed revoke-all on an unrelated update', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-completed-revoke');
+      expect((await updateIntegration({ ...withSdxServices(integration, []), sdxEnabled: false }, true)).status).toBe(
+        200,
+      );
+      fetchMock.mockClear();
+      expect(
+        (await updateIntegration({ ...integration, sdxEnabled: false, projectName: 'after-revoke' }, true)).status,
+      ).toBe(200);
+      expect(sdxApiCalls('/access-requests')).toHaveLength(0);
+      expect((await getWorkflowForRequest(integration.id)).context.sdx).toBeUndefined();
+    });
+
+    it('uses a new SDX selection instead of carrying an earlier failed revoke-all', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-reenable-after-failed-revoke');
+      (keycloakClient as jest.Mock).mockResolvedValueOnce(false);
+      expect((await updateIntegration({ ...withSdxServices(integration, []), sdxEnabled: false }, true)).status).toBe(
+        200,
+      );
+
+      fetchMock.mockClear();
+      const selection = [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])];
+      expect((await updateIntegration(withSdxServices(integration, selection), true)).status).toBe(200);
+      const workflow = await getWorkflowForRequest(integration.id);
+      expect(workflow.context.sdx.revokeAll).toBe(false);
+      const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/access-requests'));
+      expect(JSON.parse(call![1].body).resourceServers[0].services[0].scopes).toEqual(['patient.read']);
+    });
+
+    it('does not request SDX access again when a deleted integration is restored', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-restore');
+      expect((await deleteIntegration(integration.id)).status).toBe(200);
+      fetchMock.mockClear();
+      const validateEmail = jest
+        .spyOn(graphApi, 'validateIdirEmail')
+        .mockResolvedValue({ given_name: 'Test', family_name: 'User' });
+      try {
+        expect((await restoreIntegration(integration.id, TEAM_ADMIN_IDIR_EMAIL_01)).status).toBe(200);
+        expect(sdxApiCalls('/access-requests')).toHaveLength(0);
+        const workflow = await getWorkflowForRequest(integration.id);
+        expect((await getWorkflowSteps(workflow.id)).map((step: any) => step.name)).not.toContain('SDX_SUBMIT');
+      } finally {
+        validateEmail.mockRestore();
+      }
+    });
+
+    it('does not contact SDX when deleting an integration with no SDX history', async () => {
+      const integration = await buildIntegration({ projectName: 'non-sdx-workflow-delete', submitted: true });
+      fetchMock.mockClear();
+      process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES = 'false';
+      try {
+        expect((await deleteIntegration(integration.body.id)).status).toBe(200);
+        expect(sdxApiCalls('/access-requests')).toHaveLength(0);
+        const workflow = await getWorkflowForRequest(integration.body.id);
+        expect((await getWorkflowSteps(workflow.id)).map((step: any) => step.name)).not.toContain('SDX_SUBMIT');
+      } finally {
+        process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES = 'true';
+      }
+    });
+
     it('Stores the submission in the sdx_requests table', async () => {
       const integration = await buildSdxIntegration('sdx-create-request');
       const resourceServers = [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])];
@@ -913,18 +1451,22 @@ describe('SDX APIs', () => {
       expect(stored.submission_id).toBe('');
     });
 
-    it('Skips removal reconciliation when the integration is not yet applied', async () => {
-      const integration = await buildSdxIntegration('sdx-create-request-not-applied', { status: 'submitted' });
+    it.each(['submitted', 'applyFailed'])(
+      'skips removal reconciliation for an unregistered first SDX request when the integration is %s',
+      async (status) => {
+        const integration = await buildSdxIntegration(`sdx-create-request-first-${status}`, { status });
+        setUpSdxApi({ subsystemStatus: 'not-registered' });
 
-      await createSdxRequest(
-        adminSession,
-        withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])]),
-      );
+        await createSdxRequest(
+          adminSession,
+          withSdxServices(integration, [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])]),
+        );
 
-      expect(fetchMock.mock.calls.some(([url]) => /\/integrations\/\d+$/.test(String(url)))).toBe(false);
-      expect(sdxApiCalls('/allowed-services')).toHaveLength(0);
-      expect(keycloak.delDefaultClientScope).not.toHaveBeenCalled();
-    });
+        expect(fetchMock.mock.calls.some(([url]) => /\/integrations\/\d+$/.test(String(url)))).toBe(true);
+        expect(sdxApiCalls('/allowed-services')).toHaveLength(0);
+        expect(keycloak.delDefaultClientScope).not.toHaveBeenCalled();
+      },
+    );
 
     it('Skips removal reconciliation when the SDX subsystem is not registered', async () => {
       const integration = await buildSdxIntegration('sdx-create-request-not-registered');
@@ -1312,6 +1854,45 @@ describe('SDX APIs', () => {
       expect(result.body.message).toBe('Integration with ID 999999 not found');
     });
 
+    it('acknowledges an authenticated revoke-all callback after integration deletion without touching Keycloak', async () => {
+      const integration = await buildSdxIntegration('sdx-approval-archived-revoke');
+      expect((await deleteIntegration(integration.id)).status).toBe(200);
+      (getAdminClient as jest.Mock).mockClear();
+
+      const result = await putSdxAllowedAccess(integration.id, { resourceServers: [] }, signToken());
+
+      expect(result.status).toBe(200);
+      expect(result.body).toEqual({ success: true });
+      expect(getAdminClient).not.toHaveBeenCalled();
+      expect(
+        await models.event.findOne({ where: { requestId: integration.id, eventCode: 'sdx-access-request-update' } }),
+      ).toBeNull();
+    });
+
+    it('rejects approval or unauthenticated callbacks for an archived integration', async () => {
+      const integration = await buildSdxIntegration('sdx-approval-archived-reject');
+      expect((await deleteIntegration(integration.id)).status).toBe(200);
+      (getAdminClient as jest.Mock).mockClear();
+
+      const approval = await putSdxAllowedAccess(
+        integration.id,
+        approvalPayload(NON_PRODUCTION_ENV, ['patient.read']),
+        signToken(),
+      );
+      const unauthenticated = await putSdxAllowedAccess(integration.id, { resourceServers: [] });
+      const missingSelection = await putSdxAllowedAccess(integration.id, {}, signToken());
+      const missingIntegration = await putSdxAllowedAccess(999999, { resourceServers: [] }, signToken());
+
+      expect(approval.status).toBe(422);
+      expect(unauthenticated.status).toBe(401);
+      expect(missingSelection.status).toBe(422);
+      expect(missingIntegration.status).toBe(422);
+      expect(getAdminClient).not.toHaveBeenCalled();
+      expect(
+        await models.event.findOne({ where: { requestId: integration.id, eventCode: 'sdx-access-request-update' } }),
+      ).toBeNull();
+    });
+
     it('Fails when SDX is not enabled for the integration', async () => {
       const integration = await buildSdxIntegration('sdx-approval-disabled', { sdxEnabled: false });
 
@@ -1329,22 +1910,26 @@ describe('SDX APIs', () => {
       ).toBeNull();
     });
 
-    it('Fails when the integration is not applied yet', async () => {
-      const integration = await buildSdxIntegration('sdx-approval-not-applied', { status: 'submitted' });
+    it.each(['submitted', 'planned', 'planFailed', 'applyFailed'])(
+      'asks SDX to retry an approval while the integration is %s',
+      async (status) => {
+        const integration = await buildSdxIntegration(`sdx-approval-${status}`, { status });
+        const approval = approvalPayload(NON_PRODUCTION_ENV, ['patient.read']);
 
-      const result = await putSdxAllowedAccess(
-        integration.id,
-        approvalPayload(NON_PRODUCTION_ENV, ['patient.read']),
-        signToken(),
-      );
+        const result = await putSdxAllowedAccess(integration.id, approval, signToken());
 
-      expect(result.status).toBe(422);
-      expect(result.body.message).toBe(`Integration with ID ${integration.id} is not in applied state`);
-      expect(getAdminClient).not.toHaveBeenCalled();
-      expect(
-        await models.event.findOne({ where: { requestId: integration.id, eventCode: 'sdx-access-request-update' } }),
-      ).toBeNull();
-    });
+        expect(result.status).toBe(503);
+        expect(result.body.message).toBe(`Integration with ID ${integration.id} is not in applied state`);
+        expect(getAdminClient).not.toHaveBeenCalled();
+        expect(
+          await models.event.findOne({ where: { requestId: integration.id, eventCode: 'sdx-access-request-update' } }),
+        ).toBeNull();
+
+        await models.request.update({ status: 'applied' }, { where: { id: integration.id } });
+        expect((await putSdxAllowedAccess(integration.id, approval, signToken())).status).toBe(200);
+        expect(keycloak.addOptionalClientScope).toHaveBeenCalled();
+      },
+    );
 
     it('Does not fail when the keycloak client cannot be found in one of the environments', async () => {
       const integration = await buildSdxIntegration('sdx-approval-missing-client');

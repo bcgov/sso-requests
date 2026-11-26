@@ -82,10 +82,23 @@ A batch parent ends `success` only if every child did, with `details.total`, `su
 
 ### SDX
 
-| Action                      | Meaning                                                                                                                                          |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `sdx-request-create`        | An access request was submitted to SDX; the success row carries its `submissionId`. An empty `services.resourceServers` revokes all access.      |
-| `sdx-access-request-update` | SDX called back with an approval and the client scopes were updated (`system: sdx-callback`). An empty `resourceServers` removes all SDX scopes. |
+| Action                      | Meaning                                                                                                                                                                                                                                      |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sdx-request-create`        | The workflow engine submitted an access request to SDX; the success row carries its `submissionId`. An empty `services.resourceServers` revokes all access, including on integration deletion. Retries may produce multiple operation pairs. |
+| `sdx-access-request-update` | SDX called back with an approval and the client scopes were updated (`system: sdx-callback`). An empty `resourceServers` removes all SDX scopes.                                                                                             |
+
+An empty callback for an archived integration is acknowledged without touching Keycloak or writing an audit event.
+SDX selections are validated against the catalog before an integration update is saved and enqueued. The workflow and
+its retries submit that validated snapshot without rechecking the catalog, even if the catalog changes afterward.
+Approval callbacks received while an integration workflow is in flight or awaiting resubmission return HTTP 503 for
+SDX to retry; no scope changes or audit events are written until the integration is applied.
+For each non-revocation submission, scope reconciliation checks registration with SDX before removing scopes, including
+when no earlier submission was recorded locally. A failed registration check is retried by the workflow.
+An unfinished revoke-all is carried into a later submission while SDX remains disabled, including after a workflow
+failure or replacement of a queued submission.
+Deletion is blocked when revocation is needed but the SDX feature is disabled. A previously accepted revoke is not
+repeated unless there is a later SDX access submission or unfinished access workflow; acceptance does not mean the
+callback has arrived.
 
 ### Teams
 

@@ -262,10 +262,14 @@ export const claimWorkflow = async (requestWorkflowId: string | null = null): Pr
 export const getWorkflow = async (requestWorkflowId: string): Promise<WorkflowRecord | null> =>
   toPlain<WorkflowRecord>(await models.requestWorkflow.findOne({ where: { id: requestWorkflowId } }));
 
-export const getWorkflowSteps = async (requestWorkflowId: string): Promise<WorkflowStepRecord[]> => {
+export const getWorkflowSteps = async (
+  requestWorkflowId: string,
+  transaction?: Transaction,
+): Promise<WorkflowStepRecord[]> => {
   const steps = await models.requestWorkflowStep.findAll({
     where: { requestWorkflowId },
     order: [['sequence', 'ASC']],
+    transaction,
   });
 
   return steps.map((step: any) => toPlain<WorkflowStepRecord>(step)!);
@@ -294,6 +298,50 @@ export const getLatestWorkflowForRequest = async (requestId: number): Promise<Wo
     await models.requestWorkflow.findOne({
       where: { requestId },
       order: [workflowPriorityOrder, ['createdAt', 'DESC']],
+    }),
+  );
+
+export const getWorkflowForResubmission = async (
+  requestId: number,
+  transaction: Transaction,
+): Promise<WorkflowRecord | null> => {
+  // Match createWorkflow's lock order; the queued workflow holds the newest desired SDX selection.
+  const active = await models.requestWorkflow.findOne({
+    where: { requestId, state: { [Op.in]: CLAIMABLE_WORKFLOW_STATES } },
+    transaction,
+    lock: transaction.LOCK.UPDATE,
+  });
+  const queued = await models.requestWorkflow.findOne({
+    where: { requestId, state: WorkflowState.QUEUED },
+    transaction,
+    lock: transaction.LOCK.UPDATE,
+  });
+  if (queued || active) return toPlain<WorkflowRecord>(queued || active);
+
+  return toPlain<WorkflowRecord>(
+    await models.requestWorkflow.findOne({
+      where: { requestId },
+      order: [['createdAt', 'DESC']],
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    }),
+  );
+};
+
+export const getLatestSdxWorkflowForRequest = async (
+  requestId: number,
+  transaction: Transaction,
+): Promise<WorkflowRecord | null> =>
+  toPlain<WorkflowRecord>(
+    await models.requestWorkflow.findOne({
+      where: {
+        requestId,
+        state: { [Op.ne]: WorkflowState.SUPERSEDED },
+        [Op.and]: [sequelize.where(sequelize.literal(`"context"->>'sdx'`), { [Op.ne]: null })],
+      },
+      order: [['createdAt', 'DESC']],
+      transaction,
+      lock: transaction.LOCK.UPDATE,
     }),
   );
 

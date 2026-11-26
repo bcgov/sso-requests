@@ -99,10 +99,12 @@ import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
 import { hasAppPermission, appPermissions, commonPermissionsForAppRoles } from '@app/utils/authorize';
 import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
-import { createSdxRequest, isSdxRevokeAll } from './sdx-services';
+import { isSdxRevokeAll, validateSdxRequest } from './sdx-services';
 import { getEntraClientByRequestId, saveEntraClient } from '@app/queries/entra-client';
 import { audit } from '@app/queries/event';
 import { EnqueueResult, enqueueRequestWorkflow, executeEnqueuedWorkflow } from '@app/workflow/request-workflow';
+import { getLatestSdxWorkflowForRequest, getWorkflowForResubmission, getWorkflowSteps } from '@app/workflow/store';
+import { STEP_NAMES, StepState, WorkflowContext, WorkflowRecord, WorkflowState } from '@app/workflow/types';
 import { countApplyOutcomes, recordAdoptedSubmission, workflowEventScope } from '@app/workflow/audit';
 import { KeyCredential } from '@microsoft/microsoft-graph-types';
 import { createPS256Key, getActivePS256KeyCert } from '@app/keycloak/keys';
@@ -449,24 +451,26 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     userAttributes += ',email_verified';
   }
 
-  for (const mapper of bcscClientScopeMappers) {
-    const mapperExists = await getClientScopeMapper({
-      environment: env,
-      scopeId: clientScope?.id as string,
-      mapperName: mapper.name,
-    });
+  await Promise.all(
+    bcscClientScopeMappers.map(async (mapper) => {
+      const mapperExists = await getClientScopeMapper({
+        environment: env,
+        scopeId: clientScope?.id as string,
+        mapperName: mapper.name,
+      });
 
-    const customConfig = getBCSCClientScopeMapper(mapper.name, integration.protocol!, mapper.type, userAttributes);
-    const clientScopeMapperPayload = {
-      environment: env,
-      realmName: 'standard',
-      scopeName: clientScope?.name,
-      ...customConfig,
-    };
+      const customConfig = getBCSCClientScopeMapper(mapper.name, integration.protocol!, mapper.type, userAttributes);
+      const clientScopeMapperPayload = {
+        environment: env,
+        realmName: 'standard',
+        scopeName: clientScope?.name,
+        ...customConfig,
+      };
 
-    if (!mapperExists) await createClientScopeMapper({ ...clientScopeMapperPayload } as any);
-    else await updateClientScopeMapper({ ...clientScopeMapperPayload, id: mapperExists?.id } as any);
-  }
+      if (!mapperExists) await createClientScopeMapper({ ...clientScopeMapperPayload } as any);
+      else await updateClientScopeMapper({ ...clientScopeMapperPayload, id: mapperExists?.id } as any);
+    }),
+  );
 };
 
 export const deleteBCSCIntegration = async (request: BCSCClientParameters, keycoakClientId: string) => {
@@ -521,6 +525,23 @@ export const usesBCSCIntegration = async (request: BCSCClientParameters, keycoak
   return false;
 };
 
+const getPendingSdxRevoke = async (
+  requestId: number,
+  transaction: Transaction,
+  previousWorkflow: WorkflowRecord | null,
+): Promise<WorkflowContext['sdx']> => {
+  const workflow = previousWorkflow?.context.sdx
+    ? previousWorkflow
+    : await getLatestSdxWorkflowForRequest(requestId, transaction);
+  if (!workflow?.context.sdx?.revokeAll) return undefined;
+
+  const step = (await getWorkflowSteps(workflow.id, transaction)).find(
+    (candidate) => candidate.name === STEP_NAMES.SDX_SUBMIT,
+  );
+  if (!step) throw new Error(`SDX revoke workflow ${workflow.id} has no SDX submission step`);
+  return step.state === StepState.COMPLETED ? undefined : workflow.context.sdx;
+};
+
 export const updateRequest = async (
   session: Session,
   data: IntegrationData,
@@ -530,6 +551,7 @@ export const updateRequest = async (
   // let's skip this logic for now and see if we might need it back later
   // await checkIfHasFailedRequests();
   let addingProd = false;
+  let sdx: WorkflowContext['sdx'];
   const { id, comment, ...rest } = data;
   const isMerged = await checkIfRequestMerged(id!);
 
@@ -637,16 +659,38 @@ export const updateRequest = async (
         const holder = await getAnyIntegrationByClientId(current.clientId);
         if (holder && holder.id !== current.id) refuse();
 
-        for (const environment of current.environments) {
-          const existingKeycloakClient = await fetchClient({
-            serviceType: 'gold',
-            realmName: 'standard',
-            environment,
-            clientId: current.clientId,
-          });
-          if (existingKeycloakClient) refuse();
+        const existingKeycloakClients = await Promise.all(
+          current.environments.map((environment: string) =>
+            fetchClient({
+              serviceType: 'gold',
+              realmName: 'standard',
+              environment,
+              clientId: current.clientId,
+            }),
+          ),
+        );
+        if (existingKeycloakClients.some(Boolean)) refuse();
+      }
+
+      // SDX related operations
+      if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true') {
+        const revokeAll = isSdxRevokeAll(originalData, current);
+        if (revokeAll || (usesSdxServices(current) && current?.sdxServices)) {
+          const resourceServers = revokeAll ? [] : await validateSdxRequest(current);
+          sdx = {
+            requesterId: session.user?.id || 0,
+            request: {
+              id: current.id,
+              clientId: current.clientId,
+              bcscPrivacyZone: current.bcscPrivacyZone,
+              status: current.status,
+            },
+            revokeAll,
+            resourceServers,
+          };
         }
       }
+
       current.status = TRANSITIONS.submit.to;
       let environments = current.environments.concat();
 
@@ -693,7 +737,16 @@ export const updateRequest = async (
       }
 
       if (submit) {
-        enqueued = await enqueueIntegrationWorkflow(saved, { existingClientId, addingProd, details }, transaction);
+        let workflowSdx = sdx;
+        if (!workflowSdx && !saved.sdxEnabled) {
+          const previousWorkflow = await getWorkflowForResubmission(id!, transaction);
+          workflowSdx = await getPendingSdxRevoke(id!, transaction, previousWorkflow);
+        }
+        enqueued = await enqueueIntegrationWorkflow(
+          saved,
+          { existingClientId, addingProd, details, sdx: workflowSdx },
+          transaction,
+        );
       }
       return saved;
     });
@@ -704,12 +757,6 @@ export const updateRequest = async (
       const refreshed = await authorizeIntegration(session, id!, 'integrations:read');
       if (!refreshed) throw new Error('Request not found');
       updated = refreshed.integration;
-
-      // SDX related operations
-      if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true') {
-        if (isSdxRevokeAll(originalData, updated)) await createSdxRequest(session, updated, { revokeAll: true });
-        else if (usesSdxServices(updated) && updated?.sdxServices) await createSdxRequest(session, updated);
-      }
     }
 
     return updated.get({ plain: true });
@@ -741,7 +788,16 @@ export const resubmitRequest = async (session: Session, id: number) => {
     const updated = await sequelize.transaction(async (transaction) => {
       const saved = await current.save({ transaction });
       if (!saved) throw new createHttpError.UnprocessableEntity('update failed');
-      enqueued = await enqueueIntegrationWorkflow(getCurrentValue(), {}, transaction);
+      const previousWorkflow = await getWorkflowForResubmission(id, transaction);
+      const previousSteps = previousWorkflow?.context.sdx
+        ? await getWorkflowSteps(previousWorkflow.id, transaction)
+        : [];
+      const sdxStep = previousSteps.find((step) => step.name === STEP_NAMES.SDX_SUBMIT);
+      let sdx = sdxStep && sdxStep.state !== StepState.COMPLETED ? previousWorkflow?.context.sdx : undefined;
+      if (!sdx && !saved.sdxEnabled) {
+        sdx = await getPendingSdxRevoke(id, transaction, previousWorkflow);
+      }
+      enqueued = await enqueueIntegrationWorkflow(getCurrentValue(), { sdx }, transaction);
       return saved;
     });
     await runIntegrationWorkflow(enqueued);
@@ -894,7 +950,6 @@ export const getRequests = async (session: Session, user: User, include: string 
 
   if (include === 'archived') where.archived = true;
   else if (include === 'active') where.archived = false;
-
   const requests = await models.request.findAll({
     where,
     include: [
@@ -937,12 +992,45 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
       return result.get({ plain: true });
     }
 
-    current.status = transition.to;
-
     let enqueued: EnqueuedIntegrationWorkflow;
     const result = await sequelize.transaction(async (transaction) => {
+      const previous = await getWorkflowForResubmission(id, transaction);
+      const latestSdx = previous?.context.sdx ? previous : await getLatestSdxWorkflowForRequest(id, transaction);
+      const lastSubmission = await models.SdxRequest.findOne({
+        where: { request_id: id },
+        order: [['id', 'DESC']],
+        transaction,
+        raw: true,
+      });
+      const resourceServers = lastSubmission?.access_request?.resourceServers;
+      const acceptedRevoke = Array.isArray(resourceServers) && resourceServers.length === 0;
+      const laterAccess =
+        latestSdx?.context.sdx &&
+        !latestSdx.context.sdx.revokeAll &&
+        (!lastSubmission ||
+          new Date(latestSdx.updatedAt) >= new Date(lastSubmission.createdAt) ||
+          [WorkflowState.PENDING, WorkflowState.RUNNING, WorkflowState.QUEUED].includes(latestSdx.state));
+      const needsRevoke =
+        laterAccess || (!acceptedRevoke && (current.sdxEnabled || lastSubmission || latestSdx?.context.sdx));
+      if (needsRevoke && process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES !== 'true') {
+        throw new createHttpError.Conflict('SDX must be enabled to revoke access before deleting this integration');
+      }
+      const sdx: WorkflowContext['sdx'] = needsRevoke
+        ? {
+            requesterId: session.user?.id || 0,
+            request: {
+              id: current.id,
+              clientId: current.clientId,
+              bcscPrivacyZone: current.bcscPrivacyZone,
+              status: current.status,
+            },
+            revokeAll: true,
+            resourceServers: [],
+          }
+        : undefined;
+      current.status = transition.to;
       const saved = await current.save({ transaction });
-      enqueued = await enqueueIntegrationWorkflow(saved, {}, transaction);
+      enqueued = await enqueueIntegrationWorkflow(saved, { sdx }, transaction);
       return saved;
     });
     await runIntegrationWorkflow(enqueued);
@@ -1079,6 +1167,7 @@ export interface IntegrationWorkflowOptions {
   awaitCompletion?: boolean;
   /** Recorded on the operation's `requested` audit event. */
   details?: Record<string, unknown>;
+  sdx?: WorkflowContext['sdx'];
 }
 
 export type EnqueuedIntegrationWorkflow = (EnqueueResult & { operationId: string }) | undefined;
@@ -1108,6 +1197,7 @@ export const enqueueIntegrationWorkflow = async (
       addingProd: options.addingProd,
       awaitCompletion: options.awaitCompletion,
       correlationId: operationId,
+      sdx: options.sdx,
     },
     transaction,
   );

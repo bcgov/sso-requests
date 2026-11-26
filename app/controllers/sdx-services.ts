@@ -6,11 +6,13 @@ import { authorizeIntegration } from '@app/queries/integrationAccess';
 import { audit } from '@app/queries/event';
 import { getAdminClient } from '@app/keycloak/adminClient';
 import { getClientScopes } from '@app/keycloak/clientScopes';
-import { createSdxAccessRequest } from '@app/queries/sdx-services';
+import { createSdxAccessRequest, isArchivedSdxIntegration } from '@app/queries/sdx-services';
 import { Integration } from '@app/interfaces/Request';
 import { getUserById } from '@app/queries/user';
 import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
 import { SDX_ENVIRONMENTS } from '@app/utils/constants';
+import { TRANSITIONS } from '@app/helpers/transitions';
+import type { SdxWorkflowRequest } from '@app/workflow/types';
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
 
 import { logger } from '@app/utils/logger';
@@ -59,10 +61,18 @@ export const getSdxServicesForClient = async (
   if (!authorized) throw new Error('Request not found');
   const { integration: current } = authorized;
 
+  return getSdxServices(requestId, current.clientId, status);
+};
+
+const getSdxServices = async (
+  requestId: number,
+  clientId: string,
+  status: string,
+): Promise<{ clientId: string; resourceServers: SDXResourceServer[] }> => {
   const envs = getSdxEnvironments();
 
   const data = {
-    clientId: current.clientId,
+    clientId,
     resourceServers: [] as SDXResourceServer[],
   };
 
@@ -71,9 +81,7 @@ export const getSdxServicesForClient = async (
     const resourceServersByEnvironment = await Promise.all(
       Object.values(envs).map((env) =>
         fetch(
-          `${process.env.SDX_API || ''}/integrations/${
-            current?.id
-          }/allowed-services?environment=${env}&status=${status}`,
+          `${process.env.SDX_API || ''}/integrations/${requestId}/allowed-services?environment=${env}&status=${status}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -336,20 +344,28 @@ export const isSdxRevokeAll = (original: Integration, current: Integration) =>
   Array.isArray(current.sdxServices?.resourceServers) &&
   current.sdxServices.resourceServers.length === 0;
 
-export const createSdxRequest = async (session: Session, request: Integration, { revokeAll = false } = {}) => {
-  // Rejected before anything is sent to SDX or recorded, so a bad request leaves no audit row.
-  let resourceServers: SDXResourceServer[] = [];
-  if (!revokeAll) {
-    if (!request.sdxServices) throw new createHttpError.BadRequest('SDX services cannot be empty');
-    if ((request.sdxServices.resourceServers || []).length === 0) {
-      throw new createHttpError.BadRequest('SDX resource servers cannot be empty');
-    }
-    resourceServers = await validateSdxResourceServers(request.sdxServices.resourceServers);
-    if (resourceServers.length === 0) throw new createHttpError.BadRequest('SDX resource servers cannot be empty');
+export const validateSdxRequest = async (request: Integration): Promise<SDXResourceServer[]> => {
+  if (!request.sdxServices) throw new createHttpError.BadRequest('SDX services cannot be empty');
+  if ((request.sdxServices.resourceServers || []).length === 0) {
+    throw new createHttpError.BadRequest('SDX resource servers cannot be empty');
   }
+  const resourceServers = await validateSdxResourceServers(request.sdxServices.resourceServers);
+  if (resourceServers.length === 0) throw new createHttpError.BadRequest('SDX resource servers cannot be empty');
+  return resourceServers;
+};
 
+export const createSdxRequest = async (session: Session, request: Integration, { revokeAll = false } = {}) => {
+  const resourceServers = revokeAll ? [] : await validateSdxRequest(request);
+  return submitSdxRequest(session.user?.id || 0, request, { revokeAll, resourceServers });
+};
+
+export const submitSdxRequest = async (
+  requesterId: number,
+  request: SdxWorkflowRequest,
+  { revokeAll, resourceServers }: { revokeAll: boolean; resourceServers: SDXResourceServer[] },
+) => {
   try {
-    const user = await getUserById(session.user?.id || 0, { raw: true });
+    const user = await getUserById(requesterId, { raw: true });
 
     const privacyZoneUri = await getPrivacyZoneURI('prod', request.bcscPrivacyZone || '');
     const sdxRequestData = {
@@ -403,13 +419,12 @@ export const createSdxRequest = async (session: Session, request: Integration, {
 
     await initializeScopes(resourceServers);
 
-    // If the request is already applied, we need to check for removed scopes and remove them from Keycloak.
-    // A revoke-all leaves that to the SDX callback, which arrives with an empty selection.
-    if (request.status === 'applied' && !revokeAll) {
+    // A revoke-all leaves scope removal to the SDX callback, which arrives with an empty selection.
+    if (!revokeAll) {
       const subSystem = await getSdxSubsystemStatus(request.id!);
 
       if (subSystem?.status === 'registered') {
-        const existingSdxAccess = await getSdxServicesForClient(session, request.id!, 'approved');
+        const existingSdxAccess = await getSdxServices(request.id!, request.clientId || '', 'approved');
         const removedScopesByEnv = getRemovedScopes(existingSdxAccess.resourceServers, resourceServers);
         await Promise.all(
           Object.entries(removedScopesByEnv).map(([sdxEnvironment, scopes]) =>
@@ -494,6 +509,7 @@ const keycloakSyncScopes = async (environment: string, realmName: string, scopes
 };
 
 export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAccessRequest) => {
+  const revokeAll = Array.isArray(data.resourceServers) && data.resourceServers.length === 0;
   const integrationData = await getIntegrationById(requestId, [
     'id',
     'environments',
@@ -503,10 +519,13 @@ export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAcce
   ]);
 
   if (!integrationData) {
+    if (revokeAll && (await isArchivedSdxIntegration(requestId))) {
+      // The archived client ID may now belong to another integration.
+      log.info({ requestId }, 'acknowledged SDX revoke-all callback for archived integration');
+      return;
+    }
     throw new Error(`Integration with ID ${requestId} not found`);
   }
-
-  const revokeAll = Array.isArray(data.resourceServers) && data.resourceServers.length === 0;
 
   // The callback for a revoke-all arrives after the integration has turned SDX off.
   if (!integrationData.sdxEnabled && !revokeAll) {
@@ -515,6 +534,9 @@ export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAcce
 
   // allow revoke-all even if the integration is not in applied state
   if (integrationData.status !== 'applied' && !revokeAll) {
+    if (TRANSITIONS.resubmit.from.includes(integrationData.status)) {
+      throw new createHttpError.ServiceUnavailable(`Integration with ID ${requestId} is not in applied state`);
+    }
     throw new Error(`Integration with ID ${requestId} is not in applied state`);
   }
 

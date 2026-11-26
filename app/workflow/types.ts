@@ -1,4 +1,5 @@
-import { IntegrationData } from '@app/shared/interfaces';
+import { IntegrationData, SDXResourceServer } from '@app/shared/interfaces';
+import type { Status } from '@app/interfaces/types';
 
 /**
  * Lifecycle of a workflow instance. Every value is persisted; the orchestrator never keeps workflow
@@ -52,9 +53,17 @@ export const STEP_NAMES = {
   PLAN: 'PLAN',
   APPLY_ENVIRONMENT: (env: string) => `APPLY_${env.toUpperCase()}`,
   RESTORE_ROLES: 'RESTORE_ROLES',
+  SDX_SUBMIT: 'SDX_SUBMIT',
   NOTIFY: 'NOTIFY',
   FINALIZE: 'FINALIZE',
 };
+
+export interface SdxWorkflowRequest {
+  id?: number;
+  clientId?: string;
+  bcscPrivacyZone?: string;
+  status?: Status;
+}
 
 /**
  * Immutable snapshot the workflow was created with. Persisted as JSONB so a different pod can rebuild
@@ -66,6 +75,12 @@ export interface WorkflowContext {
   restore: boolean;
   addingProd: boolean;
   existingClientId: string;
+  sdx?: {
+    requesterId: number;
+    request: SdxWorkflowRequest;
+    revokeAll: boolean;
+    resourceServers: SDXResourceServer[];
+  };
 }
 
 export interface WorkflowRecord {

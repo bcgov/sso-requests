@@ -14,14 +14,14 @@ const CHAT_PROXY =
 
 export const AUDIT_COVERAGE: Record<string, CoverageEntry> = {
   // Integrations
-  'PUT /api/requests': { actions: ['request-create', 'request-update'] },
-  'DELETE /api/requests': { actions: ['request-delete'] },
+  'PUT /api/requests': { actions: ['request-create', 'request-update', 'sdx-request-create'] },
+  'DELETE /api/requests': { actions: ['request-delete', 'sdx-request-create'] },
   'POST /api/requests': {
     unaudited:
       'Creates a draft, which reaches nothing outside the app until it is submitted (PUT /api/requests?submit). A refusal at the daily limit is recorded as request-limit-reached.',
   },
   'POST /api/requests/[id]/restore': { actions: ['request-restore'] },
-  'GET /api/requests/[id]/resubmit': { actions: ['request-update'] },
+  'GET /api/requests/[id]/resubmit': { actions: ['request-update', 'sdx-request-create'] },
   'GET /api/requests/[id]/logs': { actions: ['logs-download'] },
   'PUT /api/request-metadata': { actions: ['request-status-update'] },
   'PUT /api/requests/[id]/sdx-allowed-access': { actions: ['sdx-access-request-update'] },

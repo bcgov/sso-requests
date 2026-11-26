@@ -1,5 +1,6 @@
 import { models } from '@app/shared/sequelize/models/models';
 import { keycloakClient } from '@app/keycloak/integration';
+import { submitSdxRequest } from '@app/controllers/sdx-services';
 import { recordWorkflowEvent } from '../audit';
 import {
   RolesSnapshot,
@@ -9,7 +10,14 @@ import {
   updatePlannedIntegration,
 } from '../effects';
 import { updateStep } from '../store';
-import { WorkflowRecord, WorkflowStepDefinition, WorkflowType, STEP_NAMES, TransientStepError } from '../types';
+import {
+  WorkflowContext,
+  WorkflowRecord,
+  WorkflowStepDefinition,
+  WorkflowType,
+  STEP_NAMES,
+  TransientStepError,
+} from '../types';
 
 const ENVIRONMENT_ORDER = ['dev', 'test', 'prod'];
 
@@ -77,6 +85,18 @@ const restoreRolesStep = (workflow: WorkflowRecord): WorkflowStepDefinition => (
   },
 });
 
+const sdxSubmitStep = (sdx: NonNullable<WorkflowContext['sdx']>): WorkflowStepDefinition => ({
+  name: STEP_NAMES.SDX_SUBMIT,
+  label: sdx.revokeAll ? 'Revoking SDX access' : 'Submitting SDX access request',
+  execute: async () => {
+    await submitSdxRequest(sdx.requesterId, sdx.request, {
+      revokeAll: sdx.revokeAll,
+      resourceServers: sdx.resourceServers,
+    });
+    return { submitted: true };
+  },
+});
+
 const finalizeStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
   name: STEP_NAMES.FINALIZE,
   label: 'Finalizing integration',
@@ -115,6 +135,7 @@ export const buildIntegrationWorkflowSteps = (workflow: WorkflowRecord): Workflo
   orderedEnvironments(workflow).forEach((environment) => steps.push(applyEnvironmentStep(workflow, environment)));
 
   if (workflow.type === WorkflowType.INTEGRATION_RESTORE) steps.push(restoreRolesStep(workflow));
+  if (workflow.context.sdx) steps.push(sdxSubmitStep(workflow.context.sdx));
 
   steps.push(finalizeStep(workflow), notifyStep(workflow));
 

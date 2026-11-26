@@ -21,6 +21,7 @@ import * as EffectsModule from '@app/workflow/effects';
 import { models, sequelize } from '@app/shared/sequelize/models/models';
 import { userActor, withActor } from '@sso/audit/server';
 import { enqueueIntegrationWorkflow } from '@app/controllers/requests';
+import * as SdxModule from '@app/controllers/sdx-services';
 
 jest.mock('@app/keycloak/adminClient');
 
@@ -273,6 +274,78 @@ describe('Request workflow - retries and dead lettering', () => {
 
   afterAll(async () => {
     await cleanUpDatabaseTables();
+  });
+
+  it('persists SDX submission and retries it without repeating completed Keycloak steps', async () => {
+    const kc = jest.spyOn(IntegrationModule, 'keycloakClient').mockResolvedValue(true);
+    const sdx = jest.spyOn(SdxModule, 'submitSdxRequest').mockRejectedValueOnce(new Error('SDX unavailable'));
+    sdx.mockResolvedValueOnce({ success: true, message: 'submitted', data: { requestId: 1, resourceServers: [] } });
+    const request = await generateRequest(formDataProd);
+    const sdxContext = {
+      requesterId: 42,
+      request: {
+        id: request.id,
+        clientId: 'client',
+      },
+      revokeAll: false,
+      resourceServers: [
+        {
+          id: 'resource-server',
+          environment: 'test',
+          services: [{ name: 'service', version: 'v1', scopes: ['read'] }],
+        },
+      ],
+    };
+    const { workflowId } = await enqueueRequestWorkflow({ ...formDataProd, id: request.id }, { sdx: sdxContext });
+
+    expect((await getWorkflowForRequest(request.id)).context.sdx).toEqual(sdxContext);
+    expect(sdx).not.toHaveBeenCalled();
+    await runWorkflow(workflowId);
+    expect((await getWorkflowStep(workflowId, 'SDX_SUBMIT')).state).toBe('FAILED');
+    expect(kc).toHaveBeenCalledTimes(3);
+
+    await drainWorkflows();
+    const step = await getWorkflowStep(workflowId, 'SDX_SUBMIT');
+    expect(step.state).toBe('COMPLETED');
+    expect(step.attempts).toBe(2);
+    expect(sdx).toHaveBeenCalledWith(42, sdxContext.request, {
+      revokeAll: false,
+      resourceServers: sdxContext.resourceServers,
+    });
+    expect(kc).toHaveBeenCalledTimes(3);
+    expect((await getWorkflowForRequest(request.id)).state).toBe('COMPLETED');
+    kc.mockRestore();
+    sdx.mockRestore();
+  });
+
+  it('retries SDX revocation after deleting Keycloak clients without repeating their deletion', async () => {
+    const kc = jest.spyOn(IntegrationModule, 'keycloakClient').mockResolvedValue(true);
+    const sdx = jest.spyOn(SdxModule, 'submitSdxRequest').mockRejectedValueOnce(new Error('SDX unavailable'));
+    sdx.mockResolvedValueOnce({ success: true, message: 'revoked', data: { requestId: 1, resourceServers: [] } });
+    const request = await generateRequest(formDataProd);
+    const sdxContext = {
+      requesterId: 42,
+      request: { id: request.id, clientId: 'client' },
+      revokeAll: true,
+      resourceServers: [],
+    };
+    const { workflowId } = await enqueueRequestWorkflow(
+      { ...formDataProd, id: request.id, archived: true },
+      { sdx: sdxContext },
+    );
+
+    await runWorkflow(workflowId);
+    expect((await getWorkflowStep(workflowId, 'SDX_SUBMIT')).state).toBe('FAILED');
+    expect(kc.mock.calls.map(([environment]) => environment)).toEqual(['dev', 'test', 'prod']);
+    expect(kc.mock.invocationCallOrder[2]).toBeLessThan(sdx.mock.invocationCallOrder[0]);
+
+    await drainWorkflows();
+    expect((await getWorkflowStep(workflowId, 'SDX_SUBMIT')).attempts).toBe(2);
+    expect((await getWorkflowForRequest(request.id)).state).toBe('COMPLETED');
+    expect(kc).toHaveBeenCalledTimes(3);
+    expect(sdx).toHaveBeenCalledWith(42, sdxContext.request, { revokeAll: true, resourceServers: [] });
+    kc.mockRestore();
+    sdx.mockRestore();
   });
 
   it('Retries a failing step with backoff before giving up', async () => {

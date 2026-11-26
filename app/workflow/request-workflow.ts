@@ -35,6 +35,7 @@ export interface EnqueueOptions {
    * client to exist before it returns (team API service accounts). */
   awaitCompletion?: boolean;
   correlationId?: string;
+  sdx?: WorkflowContext['sdx'];
 }
 
 export interface EnqueueResult {
@@ -106,6 +107,7 @@ export const enqueueRequestWorkflow = async (
     restore,
     addingProd: options.addingProd === true,
     existingClientId: options.existingClientId || '',
+    sdx: options.sdx,
   };
 
   const log = createWorkflowLogger({ correlationId, requestId, workflowType: type });
