@@ -3,7 +3,8 @@ import createHttpError from 'http-errors';
 import { isEqual, isPlainObject, sortBy } from 'lodash';
 import { models } from '@app/shared/sequelize/models/models';
 import { IntegrationAccess } from '@app/queries/integrationAccess';
-import { Intent, TRANSITIONS, transitionRefusal } from '@app/helpers/transitions';
+import { Intent, TRANSITIONS, isInFlight, transitionRefusal } from '@app/helpers/transitions';
+import { IntegrationBusyError } from '@app/workflow/types';
 import { oidcDurationAdditionalFields, samlDurationAdditionalFields } from '@app/schemas';
 import { environments } from '@app/utils/constants';
 import { restrictedIdpsAdded } from '@app/utils/helpers';
@@ -207,8 +208,9 @@ export const authorizeChanges = (
  * Whether the actor may move the row through this transition from its current
  * status. Together with authorizeChanges this is the authorization for a
  * lifecycle request: the controller's integrations:read gate only decides
- * whether the row exists for this actor. Throws a 400 when the status does
- * not admit the transition and a 403 when the actor lacks the permission.
+ * whether the row exists for this actor. Throws IntegrationBusyError while a
+ * workflow owns the row, a 400 when the status does not otherwise admit the
+ * transition and a 403 when the actor lacks the permission.
  */
 export const authorizeTransition = (
   integration: { status: string; archived?: boolean },
@@ -217,6 +219,7 @@ export const authorizeTransition = (
 ) => {
   const refusal = transitionRefusal(integration.status, intent, access.permissions);
   if (!refusal) return TRANSITIONS[intent];
+  if (refusal.reason === 'status' && isInFlight(refusal.from)) throw new IntegrationBusyError();
   if (refusal.reason === 'status')
     throw new createHttpError.BadRequest(`cannot ${intent} an integration in status ${refusal.from}`);
   throw new createHttpError.Forbidden(`not allowed to ${intent} this integration`);

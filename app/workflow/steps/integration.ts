@@ -101,7 +101,8 @@ const finalizeStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
   name: STEP_NAMES.FINALIZE,
   label: 'Finalizing integration',
   execute: async () => {
-    // The operation's terminal outcome. NOTIFY after it is best effort and cannot change it.
+    // The operation's terminal outcome. Last, so the integration reads as applied only once the workflow
+    // has nothing left to do and new submissions are accepted again.
     await recordWorkflowEvent(workflow, { outcome: 'success' });
     await setRequestStatus(workflow.requestId, 'applied');
     return { finalized: true };
@@ -111,7 +112,7 @@ const finalizeStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
 const notifyStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
   name: STEP_NAMES.NOTIFY,
   label: 'Sending notifications',
-  // FINALIZE already applied the integration, so an unreachable mail server must not fail the workflow.
+  // Keycloak is already applied, so an unreachable mail server must not fail the workflow.
   optional: true,
   execute: async () => {
     if (workflow.type === WorkflowType.INTEGRATION_RESTORE) {
@@ -137,7 +138,7 @@ export const buildIntegrationWorkflowSteps = (workflow: WorkflowRecord): Workflo
   if (workflow.type === WorkflowType.INTEGRATION_RESTORE) steps.push(restoreRolesStep(workflow));
   if (workflow.context.sdx) steps.push(sdxSubmitStep(workflow.context.sdx));
 
-  steps.push(finalizeStep(workflow), notifyStep(workflow));
+  steps.push(notifyStep(workflow), finalizeStep(workflow));
 
   return steps;
 };

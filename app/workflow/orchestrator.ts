@@ -315,7 +315,7 @@ const runNextStep = async (
 
     if (permanent || exhausted) {
       if (definition.optional) {
-        // The integration is already applied at this point; losing a notification must not undo that.
+        // Keycloak is already applied at this point; losing a notification must not undo that.
         await updateStep(step.id, { state: StepState.SKIPPED, lastError: message, completedAt: new Date() });
         stepLog.error('optional step gave up, continuing workflow', { state: StepState.SKIPPED, error: message });
 

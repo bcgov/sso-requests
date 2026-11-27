@@ -40,8 +40,8 @@ export const updatePlannedIntegration = async (integration: IntegrationData, add
 
   integration = Object.assign(integration, updatedIntegration);
   if (integration.archived) return;
-  // This apply's own success is already recorded, so an update is a second one.
-  const isUpdate = (await countApplyOutcomes(integration.id as number, { successOnly: true })) > 1;
+  // NOTIFY runs before FINALIZE records this apply's success, so any earlier success makes it an update.
+  const isUpdate = (await countApplyOutcomes(integration.id as number, { successOnly: true })) > 0;
 
   if (integration.apiServiceAccount) {
     const teamIntegrations = await models.request.findAll({

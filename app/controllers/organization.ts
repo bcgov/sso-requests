@@ -541,7 +541,7 @@ export const createOrganizationApiAccount = async (session: Session, organizatio
 
     account.clientId = `service-account-org-${organizationId}-${account.id}`;
     const saved = await account.save({ transaction });
-    const enqueued = await enqueueIntegrationWorkflow(saved, { awaitCompletion: true }, transaction);
+    const enqueued = await enqueueIntegrationWorkflow(saved, {}, transaction);
     return { saved, enqueued };
   });
 
@@ -610,7 +610,7 @@ export const deleteOrganizationApiAccount = async (session: Session, organizatio
   const { saved, enqueued } = await sequelize.transaction(async (transaction) => {
     const saved = await account.save({ transaction });
     if (isMerged) {
-      return { saved, enqueued: await enqueueIntegrationWorkflow(saved, { awaitCompletion: true }, transaction) };
+      return { saved, enqueued: await enqueueIntegrationWorkflow(saved, {}, transaction) };
     }
     await audit.createEvent(
       { action: 'api-account-delete', outcome: 'success', requestId: accountId, organizationId, details: {} },

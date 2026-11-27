@@ -11,7 +11,7 @@ import { Integration } from '@app/interfaces/Request';
 import { getUserById } from '@app/queries/user';
 import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
 import { SDX_ENVIRONMENTS } from '@app/utils/constants';
-import { TRANSITIONS } from '@app/helpers/transitions';
+import { TRANSITIONS, isInFlight } from '@app/helpers/transitions';
 import type { SdxWorkflowRequest } from '@app/workflow/types';
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
 
@@ -534,7 +534,8 @@ export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAcce
 
   // allow revoke-all even if the integration is not in applied state
   if (integrationData.status !== 'applied' && !revokeAll) {
-    if (TRANSITIONS.resubmit.from.includes(integrationData.status)) {
+    // In flight or awaiting resubmission: the integration will be applied, so SDX should retry later.
+    if (isInFlight(integrationData.status) || TRANSITIONS.resubmit.from.includes(integrationData.status)) {
       throw new createHttpError.ServiceUnavailable(`Integration with ID ${requestId} is not in applied state`);
     }
     throw new Error(`Integration with ID ${requestId} is not in applied state`);

@@ -32,6 +32,7 @@ import { createMockAuth } from './mocks/authenticate';
 import { models } from '@app/shared/sequelize/models/models';
 import { deleteRequest } from '@app/controllers/requests';
 import { Session } from '@app/shared/interfaces';
+import { INTEGRATION_BUSY_MESSAGE } from '@app/helpers/transitions';
 
 jest.mock('@app/keycloak/integration', () => {
   const original = jest.requireActual('@app/keycloak/integration');
@@ -330,9 +331,9 @@ describe('authorization characterization (dev baseline)', () => {
 
   /**
    * `DELETE /api/requests?id=` -> deleteRequest. The guard is in the controller: which delete
-   * transition the row's status admits (deleteDraft, requestDelete, forceDelete) and whether the
-   * actor holds its permission. A row the actor cannot read is 404; a transition they may not
-   * take is 403.
+   * transition the row's status admits (deleteDraft, requestDelete) and whether the actor holds
+   * its permission. A row the actor cannot read is 404; a transition they may not take is 403;
+   * an integration whose workflow is still in flight is refused for everyone until it ends.
    */
   describe('delete an integration', () => {
     let deletable: number;
@@ -367,23 +368,17 @@ describe('authorization characterization (dev baseline)', () => {
       expect(res.body.archived).toBe(true);
     });
 
-    it('rejects the owner with 403 while the integration is in flight — forceDelete is not theirs', async () => {
+    it.each([
+      ['the owner', asTeamAdmin],
+      ['an sso-admin', asSsoAdmin],
+    ])('refuses %s while the integration is in flight', async (_who, as) => {
       await setStatus(deletable, 'planned');
-      asTeamAdmin();
+      as();
       const res = await deleteIntegration(deletable);
-      expect(res.status).toEqual(403);
-      expect(res.body.message).toContain('forceDelete');
-    });
-
-    /**
-     * F9: deliberate, and now a row in the transition table — `forceDelete`, gated by
-     * `integrations:delete-in-flight`, which sso-admin holds — rather than a branch around it.
-     */
-    it('F9: admits an sso-admin while the integration is in flight', async () => {
-      await setStatus(deletable, 'planned');
-      asSsoAdmin();
-      const res = await deleteIntegration(deletable);
-      expect(res.status).toEqual(200);
+      expect(res.status).toEqual(422);
+      expect(res.body.message).toEqual(INTEGRATION_BUSY_MESSAGE);
+      const stored = await models.request.findOne({ where: { id: deletable } });
+      expect(stored.archived).toBe(false);
     });
 
     /**
@@ -400,7 +395,10 @@ describe('authorization characterization (dev baseline)', () => {
         user: user.get({ plain: true }),
       } as unknown as Session;
 
-      await expect(deleteRequest(session, session.user!, deletable)).rejects.toMatchObject({ status: 403 });
+      await expect(deleteRequest(session, session.user!, deletable)).rejects.toMatchObject({
+        status: 422,
+        message: INTEGRATION_BUSY_MESSAGE,
+      });
       const stored = await models.request.findOne({ where: { id: deletable } });
       expect(stored.archived).toBe(false);
       expect(stored.status).toEqual('planned');

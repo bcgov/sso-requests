@@ -30,8 +30,9 @@ change produces the same row whichever path it came through. Rows are never upda
 - A change that calls Keycloak or SDX writes `requested` first, then exactly one of `success` or `failure`
   under the same `operation_id`. If the `requested` row cannot be written, the outside call is never made.
 - A workflow-backed change writes `requested` in the transaction that saves the integration and enqueues
-  the workflow; the workflow engine (actor `system: workflow-engine`) writes the outcome. A workflow that a
-  newer one took over ends `superseded`, with `supersededByOperationId` in `details`.
+  the workflow; the workflow engine (actor `system: workflow-engine`) writes the outcome. An integration has at
+  most one active workflow: a submission, resubmit, restore or delete made while one is in flight is refused
+  (HTTP 422) and leaves no audit row. `superseded` outcomes remain only on workflows recorded before that rule.
 - `failure` with `details.stage = 'local-sync'` means the outside call succeeded but the database write
   that mirrors it did not: Keycloak and the database disagree and need a look.
 - Requests rejected before anything changes (400, 403, 404, 409) are not audited; the request log has them. The
@@ -95,7 +96,7 @@ SDX to retry; no scope changes or audit events are written until the integration
 For each non-revocation submission, scope reconciliation checks registration with SDX before removing scopes, including
 when no earlier submission was recorded locally. A failed registration check is retried by the workflow.
 An unfinished revoke-all is carried into a later submission while SDX remains disabled, including after a workflow
-failure or replacement of a queued submission.
+failure.
 Deletion is blocked when revocation is needed but the SDX feature is disabled. A previously accepted revoke is not
 repeated unless there is a later SDX access submission or unfinished access workflow; acceptance does not mean the
 callback has arrived.

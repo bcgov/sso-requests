@@ -387,7 +387,7 @@ export const requestServiceAccount = async (session: Session, teamId: number, re
     serviceAccount.environments = ['prod']; // service accounts are by default only created in prod
     const saved = await serviceAccount.save({ transaction });
 
-    const enqueued = await enqueueIntegrationWorkflow(saved, { awaitCompletion: true }, transaction);
+    const enqueued = await enqueueIntegrationWorkflow(saved, {}, transaction);
     return { serviceAccount: saved, enqueued };
   });
 
@@ -489,7 +489,7 @@ export const deleteServiceAccount = async (session: Session, teamId: number, saI
     // Keycloak is deleted by this change alone.
     const enqueued = await sequelize.transaction(async (transaction) => {
       await serviceAccount.save({ transaction });
-      if (isMerged) return enqueueIntegrationWorkflow(serviceAccount, { awaitCompletion: true }, transaction);
+      if (isMerged) return enqueueIntegrationWorkflow(serviceAccount, {}, transaction);
       await audit.createEvent(
         { action: 'api-account-delete', outcome: 'success', requestId: saId, teamId, details: {} },
         transaction,
@@ -543,7 +543,7 @@ export const restoreTeamServiceAccount = async (session: Session, teamId: number
 
   const enqueued = await sequelize.transaction(async (transaction) => {
     const saved = await serviceAccount.save({ transaction });
-    return enqueueIntegrationWorkflow(saved, { restore: true, awaitCompletion: true }, transaction);
+    return enqueueIntegrationWorkflow(saved, { restore: true }, transaction);
   });
   assertWorkflowCompleted(await runIntegrationWorkflow(enqueued, { awaitCompletion: true }));
 

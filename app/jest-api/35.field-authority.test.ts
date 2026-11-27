@@ -8,6 +8,7 @@ import {
   changedFields,
 } from '@app/utils/requestPolicy';
 import { IN_FLIGHT, RESTING, TRANSITIONS, deleteIntentFor, transitionRefusal } from '@app/helpers/transitions';
+import { IntegrationBusyError } from '@app/workflow/types';
 import { canonicalizeArrayFields, getDifferences, normalizeRequest } from '@app/utils/helpers';
 import { Integration } from '@app/interfaces/Request';
 
@@ -325,18 +326,14 @@ describe('transitions', () => {
     expect(deleteIntentFor('draft')).toEqual('deleteDraft');
     expect(deleteIntentFor('applied')).toEqual('requestDelete');
     expect(deleteIntentFor('applyFailed')).toEqual('requestDelete');
-    expect(deleteIntentFor('planned')).toEqual('forceDelete');
-    expect(deleteIntentFor('submitted')).toEqual('forceDelete');
+    expect(deleteIntentFor('planned')).toEqual('requestDelete');
   });
 
-  it('gates the in-flight delete on its own permission, held by no team role', () => {
-    expect(TRANSITIONS.forceDelete.anyOf).toEqual(['integrations:delete-in-flight']);
-    expect(PRESETS['team-admin']).not.toContain('integrations:delete-in-flight');
-    expect(transitionRefusal('planned', 'forceDelete', PRESETS['team-admin'])).toEqual({
-      reason: 'permission',
-      needs: ['integrations:delete-in-flight'],
-    });
-    expect(transitionRefusal('planned', 'forceDelete', ['integrations:delete-in-flight'])).toBeNull();
+  it('admits no delete while the integration is in flight, whatever the permissions', () => {
+    const everything: Permission[] = [...admin.permissions, 'integrations:delete', 'integrations:delete-in-flight'];
+    for (const status of IN_FLIGHT) {
+      expect(transitionRefusal(status, 'requestDelete', everything)).toEqual({ reason: 'status', from: status });
+    }
   });
 
   it('lets an approver submit but not save a draft', () => {
@@ -347,17 +344,16 @@ describe('transitions', () => {
     });
   });
 
-  // Pins dev behaviour: resubmit is "retry the workflow", so it is open from anything in
-  // flight or that ended badly, to anyone who could have submitted it — team members and
-  // approvers included, not only admins.
-  it('lets a retry through from every in-flight or failed status, for submitters and approvers alike', () => {
-    expect(TRANSITIONS.resubmit.from).toEqual(['submitted', 'planned', 'planFailed', 'applyFailed']);
+  // Resubmit is "retry the workflow" once it has failed, open to anyone who could have submitted it —
+  // team members and approvers included, not only admins. A workflow still in flight is the engine's.
+  it('lets a retry through from every failed status, for submitters and approvers alike', () => {
+    expect(TRANSITIONS.resubmit.from).toEqual(['planFailed', 'applyFailed']);
     expect(TRANSITIONS.resubmit.anyOf).toEqual(TRANSITIONS.submit.anyOf);
     for (const status of TRANSITIONS.resubmit.from) {
       expect(transitionRefusal(status, 'resubmit', PRESETS['team-member'])).toBeNull();
       expect(transitionRefusal(status, 'resubmit', approver.permissions)).toBeNull();
     }
-    for (const status of ['draft', 'applied', 'pr', 'prFailed'] as const) {
+    for (const status of ['draft', 'applied', 'pr', 'prFailed', 'submitted', 'planned'] as const) {
       expect(transitionRefusal(status, 'resubmit', PRESETS['team-admin'])).toEqual({ reason: 'status', from: status });
     }
     expect(transitionRefusal('planFailed', 'resubmit', PRESETS.viewer)).toEqual({
@@ -375,12 +371,15 @@ describe('transitions', () => {
     expect(transitionRefusal('applyFailed', 'submit', PRESETS['team-member'])).toBeNull();
   });
 
-  it('turns a refusal into a 400 for status and a 403 for permission', () => {
-    expect(() => authorizeTransition({ status: 'planned' }, 'requestDelete', teamAdmin)).toThrow(
-      expect.objectContaining({ status: 400, message: 'cannot requestDelete an integration in status planned' }),
+  it('turns a refusal into busy while in flight, a 400 for other statuses and a 403 for permission', () => {
+    for (const intent of ['submit', 'resubmit', 'requestDelete'] as const) {
+      expect(() => authorizeTransition({ status: 'planned' }, intent, teamAdmin)).toThrow(IntegrationBusyError);
+    }
+    expect(() => authorizeTransition({ status: 'draft' }, 'requestDelete', teamAdmin)).toThrow(
+      expect.objectContaining({ status: 400, message: 'cannot requestDelete an integration in status draft' }),
     );
-    expect(() => authorizeTransition({ status: 'planned' }, 'forceDelete', teamAdmin)).toThrow(
-      expect.objectContaining({ status: 403, message: 'not allowed to forceDelete this integration' }),
+    expect(() => authorizeTransition({ status: 'applied' }, 'requestDelete', access(PRESETS.viewer))).toThrow(
+      expect.objectContaining({ status: 403, message: 'not allowed to requestDelete this integration' }),
     );
     expect(authorizeTransition({ status: 'applied' }, 'submit', teamAdmin)).toBe(TRANSITIONS.submit);
   });

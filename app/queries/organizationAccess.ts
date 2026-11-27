@@ -7,6 +7,7 @@ import {
   getOrganizationMember,
   getOverridesByLink,
 } from '@app/queries/organization';
+import { Transaction } from 'sequelize';
 
 export interface OrganizationAccess {
   role: string | null;
@@ -37,12 +38,16 @@ export const authorizeOrganization = async (session: Session, organizationId: nu
 export const resolveOrganizationLinks = async (
   userId: number,
   teamIds?: number[],
+  transaction?: Transaction,
 ): Promise<Map<number, OrganizationLink>> => {
-  const links = await findActiveLinks(userId, teamIds);
+  const links = await findActiveLinks(userId, teamIds, transaction);
   const byTeam = new Map<number, OrganizationLink>();
   if (links.length === 0) return byTeam;
 
-  const overridesByLink = await getOverridesByLink(links.map((link: any) => link.id));
+  const overridesByLink = await getOverridesByLink(
+    links.map((link: any) => link.id),
+    transaction,
+  );
 
   (links as any[]).forEach((link) => {
     byTeam.set(link.teamId, {

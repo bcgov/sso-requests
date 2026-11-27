@@ -1,5 +1,6 @@
 import { generateKeyPairSync, randomUUID } from 'crypto';
 import jwt from 'jsonwebtoken';
+import { QueryTypes } from 'sequelize';
 import { models, sequelize } from '@app/shared/sequelize/models/models';
 import { getConfiguration } from '@app/utils/authenticate';
 import { getAdminClient } from '@app/keycloak/adminClient';
@@ -39,6 +40,7 @@ import { testClient } from './helpers/test-client';
 import { API_BASE_PATH } from './helpers/constants';
 import resubmitHandler from '@app/pages/api/requests/[id]/resubmit';
 import * as graphApi from '@app/utils/graph-api';
+import { INTEGRATION_BUSY_MESSAGE } from '@app/helpers/transitions';
 
 jest.mock('@app/keycloak/adminClient', () => {
   return {
@@ -282,6 +284,19 @@ const withSdxServices = (
       resourceServers,
     },
   } as Integration);
+
+const waitForBlockedTransaction = async (pid: number) => {
+  const deadline = Date.now() + 5000;
+  while (Date.now() < deadline) {
+    const [result] = await sequelize.query<{ blocked: boolean }>(
+      'SELECT EXISTS (SELECT 1 FROM pg_stat_activity WHERE :pid = ANY(pg_blocking_pids(pid))) AS blocked',
+      { replacements: { pid }, type: QueryTypes.SELECT },
+    );
+    if (result.blocked) return;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  throw new Error('Deletion did not wait for the integration lock');
+};
 
 beforeAll(() => {
   process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES = 'true';
@@ -580,8 +595,8 @@ describe('SDX APIs', () => {
         'APPLY_TEST',
         'APPLY_PROD',
         'SDX_SUBMIT',
-        'FINALIZE',
         'NOTIFY',
+        'FINALIZE',
       ]);
       const callIndex = fetchMock.mock.calls.findIndex(([url]) => String(url).endsWith('/access-requests'));
       expect(callIndex).toBeGreaterThanOrEqual(0);
@@ -591,6 +606,69 @@ describe('SDX APIs', () => {
       );
       expect(workflow.state).toBe('COMPLETED');
     });
+
+    it('locks the integration before its workflow and deletes the latest committed state', async () => {
+      const integration = await buildSdxIntegration('sdx-delete-lock-order');
+      const previous = await getWorkflowForRequest(integration.id);
+      const transaction = await sequelize.transaction();
+      let committed = false;
+      let deletion: ReturnType<typeof deleteIntegration> | undefined;
+      try {
+        await models.request.update(
+          { projectName: 'updated before deletion' },
+          { where: { id: integration.id }, transaction },
+        );
+        const [backend] = await sequelize.query<{ pid: number }>('SELECT pg_backend_pid() AS pid', {
+          transaction,
+          type: QueryTypes.SELECT,
+        });
+        deletion = deleteIntegration(integration.id);
+
+        await waitForBlockedTransaction(backend.pid);
+
+        await sequelize.query('SELECT id FROM request_workflows WHERE id = :id FOR UPDATE NOWAIT', {
+          replacements: { id: previous.id },
+          transaction,
+        });
+        await transaction.commit();
+        committed = true;
+
+        const response = await deletion;
+        expect(response.status).toBe(200);
+        expect(response.body.projectName).toBe('updated before deletion');
+        expect((await getWorkflowForRequest(integration.id)).payload.projectName).toBe('updated before deletion');
+      } finally {
+        if (!committed) await transaction.rollback();
+        if (deletion) await deletion;
+      }
+    }, 15000);
+
+    it('rechecks deletion against the status committed while waiting for the lock', async () => {
+      const integration = await buildSdxIntegration('sdx-delete-lock-transition');
+      createMockAuth(TEAM_ADMIN_IDIR_USERID_01, TEAM_ADMIN_IDIR_EMAIL_01);
+      const transaction = await sequelize.transaction();
+      let committed = false;
+      let deletion: ReturnType<typeof deleteIntegration> | undefined;
+      try {
+        await models.request.update({ status: 'planned' }, { where: { id: integration.id }, transaction });
+        const [backend] = await sequelize.query<{ pid: number }>('SELECT pg_backend_pid() AS pid', {
+          transaction,
+          type: QueryTypes.SELECT,
+        });
+        deletion = deleteIntegration(integration.id);
+        await waitForBlockedTransaction(backend.pid);
+        await transaction.commit();
+        committed = true;
+
+        const response = await deletion;
+        expect(response.status).toBe(422);
+        expect(response.body.message).toBe(INTEGRATION_BUSY_MESSAGE);
+        expect((await models.request.findByPk(integration.id)).archived).toBe(false);
+      } finally {
+        if (!committed) await transaction.rollback();
+        if (deletion) await deletion;
+      }
+    }, 15000);
 
     it('blocks deletion requiring revocation when the SDX feature is disabled', async () => {
       const integration = await buildSdxIntegration('sdx-delete-disabled-flag');
@@ -698,10 +776,11 @@ describe('SDX APIs', () => {
       );
     });
 
-    it('preserves the queued SDX selection when a running workflow is resubmitted', async () => {
-      const integration = await buildSdxIntegration('sdx-workflow-queued-resubmit');
-      const olderSelection = [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.write'])];
-      const newerSelection = [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])];
+    it('refuses an update or resubmit while an SDX workflow is running and submits only its selection', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-busy');
+      const workflowsBefore = await models.requestWorkflow.count({ where: { requestId: integration.id } });
+      const runningSelection = [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.write'])];
+      const refusedSelection = [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])];
       process.env.WORKFLOW_EXECUTION_MODE = 'manual';
       try {
         const running = await enqueueRequestWorkflow(integration, {
@@ -709,29 +788,26 @@ describe('SDX APIs', () => {
             requesterId: 1,
             request: { id: integration.id, clientId: integration.clientId, status: 'applied' },
             revokeAll: false,
-            resourceServers: olderSelection,
+            resourceServers: runningSelection,
           },
         });
-        expect((await updateIntegration(withSdxServices(integration, newerSelection), true)).status).toBe(200);
-        const queued = await models.requestWorkflow.findOne({
-          where: { requestId: integration.id, state: 'QUEUED' },
-          raw: true,
-        });
-        expect(queued.context.sdx.resourceServers[0].services[0].scopes).toEqual(['patient.read']);
 
-        const response = await testClient(resubmitHandler).get(`${API_BASE_PATH}/requests/${integration.id}/resubmit`);
-        expect(response.status).toBe(200);
-        const resubmitted = await models.requestWorkflow.findOne({ where: { id: queued.id }, raw: true });
-        expect(resubmitted.context.sdx).toEqual(queued.context.sdx);
+        const update = await updateIntegration(withSdxServices(integration, refusedSelection), true);
+        expect(update.status).toBe(422);
+        expect(update.body.message).toBe(INTEGRATION_BUSY_MESSAGE);
+        await models.request.update({ status: 'planned' }, { where: { id: integration.id } });
+        const resubmit = await testClient(resubmitHandler).get(`${API_BASE_PATH}/requests/${integration.id}/resubmit`);
+        expect(resubmit.status).toBe(422);
+        expect(resubmit.body.message).toBe(INTEGRATION_BUSY_MESSAGE);
+        expect(await models.requestWorkflow.count({ where: { requestId: integration.id } })).toBe(workflowsBefore + 1);
 
         fetchMock.mockClear();
         await runWorkflow(running.workflowId);
-        await runWorkflow(queued.id);
         const submissions = fetchMock.mock.calls
           .filter(([url]) => String(url).endsWith('/access-requests'))
           .map(([, options]) => JSON.parse(options.body).resourceServers[0].services[0].scopes);
-        expect(submissions).toEqual([['patient.write'], ['patient.read']]);
-        expect((await models.requestWorkflow.findByPk(queued.id)).state).toBe('COMPLETED');
+        expect(submissions).toEqual([['patient.write']]);
+        expect((await models.requestWorkflow.findByPk(running.workflowId)).state).toBe('COMPLETED');
       } finally {
         process.env.WORKFLOW_EXECUTION_MODE = 'synchronous';
       }
@@ -844,8 +920,8 @@ describe('SDX APIs', () => {
       expect((await getWorkflowForRequest(integration.id)).state).toBe('COMPLETED');
     });
 
-    it('preserves a queued revoke-all when another update replaces the queued workflow', async () => {
-      const integration = await buildSdxIntegration('sdx-workflow-queued-revoke');
+    it('keeps the integration in flight and refuses updates until notifications have been sent', async () => {
+      const integration = await buildSdxIntegration('sdx-workflow-notify-busy');
       process.env.WORKFLOW_EXECUTION_MODE = 'manual';
       let releaseNotify: () => void = () => {};
       let notifyStarted: () => void = () => {};
@@ -861,30 +937,27 @@ describe('SDX APIs', () => {
       });
       let runningPromise: Promise<unknown> | undefined;
       try {
-        const running = await enqueueRequestWorkflow(integration);
         const disabled = { ...withSdxServices(integration, []), sdxEnabled: false };
         expect((await updateIntegration(disabled, true)).status).toBe(200);
-        const queued = await models.requestWorkflow.findOne({
-          where: { requestId: integration.id, state: 'QUEUED' },
-          raw: true,
-        });
-        expect(queued.context.sdx.revokeAll).toBe(true);
+        const revoke = await getWorkflowForRequest(integration.id);
+        expect(revoke.context.sdx.revokeAll).toBe(true);
+        const workflowsBefore = await models.requestWorkflow.count({ where: { requestId: integration.id } });
 
-        runningPromise = runWorkflow(running.workflowId);
+        runningPromise = runWorkflow(revoke.id);
         await notificationReached;
-        const edit = { ...integration, sdxEnabled: false, projectName: 'queued-revoke-edit' };
-        expect((await updateIntegration(edit, true)).status).toBe(200);
-        const replaced = await models.requestWorkflow.findByPk(queued.id, { raw: true });
-        expect(replaced.context.sdx).toEqual(queued.context.sdx);
-        expect(replaced.payload.projectName).toBe('queued-revoke-edit');
+        expect((await models.request.findByPk(integration.id)).status).toBe('planned');
+        const edit = { ...integration, sdxEnabled: false, projectName: 'edit-during-notify' };
+        const refused = await updateIntegration(edit, true);
+        expect(refused.status).toBe(422);
+        expect(refused.body.message).toBe(INTEGRATION_BUSY_MESSAGE);
 
         releaseNotify();
         await runningPromise;
-        fetchMock.mockClear();
-        await runWorkflow(queued.id);
-        const call = fetchMock.mock.calls.find(([url]) => String(url).endsWith('/access-requests'));
-        expect(JSON.parse(call![1].body).resourceServers).toEqual([]);
-        expect((await models.requestWorkflow.findByPk(queued.id)).state).toBe('COMPLETED');
+        expect((await models.request.findByPk(integration.id)).status).toBe('applied');
+        expect((await models.requestWorkflow.findByPk(revoke.id)).state).toBe('COMPLETED');
+        expect(await models.requestWorkflow.count({ where: { requestId: integration.id } })).toBe(workflowsBefore);
+        expect((await updateIntegration(edit, true)).status).toBe(200);
+        await runWorkflow((await getWorkflowForRequest(integration.id)).id);
       } finally {
         releaseNotify();
         if (runningPromise) await runningPromise;

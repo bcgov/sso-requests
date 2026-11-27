@@ -3,6 +3,8 @@
 - **Status:** Accepted
 - **Date:** 2026-09-15
 - **Supersedes:** the synchronous integration request processing
+- **Amended:** 2026-11-27 — an integration has at most one active workflow; concurrent submissions are refused
+  instead of queued, and deletes no longer supersede in-flight workflows
 
 ## Context
 
@@ -48,9 +50,9 @@ flowchart LR
   G --> H[APPLY_TEST]
   H --> I[APPLY_PROD]
   I --> J["RESTORE_ROLES<br/>(restore workflows only)"]
-  J --> K[FINALIZE]
-  K --> L[NOTIFY]
-  L --> M([COMPLETED])
+  J --> L[NOTIFY]
+  L --> K[FINALIZE]
+  K --> M([COMPLETED])
   I -- "transient failure" --> N["backoff + jitter<br/>release claim"]
   N -. "retry from this step" .-> I
   I -- "retries exhausted /<br/>permanent error" --> O([FAILED])
@@ -61,20 +63,15 @@ flowchart LR
 
 ```mermaid
 stateDiagram-v2
-  [*] --> PENDING: enqueueRequestWorkflow()
-  [*] --> QUEUED: enqueued while another workflow is in flight
-  QUEUED --> QUEUED: a newer resubmit overwrites the payload
-  QUEUED --> PENDING: promoted once the workflow ahead reaches a terminal state
+  [*] --> PENDING: enqueueRequestWorkflow() (refused while another workflow is active)
+  QUEUED --> PENDING: leftover from before the amendment, promoted once the workflow ahead ends
   PENDING --> RUNNING: claimed by a worker
   RUNNING --> RUNNING: step completed
   RUNNING --> COMPLETED: all steps completed
   RUNNING --> FAILED: retries exhausted or permanent error
-  PENDING --> SUPERSEDED: a delete workflow takes over
-  QUEUED --> SUPERSEDED: a delete workflow takes over
-  RUNNING --> SUPERSEDED: a delete workflow takes over
   COMPLETED --> [*]
   FAILED --> [*]
-  SUPERSEDED --> [*]
+  SUPERSEDED --> [*]: recorded before the amendment only
 ```
 
 ### End to End flow
@@ -94,8 +91,8 @@ sequenceDiagram
   API->>DB: save request row (status = submitted)
   API->>EQ: processIntegrationRequest(payload)
   EQ->>DB: hasBeenApplied(requestId)? → isCreate
-  alt type = INTEGRATION_DELETE
-    EQ->>DB: supersedeActiveWorkflows(requestId)
+  alt another workflow is active
+    EQ-->>API: IntegrationBusyError → HTTP 422, transaction rolled back
   end
   EQ->>DB: TX { INSERT workflow(PENDING) + INSERT all step rows }
   EQ-->>API: { workflowId, correlationId, state }
@@ -168,14 +165,19 @@ flowchart TD
   the same command is a safe no-op.
 - A **partial unique index** allows only one _claimable_ workflow per integration:
   `CREATE UNIQUE INDEX ... ON request_workflows (request_id) WHERE state IN ('PENDING','RUNNING',...)`.
-- A submission that arrives while one is in flight is parked as **`QUEUED`** and promoted when the
-  workflow ahead reaches a terminal state, so an edit made mid-apply is never silently dropped. A
-  second partial unique index (`... WHERE state = 'QUEUED'`) allows only one follow-up, so rapid
-  resubmits collapse into "latest desired state wins". `QUEUED` is excluded from the claim query, so
-  no worker can pick it up early.
+- **One active workflow per integration.** A submission, resubmit, restore or delete that arrives while
+  a workflow is `QUEUED`, `PENDING` or `RUNNING` is refused with `IntegrationBusyError` (HTTP 422, "Another
+  update or deletion of this integration is in progress"). The refusal rolls back the caller's
+  transaction, so the change, the workflow and its `requested` audit event are all discarded and the user
+  retries once the workflow ends. The request status already marks the integration in flight
+  (`submitted`/`planned`), so `authorizeTransition` refuses with the same error before any work is done.
+- Update and resubmit re-load the integration under `SELECT ... FOR UPDATE` in the transaction that
+  enqueues, and an update is refused if the row changed (`updatedAt`) since it was validated, so a
+  concurrent delete or update is never overwritten by a stale snapshot.
 - Row locks cannot block an insert of a row that does not exist yet, so two pods racing the very first
-  submit both insert. The unique index picks a winner and the loser **adopts** it instead of surfacing
-  a 500.
+  submit can both try to insert. The unique index lets one through; the other is refused as busy.
+- `QUEUED` rows are no longer created. Rows left over from before the amendment still count as active
+  and are promoted when the workflow ahead ends.
 - Audit events are written through `emitWorkflowEventOnce`, which stamps `details.requestWorkflowId` and checks for
   an existing row first, so a crash between the event insert and the step commit cannot duplicate
   the change history.
@@ -200,8 +202,8 @@ rollback is worse than the partial state it repairs. Instead:
 - After `MAX_STEP_ATTEMPTS` (or a `PermanentStepError`) the workflow moves to the terminal `FAILED`
   state — it is never parked in an intermediate state — and the request becomes `applyFailed`
   (`planFailed` if the `PLAN` step failed).
-- Operators re-drive a failed workflow by resubmitting, which is de-duplicated and resumes from the
-  failed step.
+- Operators re-drive a failed workflow by resubmitting, which is only accepted once the workflow has
+  failed (`planFailed` / `applyFailed`). A workflow still in flight is left to the engine's own retries.
 
 ### 4. Resiliency and fault tolerance
 
@@ -214,15 +216,16 @@ rollback is worse than the partial state it repairs. Instead:
 - **Every step is bounded by `WORKFLOW_STEP_TIMEOUT_MS`.** Without it a Keycloak call that never
   returns would be kept alive by its own heartbeat forever: never retried, never failed, never dead
   lettered. A timeout is raised as a `TransientStepError` so it retries with the normal backoff.
-- A delete **supersedes** any in-flight or queued workflow for the integration, and the orchestrator
-  re-reads the workflow state before each step so a superseded workflow stops instead of re-creating
-  what the delete just removed. Terminal transitions are state-guarded, so a superseded workflow can
-  never overwrite the delete's outcome or dead letter itself.
+- A delete is refused, for every role, while a workflow for the integration is in flight; it no longer
+  supersedes it. The orchestrator still re-reads the workflow state before each step and stops a
+  workflow that is no longer claimable, which covers rows superseded before the amendment.
 - Retries shorter than `IN_PROCESS_RETRY_CEILING_MS` are re-armed with an in-process timer; anything
   longer (and anything lost to a restart) is picked up by the cron tick.
 - Exhausted or permanently failed workflows are written to `request_workflow_failures` and raise a
   Rocket.Chat ops alert. Steps marked `optional` (currently `NOTIFY`) become `SKIPPED` instead of
-  failing the workflow, because `FINALIZE` has already applied the integration by then.
+  failing the workflow, because the Keycloak clients are already applied by then. `NOTIFY` runs before
+  `FINALIZE`, so the integration reads as `applied`, and accepts new submissions, only once the workflow
+  has nothing left to do.
 
 ### 5. Code quality and observability
 
@@ -277,7 +280,7 @@ progress during the apply comes from `request_workflow_steps` via the progress e
 | `app/workflow/backoff.ts`           | Retry limits, lease window, exponential backoff with jitter                                  |
 | `app/workflow/logger.ts`            | Structured logging with correlation-id propagation                                           |
 | `app/workflow/store.ts`             | Persistence, `SKIP LOCKED` claiming, leases, dead letters                                    |
-| `app/workflow/steps/integration.ts` | The step definitions (`PLAN`, `APPLY_<ENV>`, `RESTORE_ROLES`, `FINALIZE`, `NOTIFY`)          |
+| `app/workflow/steps/integration.ts` | The step definitions (`PLAN`, `APPLY_<ENV>`, `RESTORE_ROLES`, `NOTIFY`, `FINALIZE`)          |
 | `app/workflow/orchestrator.ts`      | The state machine: `runWorkflow(id)`, `drainWorkflows()`                                     |
 | `app/workflow/request-worklfow.ts`  | `enqueueRequestWorkflow()`, `getIntegrationProgress()`                                       |
 | `app/workflow/effects.ts`           | Side effects moved out of the controller: notifications, role restoration                    |
@@ -293,9 +296,9 @@ is evaluated while the module graph is mid-cycle.
 | Flow                                                  | Behaviour                                                                                                                         |
 | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | Submit / update integration                           | Asynchronous                                                                                                                      |
-| Delete integration                                    | Asynchronous; supersedes any in-flight workflow for that integration                                                              |
+| Delete integration                                    | Asynchronous; refused while a workflow for that integration is in flight                                                          |
 | Restore integration                                   | Asynchronous; role re-creation and the restore email became workflow steps so they only run once the Keycloak clients exist again |
-| Resubmit                                              | Now means "retry the workflow"; accepts in-flight and failed statuses. A resubmit during an apply is queued behind it             |
+| Resubmit                                              | Now means "retry the workflow"; accepted only from failed statuses, refused while a workflow is in flight                         |
 | Team API service accounts (`app/controllers/team.ts`) | Still synchronous via `{ awaitCompletion: true }`, because the caller reads the client credentials immediately afterwards         |
 
 ### User interface

@@ -1,5 +1,6 @@
 import { IntegrationData, SDXResourceServer } from '@app/shared/interfaces';
 import type { Status } from '@app/interfaces/types';
+import { INTEGRATION_BUSY_MESSAGE } from '@app/helpers/transitions';
 
 /**
  * Lifecycle of a workflow instance. Every value is persisted; the orchestrator never keeps workflow
@@ -164,3 +165,14 @@ export class TransientStepError extends Error {
 }
 
 export const isPermanentError = (err: unknown): boolean => (err as PermanentStepError)?.permanent === true;
+
+/** Refuses a submission while another workflow for the same integration is still active. */
+export class IntegrationBusyError extends Error {
+  readonly status = 422;
+  readonly expose = true;
+
+  constructor() {
+    super(INTEGRATION_BUSY_MESSAGE);
+    this.name = 'IntegrationBusyError';
+  }
+}

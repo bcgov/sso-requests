@@ -40,6 +40,7 @@ import { BcscAttribute, BcscPrivacyZone } from '@app/interfaces/types';
 import { fetchAttributes, fetchPrivacyZones } from '@app/services/bc-services-card';
 import validator from '@rjsf/validator-ajv8';
 import { validateIDPs } from '@app/utils/helpers';
+import { concurrencyRefusal } from '@app/helpers/transitions';
 import { hasRoleAssignableIdp } from '@app/schemas/providers-gold';
 import { fetchDefaultSessionSettings } from '@app/services/keycloak';
 import { GetStandardSettingsResponse } from '@app/interfaces/api';
@@ -671,7 +672,7 @@ function FormTemplate({ currentUser, request, alert }: Readonly<Props>) {
           variant: 'danger',
           fadeOut: 10000,
           closable: true,
-          content: 'Failed to submit request. Please try again.',
+          content: concurrencyRefusal(err) ?? 'Failed to submit request. Please try again.',
         });
       } else {
         alert.show({
