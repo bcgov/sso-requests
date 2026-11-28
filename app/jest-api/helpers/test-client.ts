@@ -16,6 +16,7 @@ const knownRoutes = [
   '/api/requests/[id]/restore',
   '/api/requests/[id]/logs',
   '/api/requests/[id]/resubmit',
+  '/api/requests/[id]/stop-workflow',
   '/api/requests/[id]/metrics',
   '/api/requests/[id]/events',
   '/api/requests/[id]/sdx-allowed-access',

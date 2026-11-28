@@ -1,5 +1,6 @@
 import { models } from '@app/shared/sequelize/models/models';
 import axios from 'axios';
+import { EXTERNAL_REQUEST_TIMEOUT_MS } from '@app/utils/timeouts';
 import { IntegrationData } from '@app/shared/interfaces';
 import { getBCSCEnvVars } from '@app/utils/helpers';
 import { getRequiredBCSCScopes } from '@app/utils/server-helpers';
@@ -73,6 +74,8 @@ export const createBCSCClient = async (data: BCSCClientParameters, integration: 
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
+      // No short timeout on registration, unlike the update and delete: each POST registers a new BCSC client, so
+      // giving up on a slow one and retrying would register a second. The step's own timeout still bounds it.
     },
   );
   return result;
@@ -106,6 +109,7 @@ export const updateBCSCClient = async (bcscClient: BCSCClientParameters, integra
       headers: {
         Authorization: `Bearer ${bcscClient.registrationAccessToken}`,
       },
+      timeout: EXTERNAL_REQUEST_TIMEOUT_MS,
     },
   );
   return result;
@@ -117,6 +121,7 @@ export const deleteBCSCClient = async (data: { clientId: string; registrationTok
     headers: {
       Authorization: `Bearer ${data.registrationToken}`,
     },
+    timeout: EXTERNAL_REQUEST_TIMEOUT_MS,
   });
   return result;
 };

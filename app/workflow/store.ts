@@ -218,6 +218,41 @@ export const getActiveWorkflowForRequest = async (
     }),
   );
 
+/**
+ * Locks the integration row and refuses while any workflow for it is active. For changes that may not enqueue
+ * a workflow of their own (deleting an API account that never reached Keycloak), so `createWorkflow` would never
+ * see the conflict. The request row is locked first, the order every other writer uses.
+ */
+export const lockIdleIntegration = async (requestId: number, transaction: Transaction): Promise<void> => {
+  await models.request.findOne({
+    where: { id: requestId },
+    attributes: ['id'],
+    lock: transaction.LOCK.UPDATE,
+    transaction,
+  });
+  if (await getActiveWorkflowForRequest(requestId, transaction)) throw new IntegrationBusyError();
+};
+
+/**
+ * Whether a workflow ever tried to apply the integration's Keycloak clients. A failed or unfinished apply may
+ * have created a client without recording an outcome, so this is what decides whether a delete has anything to
+ * tear down, rather than only the recorded outcomes.
+ */
+export const hasAttemptedKeycloakApply = async (requestId: number, transaction?: Transaction): Promise<boolean> => {
+  const [rows]: any = await sequelize.query(
+    `SELECT EXISTS (
+       SELECT 1
+         FROM request_workflow_steps s
+         JOIN request_workflows w ON w.id = s.request_workflow_id
+        WHERE w.request_id = :requestId
+          AND s.name LIKE 'APPLY\\_%'
+          AND s.attempts > 0
+     ) AS attempted`,
+    { replacements: { requestId }, transaction },
+  );
+  return rows?.[0]?.attempted === true;
+};
+
 export const getLatestWorkflowForRequest = async (requestId: number): Promise<WorkflowRecord | null> =>
   toPlain<WorkflowRecord>(
     await models.requestWorkflow.findOne({
@@ -284,13 +319,60 @@ export const releaseWorkflow = async (requestWorkflowId: string, values: Record<
 export const releaseWorkflowIfActive = async (
   requestWorkflowId: string,
   values: Record<string, any> = {},
+  transaction?: Transaction,
 ): Promise<boolean> => {
   const [affected] = await models.requestWorkflow.update(
     { claimedBy: null, claimedAt: null, ...values },
-    { where: { id: requestWorkflowId, state: { [Op.in]: CLAIMABLE_WORKFLOW_STATES } } },
+    { where: { id: requestWorkflowId, state: { [Op.in]: CLAIMABLE_WORKFLOW_STATES } }, transaction },
   );
 
   return affected > 0;
+};
+
+/**
+ * Repairs integrations left in flight after their workflow ended, which made every submission and delete
+ * look busy forever. Before the terminal state and the request status were written in one transaction, a
+ * crash between the two left exactly that. Only rows nothing has touched since their latest workflow ended
+ * are repaired, so a status an admin set by hand afterwards is left alone. Rows a submission holds locked
+ * are skipped and picked up on a later tick.
+ */
+export const repairStuckRequestStatuses = async (limit: number = 25): Promise<{ id: number; status: string }[]> => {
+  const [rows]: any = await sequelize.query(
+    `WITH stuck AS (
+       SELECT r.id, latest.state, latest.current_step
+         FROM requests r
+         CROSS JOIN LATERAL (
+           SELECT w.state, w.current_step, w.completed_at
+             FROM request_workflows w
+            WHERE w.request_id = r.id
+            ORDER BY w.created_at DESC
+            LIMIT 1
+         ) latest
+        WHERE r.status IN ('submitted', 'planned')
+          AND latest.state IN ('COMPLETED', 'FAILED')
+          AND latest.completed_at >= r.updated_at
+          AND NOT EXISTS (
+            SELECT 1 FROM request_workflows active
+             WHERE active.request_id = r.id
+               AND active.state IN ('QUEUED', 'PENDING', 'RUNNING')
+          )
+        LIMIT :limit
+        FOR UPDATE OF r SKIP LOCKED
+     )
+     UPDATE requests r
+        SET status = (CASE
+              WHEN stuck.state = 'COMPLETED' THEN 'applied'
+              WHEN stuck.current_step = 'PLAN' THEN 'planFailed'
+              ELSE 'applyFailed'
+            END)::enum_requests_status,
+            updated_at = NOW()
+       FROM stuck
+      WHERE r.id = stuck.id
+      RETURNING r.id, r.status`,
+    { replacements: { limit } },
+  );
+
+  return rows || [];
 };
 
 /** Keeps a long-running step from having its lease stolen mid-flight. */

@@ -107,14 +107,19 @@ import {
   ExecuteOptions,
   enqueueRequestWorkflow,
   executeEnqueuedWorkflow,
+  getIntegrationProgress,
 } from '@app/workflow/request-workflow';
+import { stopWorkflow } from '@app/workflow/orchestrator';
 import {
   getActiveWorkflowForRequest,
   getLatestSdxWorkflowForRequest,
   getWorkflowForResubmission,
   getWorkflowSteps,
+  hasAttemptedKeycloakApply,
+  lockIdleIntegration,
 } from '@app/workflow/store';
 import {
+  ACTIVE_WORKFLOW_STATES,
   IntegrationBusyError,
   STEP_NAMES,
   StepState,
@@ -213,6 +218,17 @@ const checkIfHasFailedRequests = async () => {
 
 // Check if an applied/apply-failed event exists for the client
 export const checkIfRequestMerged = async (id: number) => (await countApplyOutcomes(id)) > 0;
+
+/**
+ * Locks an API account for deletion and says whether the delete needs a workflow to remove Keycloak clients.
+ * Refused while a workflow is active: an account whose create is still retrying would otherwise be archived
+ * here while that create goes on to make its client. Decided under the lock, so a create finishing meanwhile
+ * is counted; an apply that was attempted counts too, since it may have made a client it never recorded.
+ */
+export const lockApiAccountForDeletion = async (id: number, transaction: Transaction): Promise<boolean> => {
+  await lockIdleIntegration(id, transaction);
+  return (await countApplyOutcomes(id, { transaction })) > 0 || hasAttemptedKeycloakApply(id, transaction);
+};
 
 const authorizeClientId = (session: Session, clientId?: string | null) => {
   const proposed = clientId?.trim();
@@ -1127,6 +1143,31 @@ export const updateRequestMetadata = async (session: Session, user: User, data: 
   });
 };
 
+/**
+ * Ends an integration's in-progress workflow as failed, for one that keeps retrying a failure only a fix can
+ * clear. The integration moves to `planFailed` or `applyFailed`, so its owner can resubmit or delete it once the
+ * cause is fixed. Recorded as the administrator's status change; the engine records the workflow's failure.
+ */
+export const stopRequestWorkflow = async (session: Session, id: number) => {
+  if (!hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST)) {
+    throw new createHttpError.Forbidden('not allowed');
+  }
+  if (!(await models.request.findByPk(id, { attributes: ['id'], raw: true }))) {
+    throw new createHttpError.NotFound(`request #${id} not found`);
+  }
+
+  await stopWorkflow(id, {
+    stoppedBy: `an administrator (${getDisplayName(session) || session?.email || 'unknown'})`,
+    onStopped: (transaction, { before, after }) =>
+      audit.createEvent(
+        { action: 'request-status-update', outcome: 'success', requestId: id, details: { before, after } },
+        transaction,
+      ),
+  });
+
+  return getIntegrationProgress(id);
+};
+
 export const buildGitHubRequestData = (baseData: IntegrationData) => {
   const hasBceid = usesBceid(baseData);
   const hasGithub = usesGithub(baseData);
@@ -1266,16 +1307,27 @@ export const runIntegrationWorkflow = async (
   enqueued && executeEnqueuedWorkflow(enqueued, { awaitCompletion: options.awaitCompletion });
 
 /**
- * For callers that awaited the workflow: anything but COMPLETED is a 422 naming the workflow and the
- * operation. The engine has already recorded the failure, dead-lettered the workflow and alerted ops;
+ * For callers that awaited the workflow. One that ended FAILED or SUPERSEDED is a 422 naming the workflow and the
+ * operation; the engine has already recorded the failure, dead-lettered the workflow and alerted ops, and
  * recovery is a resubmit, so there is nothing for the caller to clean up.
+ *
+ * One still PENDING or RUNNING is retrying an outage that outlasted the wait. That is not a failure: it finishes
+ * on its own, and the account reads as in progress until then, so the caller returns it as it is.
  */
 export const assertWorkflowCompleted = (workflow: EnqueuedIntegrationWorkflow) => {
-  if (workflow && workflow.state !== 'COMPLETED') {
-    throw new createHttpError.UnprocessableEntity(
-      `integration workflow ${workflow.workflowId} (operation ${workflow.operationId}) ended in ${workflow.state}`,
+  if (!workflow || workflow.state === WorkflowState.COMPLETED) return;
+
+  if (ACTIVE_WORKFLOW_STATES.includes(workflow.state)) {
+    log.warn(
+      { workflowId: workflow.workflowId, operationId: workflow.operationId, state: workflow.state },
+      'awaited workflow is still retrying, returning it as in progress',
     );
+    return;
   }
+
+  throw new createHttpError.UnprocessableEntity(
+    `integration workflow ${workflow.workflowId} (operation ${workflow.operationId}) ended in ${workflow.state}`,
+  );
 };
 
 export const getListOfDescrepencies = async () => {

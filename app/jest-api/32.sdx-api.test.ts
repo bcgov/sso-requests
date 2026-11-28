@@ -581,6 +581,73 @@ describe('SDX APIs', () => {
       }
     });
 
+    it('records an access request SDX accepted on an earlier attempt without sending it again', async () => {
+      const integration = await buildSdxIntegration('sdx-accepted-earlier');
+      const accepted = {
+        submissionId: 'sdx-submission-earlier',
+        requesterName: 'Test User',
+        accessRequest: {
+          integrationId: integration.id,
+          clientId: 'test-client',
+          privacyZone: '',
+          policyVersion: 'SDX.R1.00',
+          resourceServers: [],
+        },
+      };
+      fetchMock.mockClear();
+
+      const submit = () =>
+        sdxServices.submitSdxRequest(
+          1,
+          { id: integration.id, clientId: 'test-client' },
+          {
+            revokeAll: true,
+            resourceServers: [],
+            accepted,
+          },
+        );
+      await submit();
+      await submit();
+
+      expect(sdxApiCalls('/access-requests')).toHaveLength(0);
+      const rows = await models.SdxRequest.findAll({
+        where: { request_id: integration.id, submission_id: 'sdx-submission-earlier' },
+      });
+      expect(rows).toHaveLength(1);
+    });
+
+    it('uses the scope another integration created between the lookup and the create', async () => {
+      const integration = await buildSdxIntegration('sdx-scope-race');
+      keycloak.clientScopesCreate.mockRejectedValue(
+        Object.assign(new Error('Conflict'), { response: { status: 409 } }),
+      );
+      keycloak.clientScopesFindOneByName.mockResolvedValue({ id: 'created-elsewhere', name: 'patient.read' });
+
+      await sdxServices.submitSdxRequest(
+        1,
+        { id: integration.id, clientId: 'test-client' },
+        {
+          revokeAll: true,
+          resourceServers: [selectedResourceServer(NON_PRODUCTION_ENV, ['patient.read'])],
+          accepted: {
+            submissionId: 'sdx-submission-race',
+            requesterName: 'Test User',
+            accessRequest: {
+              integrationId: integration.id,
+              clientId: 'test-client',
+              privacyZone: '',
+              policyVersion: 'SDX.R1.00',
+              resourceServers: [],
+            },
+          },
+        },
+      );
+
+      expect(keycloak.addOptionalClientScope).toHaveBeenCalledWith(
+        expect.objectContaining({ clientScopeId: 'created-elsewhere' }),
+      );
+    });
+
     it('revokes SDX after deleting the Keycloak clients', async () => {
       const integration = await buildSdxIntegration('sdx-workflow-delete');
       (keycloakClient as jest.Mock).mockClear();

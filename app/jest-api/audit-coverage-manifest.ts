@@ -24,6 +24,7 @@ export const AUDIT_COVERAGE: Record<string, CoverageEntry> = {
   'GET /api/requests/[id]/resubmit': { actions: ['request-update', 'sdx-request-create'] },
   'GET /api/requests/[id]/logs': { actions: ['logs-download'] },
   'PUT /api/request-metadata': { actions: ['request-status-update'] },
+  'POST /api/requests/[id]/stop-workflow': { actions: ['request-status-update'] },
   'PUT /api/requests/[id]/sdx-allowed-access': { actions: ['sdx-access-request-update'] },
   'POST /api/installation': { actions: ['credentials-view'] },
   'PUT /api/installation': { actions: ['secret-rotate'] },

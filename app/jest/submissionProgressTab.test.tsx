@@ -81,6 +81,22 @@ describe('Submission progress tab', () => {
     expect(screen.queryByText('Technical Details')).toBeNull();
   });
 
+  it('Shows a step that keeps failing during an outage as retrying, not failed, while the workflow runs', async () => {
+    const progress = buildProgress();
+    progress.steps[1] = { ...progress.steps[1], state: 'FAILED', attempts: 12, error: 'Service Unavailable' };
+    mockedGetProgress.mockResolvedValue([progress, null]);
+
+    render(<IntegrationTabs integration={submittedIntegration} />);
+
+    await screen.findByText('Configuring Development environment - retrying');
+    // The status line names the step being retried, not the one after it.
+    await screen.findByText('Configuring Development environment...');
+    const panel = await screen.findByTestId('submission-progress');
+    expect(panel.textContent).toContain('being retried automatically. No action is needed.');
+    expect(panel.textContent).not.toContain('- failed');
+    expect(panel.textContent).not.toContain('contact the SSO team');
+  });
+
   it('Hides the progress tab once the request workflow has completed', async () => {
     mockedGetProgress.mockResolvedValue([buildProgress({ state: 'COMPLETED', active: false }), null]);
 

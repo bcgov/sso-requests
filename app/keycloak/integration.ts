@@ -11,6 +11,7 @@ import {
 import { isApiAccountClientId, usesBcgovIdir, usesBcServicesCard, usesOTP } from '@app/helpers/integration';
 import axios from 'axios';
 import createHttpError from 'http-errors';
+import { EXTERNAL_REQUEST_TIMEOUT_MS } from '@app/utils/timeouts';
 import { getByRequestId } from '@app/queries/bcsc-client';
 import {
   createAccessTokenAudMapper,
@@ -243,6 +244,7 @@ export const keycloakClient = async (
       headers: {
         Authorization: `Bearer ${kcAdminClient.accessToken}`,
       },
+      timeout: EXTERNAL_REQUEST_TIMEOUT_MS,
     });
 
     // build client profile
@@ -410,7 +412,8 @@ export const keycloakClient = async (
     return true;
   } catch (err) {
     log.error({ err, clientId: integration.clientId }, 'failed to apply integration');
-    return false;
+    // Rethrown with its HTTP status intact: the workflow retries an outage but fails a rejected request.
+    throw err;
   }
 };
 

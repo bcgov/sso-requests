@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import RequestPreview from 'components/RequestPreview';
 import { Integration } from 'interfaces/Request';
 import MetadataEditModal from 'page-partials/admin-dashboard/MetadataEditModal';
+import StopWorkflowModal from 'page-partials/admin-dashboard/StopWorkflowModal';
 import { LoggedInUser } from 'interfaces/team';
 import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 
@@ -26,6 +27,9 @@ export default function AdminRequestPanel({ currentUser, request, onUpdate }: Pr
       <RequestPreview request={request} />
       {hasAppPermission(currentUser?.client_roles || [], appPermissions.ADMIN_DASHBOARD_VIEW_REQUEST) && (
         <MetadataEditModal request={request} onUpdate={onUpdate} />
+      )}
+      {hasAppPermission(currentUser?.client_roles || [], appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST) && (
+        <StopWorkflowModal request={request} onUpdate={onUpdate} />
       )}
     </EventContent>
   );

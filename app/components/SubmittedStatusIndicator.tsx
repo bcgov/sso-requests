@@ -37,8 +37,21 @@ const SETTLED_STATES: Set<RequestWorkflowStepState> = new Set([
   'FAILED',
 ] as RequestWorkflowStepState[]);
 
-const stepIcon = (state: RequestWorkflowStepState) => {
-  switch (state) {
+/**
+ * A step is stored as FAILED between its retries, and required steps retry until Keycloak or SDX recovers.
+ * Only a FAILED workflow means it has given up; until then the step is still being worked on.
+ */
+const isRetrying = (step: RequestWorkflowProgressStep, progress: RequestWorkflowProgress) =>
+  step.state === 'FAILED' && progress.state !== 'FAILED';
+
+const isSettled = (step: RequestWorkflowProgressStep, progress: RequestWorkflowProgress) =>
+  SETTLED_STATES.has(step.state) && !isRetrying(step, progress);
+
+const stepIcon = (step: RequestWorkflowProgressStep, progress: RequestWorkflowProgress) => {
+  if (isRetrying(step, progress)) {
+    return <FontAwesomeIcon icon={faSpinner} color="#B2B2B2" spin title="retrying" />;
+  }
+  switch (step.state) {
     case 'COMPLETED':
       return <FontAwesomeIcon icon={faCheckCircle} color="#00C45B" title="completed" />;
     case 'FAILED':
@@ -52,12 +65,14 @@ const stepIcon = (state: RequestWorkflowStepState) => {
   }
 };
 
-const stepText = (step: RequestWorkflowProgressStep) =>
-  step.state === 'FAILED' ? `${step.label} - failed` : step.label;
+const stepText = (step: RequestWorkflowProgressStep, progress: RequestWorkflowProgress) => {
+  if (isRetrying(step, progress)) return `${step.label} - retrying`;
+  return step.state === 'FAILED' ? `${step.label} - failed` : step.label;
+};
 
 export const getProgressPercent = (progress: RequestWorkflowProgress) => {
   if (progress.steps.length === 0) return 0;
-  const settled = progress.steps.filter((step) => SETTLED_STATES.has(step.state)).length;
+  const settled = progress.steps.filter((step) => isSettled(step, progress)).length;
   return Math.round((settled / progress.steps.length) * 100);
 };
 
@@ -65,7 +80,7 @@ const getStatusMessage = (progress: RequestWorkflowProgress) => {
   if (progress.state === 'COMPLETED') return 'Your integration has been processed successfully.';
   if (progress.state === 'FAILED') return 'An error has occurred.';
 
-  const active = progress.steps.find((step) => !SETTLED_STATES.has(step.state));
+  const active = progress.steps.find((step) => !isSettled(step, progress));
   return active ? `${active.label}...` : 'Processing your request...';
 };
 
@@ -95,8 +110,8 @@ function SubmittedStatusIndicator({ progress, title }: Readonly<Props>) {
       <StatusList>
         {progress.steps.map((step) => (
           <li key={step.name} data-testid={`submission-progress-step-${step.name}`}>
-            {stepText(step)}
-            {stepIcon(step.state)}
+            {stepText(step, progress)}
+            {stepIcon(step, progress)}
           </li>
         ))}
       </StatusList>

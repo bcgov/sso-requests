@@ -15,7 +15,7 @@ import { getTeamEmails } from '@app/shared/templates/helpers';
 import { EMAILS } from '@app/shared/enums';
 import { User, Team, Member, Session } from '@app/shared/interfaces';
 import {
-  checkIfRequestMerged,
+  lockApiAccountForDeletion,
   assertWorkflowCompleted,
   enqueueIntegrationWorkflow,
   runIntegrationWorkflow,
@@ -478,18 +478,18 @@ export const deleteServiceAccount = async (session: Session, teamId: number, saI
       throw new createHttpError.NotFound('could not find api account');
     }
     const team = await getTeamById(teamId);
-    const isMerged = await checkIfRequestMerged(saId);
     const requester = getDisplayName(session);
     serviceAccount.requester = requester;
     serviceAccount.status = 'submitted';
     serviceAccount.archived = true;
     serviceAccount.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
 
-    // An applied account is deleted by a workflow that removes its client; one that never reached
-    // Keycloak is deleted by this change alone.
+    // An account that reached Keycloak is deleted by a workflow that removes its client; one that never did
+    // is deleted by this change alone. Refused while the account's own workflow is still running.
     const enqueued = await sequelize.transaction(async (transaction) => {
+      const reachedKeycloak = await lockApiAccountForDeletion(saId, transaction);
       await serviceAccount.save({ transaction });
-      if (isMerged) return enqueueIntegrationWorkflow(serviceAccount, {}, transaction);
+      if (reachedKeycloak) return enqueueIntegrationWorkflow(serviceAccount, {}, transaction);
       await audit.createEvent(
         { action: 'api-account-delete', outcome: 'success', requestId: saId, teamId, details: {} },
         transaction,
@@ -497,7 +497,7 @@ export const deleteServiceAccount = async (session: Session, teamId: number, saI
       return undefined;
     });
 
-    if (isMerged) assertWorkflowCompleted(await runIntegrationWorkflow(enqueued, { awaitCompletion: true }));
+    assertWorkflowCompleted(await runIntegrationWorkflow(enqueued, { awaitCompletion: true }));
 
     await sendTemplate(EMAILS.DELETE_TEAM_API_ACCOUNT_SUBMITTED, { team, requester });
 

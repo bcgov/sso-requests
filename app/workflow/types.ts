@@ -164,7 +164,72 @@ export class TransientStepError extends Error {
   }
 }
 
-export const isPermanentError = (err: unknown): boolean => (err as PermanentStepError)?.permanent === true;
+/**
+ * Client errors that a retry can still fix: credentials ops can rotate, timeouts and rate limits, and conflicts.
+ * A 409 here is a race, not a bad request: two integrations creating the same realm-wide SDX scope, or a retry
+ * creating the client an attempt that timed out is still creating. Every step converges, so the next attempt
+ * finds what the other created and carries on.
+ */
+const RETRYABLE_CLIENT_STATUSES = new Set([401, 403, 408, 409, 425, 429]);
+
+/** The HTTP status an error carries: http-errors, axios and the Keycloak admin client each put it elsewhere. */
+const httpStatusOf = (err: any): number | undefined => {
+  const status = err?.status ?? err?.statusCode ?? err?.response?.status;
+  return typeof status === 'number' ? status : undefined;
+};
+
+/**
+ * A 4xx the dependency would return however often it is retried, because the request itself is wrong. The
+ * nearest status in the `cause` chain decides; an error with no status (a network failure) is not one.
+ */
+export const isRejectedRequest = (err: unknown): boolean => {
+  let current: any = err;
+  for (let depth = 0; current && depth < 5; depth += 1) {
+    const status = httpStatusOf(current);
+    if (status !== undefined) return status >= 400 && status < 500 && !RETRYABLE_CLIENT_STATUSES.has(status);
+    current = current.cause;
+  }
+  return false;
+};
+
+/**
+ * A bug in our own code: reading a property of undefined, calling something that is not a function, a name that
+ * does not exist. Only a deploy fixes it, so retrying it every 10 minutes would hold the integration busy for
+ * nothing. Node's `fetch` reports a connection failure as a `TypeError` too, always as "fetch failed" with the
+ * socket error as its cause, so that one stays retryable. A status nearer in the cause chain decides first.
+ */
+export const isProgrammingError = (err: unknown): boolean => {
+  let current: any = err;
+  for (let depth = 0; current && depth < 5; depth += 1) {
+    if (httpStatusOf(current) !== undefined) return false;
+    if (current.name === 'ReferenceError') return true;
+    if (current.name === 'TypeError') return current.message !== 'fetch failed' && current.cause === undefined;
+    current = current.cause;
+  }
+  return false;
+};
+
+/**
+ * Whether retrying cannot help. An explicit `PermanentStepError` or `TransientStepError` decides; anything
+ * else is permanent when it is a rejected request or a bug in our code. Required steps retry everything else
+ * without limit.
+ */
+export const isPermanentError = (err: unknown): boolean => {
+  const declared = (err as PermanentStepError | TransientStepError)?.permanent;
+  if (typeof declared === 'boolean') return declared;
+  return isRejectedRequest(err) || isProgrammingError(err);
+};
+
+/** Refuses to stop a workflow when the integration has none running, or its running one is already finishing. */
+export class WorkflowNotStoppableError extends Error {
+  readonly status = 409;
+  readonly expose = true;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'WorkflowNotStoppableError';
+  }
+}
 
 /** Refuses a submission while another workflow for the same integration is still active. */
 export class IntegrationBusyError extends Error {

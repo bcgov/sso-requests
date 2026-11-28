@@ -18,8 +18,17 @@ import {
 } from './types';
 import { createWorkflow, getLatestWorkflowForRequest, getWorkflow, getWorkflowSteps } from './store';
 
-const MAX_SYNCHRONOUS_ITERATIONS = 30;
+const MAX_SYNCHRONOUS_ITERATIONS = 100;
 const SYNCHRONOUS_WAIT_CEILING_MS = 5_000;
+/** How often a caller waiting on a workflow another worker holds (the pod's own retry timer) checks on it. */
+const CLAIMED_POLL_MS = 500;
+
+/**
+ * How long a caller that awaits its workflow (API account create, delete and restore) waits for it. Well under
+ * the route's 180s timeout. Once the next retry falls beyond it, the dependency is having an outage rather than
+ * a blip: the caller gets the workflow as still in progress, and it finishes on its own.
+ */
+export const AWAIT_COMPLETION_BUDGET_MS = Number(process.env.WORKFLOW_AWAIT_COMPLETION_BUDGET_MS || 45_000);
 
 export interface EnqueueOptions {
   restore?: boolean;
@@ -60,19 +69,30 @@ const resolveAction = (type: WorkflowType, isCreate: boolean): string => {
   return isCreate ? ACTION_TYPES.CREATE : ACTION_TYPES.UPDATE;
 };
 
+/**
+ * Runs the workflow until it ends, or until waiting any longer would outlast `AWAIT_COMPLETION_BUDGET_MS`. Returns
+ * the state it reached: PENDING or RUNNING means it is still retrying and carries on in the background.
+ */
 const runToCompletion = async (workflowId: string): Promise<WorkflowState> => {
+  const deadline = Date.now() + AWAIT_COMPLETION_BUDGET_MS;
+  let state = WorkflowState.RUNNING;
+
   for (let iteration = 0; iteration < MAX_SYNCHRONOUS_ITERATIONS; iteration += 1) {
-    await runWorkflow(workflowId);
+    const ran = await runWorkflow(workflowId);
 
     const workflow = await getWorkflow(workflowId);
     if (!workflow) return WorkflowState.FAILED;
-    if (TERMINAL_WORKFLOW_STATES.includes(workflow.state)) return workflow.state;
+    state = workflow.state;
+    if (TERMINAL_WORKFLOW_STATES.includes(state)) return state;
 
-    const waitMs = new Date(workflow.runAfter).getTime() - Date.now();
+    // Another worker holds it: check back shortly rather than spin.
+    const untilNextRun = new Date(workflow.runAfter).getTime() - Date.now();
+    const waitMs = ran === null ? Math.max(untilNextRun, CLAIMED_POLL_MS) : untilNextRun;
+    if (Date.now() + Math.max(waitMs, 0) > deadline) return state;
     if (waitMs > 0) await sleep(Math.min(waitMs, SYNCHRONOUS_WAIT_CEILING_MS));
   }
 
-  return WorkflowState.RUNNING;
+  return state;
 };
 
 /**

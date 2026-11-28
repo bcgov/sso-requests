@@ -70,6 +70,19 @@ export const getIntegrationProgress = async (
   }
 };
 
+export const stopRequestWorkflow = async (
+  requestId: number,
+): Promise<[RequestWorkflowProgress | null, null] | [null, AxiosError]> => {
+  try {
+    const result: RequestWorkflowProgress | null = await instance
+      .post(`requests/${requestId}/stop-workflow`)
+      .then((res) => res.data);
+    return [result, null];
+  } catch (err: any) {
+    return handleAxiosError(err);
+  }
+};
+
 export const restoreRequest = async (
   requestId?: number,
   email?: string,

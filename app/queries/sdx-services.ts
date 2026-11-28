@@ -2,6 +2,9 @@ import { models } from '@app/shared/sequelize/models/models';
 import type { Transaction } from 'sequelize';
 import { SDXAccessRequest } from '@app/shared/interfaces';
 
+export const hasSdxAccessRequest = async (requestId: number, submissionId: string | number): Promise<boolean> =>
+  (await models.SdxRequest.count({ where: { request_id: requestId, submission_id: String(submissionId) } })) > 0;
+
 export const isArchivedSdxIntegration = async (requestId: number): Promise<boolean> =>
   Boolean(
     await models.request.findOne({
@@ -12,7 +15,7 @@ export const isArchivedSdxIntegration = async (requestId: number): Promise<boole
   );
 
 export const createSdxAccessRequest = async (
-  submissionId: number,
+  submissionId: string | number,
   userDisplayName: string,
   requestId: number,
   sdxRequestData: SDXAccessRequest,
