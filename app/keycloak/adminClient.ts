@@ -1,6 +1,7 @@
 import KcAdminClient from '@keycloak/keycloak-admin-client';
 import dns from 'dns';
 import createHttpError from 'http-errors';
+import { EXTERNAL_REQUEST_TIMEOUT_MS, withDeadline } from '@app/utils/timeouts';
 
 export const getAdminClient = async (data: { serviceType: string; environment: string }) => {
   const { environment } = data;
@@ -40,14 +41,21 @@ export const getAdminClient = async (data: { serviceType: string; environment: s
   const kcAdminClient = new KcAdminClient({
     baseUrl: authServerUrl,
     realmName: 'master',
+    // Each admin API call gets its own timeout, so a Keycloak that accepts the connection but never answers fails
+    // the call (and the workflow retries it) instead of holding the step until the step timeout.
+    timeout: EXTERNAL_REQUEST_TIMEOUT_MS,
   });
 
-  await kcAdminClient.auth({
-    grantType: 'password',
-    clientId: 'admin-cli',
-    username: keycloakUsername,
-    password: keycloakPassword,
-  });
+  // `timeout` does not cover the login, and the client takes no abort signal for it, so it gets a deadline of its own.
+  await withDeadline(
+    kcAdminClient.auth({
+      grantType: 'password',
+      clientId: 'admin-cli',
+      username: keycloakUsername,
+      password: keycloakPassword,
+    }),
+    `Keycloak ${environment} login`,
+  );
 
   return { kcAdminClient, authServerUrl };
 };

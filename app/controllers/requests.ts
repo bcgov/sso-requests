@@ -93,17 +93,41 @@ import {
 } from '@app/utils/constants';
 import createHttpError from 'http-errors';
 import { approvalResetsForRemovedIdps } from '@app/helpers/permissions';
-import { TRANSITIONS, deleteIntentFor } from '@app/helpers/transitions';
+import { INTEGRATION_CHANGED_MESSAGE, TRANSITIONS, deleteIntentFor } from '@app/helpers/transitions';
 import { actorPayload, authorizeChanges, authorizeTransition } from '@app/utils/requestPolicy';
 import axios from 'axios';
 import { getKeycloakClientsByEnv } from './keycloak';
 import { hasAppPermission, appPermissions, commonPermissionsForAppRoles } from '@app/utils/authorize';
 import { doSkipPrivacyZoneScope } from '@app/queries/custom-requests';
-import { createSdxRequest } from './sdx-services';
+import { isSdxRevokeAll, validateSdxRequest } from './sdx-services';
 import { getEntraClientByRequestId, saveEntraClient } from '@app/queries/entra-client';
 import { audit } from '@app/queries/event';
-import { EnqueueResult, enqueueRequestWorkflow, executeEnqueuedWorkflow } from '@app/workflow/request-workflow';
-import { countApplyOutcomes, recordAdoptedSubmission, workflowEventScope } from '@app/workflow/audit';
+import {
+  EnqueueResult,
+  ExecuteOptions,
+  enqueueRequestWorkflow,
+  executeEnqueuedWorkflow,
+  getIntegrationProgress,
+} from '@app/workflow/request-workflow';
+import { stopWorkflow } from '@app/workflow/orchestrator';
+import {
+  getActiveWorkflowForRequest,
+  getLatestSdxWorkflowForRequest,
+  getWorkflowForResubmission,
+  getWorkflowSteps,
+  hasAttemptedKeycloakApply,
+  lockIdleIntegration,
+} from '@app/workflow/store';
+import {
+  ACTIVE_WORKFLOW_STATES,
+  IntegrationBusyError,
+  STEP_NAMES,
+  StepState,
+  WorkflowContext,
+  WorkflowRecord,
+  WorkflowState,
+} from '@app/workflow/types';
+import { countApplyOutcomes, workflowEventScope } from '@app/workflow/audit';
 import { KeyCredential } from '@microsoft/microsoft-graph-types';
 import { createPS256Key, getActivePS256KeyCert } from '@app/keycloak/keys';
 import { getByBcgovUnitAndDivision, getDivisionById, listDivisions } from '@app/queries/division';
@@ -194,6 +218,17 @@ const checkIfHasFailedRequests = async () => {
 
 // Check if an applied/apply-failed event exists for the client
 export const checkIfRequestMerged = async (id: number) => (await countApplyOutcomes(id)) > 0;
+
+/**
+ * Locks an API account for deletion and says whether the delete needs a workflow to remove Keycloak clients.
+ * Refused while a workflow is active: an account whose create is still retrying would otherwise be archived
+ * here while that create goes on to make its client. Decided under the lock, so a create finishing meanwhile
+ * is counted; an apply that was attempted counts too, since it may have made a client it never recorded.
+ */
+export const lockApiAccountForDeletion = async (id: number, transaction: Transaction): Promise<boolean> => {
+  await lockIdleIntegration(id, transaction);
+  return (await countApplyOutcomes(id, { transaction })) > 0 || hasAttemptedKeycloakApply(id, transaction);
+};
 
 const authorizeClientId = (session: Session, clientId?: string | null) => {
   const proposed = clientId?.trim();
@@ -449,24 +484,26 @@ export const createBCSCIntegration = async (env: string, integration: Integratio
     userAttributes += ',email_verified';
   }
 
-  for (const mapper of bcscClientScopeMappers) {
-    const mapperExists = await getClientScopeMapper({
-      environment: env,
-      scopeId: clientScope?.id as string,
-      mapperName: mapper.name,
-    });
+  await Promise.all(
+    bcscClientScopeMappers.map(async (mapper) => {
+      const mapperExists = await getClientScopeMapper({
+        environment: env,
+        scopeId: clientScope?.id as string,
+        mapperName: mapper.name,
+      });
 
-    const customConfig = getBCSCClientScopeMapper(mapper.name, integration.protocol!, mapper.type, userAttributes);
-    const clientScopeMapperPayload = {
-      environment: env,
-      realmName: 'standard',
-      scopeName: clientScope?.name,
-      ...customConfig,
-    };
+      const customConfig = getBCSCClientScopeMapper(mapper.name, integration.protocol!, mapper.type, userAttributes);
+      const clientScopeMapperPayload = {
+        environment: env,
+        realmName: 'standard',
+        scopeName: clientScope?.name,
+        ...customConfig,
+      };
 
-    if (!mapperExists) await createClientScopeMapper({ ...clientScopeMapperPayload } as any);
-    else await updateClientScopeMapper({ ...clientScopeMapperPayload, id: mapperExists?.id } as any);
-  }
+      if (!mapperExists) await createClientScopeMapper({ ...clientScopeMapperPayload } as any);
+      else await updateClientScopeMapper({ ...clientScopeMapperPayload, id: mapperExists?.id } as any);
+    }),
+  );
 };
 
 export const deleteBCSCIntegration = async (request: BCSCClientParameters, keycoakClientId: string) => {
@@ -521,6 +558,23 @@ export const usesBCSCIntegration = async (request: BCSCClientParameters, keycoak
   return false;
 };
 
+const getPendingSdxRevoke = async (
+  requestId: number,
+  transaction: Transaction,
+  previousWorkflow: WorkflowRecord | null,
+): Promise<WorkflowContext['sdx']> => {
+  const workflow = previousWorkflow?.context.sdx
+    ? previousWorkflow
+    : await getLatestSdxWorkflowForRequest(requestId, transaction);
+  if (!workflow?.context.sdx?.revokeAll) return undefined;
+
+  const step = (await getWorkflowSteps(workflow.id, transaction)).find(
+    (candidate) => candidate.name === STEP_NAMES.SDX_SUBMIT,
+  );
+  if (!step) throw new Error(`SDX revoke workflow ${workflow.id} has no SDX submission step`);
+  return step.state === StepState.COMPLETED ? undefined : workflow.context.sdx;
+};
+
 export const updateRequest = async (
   session: Session,
   data: IntegrationData,
@@ -530,6 +584,7 @@ export const updateRequest = async (
   // let's skip this logic for now and see if we might need it back later
   // await checkIfHasFailedRequests();
   let addingProd = false;
+  let sdx: WorkflowContext['sdx'];
   const { id, comment, ...rest } = data;
   const isMerged = await checkIfRequestMerged(id!);
 
@@ -540,10 +595,13 @@ export const updateRequest = async (
     const { integration: current, access } = readable;
     const getCurrentValue = () => current.get({ plain: true, clone: true });
     const originalData = getCurrentValue();
+    const loadedAt = new Date(originalData.updatedAt).getTime();
 
     // A save is a draft's autosave; anything else is a submission
     const intent = submit ? 'submit' : 'save';
     authorizeTransition(current, intent, access);
+    // Refuse early, before the Keycloak and SDX validation calls; createWorkflow makes the final check.
+    if (submit && (await getActiveWorkflowForRequest(id!))) throw new IntegrationBusyError();
 
     const submitted = normalizeRequest(rest, isMerged);
     const changed = authorizeChanges(originalData, submitted, access, { merged: isMerged });
@@ -590,6 +648,7 @@ export const updateRequest = async (
     current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
     let finalData = getCurrentValue();
     let changes = null;
+    let notifyBcscRemoval = false;
 
     if (submit) {
       const validationErrors = await validateRequest(
@@ -624,11 +683,6 @@ export const updateRequest = async (
         current.clientId = `${kebabCase(current.projectName)}-${id}`;
       }
 
-      // SDX related operations
-      if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true' && usesSdxServices(current) && current?.sdxServices) {
-        await createSdxRequest(session, current);
-      }
-
       // Ensures requested client ID is not reserved
       if (!generatedClientId && (current.status === 'draft' || current.clientId !== originalData.clientId)) {
         assertClientIdNotReserved(current.clientId);
@@ -642,16 +696,38 @@ export const updateRequest = async (
         const holder = await getAnyIntegrationByClientId(current.clientId);
         if (holder && holder.id !== current.id) refuse();
 
-        for (const environment of current.environments) {
-          const existingKeycloakClient = await fetchClient({
-            serviceType: 'gold',
-            realmName: 'standard',
-            environment,
-            clientId: current.clientId,
-          });
-          if (existingKeycloakClient) refuse();
+        const existingKeycloakClients = await Promise.all(
+          current.environments.map((environment: string) =>
+            fetchClient({
+              serviceType: 'gold',
+              realmName: 'standard',
+              environment,
+              clientId: current.clientId,
+            }),
+          ),
+        );
+        if (existingKeycloakClients.some(Boolean)) refuse();
+      }
+
+      // SDX related operations
+      if (process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES === 'true') {
+        const revokeAll = isSdxRevokeAll(originalData, current);
+        if (revokeAll || (usesSdxServices(current) && current?.sdxServices)) {
+          const resourceServers = revokeAll ? [] : await validateSdxRequest(current);
+          sdx = {
+            requesterId: session.user?.id || 0,
+            request: {
+              id: current.id,
+              clientId: current.clientId,
+              bcscPrivacyZone: current.bcscPrivacyZone,
+              status: current.status,
+            },
+            revokeAll,
+            resourceServers,
+          };
         }
       }
+
       current.status = TRANSITIONS.submit.to;
       let environments = current.environments.concat();
 
@@ -666,9 +742,7 @@ export const updateRequest = async (
       finalData = getCurrentValue();
       changes = getDifferences(finalData, originalData);
 
-      if (isMerged && removingBcscIdp && hasProd) {
-        await sendTemplate(EMAILS.DISABLE_BCSC_IDP, { code: EMAILS.DISABLE_BCSC_IDP, integration: finalData });
-      }
+      notifyBcscRemoval = isMerged && removingBcscIdp && hasProd;
     }
 
     current.lastChanges = changes || null;
@@ -689,6 +763,18 @@ export const updateRequest = async (
     // neither audited nor enqueued.
     let enqueued: EnqueuedIntegrationWorkflow;
     let updated = await sequelize.transaction(async (transaction) => {
+      // Everything above was decided from an unlocked read. Lock the row and make sure it is still the
+      // row those decisions were made from, or a concurrent delete or update would be overwritten.
+      const locked = await authorizeIntegration(session, id!, 'integrations:read', {
+        archived: false,
+        lock: transaction,
+      });
+      if (!locked) throw new createHttpError.NotFound('Request not found');
+      authorizeTransition(locked.integration, intent, locked.access);
+      if (submit && new Date(locked.integration.updatedAt).getTime() !== loadedAt) {
+        throw new createHttpError.Conflict(INTEGRATION_CHANGED_MESSAGE);
+      }
+
       const saved = await current.save({ transaction });
       if (!saved) throw new createHttpError.UnprocessableEntity('update failed');
 
@@ -698,12 +784,25 @@ export const updateRequest = async (
       }
 
       if (submit) {
-        enqueued = await enqueueIntegrationWorkflow(saved, { existingClientId, addingProd, details }, transaction);
+        let workflowSdx = sdx;
+        if (!workflowSdx && !saved.sdxEnabled) {
+          const previousWorkflow = await getWorkflowForResubmission(id!, transaction);
+          workflowSdx = await getPendingSdxRevoke(id!, transaction, previousWorkflow);
+        }
+        enqueued = await enqueueIntegrationWorkflow(
+          saved,
+          { existingClientId, addingProd, details, sdx: workflowSdx },
+          transaction,
+        );
       }
       return saved;
     });
 
     if (submit) {
+      // Sent only once the submission has committed, so a refused one never announces the change.
+      if (notifyBcscRemoval) {
+        await sendTemplate(EMAILS.DISABLE_BCSC_IDP, { code: EMAILS.DISABLE_BCSC_IDP, integration: finalData });
+      }
       await runIntegrationWorkflow(enqueued);
 
       const refreshed = await authorizeIntegration(session, id!, 'integrations:read');
@@ -724,23 +823,33 @@ export const resubmitRequest = async (session: Session, id: number) => {
   if (!isMerged) return;
 
   try {
-    const readable = await authorizeIntegration(session, id, 'integrations:read', { archived: false });
-    if (!readable) throw new createHttpError.NotFound('Request not found');
-    const { integration: current, access } = readable;
-    authorizeTransition(current, 'resubmit', access);
-    const getCurrentValue = () => current.get({ plain: true, clone: true });
-
-    current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
-    current.requester = getRequester(session, access);
-    current.changed('updatedAt', true);
-
-    // Enqueue is de-duplicated: if a workflow is still in flight the resubmit is queued behind it
-    // instead of starting a second workflow.
     let enqueued: EnqueuedIntegrationWorkflow;
+    // Loaded under lock so the workflow payload is the row as stored, not a copy a concurrent update replaced.
     const updated = await sequelize.transaction(async (transaction) => {
+      const readable = await authorizeIntegration(session, id, 'integrations:read', {
+        archived: false,
+        lock: transaction,
+      });
+      if (!readable) throw new createHttpError.NotFound('Request not found');
+      const { integration: current, access } = readable;
+      authorizeTransition(current, 'resubmit', access);
+
+      current.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
+      current.requester = getRequester(session, access);
+      current.changed('updatedAt', true);
+
       const saved = await current.save({ transaction });
       if (!saved) throw new createHttpError.UnprocessableEntity('update failed');
-      enqueued = await enqueueIntegrationWorkflow(getCurrentValue(), {}, transaction);
+      const previousWorkflow = await getWorkflowForResubmission(id, transaction);
+      const previousSteps = previousWorkflow?.context.sdx
+        ? await getWorkflowSteps(previousWorkflow.id, transaction)
+        : [];
+      const sdxStep = previousSteps.find((step) => step.name === STEP_NAMES.SDX_SUBMIT);
+      let sdx = sdxStep && sdxStep.state !== StepState.COMPLETED ? previousWorkflow?.context.sdx : undefined;
+      if (!sdx && !saved.sdxEnabled) {
+        sdx = await getPendingSdxRevoke(id, transaction, previousWorkflow);
+      }
+      enqueued = await enqueueIntegrationWorkflow(current.get({ plain: true, clone: true }), { sdx }, transaction);
       return saved;
     });
     await runIntegrationWorkflow(enqueued);
@@ -893,7 +1002,6 @@ export const getRequests = async (session: Session, user: User, include: string 
 
   if (include === 'archived') where.archived = true;
   else if (include === 'active') where.archived = false;
-
   const requests = await models.request.findAll({
     where,
     include: [
@@ -914,36 +1022,73 @@ export const getIntegrations = async (session: Session, teamId: number, user: Us
 };
 
 export const deleteRequest = async (session: Session, user: User, id: number) => {
-  const readable = await authorizeIntegration(session, id, 'integrations:read', { archived: false });
-  if (!readable) throw new createHttpError.NotFound(`request #${id} not found`);
-  const { integration: current, access } = readable;
-  const transition = authorizeTransition(current, deleteIntentFor(current.status), access);
-
+  let authorized = false;
   try {
-    current.requester = getRequester(session, access);
-    current.archived = true;
+    let enqueued: EnqueuedIntegrationWorkflow;
+    let draft = false;
+    const result = await sequelize.transaction(async (transaction) => {
+      const readable = await authorizeIntegration(session, id, 'integrations:read', {
+        archived: false,
+        lock: transaction,
+      });
+      if (!readable) throw new createHttpError.NotFound(`request #${id} not found`);
+      const { integration: current, access } = readable;
+      const transition = authorizeTransition(current, deleteIntentFor(current.status), access);
+      authorized = true;
+      current.requester = getRequester(session, access);
+      current.archived = true;
 
-    // A draft never reached Keycloak, so deleting it is a database change alone.
-    if (current.status === 'draft') {
-      const result = await sequelize.transaction(async (transaction) => {
+      // A draft never reached Keycloak, so deleting it is a database change alone.
+      if (current.status === 'draft') {
+        draft = true;
         const saved = await current.save({ transaction });
         await audit.createEvent(
           { action: 'request-delete', outcome: 'success', requestId: id, details: {} },
           transaction,
         );
         return saved;
+      }
+
+      const previous = await getWorkflowForResubmission(id, transaction);
+      const latestSdx = previous?.context.sdx ? previous : await getLatestSdxWorkflowForRequest(id, transaction);
+      const lastSubmission = await models.SdxRequest.findOne({
+        where: { request_id: id },
+        order: [['id', 'DESC']],
+        transaction,
+        raw: true,
       });
-      return result.get({ plain: true });
-    }
-
-    current.status = transition.to;
-
-    let enqueued: EnqueuedIntegrationWorkflow;
-    const result = await sequelize.transaction(async (transaction) => {
+      const resourceServers = lastSubmission?.access_request?.resourceServers;
+      const acceptedRevoke = Array.isArray(resourceServers) && resourceServers.length === 0;
+      const laterAccess =
+        latestSdx?.context.sdx &&
+        !latestSdx.context.sdx.revokeAll &&
+        (!lastSubmission ||
+          new Date(latestSdx.updatedAt) >= new Date(lastSubmission.createdAt) ||
+          [WorkflowState.PENDING, WorkflowState.RUNNING, WorkflowState.QUEUED].includes(latestSdx.state));
+      const needsRevoke =
+        laterAccess || (!acceptedRevoke && (current.sdxEnabled || lastSubmission || latestSdx?.context.sdx));
+      if (needsRevoke && process.env.NEXT_PUBLIC_INCLUDE_SDX_SERVICES !== 'true') {
+        throw new createHttpError.Conflict('SDX must be enabled to revoke access before deleting this integration');
+      }
+      const sdx: WorkflowContext['sdx'] = needsRevoke
+        ? {
+            requesterId: session.user?.id || 0,
+            request: {
+              id: current.id,
+              clientId: current.clientId,
+              bcscPrivacyZone: current.bcscPrivacyZone,
+              status: current.status,
+            },
+            revokeAll: true,
+            resourceServers: [],
+          }
+        : undefined;
+      current.status = transition.to;
       const saved = await current.save({ transaction });
-      enqueued = await enqueueIntegrationWorkflow(saved, {}, transaction);
+      enqueued = await enqueueIntegrationWorkflow(saved, { sdx }, transaction);
       return saved;
     });
+    if (draft) return result.get({ plain: true });
     await runIntegrationWorkflow(enqueued);
 
     const integration = result.get({ plain: true });
@@ -955,6 +1100,7 @@ export const deleteRequest = async (session: Session, user: User, id: number) =>
 
     return integration;
   } catch (err) {
+    if (!authorized && createHttpError.isHttpError(err) && (err.status === 403 || err.status === 404)) throw err;
     // No event here: a failure before the commit left nothing behind, and one after it is the engine's.
     log.error({ err }, 'deleteRequest failed');
     throw new createHttpError.UnprocessableEntity((err as any).message || err);
@@ -995,6 +1141,31 @@ export const updateRequestMetadata = async (session: Session, user: User, data: 
     );
     return result[1].dataValues;
   });
+};
+
+/**
+ * Ends an integration's in-progress workflow as failed, for one that keeps retrying a failure only a fix can
+ * clear. The integration moves to `planFailed` or `applyFailed`, so its owner can resubmit or delete it once the
+ * cause is fixed. Recorded as the administrator's status change; the engine records the workflow's failure.
+ */
+export const stopRequestWorkflow = async (session: Session, id: number) => {
+  if (!hasAppPermission(session?.client_roles, appPermissions.ADMIN_DASHBOARD_UPDATE_REQUEST)) {
+    throw new createHttpError.Forbidden('not allowed');
+  }
+  if (!(await models.request.findByPk(id, { attributes: ['id'], raw: true }))) {
+    throw new createHttpError.NotFound(`request #${id} not found`);
+  }
+
+  await stopWorkflow(id, {
+    stoppedBy: `an administrator (${getDisplayName(session) || session?.email || 'unknown'})`,
+    onStopped: (transaction, { before, after }) =>
+      audit.createEvent(
+        { action: 'request-status-update', outcome: 'success', requestId: id, details: { before, after } },
+        transaction,
+      ),
+  });
+
+  return getIntegrationProgress(id);
 };
 
 export const buildGitHubRequestData = (baseData: IntegrationData) => {
@@ -1073,11 +1244,9 @@ export interface IntegrationWorkflowOptions {
   restore?: boolean;
   existingClientId?: string;
   addingProd?: boolean;
-  /** Block until the workflow finishes. Only used by callers that need the Keycloak client to exist
-   * before they return (team and organization API accounts). */
-  awaitCompletion?: boolean;
   /** Recorded on the operation's `requested` audit event. */
   details?: Record<string, unknown>;
+  sdx?: WorkflowContext['sdx'];
 }
 
 export type EnqueuedIntegrationWorkflow = (EnqueueResult & { operationId: string }) | undefined;
@@ -1105,8 +1274,8 @@ export const enqueueIntegrationWorkflow = async (
       restore: options.restore,
       existingClientId: options.existingClientId,
       addingProd: options.addingProd,
-      awaitCompletion: options.awaitCompletion,
       correlationId: operationId,
+      sdx: options.sdx,
     },
     transaction,
   );
@@ -1123,7 +1292,6 @@ export const enqueueIntegrationWorkflow = async (
     } as AuditEvent,
     transaction,
   );
-  if (!enqueued.created) await recordAdoptedSubmission(operationId, enqueued, scope, transaction);
 
   return { ...enqueued, operationId };
 };
@@ -1134,21 +1302,32 @@ export const enqueueIntegrationWorkflow = async (
  */
 export const runIntegrationWorkflow = async (
   enqueued: EnqueuedIntegrationWorkflow,
-  options: Pick<IntegrationWorkflowOptions, 'awaitCompletion'> = {},
+  options: ExecuteOptions = {},
 ): Promise<EnqueuedIntegrationWorkflow> =>
   enqueued && executeEnqueuedWorkflow(enqueued, { awaitCompletion: options.awaitCompletion });
 
 /**
- * For callers that awaited the workflow: anything but COMPLETED is a 422 naming the workflow and the
- * operation. The engine has already recorded the failure, dead-lettered the workflow and alerted ops;
+ * For callers that awaited the workflow. One that ended FAILED or SUPERSEDED is a 422 naming the workflow and the
+ * operation; the engine has already recorded the failure, dead-lettered the workflow and alerted ops, and
  * recovery is a resubmit, so there is nothing for the caller to clean up.
+ *
+ * One still PENDING or RUNNING is retrying an outage that outlasted the wait. That is not a failure: it finishes
+ * on its own, and the account reads as in progress until then, so the caller returns it as it is.
  */
 export const assertWorkflowCompleted = (workflow: EnqueuedIntegrationWorkflow) => {
-  if (workflow && workflow.state !== 'COMPLETED') {
-    throw new createHttpError.UnprocessableEntity(
-      `integration workflow ${workflow.workflowId} (operation ${workflow.operationId}) ended in ${workflow.state}`,
+  if (!workflow || workflow.state === WorkflowState.COMPLETED) return;
+
+  if (ACTIVE_WORKFLOW_STATES.includes(workflow.state)) {
+    log.warn(
+      { workflowId: workflow.workflowId, operationId: workflow.operationId, state: workflow.state },
+      'awaited workflow is still retrying, returning it as in progress',
     );
+    return;
   }
+
+  throw new createHttpError.UnprocessableEntity(
+    `integration workflow ${workflow.workflowId} (operation ${workflow.operationId}) ended in ${workflow.state}`,
+  );
 };
 
 export const getListOfDescrepencies = async () => {

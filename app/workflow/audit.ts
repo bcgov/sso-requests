@@ -107,51 +107,6 @@ export const recordWorkflowEvent = async (
   });
 };
 
-/**
- * Closes out a submission that lost the race to insert the first workflow and adopted the winner's. Its
- * own operation never runs, so it ends `superseded` by the winner's, next to its `requested` row.
- */
-export const recordAdoptedSubmission = async (
-  operationId: string,
-  winner: { workflowId: string; correlationId: string; auditAction: WorkflowAction },
-  scope: ReturnType<typeof workflowEventScope>,
-  transaction?: Transaction,
-) =>
-  withActor(systemActor('workflow-engine'), () =>
-    audit.createEvent(
-      {
-        action: winner.auditAction,
-        outcome: 'superseded',
-        operationId,
-        workflowId: winner.workflowId,
-        ...scope,
-        details: { supersededByWorkflowId: winner.workflowId, supersededByOperationId: winner.correlationId },
-      },
-      transaction,
-    ),
-  );
-
-/** Marks workflows' operations `superseded`, in the transaction that changed their state. */
-export const recordSuperseded = async (
-  workflows: WorkflowEventTarget[],
-  by: { workflowId?: string; operationId: string },
-  transaction?: Transaction,
-) => {
-  for (const workflow of workflows) {
-    await recordWorkflowEvent(
-      workflow,
-      {
-        outcome: 'superseded',
-        details: {
-          ...(by.workflowId ? { supersededByWorkflowId: by.workflowId } : {}),
-          supersededByOperationId: by.operationId,
-        },
-      },
-      { transaction },
-    );
-  }
-};
-
 const APPLY_ACTIONS: WorkflowAction[] = ['request-create', 'request-update', 'api-account-create'];
 
 /**

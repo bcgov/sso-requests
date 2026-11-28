@@ -13,6 +13,7 @@ import { getAllowedIdpsForApprover } from '@app/utils/helpers';
 import { resolveTeamRoles } from '@app/queries/teamAccess';
 import { resolveOrganizationLinks } from '@app/queries/organizationAccess';
 import { AccessScope } from '@app/queries/accessScope';
+import { Transaction } from 'sequelize';
 
 // The columns the resolver reads off a request row. A query that selects a
 // subset with `attributes:` must still satisfy this, so a missing column is a
@@ -65,6 +66,7 @@ export const resolveAccessForIntegrations = async (
   session: Session,
   integrations: any[],
   scope?: AccessScope,
+  transaction?: Transaction,
 ): Promise<Map<number, IntegrationAccess>> => {
   const userId = session?.user?.id as number;
   const rows = integrations.map(plain);
@@ -72,10 +74,10 @@ export const resolveAccessForIntegrations = async (
   if (rows.length === 0) return byIntegration;
 
   const teamIds = scope ? [] : teamsOwning(rows);
-  const roleByTeam = scope ? scope.roleByTeam : await resolveTeamRoles(userId, teamIds);
+  const roleByTeam = scope ? scope.roleByTeam : await resolveTeamRoles(userId, teamIds, transaction);
   const linkByTeam: Map<number, OrganizationLink> = scope
     ? scope.organizationTeams
-    : await resolveOrganizationLinks(userId, teamIds);
+    : await resolveOrganizationLinks(userId, teamIds, transaction);
 
   const appPermissions = commonPermissionsForAppRoles(session?.client_roles);
   const approverIdps = getAllowedIdpsForApprover(session);
@@ -113,8 +115,12 @@ export const resolveAccessForIntegrations = async (
   return byIntegration;
 };
 
-export const resolveAccessForIntegration = async (session: Session, integration: any): Promise<IntegrationAccess> =>
-  (await resolveAccessForIntegrations(session, [integration])).get(plain(integration).id)!;
+export const resolveAccessForIntegration = async (
+  session: Session,
+  integration: any,
+  transaction?: Transaction,
+): Promise<IntegrationAccess> =>
+  (await resolveAccessForIntegrations(session, [integration], undefined, transaction)).get(plain(integration).id)!;
 
 /**
  * Load an integration and check one permission against the actor's merged
@@ -129,15 +135,21 @@ export const authorizeIntegration = async (
   session: Session,
   integrationId: number,
   permission: Permission,
-  options: { archived?: boolean } = {},
+  options: { archived?: boolean; lock?: Transaction } = {},
 ) => {
   const where: any = { id: integrationId, apiServiceAccount: false };
   if (options.archived !== undefined) where.archived = options.archived;
 
-  const integration = await models.request.findOne({ where, include: commonPopulation });
+  // Lock only the integration: the optional user and team joins cannot be locked.
+  const integration = await models.request.findOne({
+    where,
+    include: commonPopulation,
+    transaction: options.lock,
+    lock: options.lock ? { level: options.lock.LOCK.UPDATE, of: models.request } : undefined,
+  });
   if (!integration) return null;
 
-  const access = await resolveAccessForIntegration(session, integration);
+  const access = await resolveAccessForIntegration(session, integration, options.lock);
   if (!access.permissions.includes(permission)) return null;
 
   // The client-side guards read the role and the resolved permissions off the

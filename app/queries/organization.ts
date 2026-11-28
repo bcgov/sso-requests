@@ -1,4 +1,4 @@
-import { Op } from 'sequelize';
+import { Op, Transaction } from 'sequelize';
 import { Permission } from '@sso/authz';
 import { models } from '@app/shared/sequelize/models/models';
 
@@ -7,11 +7,15 @@ export interface OverrideInput {
   permissions: Permission[];
 }
 
-export const getOrganizationRolesForUser = async (userId: number): Promise<Map<number, string>> => {
+export const getOrganizationRolesForUser = async (
+  userId: number,
+  transaction?: Transaction,
+): Promise<Map<number, string>> => {
   const memberships = await models.organizationMember.findAll({
     where: { userId },
     attributes: ['organizationId', 'role'],
     raw: true,
+    transaction,
   });
   return new Map(memberships.map((row: { organizationId: number; role: string }) => [row.organizationId, row.role]));
 };
@@ -60,10 +64,10 @@ export const getLinksForOrganization = async (organizationId: number) =>
     order: [['id', 'ASC']],
   });
 
-export const findActiveLinks = async (userId: number, teamIds?: number[]) => {
+export const findActiveLinks = async (userId: number, teamIds?: number[], transaction?: Transaction) => {
   if (teamIds?.length === 0) return [];
 
-  const roleByOrganization = await getOrganizationRolesForUser(userId);
+  const roleByOrganization = await getOrganizationRolesForUser(userId, transaction);
   if (roleByOrganization.size === 0) return [];
 
   const where: any = {
@@ -76,6 +80,7 @@ export const findActiveLinks = async (userId: number, teamIds?: number[]) => {
     where,
     attributes: ['id', 'organizationId', 'teamId', 'permissions'],
     raw: true,
+    transaction,
   });
 };
 
@@ -86,7 +91,10 @@ export const getOverrides = async (organizationTeamId: number) =>
     raw: true,
   });
 
-export const getOverridesByLink = async (organizationTeamIds: number[]): Promise<Map<number, any[]>> => {
+export const getOverridesByLink = async (
+  organizationTeamIds: number[],
+  transaction?: Transaction,
+): Promise<Map<number, any[]>> => {
   const byLink = new Map<number, any[]>(organizationTeamIds.map((id) => [id, []]));
   if (organizationTeamIds.length === 0) return byLink;
 
@@ -94,6 +102,7 @@ export const getOverridesByLink = async (organizationTeamIds: number[]): Promise
     where: { organizationTeamId: { [Op.in]: organizationTeamIds } },
     order: [['request_id', 'ASC']],
     raw: true,
+    transaction,
   });
 
   for (const row of rows) byLink.get((row as any).organizationTeamId)?.push(row);

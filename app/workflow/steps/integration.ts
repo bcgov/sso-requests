@@ -1,5 +1,7 @@
-import { models } from '@app/shared/sequelize/models/models';
+import { Transaction } from 'sequelize';
+import { models, sequelize } from '@app/shared/sequelize/models/models';
 import { keycloakClient } from '@app/keycloak/integration';
+import { SdxSubmission, submitSdxRequest } from '@app/controllers/sdx-services';
 import { recordWorkflowEvent } from '../audit';
 import {
   RolesSnapshot,
@@ -9,7 +11,15 @@ import {
   updatePlannedIntegration,
 } from '../effects';
 import { updateStep } from '../store';
-import { WorkflowRecord, WorkflowStepDefinition, WorkflowType, STEP_NAMES, TransientStepError } from '../types';
+import {
+  CLAIMABLE_WORKFLOW_STATES,
+  WorkflowContext,
+  WorkflowRecord,
+  WorkflowStepDefinition,
+  WorkflowType,
+  STEP_NAMES,
+  TransientStepError,
+} from '../types';
 
 const ENVIRONMENT_ORDER = ['dev', 'test', 'prod'];
 
@@ -26,8 +36,10 @@ export const orderedEnvironments = (workflow: WorkflowRecord): string[] =>
     ? ENVIRONMENT_ORDER
     : ENVIRONMENT_ORDER.filter((env) => (workflow.payload?.environments || []).includes(env));
 
-const setRequestStatus = async (requestId: number, status: string) => {
-  await models.request.update({ status }, { where: { id: requestId } });
+const errorText = (err: unknown): string => (err instanceof Error ? err.message || err.name : String(err));
+
+const setRequestStatus = async (requestId: number, status: string, transaction?: Transaction) => {
+  await models.request.update({ status }, { where: { id: requestId }, transaction });
 };
 
 const applyEnvironmentStep = (workflow: WorkflowRecord, environment: string): WorkflowStepDefinition => {
@@ -41,7 +53,15 @@ const applyEnvironmentStep = (workflow: WorkflowRecord, environment: string): Wo
     // `keycloakClient` is a converge-to-desired-state operation (find-or-create for the client,
     // roles, scopes and mappers), so re-running it after a partial failure is safe.
     execute: async ({ log }) => {
-      const applied = await keycloakClient(environment, workflow.payload, workflow.context.existingClientId);
+      let applied: boolean;
+      try {
+        applied = await keycloakClient(environment, workflow.payload, workflow.context.existingClientId);
+      } catch (err) {
+        // The cause keeps the HTTP status the orchestrator uses to tell an outage from a rejected request.
+        throw new Error(`Keycloak could not apply the ${environment} client configuration: ${errorText(err)}`, {
+          cause: err,
+        });
+      }
       if (!applied) {
         throw new TransientStepError(`Keycloak did not confirm the ${environment} client configuration`);
       }
@@ -77,21 +97,59 @@ const restoreRolesStep = (workflow: WorkflowRecord): WorkflowStepDefinition => (
   },
 });
 
+const sdxSubmitStep = (sdx: NonNullable<WorkflowContext['sdx']>): WorkflowStepDefinition => ({
+  name: STEP_NAMES.SDX_SUBMIT,
+  label: sdx.revokeAll ? 'Revoking SDX access' : 'Submitting SDX access request',
+  execute: async ({ step }) => {
+    // SDX opens a new access request for every POST. Once it has accepted one, a retry of the Keycloak scope sync
+    // that follows must not send it again, so the acceptance is stored on the step before anything else can fail.
+    const accepted: SdxSubmission | undefined = step.result?.sdxAccepted;
+    let submissionId = accepted?.submissionId;
+    await submitSdxRequest(sdx.requesterId, sdx.request, {
+      revokeAll: sdx.revokeAll,
+      resourceServers: sdx.resourceServers,
+      accepted,
+      onAccepted: async (submission) => {
+        submissionId = submission.submissionId;
+        await updateStep(step.id, { result: { sdxAccepted: submission } });
+      },
+    });
+    return { submitted: true, submissionId };
+  },
+});
+
 const finalizeStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
   name: STEP_NAMES.FINALIZE,
   label: 'Finalizing integration',
-  execute: async () => {
-    // The operation's terminal outcome. NOTIFY after it is best effort and cannot change it.
-    await recordWorkflowEvent(workflow, { outcome: 'success' });
-    await setRequestStatus(workflow.requestId, 'applied');
-    return { finalized: true };
-  },
+  execute: () =>
+    // The operation's terminal outcome. Last, so the integration reads as applied only once the workflow has
+    // nothing left to do and new submissions are accepted again. Written under the integration's lock and only
+    // while the workflow is still active, so an administrator's stop and this step cannot both decide the outcome.
+    sequelize.transaction(async (transaction) => {
+      await models.request.findOne({
+        where: { id: workflow.requestId },
+        attributes: ['id'],
+        lock: transaction.LOCK.UPDATE,
+        transaction,
+      });
+      const live: any = await models.requestWorkflow.findOne({
+        where: { id: workflow.id },
+        attributes: ['state'],
+        lock: transaction.LOCK.UPDATE,
+        transaction,
+      });
+      if (!CLAIMABLE_WORKFLOW_STATES.includes(live?.state)) return { finalized: false };
+
+      await recordWorkflowEvent(workflow, { outcome: 'success' }, { transaction });
+      await setRequestStatus(workflow.requestId, 'applied', transaction);
+      return { finalized: true };
+    }),
 });
 
 const notifyStep = (workflow: WorkflowRecord): WorkflowStepDefinition => ({
   name: STEP_NAMES.NOTIFY,
   label: 'Sending notifications',
-  // FINALIZE already applied the integration, so an unreachable mail server must not fail the workflow.
+  // Keycloak is already applied, so an unreachable mail server must not fail the workflow.
   optional: true,
   execute: async () => {
     if (workflow.type === WorkflowType.INTEGRATION_RESTORE) {
@@ -115,8 +173,9 @@ export const buildIntegrationWorkflowSteps = (workflow: WorkflowRecord): Workflo
   orderedEnvironments(workflow).forEach((environment) => steps.push(applyEnvironmentStep(workflow, environment)));
 
   if (workflow.type === WorkflowType.INTEGRATION_RESTORE) steps.push(restoreRolesStep(workflow));
+  if (workflow.context.sdx) steps.push(sdxSubmitStep(workflow.context.sdx));
 
-  steps.push(finalizeStep(workflow), notifyStep(workflow));
+  steps.push(notifyStep(workflow), finalizeStep(workflow));
 
   return steps;
 };

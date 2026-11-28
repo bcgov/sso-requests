@@ -30,8 +30,9 @@ change produces the same row whichever path it came through. Rows are never upda
 - A change that calls Keycloak or SDX writes `requested` first, then exactly one of `success` or `failure`
   under the same `operation_id`. If the `requested` row cannot be written, the outside call is never made.
 - A workflow-backed change writes `requested` in the transaction that saves the integration and enqueues
-  the workflow; the workflow engine (actor `system: workflow-engine`) writes the outcome. A workflow that a
-  newer one took over ends `superseded`, with `supersededByOperationId` in `details`.
+  the workflow; the workflow engine (actor `system: workflow-engine`) writes the outcome. An integration has at
+  most one active workflow: a submission, resubmit, restore or delete made while one is in flight is refused
+  (HTTP 422) and leaves no audit row. `superseded` outcomes remain only on workflows recorded before that rule.
 - `failure` with `details.stage = 'local-sync'` means the outside call succeeded but the database write
   that mirrors it did not: Keycloak and the database disagree and need a look.
 - Requests rejected before anything changes (400, 403, 404, 409) are not audited; the request log has them. The
@@ -82,10 +83,23 @@ A batch parent ends `success` only if every child did, with `details.total`, `su
 
 ### SDX
 
-| Action                      | Meaning                                                                                       |
-| --------------------------- | --------------------------------------------------------------------------------------------- |
-| `sdx-request-create`        | An access request was submitted to SDX; the success row carries its `submissionId`.           |
-| `sdx-access-request-update` | SDX called back with an approval and the client scopes were updated (`system: sdx-callback`). |
+| Action                      | Meaning                                                                                                                                                                                                                                      |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sdx-request-create`        | The workflow engine submitted an access request to SDX; the success row carries its `submissionId`. An empty `services.resourceServers` revokes all access, including on integration deletion. Retries may produce multiple operation pairs. |
+| `sdx-access-request-update` | SDX called back with an approval and the client scopes were updated (`system: sdx-callback`). An empty `resourceServers` removes all SDX scopes.                                                                                             |
+
+An empty callback for an archived integration is acknowledged without touching Keycloak or writing an audit event.
+SDX selections are validated against the catalog before an integration update is saved and enqueued. The workflow and
+its retries submit that validated snapshot without rechecking the catalog, even if the catalog changes afterward.
+Approval callbacks received while an integration workflow is in flight or awaiting resubmission return HTTP 503 for
+SDX to retry; no scope changes or audit events are written until the integration is applied.
+For each non-revocation submission, scope reconciliation checks registration with SDX before removing scopes, including
+when no earlier submission was recorded locally. A failed registration check is retried by the workflow.
+An unfinished revoke-all is carried into a later submission while SDX remains disabled, including after a workflow
+failure.
+Deletion is blocked when revocation is needed but the SDX feature is disabled. A previously accepted revoke is not
+repeated unless there is a later SDX access submission or unfinished access workflow; acceptance does not mean the
+callback has arrived.
 
 ### Teams
 

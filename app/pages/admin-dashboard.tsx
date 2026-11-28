@@ -23,7 +23,7 @@ import { appPermissions, hasAppPermission } from '@app/utils/authorize';
 import TableNew from '@app/components/TableNew';
 import ActionButton from '@app/components/ActionButton';
 import { canEditIntegration } from '@app/helpers/permissions';
-import { isResting } from '@app/helpers/transitions';
+import { concurrencyRefusal, isResting } from '@app/helpers/transitions';
 import { isEqual } from 'lodash';
 
 const idpOptions = [
@@ -353,7 +353,7 @@ function AdminDashboard({ session, alert }: PageProps & { alert: TopAlert }) {
     if (error) {
       alert.show({
         variant: 'danger',
-        content: 'Failed to delete the integration, please try again.',
+        content: concurrencyRefusal(error) ?? 'Failed to delete the integration, please try again.',
       });
     }
     await loadData();

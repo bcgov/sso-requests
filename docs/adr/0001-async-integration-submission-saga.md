@@ -3,6 +3,8 @@
 - **Status:** Accepted
 - **Date:** 2026-09-15
 - **Supersedes:** the synchronous integration request processing
+- **Amended:** 2026-11-27 — an integration has at most one active workflow; concurrent submissions are refused
+  instead of queued, and deletes no longer supersede in-flight workflows
 
 ## Context
 
@@ -48,12 +50,12 @@ flowchart LR
   G --> H[APPLY_TEST]
   H --> I[APPLY_PROD]
   I --> J["RESTORE_ROLES<br/>(restore workflows only)"]
-  J --> K[FINALIZE]
-  K --> L[NOTIFY]
-  L --> M([COMPLETED])
-  I -- "transient failure" --> N["backoff + jitter<br/>release claim"]
+  J --> L[NOTIFY]
+  L --> K[FINALIZE]
+  K --> M([COMPLETED])
+  I -- "transient failure<br/>(no attempt limit)" --> N["backoff + jitter<br/>release claim"]
   N -. "retry from this step" .-> I
-  I -- "retries exhausted /<br/>permanent error" --> O([FAILED])
+  I -- "rejected request /<br/>permanent error" --> O([FAILED])
   O --> P["workflow failure row<br/>+ MS TEAMS alert"]
 ```
 
@@ -61,20 +63,16 @@ flowchart LR
 
 ```mermaid
 stateDiagram-v2
-  [*] --> PENDING: enqueueRequestWorkflow()
-  [*] --> QUEUED: enqueued while another workflow is in flight
-  QUEUED --> QUEUED: a newer resubmit overwrites the payload
-  QUEUED --> PENDING: promoted once the workflow ahead reaches a terminal state
+  [*] --> PENDING: enqueueRequestWorkflow() (refused while another workflow is active)
+  QUEUED --> PENDING: leftover from before the amendment, promoted once the workflow ahead ends
   PENDING --> RUNNING: claimed by a worker
   RUNNING --> RUNNING: step completed
   RUNNING --> COMPLETED: all steps completed
-  RUNNING --> FAILED: retries exhausted or permanent error
-  PENDING --> SUPERSEDED: a delete workflow takes over
-  QUEUED --> SUPERSEDED: a delete workflow takes over
-  RUNNING --> SUPERSEDED: a delete workflow takes over
+  RUNNING --> RUNNING: transient failure, retried with backoff
+  RUNNING --> FAILED: rejected request, permanent error or configured attempt cap
   COMPLETED --> [*]
   FAILED --> [*]
-  SUPERSEDED --> [*]
+  SUPERSEDED --> [*]: recorded before the amendment only
 ```
 
 ### End to End flow
@@ -94,8 +92,8 @@ sequenceDiagram
   API->>DB: save request row (status = submitted)
   API->>EQ: processIntegrationRequest(payload)
   EQ->>DB: hasBeenApplied(requestId)? → isCreate
-  alt type = INTEGRATION_DELETE
-    EQ->>DB: supersedeActiveWorkflows(requestId)
+  alt another workflow is active
+    EQ-->>API: IntegrationBusyError → HTTP 422, transaction rolled back
   end
   EQ->>DB: TX { INSERT workflow(PENDING) + INSERT all step rows }
   EQ-->>API: { workflowId, correlationId, state }
@@ -145,11 +143,13 @@ sequenceDiagram
 flowchart TD
   S[step.execute] --> OK{threw?}
   OK -- no --> C[step → COMPLETED<br/>loop to next step]
-  OK -- yes --> PERM{isPermanentError?}
+  OK -- yes --> PERM{"isPermanentError?<br/>(PermanentStepError or a 4xx<br/>other than 401/403/408/425/429)"}
   PERM -- yes --> FAIL
-  PERM -- no --> EX{attempt >= MAX_STEP_ATTEMPTS?}
+  PERM -- no --> EX{"optional: attempt >= MAX_STEP_ATTEMPTS?<br/>required: attempt >= REQUIRED_STEP_ATTEMPT_LIMIT<br/>(0 = never)"}
   EX -- yes --> FAIL[failWorkflow:<br/>workflow → FAILED<br/>status → applyFailed/planFailed<br/>failure row + ops alert]
-  EX -- no --> B["nextRunAfter(attempt)<br/>delay = randomInt(min(120s, 2s · 2^(n-1)))"]
+  EX -- no --> AL{"required step and<br/>attempt = MAX_STEP_ATTEMPTS?"}
+  AL -- yes --> ALERT[one ops alert:<br/>still retrying] --> B
+  AL -- no --> B["nextRunAfter(attempt)<br/>attempt < 5: delay = randomInt(min(120s, 2s · 2^(n-1)))<br/>attempt >= 5: delay = 10 min"]
   B --> REL[releaseWorkflow: drop lease, set run_after]
   REL --> CEIL{delay <= 60s<br/>AND mode = background?}
   CEIL -- yes --> T[setTimeout → runWorkflow id<br/>in-process re-arm]
@@ -168,14 +168,19 @@ flowchart TD
   the same command is a safe no-op.
 - A **partial unique index** allows only one _claimable_ workflow per integration:
   `CREATE UNIQUE INDEX ... ON request_workflows (request_id) WHERE state IN ('PENDING','RUNNING',...)`.
-- A submission that arrives while one is in flight is parked as **`QUEUED`** and promoted when the
-  workflow ahead reaches a terminal state, so an edit made mid-apply is never silently dropped. A
-  second partial unique index (`... WHERE state = 'QUEUED'`) allows only one follow-up, so rapid
-  resubmits collapse into "latest desired state wins". `QUEUED` is excluded from the claim query, so
-  no worker can pick it up early.
+- **One active workflow per integration.** A submission, resubmit, restore or delete that arrives while
+  a workflow is `QUEUED`, `PENDING` or `RUNNING` is refused with `IntegrationBusyError` (HTTP 422, "Another
+  update or deletion of this integration is in progress"). The refusal rolls back the caller's
+  transaction, so the change, the workflow and its `requested` audit event are all discarded and the user
+  retries once the workflow ends. The request status already marks the integration in flight
+  (`submitted`/`planned`), so `authorizeTransition` refuses with the same error before any work is done.
+- Update and resubmit re-load the integration under `SELECT ... FOR UPDATE` in the transaction that
+  enqueues, and an update is refused if the row changed (`updatedAt`) since it was validated, so a
+  concurrent delete or update is never overwritten by a stale snapshot.
 - Row locks cannot block an insert of a row that does not exist yet, so two pods racing the very first
-  submit both insert. The unique index picks a winner and the loser **adopts** it instead of surfacing
-  a 500.
+  submit can both try to insert. The unique index lets one through; the other is refused as busy.
+- `QUEUED` rows are no longer created. Rows left over from before the amendment still count as active
+  and are promoted when the workflow ahead ends.
 - Audit events are written through `emitWorkflowEventOnce`, which stamps `details.requestWorkflowId` and checks for
   an existing row first, so a crash between the event insert and the step commit cannot duplicate
   the change history.
@@ -197,16 +202,36 @@ or reverting Keycloak clients that may already be serving live logins; the blast
 rollback is worse than the partial state it repairs. Instead:
 
 - A failed step is retried from exactly that step. Completed steps are never re-run or undone.
-- After `MAX_STEP_ATTEMPTS` (or a `PermanentStepError`) the workflow moves to the terminal `FAILED`
-  state — it is never parked in an intermediate state — and the request becomes `applyFailed`
-  (`planFailed` if the `PLAN` step failed).
-- Operators re-drive a failed workflow by resubmitting, which is de-duplicated and resumes from the
-  failed step.
+- **A required step has no attempt limit.** A transient failure (no response, a 5xx, a timeout, or a
+  401/403/408/409/425/429) is retried until Keycloak or SDX recovers, and the workflow then
+  completes on its own: nobody resubmits. The integration stays in flight, and refuses other
+  submissions, for as long as that takes. `WORKFLOW_REQUIRED_STEP_ATTEMPT_LIMIT` sets a hard cap if one is
+  ever needed.
+  A 409 counts as transient because here it is a race between converging writers, not a bad request: two
+  integrations creating the same realm-wide SDX scope, or a retry creating the client that a timed-out
+  attempt is still creating. The next attempt finds what the other created.
+- A **rejected request** — any other 4xx, found on the error or anywhere in its `cause` chain — a **bug in
+  our own code** (`TypeError` or `ReferenceError`, except the `TypeError: fetch failed` Node raises for a
+  dropped connection), or a `PermanentStepError` fails the workflow on that attempt, because retrying would
+  return the same answer. The workflow moves to the terminal `FAILED` state and the request becomes
+  `applyFailed` (`planFailed` if the `PLAN` step failed), in one transaction.
+- Operators re-drive a failed workflow by resubmitting, which is only accepted once the workflow has
+  failed (`planFailed` / `applyFailed`). A workflow still in flight is left to the engine's own retries.
+- **An administrator can stop a workflow that will never finish on its own** (Stop Workflow in the admin
+  dashboard, `POST /api/requests/[id]/stop-workflow`). It ends `FAILED`, the integration `applyFailed` or
+  `planFailed`, with a failure outcome, a dead letter, an ops alert, and a `request-status-update` event
+  recorded as the administrator, so the owner can resubmit once the cause is fixed. A worker still running
+  one of its steps finishes that step, sees the workflow is no longer active and leaves it; `FINALIZE` checks
+  the same thing under the integration's lock before marking it `applied`. A workflow whose `FINALIZE` has
+  already recorded success is refused, since it completes on its own.
 
 ### 4. Resiliency and fault tolerance
 
-- **Exponential backoff with full jitter** (`backoffDelayMs`), persisted as the workflow's `run_after`.
-  Jitter prevents every pod that failed against the same Keycloak outage from retrying in lockstep.
+- **Two-speed retries** (`backoffDelayMs`), persisted as the workflow's `run_after`. The first
+  `MAX_STEP_ATTEMPTS` attempts back off exponentially with full jitter (up to 2s, 4s, 8s, 16s), which rides
+  out a blip in seconds; jitter keeps every pod that failed against the same Keycloak outage from retrying in
+  lockstep. From then on the step is treated as an outage and retried every `SLOW_RETRY_INTERVAL_MS`
+  (10 minutes), which the cron tick picks up, so in practice 10–11 minutes apart.
 - **`SELECT ... FOR UPDATE SKIP LOCKED`** claims plus a **lease** (`claimed_by` / `claimed_at`)
   guarantee a single owner per workflow and make a workflow abandoned by a crashed pod claimable again once
   the lease expires. A heartbeat refreshes the lease during long steps so it is not stolen mid-flight,
@@ -214,15 +239,28 @@ rollback is worse than the partial state it repairs. Instead:
 - **Every step is bounded by `WORKFLOW_STEP_TIMEOUT_MS`.** Without it a Keycloak call that never
   returns would be kept alive by its own heartbeat forever: never retried, never failed, never dead
   lettered. A timeout is raised as a `TransientStepError` so it retries with the normal backoff.
-- A delete **supersedes** any in-flight or queued workflow for the integration, and the orchestrator
-  re-reads the workflow state before each step so a superseded workflow stops instead of re-creating
-  what the delete just removed. Terminal transitions are state-guarded, so a superseded workflow can
-  never overwrite the delete's outcome or dead letter itself.
+- A delete is refused, for every role, while a workflow for the integration is in flight; it no longer
+  supersedes it. The orchestrator still re-reads the workflow state before each step and stops a
+  workflow that is no longer claimable, which covers rows superseded before the amendment.
+- **Every call to Keycloak, SDX and BCSC has its own timeout** (`EXTERNAL_REQUEST_TIMEOUT_MS`, 30s), so a
+  dependency that accepts the connection but never answers fails the call fast instead of holding the step
+  for the full step timeout. The two calls that create something on every request — the SDX access-request
+  POST and BCSC client registration — are left to the step timeout instead, because giving up on a slow one
+  and retrying would create a second.
+- **SDX is sent an access request once.** SDX opens a new one for every POST, so the moment it accepts, the
+  `SDX_SUBMIT` step stores what it accepted on its own row. A retry of the Keycloak scope sync that follows
+  records that submission locally if it is missing and does not POST again.
 - Retries shorter than `IN_PROCESS_RETRY_CEILING_MS` are re-armed with an in-process timer; anything
   longer (and anything lost to a restart) is picked up by the cron tick.
-- Exhausted or permanently failed workflows are written to `request_workflow_failures` and raise a
-  Rocket.Chat ops alert. Steps marked `optional` (currently `NOTIFY`) become `SKIPPED` instead of
-  failing the workflow, because `FINALIZE` has already applied the integration by then.
+- **A pod shutting down hands its workflows over between steps.** On SIGTERM it stops claiming and starts no
+  further step; a workflow it is running releases its claim when the current step ends, so the next tick runs
+  it elsewhere. A step still running when the process exits is picked up once its lease (2 minutes) expires.
+- Failed workflows are written to `request_workflow_failures` and raise a Rocket.Chat ops alert. A
+  required step that has failed `MAX_STEP_ATTEMPTS` times raises one "keeps retrying" alert and carries on.
+  Steps marked `optional` (currently `NOTIFY`) give up after `MAX_STEP_ATTEMPTS` and become `SKIPPED` instead of
+  failing the workflow, because the Keycloak clients are already applied by then. `NOTIFY` runs before
+  `FINALIZE`, so the integration reads as `applied`, and accepts new submissions, only once the workflow
+  has nothing left to do.
 
 ### 5. Code quality and observability
 
@@ -277,7 +315,7 @@ progress during the apply comes from `request_workflow_steps` via the progress e
 | `app/workflow/backoff.ts`           | Retry limits, lease window, exponential backoff with jitter                                  |
 | `app/workflow/logger.ts`            | Structured logging with correlation-id propagation                                           |
 | `app/workflow/store.ts`             | Persistence, `SKIP LOCKED` claiming, leases, dead letters                                    |
-| `app/workflow/steps/integration.ts` | The step definitions (`PLAN`, `APPLY_<ENV>`, `RESTORE_ROLES`, `FINALIZE`, `NOTIFY`)          |
+| `app/workflow/steps/integration.ts` | The step definitions (`PLAN`, `APPLY_<ENV>`, `RESTORE_ROLES`, `NOTIFY`, `FINALIZE`)          |
 | `app/workflow/orchestrator.ts`      | The state machine: `runWorkflow(id)`, `drainWorkflows()`                                     |
 | `app/workflow/request-worklfow.ts`  | `enqueueRequestWorkflow()`, `getIntegrationProgress()`                                       |
 | `app/workflow/effects.ts`           | Side effects moved out of the controller: notifications, role restoration                    |
@@ -290,13 +328,20 @@ is evaluated while the module graph is mid-cycle.
 
 ### Flows that changed
 
-| Flow                                                  | Behaviour                                                                                                                         |
-| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Submit / update integration                           | Asynchronous                                                                                                                      |
-| Delete integration                                    | Asynchronous; supersedes any in-flight workflow for that integration                                                              |
-| Restore integration                                   | Asynchronous; role re-creation and the restore email became workflow steps so they only run once the Keycloak clients exist again |
-| Resubmit                                              | Now means "retry the workflow"; accepts in-flight and failed statuses. A resubmit during an apply is queued behind it             |
-| Team API service accounts (`app/controllers/team.ts`) | Still synchronous via `{ awaitCompletion: true }`, because the caller reads the client credentials immediately afterwards         |
+| Flow                               | Behaviour                                                                                                                            |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Submit / update integration        | Asynchronous                                                                                                                         |
+| Delete integration                 | Asynchronous; refused while a workflow for that integration is in flight                                                             |
+| Restore integration                | Asynchronous; role re-creation and the restore email became workflow steps so they only run once the Keycloak clients exist again    |
+| Resubmit                           | Now means "retry the workflow"; accepted only from failed statuses, refused while a workflow is in flight                            |
+| Team and organization API accounts | Still synchronous via `{ awaitCompletion: true }`, because the caller reads the client credentials immediately afterwards; see below |
+
+API accounts wait for their workflow for at most `WORKFLOW_AWAIT_COMPLETION_BUDGET_MS` (45s, well under the
+route's 180s timeout). Once the next retry falls beyond that, Keycloak is having an outage rather than a blip,
+and the account is returned as still in progress instead of failing: the dashboard polls it, and it completes
+on its own. Only a workflow that ended `FAILED` is a 422. Deleting an API account is refused while any
+workflow for it is active, and goes through a delete workflow whenever an earlier apply was attempted, even one
+that never recorded an outcome, since it may have created a client.
 
 ### User interface
 
@@ -313,18 +358,26 @@ is evaluated while the module graph is mid-cycle.
 
 - `GET /api/processRequestQueue` now calls `drainWorkflows()` — the recovery tick that re-claims workflows
   waiting on backoff, never started, or abandoned by a crashed pod. The cron schedule moved from
-  every 5 minutes to every minute.
+  every 5 minutes to every minute. Every retry longer than a minute depends on it, so the cron checks each
+  response: a failure (anything but 2xx, or no response) is logged, and three in a row post an ops alert to
+  `RC_SSO_OPS_WEBHOOK`, with a second message once it succeeds again. A 504 means the route stopped waiting on
+  a tick that is still working and is not counted.
 - Tuning knobs (all optional):
 
-  | Variable                               | Default      | Meaning                                               |
-  | -------------------------------------- | ------------ | ----------------------------------------------------- |
-  | `WORKFLOW_MAX_STEP_ATTEMPTS`           | `5`          | Attempts per step before decalring it failed          |
-  | `WORKFLOW_CLAIM_LEASE_SECONDS`         | `300`        | Lease window before a claim is considered abandoned   |
-  | `WORKFLOW_RETRY_BASE_DELAY_MS`         | `2000`       | Backoff base                                          |
-  | `WORKFLOW_RETRY_MAX_DELAY_MS`          | `120000`     | Backoff ceiling                                       |
-  | `WORKFLOW_IN_PROCESS_RETRY_CEILING_MS` | `60000`      | Above this, retries wait for the cron tick            |
-  | `WORKFLOW_STEP_TIMEOUT_MS`             | `300000`     | Ceiling on a single step before it is retried         |
-  | `WORKFLOW_EXECUTION_MODE`              | `background` | `background` \| `synchronous` \| `manual` (see below) |
+  | Variable                               | Default      | Meaning                                                                                                    |
+  | -------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------- |
+  | `WORKFLOW_MAX_STEP_ATTEMPTS`           | `5`          | Attempts before an optional step is skipped, and before ops is alerted that a required step keeps retrying |
+  | `WORKFLOW_REQUIRED_STEP_ATTEMPT_LIMIT` | `0`          | Hard cap on a required step's attempts; `0` retries until the dependency recovers                          |
+  | `WORKFLOW_CLAIM_LEASE_SECONDS`         | `120`        | Lease window before a claim is considered abandoned; renewed every third of it while a step runs           |
+  | `WORKFLOW_RETRY_BASE_DELAY_MS`         | `2000`       | Backoff base                                                                                               |
+  | `WORKFLOW_RETRY_MAX_DELAY_MS`          | `120000`     | Backoff ceiling                                                                                            |
+  | `WORKFLOW_SLOW_RETRY_INTERVAL_MS`      | `600000`     | Fixed interval between retries once a step has failed `WORKFLOW_MAX_STEP_ATTEMPTS` times                   |
+  | `WORKFLOW_IN_PROCESS_RETRY_CEILING_MS` | `60000`      | Above this, retries wait for the cron tick                                                                 |
+  | `WORKFLOW_STEP_TIMEOUT_MS`             | `300000`     | Ceiling on a single step before it is retried                                                              |
+  | `WORKFLOW_AWAIT_COMPLETION_BUDGET_MS`  | `45000`      | How long an API account request waits for its workflow before returning it as in progress                  |
+  | `EXTERNAL_REQUEST_TIMEOUT_MS`          | `30000`      | Ceiling on one call to Keycloak, SDX or BCSC (not the SDX POST or BCSC registration)                       |
+  | `RECOVERY_TICK_FAILURES_BEFORE_ALERT`  | `3`          | Cron only: failed recovery ticks in a row before ops is alerted                                            |
+  | `WORKFLOW_EXECUTION_MODE`              | `background` | `background` \| `synchronous` \| `manual` (see below)                                                      |
 
 ### Testing
 

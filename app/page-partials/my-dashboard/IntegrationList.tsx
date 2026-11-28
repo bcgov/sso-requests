@@ -19,6 +19,7 @@ import { AxiosError } from 'axios';
 import { TopAlert, withTopAlert } from '@app/layout/TopAlert';
 import TableNew from '@app/components/TableNew';
 import { Col, Row } from 'react-bootstrap';
+import { concurrencyRefusal } from '@app/helpers/transitions';
 
 const RightFloatButtons = styled.tr`
   float: right;
@@ -227,7 +228,8 @@ function IntegrationList({ setIntegration, setIntegrationCount, alert }: Readonl
                   if (error) {
                     alert.show({
                       variant: 'danger',
-                      content: `Failed to delete integration ${props.row.original.projectName}.`,
+                      content:
+                        concurrencyRefusal(error) ?? `Failed to delete integration ${props.row.original.projectName}.`,
                     });
                   } else {
                     void loadIntegrations();

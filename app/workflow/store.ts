@@ -6,6 +6,7 @@ import { IntegrationData } from '@app/shared/interfaces';
 import {
   ACTIVE_WORKFLOW_STATES,
   CLAIMABLE_WORKFLOW_STATES,
+  IntegrationBusyError,
   WorkflowContext,
   WorkflowRecord,
   WorkflowState,
@@ -15,7 +16,6 @@ import {
   StepState,
 } from './types';
 import { CLAIM_LEASE_SECONDS } from './backoff';
-import { recordSuperseded } from './audit';
 
 export const WORKER_ID = `${os.hostname()}:${process.pid}`;
 
@@ -29,20 +29,9 @@ export interface CreateWorkflowParams {
   context: WorkflowContext;
   steps: WorkflowStepDefinition[];
   correlationId?: string;
-  /** Preassigned so a delete can name itself on the workflows it supersedes before it is inserted. */
-  id?: string;
 }
 
-export interface CreateWorkflowResult {
-  workflow: WorkflowRecord;
-  /** False only when a concurrent insert won the race and its workflow was returned instead. */
-  created: boolean;
-  /** True when an in-flight workflow owned the integration and this submission was parked behind it. */
-  queued: boolean;
-}
-
-const writeStepPlan = async (requestWorkflowId: string, steps: WorkflowStepDefinition[], transaction: any) => {
-  await models.requestWorkflowStep.destroy({ where: { requestWorkflowId }, transaction });
+const writeStepPlan = async (requestWorkflowId: string, steps: WorkflowStepDefinition[], transaction: Transaction) => {
   await models.requestWorkflowStep.bulkCreate(
     steps.map((step, index) => ({
       id: randomUUID(),
@@ -63,94 +52,59 @@ const writeStepPlan = async (requestWorkflowId: string, steps: WorkflowStepDefin
  * Given the caller's `transaction`, the workflow commits with the caller's own writes (the integration
  * row and its `requested` audit event) or not at all; nothing runs until the caller has committed.
  *
- * Concurrency: a partial unique index allows only one *claimable* workflow per integration. A submission
- * that arrives while one is in flight is parked as QUEUED rather than dropped, so an edit made during an
- * apply is never silently lost. A second partial unique index allows only one queued follow-up, so rapid
- * resubmits collapse into "latest desired state wins" instead of stacking up.
+ * Concurrency: an integration has at most one active workflow. A submission that arrives while one is
+ * queued, pending or running is refused with `IntegrationBusyError`, which rolls back the caller's
+ * transaction; the user retries once the workflow has finished.
  */
 export const createWorkflow = async (
   params: CreateWorkflowParams,
   transaction?: Transaction,
-): Promise<CreateWorkflowResult> => {
+): Promise<WorkflowRecord> => {
   const { requestId, type, action, payload, context, steps } = params;
 
-  const fields = {
-    correlationId: params.correlationId || randomUUID(),
-    requestId,
-    type,
-    action,
-    payload,
-    context,
-    lastError: null,
-    runAfter: new Date(),
-  };
-
-  const insert = async (tx: Transaction): Promise<CreateWorkflowResult> => {
-    const inFlight = await models.requestWorkflow.findOne({
-      where: { requestId, state: { [Op.in]: CLAIMABLE_WORKFLOW_STATES } },
+  const insert = async (tx: Transaction): Promise<WorkflowRecord> => {
+    const active = await models.requestWorkflow.findOne({
+      where: { requestId, state: { [Op.in]: ACTIVE_WORKFLOW_STATES } },
+      attributes: ['id'],
       transaction: tx,
       lock: tx.LOCK.UPDATE,
     });
-
-    if (inFlight) {
-      const queued = await models.requestWorkflow.findOne({
-        where: { requestId, state: WorkflowState.QUEUED },
-        transaction: tx,
-        lock: tx.LOCK.UPDATE,
-      });
-
-      // Overwrite the pending follow-up: only the newest submission is worth running. The row is reused
-      // under a new correlation id, so the submission it held is closed out first or its `requested`
-      // event would never be answered.
-      if (queued) {
-        await recordSuperseded(
-          [toPlain<WorkflowRecord>(queued)!],
-          { workflowId: queued.id, operationId: fields.correlationId },
-          tx,
-        );
-        await queued.update(fields, { transaction: tx });
-        await writeStepPlan(queued.id, steps, tx);
-        return { workflow: toPlain<WorkflowRecord>(queued)!, created: true, queued: true };
-      }
-
-      const parked = await models.requestWorkflow.create(
-        { id: params.id || randomUUID(), state: WorkflowState.QUEUED, ...fields },
-        { transaction: tx },
-      );
-
-      await writeStepPlan(parked.id, steps, tx);
-      return { workflow: toPlain<WorkflowRecord>(parked)!, created: true, queued: true };
-    }
+    if (active) throw new IntegrationBusyError();
 
     const workflow = await models.requestWorkflow.create(
-      { id: params.id || randomUUID(), state: WorkflowState.PENDING, ...fields },
+      {
+        id: randomUUID(),
+        state: WorkflowState.PENDING,
+        correlationId: params.correlationId || randomUUID(),
+        requestId,
+        type,
+        action,
+        payload,
+        context,
+        lastError: null,
+        runAfter: new Date(),
+      },
       { transaction: tx },
     );
 
     await writeStepPlan(workflow.id, steps, tx);
-    return { workflow: toPlain<WorkflowRecord>(workflow)!, created: true, queued: false };
+    return toPlain<WorkflowRecord>(workflow)!;
   };
 
   try {
-    // Inside the caller's transaction this is a savepoint: a lost insert race below rolls back only the
-    // savepoint, leaving the caller's transaction usable for adopting the winner.
     return await sequelize.transaction(transaction ? { transaction } : {}, insert);
   } catch (err) {
-    // Row locks cannot block an insert of a row that does not exist yet, so two pods racing the very
-    // first submit both see "no workflow" and both insert. The unique index picks a winner; the loser
-    // adopts it instead of surfacing a 500.
-    if (!(err instanceof UniqueConstraintError)) throw err;
-
-    const winner = await getActiveWorkflowForRequest(requestId, transaction);
-    if (!winner) throw err;
-
-    return { workflow: winner, created: false, queued: winner.state === WorkflowState.QUEUED };
+    // Row locks cannot block an insert of a row that does not exist yet, so two first submissions can
+    // both see no workflow. The one-claimable-workflow index lets only one of them insert.
+    if (err instanceof UniqueConstraintError) throw new IntegrationBusyError();
+    throw err;
   }
 };
 
 /**
- * Hands ownership to the submission that was parked while this workflow was in flight. The guard keeps
- * the promotion from colliding with the one-active-workflow index if another workflow already took over.
+ * New submissions are never queued any more; this only starts a QUEUED follow-up left over from before
+ * concurrent submissions were refused. The guard keeps the promotion from colliding with the
+ * one-active-workflow index if another workflow already took over.
  */
 export const promoteQueuedWorkflow = async (requestId: number): Promise<string | null> => {
   const [rows]: any = await sequelize.query(
@@ -170,7 +124,7 @@ export const promoteQueuedWorkflow = async (requestId: number): Promise<string |
   return rows?.[0]?.id ?? null;
 };
 
-/** Recovery for a pod that died between writing a terminal state and promoting the follow-up. */
+/** Recovery for a leftover QUEUED follow-up whose predecessor ended without promoting it. */
 export const promoteOrphanedQueuedWorkflows = async (limit: number = 25): Promise<string[]> => {
   const [rows]: any = await sequelize.query(
     `UPDATE request_workflows
@@ -192,35 +146,6 @@ export const promoteOrphanedQueuedWorkflows = async (limit: number = 25): Promis
   );
 
   return (rows || []).map((row: any) => row.id);
-};
-
-/**
- * Closes out any in-flight workflow for an integration so a higher-priority workflow (a delete) can take
- * over. The superseded workflow is moved to a terminal state, never left parked in RUNNING.
- */
-export const supersedeActiveWorkflows = async (
-  requestId: number,
-  by: { workflowId?: string; operationId: string },
-  transaction?: Transaction,
-): Promise<number> => {
-  const supersede = async (tx: Transaction) => {
-    const [, affected] = await models.requestWorkflow.update(
-      {
-        state: WorkflowState.SUPERSEDED,
-        lastError: `superseded by delete workflow ${by.operationId}`,
-        claimedBy: null,
-        claimedAt: null,
-        completedAt: new Date(),
-      },
-      { where: { requestId, state: { [Op.in]: ACTIVE_WORKFLOW_STATES } }, returning: true, transaction: tx },
-    );
-    const rows: WorkflowRecord[] = (Array.isArray(affected) ? affected : []).map((row: any) => toPlain(row)!);
-    // In the same transaction as the state change, so a superseded workflow always has its outcome.
-    await recordSuperseded(rows, by, tx);
-    return rows.length;
-  };
-
-  return transaction ? supersede(transaction) : sequelize.transaction(supersede);
 };
 
 const claimQuery = `
@@ -262,10 +187,14 @@ export const claimWorkflow = async (requestWorkflowId: string | null = null): Pr
 export const getWorkflow = async (requestWorkflowId: string): Promise<WorkflowRecord | null> =>
   toPlain<WorkflowRecord>(await models.requestWorkflow.findOne({ where: { id: requestWorkflowId } }));
 
-export const getWorkflowSteps = async (requestWorkflowId: string): Promise<WorkflowStepRecord[]> => {
+export const getWorkflowSteps = async (
+  requestWorkflowId: string,
+  transaction?: Transaction,
+): Promise<WorkflowStepRecord[]> => {
   const steps = await models.requestWorkflowStep.findAll({
     where: { requestWorkflowId },
     order: [['sequence', 'ASC']],
+    transaction,
   });
 
   return steps.map((step: any) => toPlain<WorkflowStepRecord>(step)!);
@@ -289,11 +218,77 @@ export const getActiveWorkflowForRequest = async (
     }),
   );
 
+/**
+ * Locks the integration row and refuses while any workflow for it is active. For changes that may not enqueue
+ * a workflow of their own (deleting an API account that never reached Keycloak), so `createWorkflow` would never
+ * see the conflict. The request row is locked first, the order every other writer uses.
+ */
+export const lockIdleIntegration = async (requestId: number, transaction: Transaction): Promise<void> => {
+  await models.request.findOne({
+    where: { id: requestId },
+    attributes: ['id'],
+    lock: transaction.LOCK.UPDATE,
+    transaction,
+  });
+  if (await getActiveWorkflowForRequest(requestId, transaction)) throw new IntegrationBusyError();
+};
+
+/**
+ * Whether a workflow ever tried to apply the integration's Keycloak clients. A failed or unfinished apply may
+ * have created a client without recording an outcome, so this is what decides whether a delete has anything to
+ * tear down, rather than only the recorded outcomes.
+ */
+export const hasAttemptedKeycloakApply = async (requestId: number, transaction?: Transaction): Promise<boolean> => {
+  const [rows]: any = await sequelize.query(
+    `SELECT EXISTS (
+       SELECT 1
+         FROM request_workflow_steps s
+         JOIN request_workflows w ON w.id = s.request_workflow_id
+        WHERE w.request_id = :requestId
+          AND s.name LIKE 'APPLY\\_%'
+          AND s.attempts > 0
+     ) AS attempted`,
+    { replacements: { requestId }, transaction },
+  );
+  return rows?.[0]?.attempted === true;
+};
+
 export const getLatestWorkflowForRequest = async (requestId: number): Promise<WorkflowRecord | null> =>
   toPlain<WorkflowRecord>(
     await models.requestWorkflow.findOne({
       where: { requestId },
       order: [workflowPriorityOrder, ['createdAt', 'DESC']],
+    }),
+  );
+
+/** The integration's most recent workflow, locked so its SDX step state cannot change under the caller. */
+export const getWorkflowForResubmission = async (
+  requestId: number,
+  transaction: Transaction,
+): Promise<WorkflowRecord | null> =>
+  toPlain<WorkflowRecord>(
+    await models.requestWorkflow.findOne({
+      where: { requestId },
+      order: [['createdAt', 'DESC']],
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    }),
+  );
+
+export const getLatestSdxWorkflowForRequest = async (
+  requestId: number,
+  transaction: Transaction,
+): Promise<WorkflowRecord | null> =>
+  toPlain<WorkflowRecord>(
+    await models.requestWorkflow.findOne({
+      where: {
+        requestId,
+        state: { [Op.ne]: WorkflowState.SUPERSEDED },
+        [Op.and]: [sequelize.where(sequelize.literal(`"context"->>'sdx'`), { [Op.ne]: null })],
+      },
+      order: [['createdAt', 'DESC']],
+      transaction,
+      lock: transaction.LOCK.UPDATE,
     }),
   );
 
@@ -324,13 +319,60 @@ export const releaseWorkflow = async (requestWorkflowId: string, values: Record<
 export const releaseWorkflowIfActive = async (
   requestWorkflowId: string,
   values: Record<string, any> = {},
+  transaction?: Transaction,
 ): Promise<boolean> => {
   const [affected] = await models.requestWorkflow.update(
     { claimedBy: null, claimedAt: null, ...values },
-    { where: { id: requestWorkflowId, state: { [Op.in]: CLAIMABLE_WORKFLOW_STATES } } },
+    { where: { id: requestWorkflowId, state: { [Op.in]: CLAIMABLE_WORKFLOW_STATES } }, transaction },
   );
 
   return affected > 0;
+};
+
+/**
+ * Repairs integrations left in flight after their workflow ended, which made every submission and delete
+ * look busy forever. Before the terminal state and the request status were written in one transaction, a
+ * crash between the two left exactly that. Only rows nothing has touched since their latest workflow ended
+ * are repaired, so a status an admin set by hand afterwards is left alone. Rows a submission holds locked
+ * are skipped and picked up on a later tick.
+ */
+export const repairStuckRequestStatuses = async (limit: number = 25): Promise<{ id: number; status: string }[]> => {
+  const [rows]: any = await sequelize.query(
+    `WITH stuck AS (
+       SELECT r.id, latest.state, latest.current_step
+         FROM requests r
+         CROSS JOIN LATERAL (
+           SELECT w.state, w.current_step, w.completed_at
+             FROM request_workflows w
+            WHERE w.request_id = r.id
+            ORDER BY w.created_at DESC
+            LIMIT 1
+         ) latest
+        WHERE r.status IN ('submitted', 'planned')
+          AND latest.state IN ('COMPLETED', 'FAILED')
+          AND latest.completed_at >= r.updated_at
+          AND NOT EXISTS (
+            SELECT 1 FROM request_workflows active
+             WHERE active.request_id = r.id
+               AND active.state IN ('QUEUED', 'PENDING', 'RUNNING')
+          )
+        LIMIT :limit
+        FOR UPDATE OF r SKIP LOCKED
+     )
+     UPDATE requests r
+        SET status = (CASE
+              WHEN stuck.state = 'COMPLETED' THEN 'applied'
+              WHEN stuck.current_step = 'PLAN' THEN 'planFailed'
+              ELSE 'applyFailed'
+            END)::enum_requests_status,
+            updated_at = NOW()
+       FROM stuck
+      WHERE r.id = stuck.id
+      RETURNING r.id, r.status`,
+    { replacements: { limit } },
+  );
+
+  return rows || [];
 };
 
 /** Keeps a long-running step from having its lease stolen mid-flight. */

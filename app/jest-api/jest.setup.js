@@ -18,6 +18,9 @@ process.env.VERIFY_USER_SECRET = 'test';
 // Run integration sagas inline so API specs observe the final outcome within the request call.
 process.env.WORKFLOW_EXECUTION_MODE = 'synchronous';
 process.env.WORKFLOW_MAX_STEP_ATTEMPTS = '1';
+// Required steps retry without limit by default. API specs assert a failure's outcome, so they cap it at one
+// attempt; 17.request-workflows covers the unlimited default.
+process.env.WORKFLOW_REQUIRED_STEP_ATTEMPT_LIMIT = '1';
 process.env.WORKFLOW_RETRY_BASE_DELAY_MS = '0';
 process.env.WORKFLOW_RETRY_MAX_DELAY_MS = '0';
 

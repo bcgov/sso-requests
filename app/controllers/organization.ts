@@ -10,7 +10,7 @@ import { getDisplayName } from '@app/utils/helpers';
 import { lowcase } from '@app/helpers/string';
 import { appPermissions, hasAppPermission, organizationPermissions, teamPermissions } from '@app/utils/authorize';
 import {
-  checkIfRequestMerged,
+  lockApiAccountForDeletion,
   assertWorkflowCompleted,
   enqueueIntegrationWorkflow,
   runIntegrationWorkflow,
@@ -541,7 +541,7 @@ export const createOrganizationApiAccount = async (session: Session, organizatio
 
     account.clientId = `service-account-org-${organizationId}-${account.id}`;
     const saved = await account.save({ transaction });
-    const enqueued = await enqueueIntegrationWorkflow(saved, { awaitCompletion: true }, transaction);
+    const enqueued = await enqueueIntegrationWorkflow(saved, {}, transaction);
     return { saved, enqueued };
   });
 
@@ -598,19 +598,19 @@ export const updateOrganizationApiAccountSecret = async (
 export const deleteOrganizationApiAccount = async (session: Session, organizationId: number, accountId: number) => {
   await assertOrganization(session, organizationId, organizationPermissions.MANAGE_ORG_API_ACCOUNTS);
   const account = await getOrganizationApiAccount(organizationId, accountId);
-  const isMerged = await checkIfRequestMerged(accountId);
 
   account.requester = getDisplayName(session);
   account.status = 'submitted';
   account.archived = true;
   account.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
 
-  // An applied account is deleted by a workflow that removes its client; one that never reached
-  // Keycloak is deleted by this change alone.
+  // An account that reached Keycloak is deleted by a workflow that removes its client; one that never did
+  // is deleted by this change alone. Refused while the account's own workflow is still running.
   const { saved, enqueued } = await sequelize.transaction(async (transaction) => {
+    const reachedKeycloak = await lockApiAccountForDeletion(accountId, transaction);
     const saved = await account.save({ transaction });
-    if (isMerged) {
-      return { saved, enqueued: await enqueueIntegrationWorkflow(saved, { awaitCompletion: true }, transaction) };
+    if (reachedKeycloak) {
+      return { saved, enqueued: await enqueueIntegrationWorkflow(saved, {}, transaction) };
     }
     await audit.createEvent(
       { action: 'api-account-delete', outcome: 'success', requestId: accountId, organizationId, details: {} },
@@ -619,7 +619,7 @@ export const deleteOrganizationApiAccount = async (session: Session, organizatio
     return { saved, enqueued: undefined };
   });
 
-  if (isMerged) assertWorkflowCompleted(await runIntegrationWorkflow(enqueued, { awaitCompletion: true }));
+  assertWorkflowCompleted(await runIntegrationWorkflow(enqueued, { awaitCompletion: true }));
   return saved;
 };
 

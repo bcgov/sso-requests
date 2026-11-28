@@ -15,7 +15,7 @@ import { getTeamEmails } from '@app/shared/templates/helpers';
 import { EMAILS } from '@app/shared/enums';
 import { User, Team, Member, Session } from '@app/shared/interfaces';
 import {
-  checkIfRequestMerged,
+  lockApiAccountForDeletion,
   assertWorkflowCompleted,
   enqueueIntegrationWorkflow,
   runIntegrationWorkflow,
@@ -387,7 +387,7 @@ export const requestServiceAccount = async (session: Session, teamId: number, re
     serviceAccount.environments = ['prod']; // service accounts are by default only created in prod
     const saved = await serviceAccount.save({ transaction });
 
-    const enqueued = await enqueueIntegrationWorkflow(saved, { awaitCompletion: true }, transaction);
+    const enqueued = await enqueueIntegrationWorkflow(saved, {}, transaction);
     return { serviceAccount: saved, enqueued };
   });
 
@@ -478,18 +478,18 @@ export const deleteServiceAccount = async (session: Session, teamId: number, saI
       throw new createHttpError.NotFound('could not find api account');
     }
     const team = await getTeamById(teamId);
-    const isMerged = await checkIfRequestMerged(saId);
     const requester = getDisplayName(session);
     serviceAccount.requester = requester;
     serviceAccount.status = 'submitted';
     serviceAccount.archived = true;
     serviceAccount.updatedAt = sequelize.literal('CURRENT_TIMESTAMP');
 
-    // An applied account is deleted by a workflow that removes its client; one that never reached
-    // Keycloak is deleted by this change alone.
+    // An account that reached Keycloak is deleted by a workflow that removes its client; one that never did
+    // is deleted by this change alone. Refused while the account's own workflow is still running.
     const enqueued = await sequelize.transaction(async (transaction) => {
+      const reachedKeycloak = await lockApiAccountForDeletion(saId, transaction);
       await serviceAccount.save({ transaction });
-      if (isMerged) return enqueueIntegrationWorkflow(serviceAccount, { awaitCompletion: true }, transaction);
+      if (reachedKeycloak) return enqueueIntegrationWorkflow(serviceAccount, {}, transaction);
       await audit.createEvent(
         { action: 'api-account-delete', outcome: 'success', requestId: saId, teamId, details: {} },
         transaction,
@@ -497,7 +497,7 @@ export const deleteServiceAccount = async (session: Session, teamId: number, saI
       return undefined;
     });
 
-    if (isMerged) assertWorkflowCompleted(await runIntegrationWorkflow(enqueued, { awaitCompletion: true }));
+    assertWorkflowCompleted(await runIntegrationWorkflow(enqueued, { awaitCompletion: true }));
 
     await sendTemplate(EMAILS.DELETE_TEAM_API_ACCOUNT_SUBMITTED, { team, requester });
 
@@ -543,7 +543,7 @@ export const restoreTeamServiceAccount = async (session: Session, teamId: number
 
   const enqueued = await sequelize.transaction(async (transaction) => {
     const saved = await serviceAccount.save({ transaction });
-    return enqueueIntegrationWorkflow(saved, { restore: true, awaitCompletion: true }, transaction);
+    return enqueueIntegrationWorkflow(saved, { restore: true }, transaction);
   });
   assertWorkflowCompleted(await runIntegrationWorkflow(enqueued, { awaitCompletion: true }));
 

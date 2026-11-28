@@ -8,7 +8,7 @@ export const RESTING: readonly Status[] = ['draft', 'applied', 'planFailed', 'ap
 
 export const SETTLED: readonly Status[] = ['draft', 'applied'];
 
-export type Intent = 'save' | 'submit' | 'resubmit' | 'deleteDraft' | 'requestDelete' | 'forceDelete';
+export type Intent = 'save' | 'submit' | 'resubmit' | 'deleteDraft' | 'requestDelete';
 
 export interface Transition {
   from: readonly Status[];
@@ -29,35 +29,39 @@ const APPROVALS: readonly Permission[] = [
 export const TRANSITIONS: Record<Intent, Transition> = {
   save: { from: ['draft'], to: 'draft', anyOf: ['integrations:write'] },
   submit: { from: RESTING, to: 'submitted', anyOf: ['integrations:write', ...APPROVALS] },
-  // Resubmit is "retry the workflow": anything in flight or that ended badly
-  // qualifies, for anyone who could have submitted it.
+  // Resubmit is "retry the workflow" once it has failed, for anyone who could have
+  // submitted it. A workflow still in flight is left to the engine's own retries.
   resubmit: {
-    from: ['submitted', 'planned', 'planFailed', 'applyFailed'],
+    from: ['planFailed', 'applyFailed'],
     to: 'submitted',
     anyOf: ['integrations:write', ...APPROVALS],
   },
   // Deleting a draft archives it in place; deleting anything that reached
   // Keycloak is itself a submission, so the clients get torn down.
   deleteDraft: { from: ['draft'], to: 'draft', anyOf: ['integrations:delete'] },
+  // An integration in flight cannot be deleted by anyone until its workflow ends.
   requestDelete: {
     from: RESTING.filter((status) => status !== 'draft'),
     to: 'submitted',
     anyOf: ['integrations:delete'],
   },
-  // The admin override, as a row in the table rather than a path around it.
-  forceDelete: { from: IN_FLIGHT, to: 'submitted', anyOf: ['integrations:delete-in-flight'] },
 };
+
+export const INTEGRATION_BUSY_MESSAGE =
+  'Another update or deletion of this integration is in progress. Try again once it completes.';
+export const INTEGRATION_CHANGED_MESSAGE = 'This integration was changed by another request. Reload it and try again.';
+
+// A refusal the user resolves by waiting or reloading, worth showing as is; anything else keeps a generic message.
+export const concurrencyRefusal = (error: unknown): string | null =>
+  typeof error === 'string' && [INTEGRATION_BUSY_MESSAGE, INTEGRATION_CHANGED_MESSAGE].includes(error) ? error : null;
 
 export const isInFlight = (status: string | undefined) => IN_FLIGHT.includes(status as Status);
 export const isResting = (status: string | undefined) => RESTING.includes(status as Status);
 export const isSettled = (status: string | undefined) => SETTLED.includes(status as Status);
 
 // Which delete transition a row in this status is a candidate for.
-export const deleteIntentFor = (status: string | undefined): Intent => {
-  if (status === 'draft') return 'deleteDraft';
-  if (isInFlight(status)) return 'forceDelete';
-  return 'requestDelete';
-};
+export const deleteIntentFor = (status: string | undefined): Intent =>
+  status === 'draft' ? 'deleteDraft' : 'requestDelete';
 
 export type TransitionRefusal =
   | { reason: 'status'; from: Status }

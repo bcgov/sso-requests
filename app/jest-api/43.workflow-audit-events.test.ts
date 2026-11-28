@@ -235,9 +235,11 @@ describe('workflow-backed operations and their audit events', () => {
       (keycloakClient as jest.Mock).mockImplementation(() => Promise.resolve(false));
       const team = await createTeam({ name: 'audited team', members: [] });
       await createAccount(team.body.id);
-      // Drop its apply outcome, so it reads as an account whose workflow never applied anything.
+      // Drop its apply outcome and its APPLY attempt, so it reads as an account whose workflow ended before it
+      // ever reached Keycloak.
       const account = await models.request.findOne({ where: { teamId: team.body.id, apiServiceAccount: true } });
       await models.event.destroy({ where: { requestId: account.id } });
+      await models.requestWorkflowStep.update({ attempts: 0, state: 'PENDING' }, { where: { name: 'APPLY_PROD' } });
 
       const deleted = await testClient(serviceAccountHandler).delete(
         `${API_BASE_PATH}/teams/${team.body.id}/service-accounts/${account.id}`,
@@ -248,6 +250,25 @@ describe('workflow-backed operations and their audit events', () => {
       expect(events.map((event: any) => [event.outcome, event.teamId, event.workflowId])).toEqual([
         ['success', team.body.id, null],
       ]);
+    });
+
+    it('deletes through a workflow an account whose create tried Keycloak without recording an outcome', async () => {
+      (keycloakClient as jest.Mock).mockImplementation(() => Promise.resolve(false));
+      const team = await createTeam({ name: 'audited team', members: [] });
+      await createAccount(team.body.id);
+      // The create's APPLY ran and may have made a client, but its outcome was never written.
+      const account = await models.request.findOne({ where: { teamId: team.body.id, apiServiceAccount: true } });
+      await models.event.destroy({ where: { requestId: account.id } });
+      (keycloakClient as jest.Mock).mockImplementation(() => Promise.resolve(true));
+
+      const deleted = await testClient(serviceAccountHandler).delete(
+        `${API_BASE_PATH}/teams/${team.body.id}/service-accounts/${account.id}`,
+      );
+      expect(deleted.status).toBe(200);
+
+      expectAnswered(await operations(account.id, 'api-account-delete'));
+      const deletion = (await getWorkflows()).find((workflow: any) => workflow.type === 'INTEGRATION_DELETE');
+      expect(deletion?.state).toBe('COMPLETED');
     });
   });
 });

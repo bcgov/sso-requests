@@ -1,6 +1,7 @@
 import { models } from '@app/shared/sequelize/models/models';
 import { Session } from '@app/shared/interfaces';
 import { hasTeamPermission, teamRolePermissionMap } from '@app/utils/authorize';
+import { Transaction } from 'sequelize';
 
 // What one user may do to one team. `role` is the accepted usersTeam role or
 // null; `permissions` is that role's team vocabulary (add_member, delete_team…),
@@ -15,7 +16,11 @@ export interface TeamAccess {
 // confers nothing. This is the leaf that integration authority composes: the
 // same lookup answers "may I add a member to this team" and "what may I do to
 // the integrations this team owns".
-const findMemberships = async (userId: number, teamIds?: number[]): Promise<Map<number, string>> => {
+const findMemberships = async (
+  userId: number,
+  teamIds?: number[],
+  transaction?: Transaction,
+): Promise<Map<number, string>> => {
   const where: any = { userId, pending: false };
   if (teamIds) where.teamId = teamIds;
 
@@ -23,14 +28,18 @@ const findMemberships = async (userId: number, teamIds?: number[]): Promise<Map<
     where,
     attributes: ['teamId', 'role'],
     raw: true,
+    transaction,
   });
   return new Map(memberships.map((row: { teamId: number; role: string }) => [row.teamId, row.role]));
 };
 
 // Narrowed to teams already in hand — a single row's team, or the teams owning
 // a set of rows.
-export const resolveTeamRoles = async (userId: number, teamIds: number[]): Promise<Map<number, string>> =>
-  teamIds.length === 0 ? new Map() : findMemberships(userId, teamIds);
+export const resolveTeamRoles = async (
+  userId: number,
+  teamIds: number[],
+  transaction?: Transaction,
+): Promise<Map<number, string>> => (teamIds.length === 0 ? new Map() : findMemberships(userId, teamIds, transaction));
 
 // Every membership, for the access scope a list query is built from: the
 // predicate is derived from what the user belongs to, before any row is read.

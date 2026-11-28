@@ -37,4 +37,10 @@ spec:
                 secretKeyRef:
                   name: {{ include "..fullname" . }}
                   key: app-url
+            # Where the recovery tick reports that it keeps failing, the same channel as the workflow alerts.
+            - name: RC_SSO_OPS_WEBHOOK
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "..fullname" . }}
+                  key: rc_webhook_url
 {{- end }}

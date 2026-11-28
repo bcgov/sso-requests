@@ -6,11 +6,14 @@ import { authorizeIntegration } from '@app/queries/integrationAccess';
 import { audit } from '@app/queries/event';
 import { getAdminClient } from '@app/keycloak/adminClient';
 import { getClientScopes } from '@app/keycloak/clientScopes';
-import { createSdxAccessRequest } from '@app/queries/sdx-services';
+import { createSdxAccessRequest, hasSdxAccessRequest, isArchivedSdxIntegration } from '@app/queries/sdx-services';
+import { externalRequestSignal } from '@app/utils/timeouts';
 import { Integration } from '@app/interfaces/Request';
 import { getUserById } from '@app/queries/user';
 import { getPrivacyZoneURI } from '@app/utils/bcsc-client';
 import { SDX_ENVIRONMENTS } from '@app/utils/constants';
+import { TRANSITIONS, isInFlight } from '@app/helpers/transitions';
+import type { SdxWorkflowRequest } from '@app/workflow/types';
 import ClientRepresentation from '@keycloak/keycloak-admin-client/lib/defs/clientRepresentation';
 
 import { logger } from '@app/utils/logger';
@@ -41,6 +44,7 @@ const getToken = async () => {
       client_id: process.env.SDX_CLIENT_ID || '',
       client_secret: process.env.SDX_CLIENT_SECRET || '',
     }),
+    signal: externalRequestSignal(),
   })
     .then((response) => response.json())
     .then((data) => data.access_token)
@@ -59,10 +63,18 @@ export const getSdxServicesForClient = async (
   if (!authorized) throw new Error('Request not found');
   const { integration: current } = authorized;
 
+  return getSdxServices(requestId, current.clientId, status);
+};
+
+const getSdxServices = async (
+  requestId: number,
+  clientId: string,
+  status: string,
+): Promise<{ clientId: string; resourceServers: SDXResourceServer[] }> => {
   const envs = getSdxEnvironments();
 
   const data = {
-    clientId: current.clientId,
+    clientId,
     resourceServers: [] as SDXResourceServer[],
   };
 
@@ -71,13 +83,12 @@ export const getSdxServicesForClient = async (
     const resourceServersByEnvironment = await Promise.all(
       Object.values(envs).map((env) =>
         fetch(
-          `${process.env.SDX_API || ''}/integrations/${
-            current?.id
-          }/allowed-services?environment=${env}&status=${status}`,
+          `${process.env.SDX_API || ''}/integrations/${requestId}/allowed-services?environment=${env}&status=${status}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
+            signal: externalRequestSignal(),
           },
         )
           .then((response) => response.json())
@@ -101,6 +112,7 @@ export const listSdxResourceServers = async (): Promise<SDXResourceServer[]> => 
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          signal: externalRequestSignal(),
         });
         return (await response.json()) as SDXResourceServer[];
       }),
@@ -328,76 +340,141 @@ export const validateSdxResourceServers = async (requested: SDXResourceServer[])
   return Array.from(validated.values());
 };
 
-export const createSdxRequest = async (session: Session, request: Integration) => {
-  // Rejected before anything is sent to SDX or recorded, so a bad request leaves no audit row.
+// An applied integration that turns SDX off sends an empty selection, which SDX treats as revoking all access.
+export const isSdxRevokeAll = (original: Integration, current: Integration) =>
+  !!original.sdxEnabled &&
+  !current.sdxEnabled &&
+  current.status === 'applied' &&
+  Array.isArray(current.sdxServices?.resourceServers) &&
+  current.sdxServices.resourceServers.length === 0;
+
+export const validateSdxRequest = async (request: Integration): Promise<SDXResourceServer[]> => {
   if (!request.sdxServices) throw new createHttpError.BadRequest('SDX services cannot be empty');
   if ((request.sdxServices.resourceServers || []).length === 0) {
     throw new createHttpError.BadRequest('SDX resource servers cannot be empty');
   }
   const resourceServers = await validateSdxResourceServers(request.sdxServices.resourceServers);
   if (resourceServers.length === 0) throw new createHttpError.BadRequest('SDX resource servers cannot be empty');
+  return resourceServers;
+};
 
+export const createSdxRequest = async (session: Session, request: Integration, { revokeAll = false } = {}) => {
+  const resourceServers = revokeAll ? [] : await validateSdxRequest(request);
+  return submitSdxRequest(session.user?.id || 0, request, { revokeAll, resourceServers });
+};
+
+/** An access request SDX accepted: enough to record it locally again without sending it to SDX a second time. */
+export interface SdxSubmission {
+  submissionId: string;
+  requesterName: string;
+  accessRequest: SDXAccessRequest;
+}
+
+export interface SubmitSdxOptions {
+  revokeAll: boolean;
+  resourceServers: SDXResourceServer[];
+  /** What SDX accepted on an earlier attempt. It is not sent again, only recorded if that record is missing. */
+  accepted?: SdxSubmission;
+  /**
+   * Called the moment SDX accepts, before anything that can still fail. SDX opens a new access request for every
+   * POST, so this is how a retry of the steps that follow knows not to send it again.
+   */
+  onAccepted?: (submission: SdxSubmission) => Promise<void>;
+}
+
+const sendSdxAccessRequest = async (
+  requesterId: number,
+  request: SdxWorkflowRequest,
+  resourceServers: SDXResourceServer[],
+  onAccepted?: SubmitSdxOptions['onAccepted'],
+) => {
+  const user = await getUserById(requesterId, { raw: true });
+  const requesterName = user?.displayName || '';
+
+  const privacyZoneUri = await getPrivacyZoneURI('prod', request.bcscPrivacyZone || '');
+  const sdxRequestData: SDXAccessRequest = {
+    integrationId: request.id!,
+    resourceServers,
+    requester: {
+      displayName: requesterName,
+      email: user?.idirEmail || '',
+    },
+    clientId: request.clientId || '',
+    policyVersion: 'SDX.R1.00',
+    privacyZone: privacyZoneUri,
+  };
+
+  // The access request row mirrors what SDX accepted, so it commits with the success event. The Keycloak
+  // scope sync that follows is separate; a failure there fails the request but not the recorded SDX submission.
+  await audit.runAuditedOperation(
+    { action: 'sdx-request-create', requestId: request.id, details: { services: { resourceServers } } },
+    async () => {
+      const response = await fetch(`${process.env.SDX_API || ''}/integrations/${request.id!}/access-requests`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${await getToken()}`,
+        },
+        body: JSON.stringify(sdxRequestData),
+        // No short timeout here, unlike SDX's reads: SDX opens an access request for every POST, so giving up on a
+        // slow one and retrying would open a second. The step's own timeout still bounds it.
+      });
+
+      if (!response.ok) {
+        log.error(
+          { requestId: request.id, status: response.status, statusText: response.statusText },
+          'failed to create SDX request',
+        );
+        // The status tells the workflow whether SDX is down (retry) or rejected the request (fail).
+        throw Object.assign(new Error('Failed to create SDX request'), { status: response.status });
+      }
+
+      const responseData = await response.json();
+      await onAccepted?.({
+        submissionId: String(responseData.submissionId || ''),
+        requesterName,
+        accessRequest: sdxRequestData,
+      });
+      return responseData;
+    },
+    {
+      onSuccess: (transaction, responseData) =>
+        createSdxAccessRequest(
+          responseData.submissionId || '',
+          requesterName,
+          request.id!,
+          sdxRequestData,
+          transaction,
+        ),
+      successDetails: (responseData) => ({ submissionId: responseData.submissionId }),
+    },
+  );
+};
+
+/** Restores the local record of an accepted submission when the attempt that sent it failed before writing it. */
+const recordAcceptedSdxSubmission = async (requestId: number, accepted: SdxSubmission) => {
+  if (await hasSdxAccessRequest(requestId, accepted.submissionId)) return;
+  log.warn({ requestId, submissionId: accepted.submissionId }, 'recording an SDX submission accepted earlier');
+  await createSdxAccessRequest(accepted.submissionId, accepted.requesterName, requestId, accepted.accessRequest);
+};
+
+export const submitSdxRequest = async (
+  requesterId: number,
+  request: SdxWorkflowRequest,
+  { revokeAll, resourceServers, accepted, onAccepted }: SubmitSdxOptions,
+) => {
   try {
-    const user = await getUserById(session.user?.id || 0, { raw: true });
-
-    const privacyZoneUri = await getPrivacyZoneURI('prod', request.bcscPrivacyZone || '');
-    const sdxRequestData = {
-      integrationId: request.id!,
-      resourceServers,
-      requester: {
-        displayName: user?.displayName || '',
-        email: user?.idirEmail || '',
-      },
-      clientId: request.clientId || '',
-      policyVersion: 'SDX.R1.00',
-      privacyZone: privacyZoneUri,
-    };
-
-    // The access request row mirrors what SDX accepted, so it commits with the success event. The Keycloak
-    // scope sync below follows it; a failure there fails the request but not the recorded SDX submission.
-    await audit.runAuditedOperation(
-      { action: 'sdx-request-create', requestId: request.id, details: { services: { resourceServers } } },
-      async () => {
-        const response = await fetch(`${process.env.SDX_API || ''}/integrations/${request.id!}/access-requests`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${await getToken()}`,
-          },
-          body: JSON.stringify(sdxRequestData),
-        });
-
-        if (!response.ok) {
-          log.error(
-            { requestId: request.id, status: response.status, statusText: response.statusText },
-            'failed to create SDX request',
-          );
-          throw new Error('Failed to create SDX request');
-        }
-
-        return response.json();
-      },
-      {
-        onSuccess: (transaction, responseData) =>
-          createSdxAccessRequest(
-            responseData.submissionId || '',
-            user?.displayName || '',
-            request.id!,
-            sdxRequestData,
-            transaction,
-          ),
-        successDetails: (responseData) => ({ submissionId: responseData.submissionId }),
-      },
-    );
+    if (accepted) await recordAcceptedSdxSubmission(request.id!, accepted);
+    else await sendSdxAccessRequest(requesterId, request, resourceServers, onAccepted);
 
     await initializeScopes(resourceServers);
 
-    // If the request is already applied, we need to check for removed scopes and remove them from Keycloak
-    if (request.status === 'applied') {
+    // A revoke-all leaves scope removal to the SDX callback, which arrives with an empty selection.
+    if (!revokeAll) {
       const subSystem = await getSdxSubsystemStatus(request.id!);
 
       if (subSystem?.status === 'registered') {
-        const existingSdxAccess = await getSdxServicesForClient(session, request.id!, 'approved');
+        const existingSdxAccess = await getSdxServices(request.id!, request.clientId || '', 'approved');
         const removedScopesByEnv = getRemovedScopes(existingSdxAccess.resourceServers, resourceServers);
         await Promise.all(
           Object.entries(removedScopesByEnv).map(([sdxEnvironment, scopes]) =>
@@ -408,7 +485,7 @@ export const createSdxRequest = async (session: Session, request: Integration) =
     }
   } catch (error) {
     log.error({ err: error }, 'error creating SDX request');
-    throw new Error('Failed to process request for SDX services');
+    throw new Error('Failed to process request for SDX services', { cause: error });
   }
 
   return {
@@ -447,6 +524,29 @@ const initializeScopes = async (resourceServers: SDXResourceServer[]) => {
   );
 };
 
+/**
+ * Creates a realm-wide client scope. Scopes are shared, so another integration's workflow may create the same one
+ * between our lookup and this call: Keycloak's 409 then means it exists, and its id is looked up instead.
+ */
+const createRealmScope = async (
+  kcAdminClient: Awaited<ReturnType<typeof getAdminClient>>['kcAdminClient'],
+  realmName: string,
+  scopeName: string,
+): Promise<string | null> => {
+  try {
+    const scope = await kcAdminClient.clientScopes.create({
+      realm: realmName,
+      name: scopeName,
+      protocol: 'openid-connect',
+    });
+    return scope.id!;
+  } catch (err: any) {
+    if ((err?.response?.status ?? err?.status) !== 409) throw err;
+    const existing = await kcAdminClient.clientScopes.findOneByName({ realm: realmName, name: scopeName });
+    return existing?.id ?? null;
+  }
+};
+
 const keycloakSyncScopes = async (environment: string, realmName: string, scopes: string[]) => {
   const existingScopes = await getClientScopes({ environment, realmName });
   const existingScopeNames = new Set(existingScopes.map((scope) => scope.name));
@@ -460,12 +560,7 @@ const keycloakSyncScopes = async (environment: string, realmName: string, scopes
     scopes.map(async (scopeName) => {
       let scopeId = null;
       if (!existingScopeNames.has(scopeName)) {
-        const scope = await kcAdminClient.clientScopes.create({
-          realm: realmName,
-          name: scopeName,
-          protocol: 'openid-connect',
-        });
-        scopeId = scope.id!;
+        scopeId = await createRealmScope(kcAdminClient, realmName, scopeName);
       } else {
         scopeId = existingScopes.find((scope) => scope.name === scopeName)?.id || null;
       }
@@ -482,6 +577,7 @@ const keycloakSyncScopes = async (environment: string, realmName: string, scopes
 };
 
 export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAccessRequest) => {
+  const revokeAll = Array.isArray(data.resourceServers) && data.resourceServers.length === 0;
   const integrationData = await getIntegrationById(requestId, [
     'id',
     'environments',
@@ -491,14 +587,25 @@ export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAcce
   ]);
 
   if (!integrationData) {
+    if (revokeAll && (await isArchivedSdxIntegration(requestId))) {
+      // The archived client ID may now belong to another integration.
+      log.info({ requestId }, 'acknowledged SDX revoke-all callback for archived integration');
+      return;
+    }
     throw new Error(`Integration with ID ${requestId} not found`);
   }
 
-  if (!integrationData.sdxEnabled) {
+  // The callback for a revoke-all arrives after the integration has turned SDX off.
+  if (!integrationData.sdxEnabled && !revokeAll) {
     throw new Error(`SDX is not enabled for integration with ID ${requestId}`);
   }
 
-  if (integrationData.status !== 'applied') {
+  // allow revoke-all even if the integration is not in applied state
+  if (integrationData.status !== 'applied' && !revokeAll) {
+    // In flight or awaiting resubmission: the integration will be applied, so SDX should retry later.
+    if (isInFlight(integrationData.status) || TRANSITIONS.resubmit.from.includes(integrationData.status)) {
+      throw new createHttpError.ServiceUnavailable(`Integration with ID ${requestId} is not in applied state`);
+    }
     throw new Error(`Integration with ID ${requestId} is not in applied state`);
   }
 
@@ -510,7 +617,11 @@ export const processSdxWorkflowUpdates = async (requestId: number, data: SDXAcce
       details: { resourceServers: data.resourceServers },
     },
     async () => {
-      if (data.resourceServers && data.resourceServers.length > 0) {
+      if (revokeAll) {
+        await Promise.all(
+          ['dev', 'test', 'prod'].map((env) => manageKeycloakScopes(integrationData.clientId, env, [])),
+        );
+      } else if (data.resourceServers && data.resourceServers.length > 0) {
         const scopesByEnvironment = new Map<string, Set<string>>();
         for (const rs of data.resourceServers) {
           for (const service of rs.services || []) {
@@ -624,17 +735,19 @@ export const getSdxSubsystemStatus = async (requestId: number) => {
       headers: {
         Authorization: `Bearer ${await getToken()}`,
       },
+      signal: externalRequestSignal(),
     });
 
     if (!response.ok) {
       log.error({ requestId, status: response.status, statusText: response.statusText }, 'failed to fetch SDX status');
-      throw new Error('Failed to fetch SDX status');
+      // Carried as the cause below, so a workflow fails a status SDX will keep returning instead of retrying it.
+      throw Object.assign(new Error('Failed to fetch SDX status'), { status: response.status });
     }
 
     const data = await response.json();
     return data;
   } catch (error) {
     log.error({ err: error }, 'Error fetching SDX status');
-    throw new Error('Failed to fetch SDX status');
+    throw new Error('Failed to fetch SDX status', { cause: error });
   }
 };
